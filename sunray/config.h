@@ -135,9 +135,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Bluetooth_BLE_UART_module
 
 #define START_AP  false             // should WIFI module start its own access point? 
-#define WIFI_SSID "network"        // your network SSID (name)
-#define WIFI_PASS "password"    // your network password
 #define WIFI_IP   192,168,2,15      // choose IP e.g. 192.168.4.1  (comment out for dynamic IP/DHCP)
+#include "config_password.h"       // please open and set your network ID and password in file 'config_password.h'
 
 #define ENABLE_SERVER true          // must be enabled for web app
 //#define ENABLE_SERVER false
