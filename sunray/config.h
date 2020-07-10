@@ -19,8 +19,10 @@
 
 1. Install the Ardumower Sunray library:
    Copy folder 'Sunray_Lib' to 'C:\Program Files(x86)\Arduino\Libraries'
+   
+2. Rename file 'config_password_example.h' into 'config_password.h'
 
-2. Compile and upload this project (sunray.ino):
+3. Configure the options below and finally compile and upload this project.
 
 Arduino UPLOAD NOTE:  
 
