@@ -1,4 +1,4 @@
 
-#define WIFI_SSID "network"        // choose WiFi network ID
-#define WIFI_PASS "password"       // choose WiFi network password
+#define WIFI_SSID "test"        // choose WiFi network ID
+#define WIFI_PASS "test"       // choose WiFi network password
 
