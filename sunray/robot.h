@@ -4,7 +4,6 @@
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
 
-// NOTE: don't forget to copy the folder 'Sunray_Lib' to 'C:\Program files(x86)\Arduino\libraries'
 
 
 #ifndef ROBOT_H
@@ -17,7 +16,7 @@
 #include "pinman.h"
 #include "buzzer.h"
 #include "sonar.h"
-#include "sunray_map.h"   // requires Sunray_Lib
+#include "map.h"   
 #include "ublox.h"
 #include "WiFiEsp.h"
 
