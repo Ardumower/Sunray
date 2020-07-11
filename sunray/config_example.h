@@ -138,8 +138,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define START_AP  false             // should WIFI module start its own access point?
 //#define WIFI_IP   192,168,2,15      // choose IP e.g. 192.168.4.1  (comment out for dynamic IP/DHCP)
-#define WIFI_SSID "Netzerkennung fehlgeschlagen"            // choose WiFi network ID
-#define WIFI_PASS "72894927445863836231"            // choose WiFi network password
+#define WIFI_SSID "test"            // choose WiFi network ID
+#define WIFI_PASS "test"            // choose WiFi network password
 
 #define ENABLE_SERVER true          // must be enabled for web app
 //#define ENABLE_SERVER false
