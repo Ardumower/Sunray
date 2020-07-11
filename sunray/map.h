@@ -9,21 +9,6 @@
 
 #include <Arduino.h>
 
-// --------- serial monitor output (CONSOLE) ------------------------
-// which Arduino Due USB port do you want to your for serial monitor output (CONSOLE)?
-// Arduino Due native USB port  => choose SerialUSB
-// Arduino Due programming port => choose Serial
-
-#ifdef __SAM3X8E__
-  #define CONSOLE SerialUSB
-#else    
-  #define CONSOLE Serial
-#endif
-
-
-#define ENABLE_PATH_FINDER  true     // path finder is experimental (can be slow - you may have to wait until robot actually starts)
-//#define ENABLE_PATH_FINDER  false
-
 
 #define MAX_POINTS 5000
 #define MAX_EXCLUSIONS 100

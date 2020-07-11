@@ -16,13 +16,10 @@
    +   optional: HTU21D temperature/humidity sensor
    + Ardumower RTK (ublox F9P)
 
-
-1. Install the Ardumower Sunray library:
-   Copy folder 'Sunray_Lib' to 'C:\Program Files(x86)\Arduino\Libraries'
    
-2. Rename file 'config_example.h' into 'config.h'
+1. Rename file 'config_example.h' into 'config.h'
 
-3. Configure the options below and finally compile and upload this project.
+2. Configure the options below and finally compile and upload this project.
 
 Arduino UPLOAD NOTE:  
 
@@ -126,6 +123,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // should the motor fault (error) detection be enabled?
 #define ENABLE_FAULT_DETECTION  true
 //#define ENABLE_FAULT_DETECTION  false
+
+#define ENABLE_PATH_FINDER  true     // path finder is experimental (can be slow - you may have to wait until robot actually starts)
+//#define ENABLE_PATH_FINDER  false
 
 
 // ------ WIFI module (ESP8266 ESP-01) --------------------------------

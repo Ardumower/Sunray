@@ -14,7 +14,7 @@
 #include "battery.h"
 #include "ublox.h"
 #include "buzzer.h"
-#include "sunray_map.h"
+#include "map.h"
 #include "config.h"
 #include "helper.h"
 #include "pid.h"
