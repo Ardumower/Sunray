@@ -19,8 +19,10 @@
 
 1. Install the Ardumower Sunray library:
    Copy folder 'Sunray_Lib' to 'C:\Program Files(x86)\Arduino\Libraries'
+   
+2. Rename file 'config_example.h' into 'config.h'
 
-2. Compile and upload this project (sunray.ino):
+3. Configure the options below and finally compile and upload this project.
 
 Arduino UPLOAD NOTE:
 
@@ -136,7 +138,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define START_AP  false             // should WIFI module start its own access point?
 #define WIFI_IP   192,168,2,15      // choose IP e.g. 192.168.4.1  (comment out for dynamic IP/DHCP)
-#include "config_password.h"       // please open and set your network ID and password in file 'config_password.h'
+#define WIFI_SSID "test"            // choose WiFi network ID
+#define WIFI_PASS "test"            // choose WiFi network password
 
 #define ENABLE_SERVER true          // must be enabled for web app
 //#define ENABLE_SERVER false
