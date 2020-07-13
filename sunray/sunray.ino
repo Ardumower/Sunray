@@ -6,12 +6,12 @@
 
 //  ---------------------------------------------------------------------------------------------------------
 //
-//  NOTE: Before uploading the code, please open the file config.h and verify (configure) your hardware modules!
-//
-//
+//  NOTE: Before uploading the code, please: 
+//  1. Rename file 'config_example.h' into 'config.h'
+//  2. Open the file config.h and verify (configure) your hardware modules!
 //  ---------------------------------------------------------------------------------------------------------
 
-#include "config.h"
+#include "config.h"  // see note above if you get an error here!
 #include "robot.h"
 
 
