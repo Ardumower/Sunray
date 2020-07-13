@@ -122,7 +122,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // should the motor fault (error) detection be enabled?
 #define ENABLE_FAULT_DETECTION  true
-//#define ENABLE_FAULT_DETECTION  false
+//#define ENABLE_FAULT_DETECTION  false      // use this if you keep getting 'motor error'
 
 #define ENABLE_PATH_FINDER  true     // path finder is experimental (can be slow - you may have to wait until robot actually starts)
 //#define ENABLE_PATH_FINDER  false
