@@ -359,9 +359,9 @@ void Motor::sense(){
   motorLeftSenseLP = 0.95 * motorLeftSenseLP + 0.05 * motorLeftSense;
   motorMowSenseLP = 0.95 * motorMowSenseLP + 0.05 * motorMowSense; 
   motorsSenseLP = motorRightSenseLP + motorLeftSenseLP + motorMowSenseLP;
-  motorRightPWMCurrLP = 0.95 * motorRightPWMCurrLP + 0.05 * motorRightPWMCurr;
-  motorLeftPWMCurrLP = 0.95 * motorLeftPWMCurrLP + 0.05 * motorLeftPWMCurr;
-  motorMowPWMCurrLP = 0.95 * motorMowPWMCurrLP + 0.05 * motorMowPWMCurr; 
+  motorRightPWMCurrLP = 0.95 * motorRightPWMCurrLP + 0.05 * ((float)motorRightPWMCurr);
+  motorLeftPWMCurrLP = 0.95 * motorLeftPWMCurrLP + 0.05 * ((float)motorLeftPWMCurr);
+  motorMowPWMCurrLP = 0.95 * motorMowPWMCurrLP + 0.05 * ((float)motorMowPWMCurr); 
  
   motorLeftOverload = (motorLeftSenseLP > 0.8);
   motorRightOverload = (motorRightSenseLP > 0.8);
