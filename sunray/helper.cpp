@@ -271,4 +271,24 @@ float parseFloatValue(String s, String key){
 }
 
 
-  
+void toEulerianAngle(float w, float x, float y, float z, float& roll, float& pitch, float& yaw)
+{
+  double ysqr = y * y;
+
+  // roll (x-axis rotation)
+  double t0 = +2.0 * (w * x + y * z);
+  double t1 = +1.0 - 2.0 * (x * x + ysqr);
+  roll = atan2(t0, t1);
+
+  // pitch (y-axis rotation)
+  double t2 = +2.0 * (w * y - z * x);
+  t2 = t2 > 1.0 ? 1.0 : t2;
+  t2 = t2 < -1.0 ? -1.0 : t2;
+  pitch = asin(t2);
+
+  // yaw (z-axis rotation)
+  double t3 = +2.0 * (w * z + x * y);
+  double t4 = +1.0 - 2.0 * (ysqr + z * z);  
+  yaw = atan2(t3, t4);
+}
+

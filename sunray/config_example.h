@@ -121,11 +121,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define ENABLE_OVERLOAD_DETECTION  false
 
 // should the motor fault (error) detection be enabled?
-#define ENABLE_FAULT_DETECTION  true
-//#define ENABLE_FAULT_DETECTION  false      // use this if you keep getting 'motor error'
-
-#define ENABLE_PATH_FINDER  true     // path finder is experimental (can be slow - you may have to wait until robot actually starts)
-//#define ENABLE_PATH_FINDER  false
+//#define ENABLE_FAULT_DETECTION  true
+#define ENABLE_FAULT_DETECTION  false      // use this if you keep getting 'motor error'
 
 
 // ------ WIFI module (ESP8266 ESP-01) --------------------------------
@@ -168,6 +165,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // require valid GPS signal all time? mower will go into error (fix timeout) if no valid GPS signal during mowing
 #define REQUIRE_VALID_GPS  true
 //#define REQUIRE_VALID_GPS  false
+
+#define ENABLE_PATH_FINDER  true     // path finder is experimental (can be slow - you may have to wait until robot actually starts)
+//#define ENABLE_PATH_FINDER  false
+
 
 
 // ------- I2C addresses -----------------------------
