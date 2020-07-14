@@ -93,7 +93,7 @@ void Motor::begin() {
   motorMowSense = 0;  
   motorLeftSenseLP = 0;
   motorRightSenseLP = 0;
-  motorMowSenseLP = 0;
+  motorMowSenseLP = 0;  
   motorsSenseLP = 0;
 
   linearSpeedSet = 0;
@@ -279,8 +279,7 @@ void Motor::run() {
         motorError = true;
       }      
     }
-  } else {
-    resetMotorFaultCounter = 0;  
+  } else {    
     if  (    ( (abs(motorMowPWMCurr) > 100) && (abs(motorMowPWMCurrLP) > 100) && (motorMowSenseLP < 0.005)) 
          ||  ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (motorLeftSenseLP < 0.005))    
          ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (motorRightSenseLP < 0.005))  ){    
@@ -292,11 +291,11 @@ void Motor::run() {
       CONSOLE.print(",");
       CONSOLE.print(motorMowPWMCurr);
       CONSOLE.print("  sense=");
-      CONSOLE.print(motorLeftSense);
+      CONSOLE.print(motorLeftSenseLP);
       CONSOLE.print(",");
-      CONSOLE.print(motorRightSense);
+      CONSOLE.print(motorRightSenseLP);
       CONSOLE.print(",");
-      CONSOLE.println(motorMowSense);
+      CONSOLE.println(motorMowSenseLP);
       motorError = true;
     }
   }   
@@ -305,6 +304,7 @@ void Motor::run() {
 
 void Motor::resetFault() {
   resetMotorFault = false;  
+  resetMotorFaultCounter = 0;  
   if (digitalRead(pinMotorLeftFault) == LOW) {
     digitalWrite(pinMotorEnable, LOW);
     digitalWrite(pinMotorEnable, HIGH);
@@ -357,7 +357,7 @@ void Motor::sense(){
   motorMowSense = ((float)ADC2voltage(analogRead(pinMotorMowSense))) *scale  *2;	      
   motorRightSenseLP = 0.95 * motorRightSenseLP + 0.05 * motorRightSense;
   motorLeftSenseLP = 0.95 * motorLeftSenseLP + 0.05 * motorLeftSense;
-  motorMowSenseLP = 0.95 * motorMowSenseLP + 0.05 * motorMowSense; 
+  motorMowSenseLP = 0.995 * motorMowSenseLP + 0.005 * motorMowSense; 
   motorsSenseLP = motorRightSenseLP + motorLeftSenseLP + motorMowSenseLP;
   motorRightPWMCurrLP = 0.95 * motorRightPWMCurrLP + 0.05 * ((float)motorRightPWMCurr);
   motorLeftPWMCurrLP = 0.95 * motorLeftPWMCurrLP + 0.05 * ((float)motorLeftPWMCurr);
