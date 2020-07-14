@@ -74,5 +74,7 @@ float voltageDividerUges(float R1, float R2, float U2);
 float ADC2voltage(float ADCvalue);
 
 
+// quaternion to euler angles
+void toEulerianAngle(float w, float x, float y, float z, float& roll, float& pitch, float& yaw);
 
 #endif

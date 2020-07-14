@@ -24,6 +24,11 @@
 // #define I2C_SPEED  10000
 #define _BV(x) (1 << (x))
 
+const signed char orientationMatrix[9] = {
+  1, 0, 0,
+  0, 1, 0,
+  0, 0, 1
+};
 
 MPU9250_DMP imu;
 Motor motor;
@@ -233,6 +238,7 @@ void startIMU(bool forceIMU){
   // DMP_FEATURE_LP_QUAT can also be used. It uses the 
   // accelerometer in low-power mode to estimate quat's.
   // DMP_FEATURE_LP_QUAT and 6X_LP_QUAT are mutually exclusive    
+  //imu.dmpSetOrientation(orientationMatrix);
   imuIsCalibrating = true;   
   nextImuCalibrationSecond = millis() + 1000;
   imuCalibrationSeconds = 0;
@@ -269,6 +275,7 @@ void readIMU(){
     {      
       // computeEulerAngles can be used -- after updating the
       // quaternion values -- to estimate roll, pitch, and yaw
+      //  toEulerianAngle(imu.calcQuat(imu.qw), imu.calcQuat(imu.qx), imu.calcQuat(imu.qy), imu.calcQuat(imu.qz), imu.roll, imu.pitch, imu.yaw);
       imu.computeEulerAngles(false);      
       #ifdef ENABLE_TILT_DETECTION
         rollChange += (imu.roll-stateRoll);
@@ -300,7 +307,7 @@ void readIMU(){
       imu.yaw = scalePI(imu.yaw);
       lastIMUYaw = scalePI(lastIMUYaw);
       lastIMUYaw = scalePIangles(lastIMUYaw, imu.yaw);
-      stateDeltaIMU = scalePI ( distancePI(imu.yaw, lastIMUYaw) );  
+      stateDeltaIMU = -scalePI ( distancePI(imu.yaw, lastIMUYaw) );  
       //CONSOLE.print(imu.yaw);
       //CONSOLE.print(",");
       //CONSOLE.print(stateDeltaIMU/PI*180.0);
@@ -310,6 +317,7 @@ void readIMU(){
     }     
   }  
   if (millis() > imuDataTimeout){
+    imuDataTimeout = millis() + 10000;
     // no IMU data within timeout - this should not happen (I2C module error)
     CONSOLE.println("ERROR IMU data timeout");
     stateSensor = SENS_IMU_TIMEOUT;
