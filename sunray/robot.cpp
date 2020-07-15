@@ -539,7 +539,7 @@ void controlRobotVelocity(){
   float lateralError = distanceLine(stateX, stateY, lastTarget.x, lastTarget.y, target.x, target.y);
   float targetDist = maps.distanceToTargetPoint(stateX, stateY);
   float lastTargetDist = maps.distanceToLastTargetPoint(stateX, stateY);
-  if ((SMOOTH_CURVES) && (maps.wayMode = WAY_MOW))
+  if (SMOOTH_CURVES)
     targetReached = (targetDist < 0.2);
   else
     targetReached = (targetDist < 0.05);
@@ -583,7 +583,7 @@ void controlRobotVelocity(){
 
   // allow rotations only near last or next waypoint
   if ((targetDist < 0.5) || (lastTargetDist < 0.5)) {
-    if ((SMOOTH_CURVES) && (maps.wayMode = WAY_MOW))
+    if (SMOOTH_CURVES)
       angleToTargetFits = (fabs(diffDelta)/PI*180.0 < 120);
     else
       angleToTargetFits = (fabs(diffDelta)/PI*180.0 < 20);
@@ -620,6 +620,7 @@ void controlRobotVelocity(){
     else {
       if (gps.solution == UBLOX::SOL_FLOAT)
         linear = min(setSpeed, 0.3); // reduce speed for float solution
+        //linear = min(setSpeed, 0.1); //reduce speed for float solution -Original
       else
         linear = setSpeed;         // desired speed
     }
@@ -638,8 +639,8 @@ void controlRobotVelocity(){
     //CONSOLE.print(",");
     //CONSOLE.println(angular/PI*180.0);
     if (maps.trackReverse) linear *= -1;   // reverse line tracking needs negative speed
-    if ((!SMOOTH_CURVES) && (maps.wayMode = WAY_MOW)) angular = max(-PI/16, min(PI/16, angular)); // restrict steering angle for stanley
-  }
+    if (!SMOOTH_CURVES) angular = max(-PI/16, min(PI/16, angular)); // restrict steering angle for stanley
+}
   if (fixTimeout != 0){
     if (millis() > lastFixTime + fixTimeout * 1000.0){
       // stop on fix solution timeout (fixme: optionally: turn on place if fix-timeout)
