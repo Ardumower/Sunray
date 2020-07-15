@@ -355,12 +355,12 @@ void Motor::sense(){
   motorRightSense = ((float)ADC2voltage(analogRead(pinMotorRightSense))) *scale;
   motorLeftSense = ((float)ADC2voltage(analogRead(pinMotorLeftSense))) *scale;
   motorMowSense = ((float)ADC2voltage(analogRead(pinMotorMowSense))) *scale  *2;	      
-  motorRightSenseLP = 0.95 * motorRightSenseLP + 0.05 * motorRightSense;
-  motorLeftSenseLP = 0.95 * motorLeftSenseLP + 0.05 * motorLeftSense;
+  motorRightSenseLP = 0.995 * motorRightSenseLP + 0.005 * motorRightSense;
+  motorLeftSenseLP = 0.995 * motorLeftSenseLP + 0.005 * motorLeftSense;
   motorMowSenseLP = 0.995 * motorMowSenseLP + 0.005 * motorMowSense; 
   motorsSenseLP = motorRightSenseLP + motorLeftSenseLP + motorMowSenseLP;
-  motorRightPWMCurrLP = 0.95 * motorRightPWMCurrLP + 0.05 * ((float)motorRightPWMCurr);
-  motorLeftPWMCurrLP = 0.95 * motorLeftPWMCurrLP + 0.05 * ((float)motorLeftPWMCurr);
+  motorRightPWMCurrLP = 0.995 * motorRightPWMCurrLP + 0.005 * ((float)motorRightPWMCurr);
+  motorLeftPWMCurrLP = 0.995 * motorLeftPWMCurrLP + 0.005 * ((float)motorLeftPWMCurr);
   motorMowPWMCurrLP = 0.995 * motorMowPWMCurrLP + 0.005 * ((float)motorMowPWMCurr); 
  
   motorLeftOverload = (motorLeftSenseLP > 0.8);
