@@ -555,7 +555,7 @@ void controlRobotVelocity(){
     buzzer.sound(SND_STUCK, true);
   }
   if (ENABLE_OVERLOAD_DETECTION){
-    if (motor.motorOverloadDuration > 5000){
+    if (motor.motorOverloadDuration > 20000){
       CONSOLE.println("overload!");
       stateSensor = SENS_OVERLOAD;
       setOperation(OP_ERROR);
@@ -619,7 +619,7 @@ void controlRobotVelocity(){
     }
     else {
       if (gps.solution == UBLOX::SOL_FLOAT)
-        linear = min(setSpeed, 0.3); // reduce speed for float solution
+        linear = min(setSpeed, 0.1); // reduce speed for float solution
         //linear = min(setSpeed, 0.1); //reduce speed for float solution -Original
       else
         linear = setSpeed;         // desired speed

@@ -11,6 +11,14 @@
 #include "buzzer.h"
 #include <Arduino.h>
 
+// lithium akkus sollten bis zu einem bestimmten wert CC also constant current geladen werden 
+// und danach mit CV constant voltage
+// um die lebensdauer zu erhöhen kann man die max spannung herabsetzen
+// wir verwenden im Ardumower ein 7S (7 * 4.2V)
+// voll geladen ist dann bei 29.4V schluss
+// wenn man z.B. die spannung von 4.2V pro zelle auf 4.1V herab setzt (85–90% charged) kann man die lebensdauer 
+// verdoppeln - das gleiche gilt bei der endladung
+
 
 void Battery::begin()
 {

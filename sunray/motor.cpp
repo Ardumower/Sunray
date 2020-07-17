@@ -365,7 +365,7 @@ void Motor::sense(){
  
   motorLeftOverload = (motorLeftSenseLP > 0.8);
   motorRightOverload = (motorRightSenseLP > 0.8);
-  motorMowOverload = (motorMowSenseLP > 1.5);
+  motorMowOverload = (motorMowSenseLP > 2.0);
   if (motorLeftOverload || motorRightOverload || motorMowOverload){
     motorOverloadDuration += 20;    
     CONSOLE.print("ERROR motor overload duration=");
