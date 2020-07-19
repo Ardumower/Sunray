@@ -40,11 +40,11 @@ void Battery::begin()
   // load resistor RL to be smaller by soldering the bridge If you solder the bridge (RL=10K resistor) 
   // you'll get 1V per Amp.   
   //
-  // Vout = RL / 10K * amps 
-  //   a) bridged      RL=10K:  Vout=amps
-  //   b) non-bridged  RL=20k:  Vout=2*amps    <=> 1A = Vout/2
+  // Is = Vout * 1k / (Rs * RL)
+  //   a) bridged      RL=10K:  Is = 1V * 1k / (0.1*20K)  = 0.5A
+  //   b) non-bridged  RL=20k:  Is = 1v * 1k / (0.1*10K)  = 1A
   
-  currentFactor = 0.5;         // ADC voltage to current ampere (1A = Vout/2)
+  currentFactor = 1.0;         // ADC voltage to current ampere  (non-bridged)
   batMonitor = true;              // monitor battery and charge voltage?    
   batGoHomeIfBelow = 23.7;     // drive home voltage (Volt)  
   batSwitchOffIfBelow = 21.7;  // switch off battery if below voltage (Volt)  
