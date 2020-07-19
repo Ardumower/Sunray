@@ -41,10 +41,10 @@ void Battery::begin()
   // you'll get 1V per Amp.   
   //
   // Is = Vout * 1k / (Rs * RL)
-  //   a) bridged      RL=10K:  Is = 1V * 1k / (0.1*20K)  = 0.5A
-  //   b) non-bridged  RL=20k:  Is = 1v * 1k / (0.1*10K)  = 1A
+  //   a) bridged      RL=10K:  Is = 1V * 1k / (0.1*10K)  = 1A
+  //   b) non-bridged  RL=20k:  Is = 1v * 1k / (0.1*20K)  = 0.5A
   
-  currentFactor = 1.0;         // ADC voltage to current ampere  (non-bridged)
+  currentFactor = 0.5;         // ADC voltage to current ampere  (non-bridged)
   batMonitor = true;              // monitor battery and charge voltage?    
   batGoHomeIfBelow = 23.7;     // drive home voltage (Volt)  
   batSwitchOffIfBelow = 21.7;  // switch off battery if below voltage (Volt)  
