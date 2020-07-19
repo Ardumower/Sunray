@@ -32,7 +32,7 @@ void Battery::begin()
   chargerConnectedState = false;      
   chargingEnabled = true;
   batteryFactor = (100+10) / 10;    // ADC voltage to battery voltage
-  currentFactor = 0.5;         // ADC voltage to current ampere
+  currentFactor = 1.0;         // ADC voltage to current ampere (1V per amp)
   batMonitor = true;              // monitor battery and charge voltage?    
   batGoHomeIfBelow = 23.7;     // drive home voltage (Volt)  
   batSwitchOffIfBelow = 21.7;  // switch off battery if below voltage (Volt)  
