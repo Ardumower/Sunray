@@ -32,7 +32,19 @@ void Battery::begin()
   chargerConnectedState = false;      
   chargingEnabled = true;
   batteryFactor = (100+10) / 10;    // ADC voltage to battery voltage
-  currentFactor = 1.0;         // ADC voltage to current ampere (1V per amp)
+  
+  //INA169:  A precision amplifier measures the voltage across the Rs=0.1 ohm, 1% sense resistor. 
+  //The Rs is rated for 2W continuous so you can measure up to +5A continuous. 
+  //The output is a current that is drawn through the on-board RL=10K+10K=20K resistors so that the 
+  // output voltage is 2V per Amp. So for 1A draw, the output will be 2V. You can change the 
+  // load resistor RL to be smaller by soldering the bridge If you solder the bridge (RL=10K resistor) 
+  // you'll get 1V per Amp.   
+  //
+  // Vout = RL / 10K * amps 
+  //   a) bridged      RL=10K:  Vout=amps
+  //   b) non-bridged  RL=20k:  Vout=2*amps    <=> 1A = Vout/2
+  
+  currentFactor = 0.5;         // ADC voltage to current ampere (1A = Vout/2)
   batMonitor = true;              // monitor battery and charge voltage?    
   batGoHomeIfBelow = 23.7;     // drive home voltage (Volt)  
   batSwitchOffIfBelow = 21.7;  // switch off battery if below voltage (Volt)  
