@@ -3,6 +3,15 @@
 // Licensed GPLv3 for open source use
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
+
+// Bluetooth BLE/4.0 module (HM-10 ZS-040)
+// https://www.marotronics.de/HM-10-Bluetooth-BLE-BT-40-CC2541-CC2540-fuer-Arduino-iOS-Android-Low-Energy
+
+// to send/receive data from this module, use BLE characteristic write/read:  
+// UART_CHARACTERISTIC = "0000ffe1-0000-1000-8000-00805f9b34fb";
+
+
+
 #include "ble.h"
 #include <Arduino.h>
 #include "config.h"
