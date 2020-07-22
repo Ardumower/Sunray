@@ -153,6 +153,16 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define SONAR_OBSTACLE_CM 30      // stop mowing operation below this distance (cm) 
 
 
+// ----- battery charging current measurement (INA169) --------------
+// the Marotronics charger outputs max 1.5A 
+// ( https://www.marotronics.de/Ladegeraete-fuer-den-Ardumower-Akkus-24V-mit-Status-LED-auch-fuer-Li-Ion-Akkus )
+// so we are using the INA169 in non-bridged mode (max. 2.5A)
+// ( https://www.marotronics.de/INA169-Analog-DC-Current-Sensor-Breakout-60V-25A-5A-Marotronics )
+
+#define CURRENT_FACTOR 0.5     // (non-bridged INA169, max. 2.5A)
+//#define CURRENT_FACTOR 1.0   // (bridged INA169, max. 5A)
+
+
 // ------ experimental options -------------------------
 // detect robot being kidnapped?
 //#define KIDNAP_DETECT true
