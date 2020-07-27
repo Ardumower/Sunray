@@ -92,6 +92,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // Follow the steps described in the Wiki to verify your odometry returns approx. 1 meter distance for 
 // driving the same distance on the ground (without connected GPS): 
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Odometry_test
+// https://forum.ardumower.de/threads/andere-r%C3%A4der-wie-config-h-%C3%A4ndern.23865/post-41732
 #define WHEEL_BASE_CM         36         // wheel-to-wheel distance (cm)        
 #define WHEEL_DIAMETER        250        // wheel diameter (mm)                 
 
