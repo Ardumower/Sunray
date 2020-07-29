@@ -323,6 +323,8 @@ void cmdStats(){
   s += statTempMax;
   s += ",";
   s += gps.chksumErrorCounter;
+  s += ",";
+  s += gps.dgpsChecksumErrorCounter;
   cmdAnswer(s);  
 }
 
