@@ -1,11 +1,11 @@
 
-ublox f9p (rover) configuration files
+A) ublox f9p (rover) configuration files
 
 
 NOTE: see Wiki ( https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Rover_configuration_.28messages.29 ) 
  for details on how to transfer a ublox configuration file to your ublox f9p GPS receiver. 
  
- Don't forget to save a sent configuration after transferring (ucenter->View->configuratiion view->CFG->Send) 
+ Don't forget to permanently save a configuration after transferring (ucenter->View->configuratiion view->CFG->Send) 
 
 ---------------------------------------------- 
 
@@ -24,7 +24,11 @@ https://forum.ardumower.de/threads/welche-gps-antennen-nutzt-ihr-wie-sieht-eure-
 
 
 ----------------------------------------------
-ublox f9p firmware updates are available here:
+
+B) ublox f9p firmware updates are available here:
+
 https://www.u-blox.com/en/product/zed-f9p-module#tab-documentation-resources
+
+After updating, you will need to tansfer (and save) the configuration again.
 
 
