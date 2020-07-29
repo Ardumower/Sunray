@@ -1,5 +1,9 @@
 ublox f9p (rover) configuration files
 
+NOTE: see Wiki for details on how to transfer a ublox configuration file to your ublox f9p GPS receiver. 
+Don't forget to save a sent configuration after transferring (ucenter->View->configuratiion view->CFG->Send).
+
+
 1) alex_rover_f9p_HPG_111.txt
 -default configuration as described in Wiki
 -tested in extreme conditions
