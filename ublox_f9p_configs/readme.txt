@@ -11,6 +11,7 @@ Don't forget to save a sent configuration after transferring (ucenter->View->con
 
 
 2) Hartmut__rover_f9_HGP_113.txt
+-use this configuration if you experience RTK FIX issues 
 https://forum.ardumower.de/threads/welche-gps-antennen-nutzt-ihr-wie-sieht-eure-grundplatte-aus-alles-rund-um-den-gps-empfang.23709/post-41762
 -reduced NAV5 input filter
 -optimized for large trees and bushes
