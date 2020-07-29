@@ -58,6 +58,7 @@ class UBLOX{
     bool solutionAvail;
     unsigned long dgpsAge;
     unsigned long chksumErrorCounter;
+    unsigned long dgpsChecksumErrorCounter;
     
     UBLOX(HardwareSerial& bus,uint32_t baud);
     void begin();
