@@ -1,8 +1,13 @@
+
 ublox f9p (rover) configuration files
 
-NOTE: see Wiki for details on how to transfer a ublox configuration file to your ublox f9p GPS receiver. 
-Don't forget to save a sent configuration after transferring (ucenter->View->configuratiion view->CFG->Send).
 
+NOTE: see Wiki ( https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Rover_configuration_.28messages.29 ) 
+ for details on how to transfer a ublox configuration file to your ublox f9p GPS receiver. 
+ 
+ Don't forget to save a sent configuration after transferring (ucenter->View->configuratiion view->CFG->Send) 
+
+---------------------------------------------- 
 
 1) alex_rover_f9p_HPG_111.txt
 -default configuration as described in Wiki
