@@ -282,8 +282,8 @@ void UBLOX::dispatchMessage() {
           case 0x32: 
             { // UBX-RXM-RTCM              
               if (verbose) CONSOLE.println("UBX-RXM-RTCM");
-              bool flags = (unsigned long)this->unpack_int8(1);
-              if (flags & 1) dgpsChecksumErrorCounter++;
+              byte flags = (byte)this->unpack_int8(1);
+              if ((flags & 1) != 0) dgpsChecksumErrorCounter++;
               dgpsPacketCounter++;
               dgpsAge = millis();
             }

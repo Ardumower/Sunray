@@ -324,7 +324,8 @@ void cmdStats(){
   s += ",";
   s += gps.chksumErrorCounter;
   s += ",";
-  s += ((float)gps.dgpsChecksumErrorCounter) / ((float)(gps.dgpsPacketCounter));
+  //s += ((float)gps.dgpsChecksumErrorCounter) / ((float)(gps.dgpsPacketCounter));
+  s += gps.dgpsChecksumErrorCounter;
   cmdAnswer(s);  
 }
 
