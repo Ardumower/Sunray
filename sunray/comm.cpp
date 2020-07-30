@@ -333,6 +333,26 @@ void cmdStats(){
   cmdAnswer(s);  
 }
 
+// clear statistics
+void cmdClearStats(){
+  String s = F("L");
+  statIdleDuration = 0;
+  statChargeDuration = 0;
+  statMowDuration = 0;
+  statMowDurationFloat = 0;
+  statMowDurationFix = 0;
+  statMowFloatToFixRecoveries = 0;
+  statMowDistanceTraveled = 0;
+  statMowMaxDgpsAge = 0;
+  statImuRecoveries = 0;
+  statTempMin = 9999;
+  statTempMax = -9999;
+  gps.chksumErrorCounter = 0;
+  gps.dgpsChecksumErrorCounter = 0;
+  statMaxControlCycleTime = 0;
+  cmdAnswer(s);  
+}
+
 // process request
 void processCmd(bool checkCrc){
   cmdResponse = "";      
@@ -375,6 +395,7 @@ void processCmd(bool checkCrc){
   if (cmd[3] == 'V') cmdVersion();  
   if (cmd[3] == 'P') cmdPosMode();  
   if (cmd[3] == 'T') cmdStats();
+  if (cmd[3] == 'L') cmdClearStats();
   if (cmd[3] == 'E') cmdMotorTest();  
 }
 
