@@ -49,8 +49,8 @@ void Battery::begin()
   batGoHomeIfBelow = 23.7;     // drive home voltage (Volt)  
   batSwitchOffIfBelow = 21.7;  // switch off battery if below voltage (Volt)  
   batSwitchOffIfIdle = 300;      // switch off battery if idle (seconds)
-  batFullCurrent  = 0.7;      // current flowing when battery is fully charged
-  //startChargingIfBelow = 28.0; // start charging if battery Voltage is below  
+  batFullCurrent  = 0.2;      // current flowing when battery is fully charged
+  batFullVoltage = 28.7;      // voltage when battery is fully charged (we charge to only 90% to increase battery life time)
   enableChargingTimeout = 60 * 30; // if battery is full, wait this time before enabling charging again (seconds)
   batteryVoltage = 0;
 
@@ -164,7 +164,7 @@ void Battery::run(){
         // charger in connected state
         if (chargingEnabled){
           //if ((timeMinutes > 180) || (chargingCurrent < batFullCurrent)) {        
-          if (chargingCurrent <= batFullCurrent) {        
+          if ((chargingCurrent <= batFullCurrent) || (batteryVoltage >= batFullVoltage)) {
             // stop charging
             nextEnableTime = millis() + 1000 * enableChargingTimeout;   // check charging current again in 30 minutes
             enableCharging(false);
