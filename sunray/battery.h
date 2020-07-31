@@ -16,7 +16,7 @@ class Battery {
 	  float batteryFactor;
     float currentFactor;
     float batGoHomeIfBelow;
-    float startChargingIfBelow;
+    float batFullVoltage;
     float batSwitchOffIfBelow;  // switch off battery if below voltage (Volt)
     int batSwitchOffIfIdle;      // switch off battery if idle (minutes)  
     int enableChargingTimeout;

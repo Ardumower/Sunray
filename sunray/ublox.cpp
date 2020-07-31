@@ -33,6 +33,7 @@ void UBLOX::begin()
   this->accuracy  =0;
   this->chksumErrorCounter = 0;
   this->dgpsChecksumErrorCounter = 0;
+  this->dgpsPacketCounter = 0;
 	// begin the serial port for uBlox	
   _bus->begin(_baud);
 }
@@ -281,8 +282,9 @@ void UBLOX::dispatchMessage() {
           case 0x32: 
             { // UBX-RXM-RTCM              
               if (verbose) CONSOLE.println("UBX-RXM-RTCM");
-              bool flags = (unsigned long)this->unpack_int8(1);
-              if (flags & 1) dgpsChecksumErrorCounter++;
+              byte flags = (byte)this->unpack_int8(1);
+              if ((flags & 1) != 0) dgpsChecksumErrorCounter++;
+              dgpsPacketCounter++;
               dgpsAge = millis();
             }
             break;            

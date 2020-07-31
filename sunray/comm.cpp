@@ -12,6 +12,8 @@ String cmdResponse;
 ERingBuffer buf(8);
 int reqCount = 0;                // number of requests received
 unsigned long stopClientTime = 0;
+float statControlCycleTime = 0; 
+float statMaxControlCycleTime = 0; 
 
 
 // answer Bluetooth with CRC
@@ -324,7 +326,30 @@ void cmdStats(){
   s += ",";
   s += gps.chksumErrorCounter;
   s += ",";
+  //s += ((float)gps.dgpsChecksumErrorCounter) / ((float)(gps.dgpsPacketCounter));
   s += gps.dgpsChecksumErrorCounter;
+  s += ",";
+  s += statMaxControlCycleTime;
+  cmdAnswer(s);  
+}
+
+// clear statistics
+void cmdClearStats(){
+  String s = F("L");
+  statIdleDuration = 0;
+  statChargeDuration = 0;
+  statMowDuration = 0;
+  statMowDurationFloat = 0;
+  statMowDurationFix = 0;
+  statMowFloatToFixRecoveries = 0;
+  statMowDistanceTraveled = 0;
+  statMowMaxDgpsAge = 0;
+  statImuRecoveries = 0;
+  statTempMin = 9999;
+  statTempMax = -9999;
+  gps.chksumErrorCounter = 0;
+  gps.dgpsChecksumErrorCounter = 0;
+  statMaxControlCycleTime = 0;
   cmdAnswer(s);  
 }
 
@@ -370,6 +395,7 @@ void processCmd(bool checkCrc){
   if (cmd[3] == 'V') cmdVersion();  
   if (cmd[3] == 'P') cmdPosMode();  
   if (cmd[3] == 'T') cmdStats();
+  if (cmd[3] == 'L') cmdClearStats();
   if (cmd[3] == 'E') cmdMotorTest();  
 }
 
@@ -484,8 +510,10 @@ void outputConsole(){
   if (millis() > nextInfoTime){        
     nextInfoTime = millis() + 5000;               
     CONSOLE.print ("ctlDur=");    
-    CONSOLE.print (1.0 / (controlLoops/5.0));
+    statControlCycleTime = 1.0 / (controlLoops/5.0);
+    statMaxControlCycleTime = max(statMaxControlCycleTime, statControlCycleTime);
     controlLoops=0;
+    CONSOLE.print (statControlCycleTime);        
     CONSOLE.print (" op=");    
     CONSOLE.print (stateOp);
     CONSOLE.print (" freem=");
