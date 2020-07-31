@@ -9,7 +9,7 @@ NOTE: see Wiki ( https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Rove
 
 ---------------------------------------------- 
 
-1) alex_rover_f9p_HPG_111.txt
+1) alex_rover_f9p_HPG_111.txt / alex_rover_f9p_HPG_113.txt
 -default configuration as described in Wiki
 -tested in extreme conditions
 -large input filter to avoid false-fix positions (if a fix is found it is always correct)
