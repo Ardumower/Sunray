@@ -9,6 +9,16 @@ NOTE: see Wiki ( https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Rove
 
 ---------------------------------------------- 
 
+1) stefan_rover_fw113. txt
+-ublox rover config for firmware 1.13
+
+
+2) stefan_base_fw133.txt
+-ublox base config for firmware 1.13
+
+
+---------------------------------------------- 
+
 1) alex_rover_f9p_HPG_111.txt / alex_rover_f9p_HPG_113.txt
 -default configuration as described in Wiki
 -tested in extreme conditions
