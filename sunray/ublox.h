@@ -42,8 +42,8 @@ class UBLOX{
     } state_t;    
     
     unsigned long iTOW;
-    int numSV;         // #satellites tracked 
-    int numSVdgps;     // #satellites tracked with DGPS signal
+    int numSV;         // #signals tracked 
+    int numSVdgps;     // #signals tracked with DGPS signal
     double lon;        // deg
     double lat;        // deg
     double height;     // m
