@@ -30,6 +30,7 @@ void UBLOX::begin()
   this->dgpsAge  = 0;
   this->solutionAvail = false;
   this->numSV    = 0;
+  this->numSVdgps    = 0;
   this->accuracy  =0;
   this->chksumErrorCounter = 0;
   this->dgpsChecksumErrorCounter = 0;
