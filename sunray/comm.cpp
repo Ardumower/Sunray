@@ -295,6 +295,7 @@ void cmdSummary(){
   } else {
     s += motor.motorsSenseLP;
   }
+  s += ",";
   s += gps.numSVdgps;  
   cmdAnswer(s);  
 }
