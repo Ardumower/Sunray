@@ -810,6 +810,11 @@ void run(){
           setOperation(OP_IDLE);
           //buzzer.sound(SND_OVERCURRENT, true);
         }
+        // zur Ladestation
+        if (battery.shouldGoHome()){
+          setOperation(OP_DOCK);
+        }
+        //Test
       }
       else if (stateOp == OP_CHARGE){
         if (!battery.chargerConnected()){
