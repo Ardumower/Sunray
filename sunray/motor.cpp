@@ -88,6 +88,8 @@ void Motor::begin() {
   motorRightOverload = false;
   motorMowOverload = false; 
   
+  odometryError = false;  
+  
   motorLeftSense = 0;
   motorRightSense = 0;
   motorMowSense = 0;  
@@ -280,9 +282,22 @@ void Motor::run() {
       }      
     }
   } else {    
+     if  (   ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (abs(motorLeftRpmCurr) < 0.001))    
+        ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (abs(motorRightRpmCurr) < 0.001))  )
+    {               
+      if (!odometryError){
+        // odometry error
+        CONSOLE.print("ERROR: odometry error rpm=");
+        CONSOLE.print(motorLeftRpmCurr);
+        CONSOLE.print(",");
+        CONSOLE.print(motorRightRpmCurr);     
+        odometryError = true;
+      }      
+    } else odometryError = false;
+      
     if  (    ( (abs(motorMowPWMCurr) > 100) && (abs(motorMowPWMCurrLP) > 100) && (motorMowSenseLP < 0.005)) 
          ||  ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (motorLeftSenseLP < 0.005))    
-         ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (motorRightSenseLP < 0.005))  ){    
+         ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (motorRightSenseLP < 0.005))  ){        
       // at least one motor is not consuming current      
       CONSOLE.print("ERROR: motor malfunction pwm=");
       CONSOLE.print(motorLeftPWMCurr);

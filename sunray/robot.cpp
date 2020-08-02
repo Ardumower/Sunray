@@ -554,6 +554,14 @@ void controlRobotVelocity(){
     setOperation(OP_ERROR);
     buzzer.sound(SND_STUCK, true);        
   }
+  if (ENABLE_ODOMETRY_ERROR_DETECTION){
+    if (motor.odometryError){
+      CONSOLE.println("odometry error!");    
+      stateSensor = SENS_ODOMETRY_ERROR;
+      setOperation(OP_ERROR);
+      buzzer.sound(SND_STUCK, true);        
+    }
+  }
   if (ENABLE_OVERLOAD_DETECTION){
     if (motor.motorOverloadDuration > 20000){
       CONSOLE.println("overload!");    
