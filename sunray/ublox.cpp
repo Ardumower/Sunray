@@ -30,6 +30,7 @@ void UBLOX::begin()
   this->dgpsAge  = 0;
   this->solutionAvail = false;
   this->numSV    = 0;
+  this->numSVdgps    = 0;
   this->accuracy  =0;
   this->chksumErrorCounter = 0;
   this->dgpsChecksumErrorCounter = 0;
@@ -163,7 +164,7 @@ void UBLOX::dispatchMessage() {
           case 0x07:
             { // UBX-NAV-PVT
               iTOW = (unsigned long)this->unpack_int32(0);
-              numSV = this->unpack_int8(23);               
+              //numSV = this->unpack_int8(23);               
               if (verbose) CONSOLE.println("UBX-NAV-PVT");
             }
             break;
@@ -204,18 +205,20 @@ void UBLOX::dispatchMessage() {
               if (verbose) CONSOLE.print("UBX-NAV-SIG ");
               iTOW = (unsigned long)this->unpack_int32(0);
               int numSigs = this->unpack_int8(5);
+              numSV = numSigs;                            
               float ravg = 0;
               float rmax = 0;
               float rmin = 9999;
-              float rsum = 0;    
-              int crcnt = 0;
+              float rsum = 0;                  
+              int crcnt = 0;              
               for (int i=0; i < numSigs; i++){                
                 float prRes = ((float)((short)this->unpack_int16(12+16*i))) * 0.1;
                 float cno = ((float)this->unpack_int8(14+16*i));
-                int qualityInd = this->unpack_int8(15+16*i);                                
-                int sigFlags = (unsigned short)this->unpack_int16(18+16*i);                                
-                if ((sigFlags & 3) == 1){
-                  if ((sigFlags & 128) != 0){
+                int qualityInd = this->unpack_int8(15+16*i);                                                
+                int corrSource = this->unpack_int8(16+16*i);                                                
+                int sigFlags = (unsigned short)this->unpack_int16(18+16*i);                                                
+                if ((sigFlags & 3) == 1){       // signal is healthy               
+                  if ((sigFlags & 128) != 0){  // Carrier range corrections have been used
                     /*CONSOLE.print(sigFlags);
                     CONSOLE.print(",");                                
                     CONSOLE.print(qualityInd);
@@ -231,6 +234,7 @@ void UBLOX::dispatchMessage() {
                 }                
               }
               ravg = rsum/((float)numSigs);
+              numSVdgps = crcnt;
               if (verbose){
                 CONSOLE.print("sol=");
                 CONSOLE.print(solution);              

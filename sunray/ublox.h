@@ -11,6 +11,7 @@
   3) 'UBX-NAV-HPPOSLLH'   (absolute position)
   4) 'UBX-NAV-VELNED'     (velocity)
   5) 'UBX-RXM-RTCM'       (RTCM messages)
+  6) 'UBX-NAV-SIG'        (signal information)
   https://www.u-blox.com/sites/default/files/u-blox_ZED-F9P_InterfaceDescription_%28UBX-18010854%29.pdf
 
 */
@@ -42,7 +43,8 @@ class UBLOX{
     } state_t;    
     
     unsigned long iTOW;
-    int numSV;         // #satellites used in navigation solution
+    int numSV;         // #signals tracked 
+    int numSVdgps;     // #signals tracked with DGPS signal
     double lon;        // deg
     double lat;        // deg
     double height;     // m
