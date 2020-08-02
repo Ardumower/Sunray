@@ -183,6 +183,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define ENABLE_PATH_FINDER  true     // path finder is experimental (can be slow - you may have to wait until robot actually starts)
 //#define ENABLE_PATH_FINDER  false
 
+// is a docking station available?
+//#define DOCKING_STATION true   // use this if docking station available and mower should dock automatically
+#define DOCKING_STATION false    // use this if mower should not dock automatically 
 
 
 // ------- I2C addresses -----------------------------
