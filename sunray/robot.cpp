@@ -685,8 +685,10 @@ void controlRobotVelocity(){
       } else {
         CONSOLE.println("mowing finished!");
         if (!finishAndRestart){
-          //setOperation(OP_IDLE);
-          setOperation(OP_DOCK);
+          if (!CHARGING_STATION){
+            setOperation(OP_IDLE);
+          } else {
+            setOperation(OP_DOCK);}
         }
       }
     } else {
@@ -810,11 +812,13 @@ void run(){
           setOperation(OP_IDLE);
           //buzzer.sound(SND_OVERCURRENT, true);
         }
-        // zur Ladestation
+        // zur Ladestation wenn Akku schwach
         if (battery.shouldGoHome()){
-          setOperation(OP_DOCK);
+          if (CHARGING_STATION){
+            setOperation(OP_DOCK);
+          }
         }
-        //Test
+
       }
       else if (stateOp == OP_CHARGE){
         if (!battery.chargerConnected()){
