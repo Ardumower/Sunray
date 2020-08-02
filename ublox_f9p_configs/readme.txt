@@ -17,11 +17,7 @@ NOTE: see Wiki ( https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Rove
 -use this configuration if you experience RTK FIX issues 
 https://forum.ardumower.de/threads/welche-gps-antennen-nutzt-ihr-wie-sieht-eure-grundplatte-aus-alles-rund-um-den-gps-empfang.23709/post-41762
 -reduced NAV5 input filter
--optimized for large trees and bushes
--enabled all GNSS satellites
 
-3) stefan_rover_fw113.txt (for firmware 1.13)
-stefan_base_fw133.txt  (for firmware 1.13)
 ----------------------------------------------
 
 B) ublox f9p firmware updates are available here:
