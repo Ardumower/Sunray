@@ -331,6 +331,8 @@ void cmdStats(){
   s += gps.dgpsChecksumErrorCounter;
   s += ",";
   s += statMaxControlCycleTime;
+  s += ",";
+  s += SERIAL_BUFFER_SIZE;
   cmdAnswer(s);  
 }
 
