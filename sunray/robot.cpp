@@ -554,6 +554,14 @@ void controlRobotVelocity(){
     setOperation(OP_ERROR);
     buzzer.sound(SND_STUCK, true);
   }
+  if (ENABLE_ODOMETRY_ERROR_DETECTION){
+    if (motor.odometryError){
+      CONSOLE.println("odometry error!");
+      stateSensor = SENS_ODOMETRY_ERROR;
+      setOperation(OP_ERROR);
+      buzzer.sound(SND_STUCK, true);
+    }
+  }
   if (ENABLE_OVERLOAD_DETECTION){
     if (motor.motorOverloadDuration > 20000){
       CONSOLE.println("overload!");
@@ -685,10 +693,11 @@ void controlRobotVelocity(){
       } else {
         CONSOLE.println("mowing finished!");
         if (!finishAndRestart){
-          if (!CHARGING_STATION){
-            setOperation(OP_IDLE);
+          if (DOCKING_STATION){
+            setOperation(OP_DOCK);
           } else {
-            setOperation(OP_DOCK);}
+            setOperation(OP_IDLE);
+          }
         }
       }
     } else {
@@ -812,13 +821,11 @@ void run(){
           setOperation(OP_IDLE);
           //buzzer.sound(SND_OVERCURRENT, true);
         }
-        // zur Ladestation wenn Akku schwach
         if (battery.shouldGoHome()){
-          if (CHARGING_STATION){
+          if (DOCKING_STATION){
             setOperation(OP_DOCK);
           }
         }
-
       }
       else if (stateOp == OP_CHARGE){
         if (!battery.chargerConnected()){
