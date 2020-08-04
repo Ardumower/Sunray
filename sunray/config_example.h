@@ -166,11 +166,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define CURRENT_FACTOR 0.5     // (non-bridged INA169, max. 2.5A)
 //#define CURRENT_FACTOR 1.0   // (bridged INA169, max. 5A)
 
-// is a charging station available?
-//#define CHARGING_STATION true
-#define CHARGING_STATION false
-
-
 // ------ experimental options -------------------------
 // detect robot being kidnapped?
 #define KIDNAP_DETECT true
@@ -189,7 +184,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // is a docking station available?
 //#define DOCKING_STATION true   // use this if docking station available and mower should dock automatically
-#define DOCKING_STATION false    // use this if mower should not dock automatically 
+#define DOCKING_STATION false    // use this if mower should not dock automatically
 
 
 // ------- I2C addresses -----------------------------
