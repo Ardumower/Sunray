@@ -513,7 +513,7 @@ void outputConsole(){
   if (millis() > nextInfoTime){        
     nextInfoTime = millis() + 5000;               
     CONSOLE.print ("ctlDur=");    
-    statControlCycleTime = 1.0 / (controlLoops/5.0);
+    statControlCycleTime = 1.0 / (((float)controlLoops)/5.0);
     statMaxControlCycleTime = max(statMaxControlCycleTime, statControlCycleTime);
     controlLoops=0;
     CONSOLE.print (statControlCycleTime);        
