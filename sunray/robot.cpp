@@ -632,8 +632,8 @@ void controlRobotVelocity(){
         linear = setSpeed;         // desired speed
     }      
     //angular = 3.0 * diffDelta + 3.0 * lateralError;       // correct for path errors 
-    float k = 0.5;
-    if (maps.trackSlow) k = 0.1;
+    float k = STANLEY_CONTROL_K_NORMAL;
+    if (maps.trackSlow) k = STANLEY_CONTROL_K_SLOW;   
     angular = diffDelta + atan2(k * lateralError, (0.001 + fabs(motor.linearSpeedSet)));       // correct for path errors           
     /*pidLine.w = 0;              
     pidLine.x = lateralError;
