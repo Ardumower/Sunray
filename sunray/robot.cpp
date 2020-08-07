@@ -798,10 +798,12 @@ void run(){
   
   computeRobotState();  
   
-  if (!imuIsCalibrating){     
-    if (millis() >= nextControlTime){        
-      nextControlTime = millis() + 20; 
-      controlLoops++;    
+  
+  if (millis() >= nextControlTime){        
+    nextControlTime = millis() + 20; 
+    controlLoops++;    
+    
+    if (!imuIsCalibrating){     
       
       if (battery.chargerConnected() != stateChargerConnected) {    
         stateChargerConnected = battery.chargerConnected(); 
@@ -821,6 +823,8 @@ void run(){
           maps.setIsDocked(false);
         }
       }
+      
+      
       if ((stateOp == OP_MOW) ||  (stateOp == OP_DOCK)) {      
         if (stateOp == OP_DOCK){
           //docking();
@@ -845,6 +849,8 @@ void run(){
           setOperation(OP_IDLE);        
         }
       }
+      
+      
     }    
   }
     
