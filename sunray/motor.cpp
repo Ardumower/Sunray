@@ -188,6 +188,7 @@ void Motor::setLinearAngularSpeed(float linear, float angular){
 
 void Motor::setMowState(bool switchOn){
   if (switchOn){
+    if (abs(motorMowPWMSet) > 0) return; // mowing motor already switch ON
     if (toggleMowDir){
       // toggle mowing motor direction each mow motor start
       motorMowForwardSet = !motorMowForwardSet;
