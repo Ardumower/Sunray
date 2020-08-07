@@ -167,6 +167,16 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define CURRENT_FACTOR 1.0   // (bridged INA169, max. 5A)
 
 
+// ------ GPS ------------------------------------------
+
+// require valid GPS signal all time? mower will go into error (fix timeout) if no valid GPS signal during mowing
+#define REQUIRE_VALID_GPS  true    
+//#define REQUIRE_VALID_GPS  false    
+
+#define GPS_OBSTACLE_DETECTION true  // will detect obstacles via GPS feedback (no motion)
+//#define GPS_OBSTACLE_DETECTION false
+
+
 // ------ experimental options -------------------------
 // detect robot being kidnapped?
 //#define KIDNAP_DETECT true
@@ -175,10 +185,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // drive curves smoothly?
 //#define SMOOTH_CURVES  true
 #define SMOOTH_CURVES  false
-
-// require valid GPS signal all time? mower will go into error (fix timeout) if no valid GPS signal during mowing
-//#define REQUIRE_VALID_GPS  true    
-#define REQUIRE_VALID_GPS  false    
 
 #define ENABLE_PATH_FINDER  true     // path finder is experimental (can be slow - you may have to wait until robot actually starts)
 //#define ENABLE_PATH_FINDER  false

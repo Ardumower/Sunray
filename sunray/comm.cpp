@@ -333,6 +333,10 @@ void cmdStats(){
   s += statMaxControlCycleTime;
   s += ",";
   s += SERIAL_BUFFER_SIZE;
+  s += ",";
+  s += statMowDurationInvalid;
+  s += ",";
+  s += statMowInvalidRecoveries;
   cmdAnswer(s);  
 }
 
@@ -342,9 +346,11 @@ void cmdClearStats(){
   statIdleDuration = 0;
   statChargeDuration = 0;
   statMowDuration = 0;
+  statMowDurationInvalid = 0;
   statMowDurationFloat = 0;
   statMowDurationFix = 0;
   statMowFloatToFixRecoveries = 0;
+  statMowInvalidRecoveries = 0;
   statMowDistanceTraveled = 0;
   statMowMaxDgpsAge = 0;
   statImuRecoveries = 0;

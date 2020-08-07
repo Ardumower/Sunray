@@ -81,10 +81,12 @@ UBLOX::SolType lastSolution = UBLOX::SOL_INVALID;
 unsigned long nextStatTime = 0;
 unsigned long statIdleDuration = 0; // seconds
 unsigned long statChargeDuration = 0; // seconds
+unsigned long statMowDurationInvalid = 0; // seconds
 unsigned long statMowDuration = 0; // seconds
 unsigned long statMowDurationFloat = 0; // seconds
 unsigned long statMowDurationFix = 0; // seconds
 unsigned long statMowFloatToFixRecoveries = 0; // counter
+unsigned long statMowInvalidRecoveries = 0; // counter
 unsigned long statImuRecoveries = 0; // counter
 float statTempMin = 9999; 
 float statTempMax = -9999; 
@@ -418,8 +420,10 @@ void calcStats(){
         statMowDuration++;
         if (gps.solution == UBLOX::SOL_FIXED) statMowDurationFix++;
           else if (gps.solution == UBLOX::SOL_FLOAT) statMowDurationFloat++;   
+          else if (gps.solution == UBLOX::SOL_INVALID) statMowDurationInvalid++;
         if (gps.solution != lastSolution){      
           if ((lastSolution == UBLOX::SOL_FLOAT) && (gps.solution == UBLOX::SOL_FIXED)) statMowFloatToFixRecoveries++;
+          if (lastSolution == UBLOX::SOL_INVALID) statMowInvalidRecoveries++;
           lastSolution = gps.solution;
         } 
         statMowMaxDgpsAge = max(statMowMaxDgpsAge, (millis() - gps.dgpsAge)/1000.0);        
@@ -671,11 +675,13 @@ void controlRobotVelocity(){
     if (linear > 0.06) {
       if ((millis() > linearMotionStartTime + 5000) && (stateGroundSpeed < 0.03)){
         // if in linear motion and not enough ground speed => obstacle
-        CONSOLE.println("gps obstacle!");
-        stateSensor = SENS_OBSTACLE;
-        setOperation(OP_ERROR);
-        buzzer.sound(SND_STUCK, true);                
-        return;
+        if (GPS_OBSTACLE_DETECTION){
+          CONSOLE.println("gps obstacle!");
+          stateSensor = SENS_OBSTACLE;
+          setOperation(OP_ERROR);
+          buzzer.sound(SND_STUCK, true);                
+          return;
+        }
       }
     } else {
       resetMotionMeasurement();
