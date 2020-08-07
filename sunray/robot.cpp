@@ -388,7 +388,7 @@ void start(){
   CONSOLE.println("NOTE: if you experience GPS checksum errors, try to increase UART FIFO size:");
   CONSOLE.println("1. Arduino IDE->File->Preferences->Click on 'preferences.txt' at the bottom");
   CONSOLE.println("2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h");
-  CONSOLE.println("change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 1024");
+  CONSOLE.println("change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 2048");
   CONSOLE.println("-----------------------------------------------------");
   
   gps.begin();   
