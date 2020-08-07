@@ -81,10 +81,12 @@ UBLOX::SolType lastSolution = UBLOX::SOL_INVALID;
 unsigned long nextStatTime = 0;
 unsigned long statIdleDuration = 0; // seconds
 unsigned long statChargeDuration = 0; // seconds
+unsigned long statMowDurationInvalid = 0; // seconds
 unsigned long statMowDuration = 0; // seconds
 unsigned long statMowDurationFloat = 0; // seconds
 unsigned long statMowDurationFix = 0; // seconds
 unsigned long statMowFloatToFixRecoveries = 0; // counter
+unsigned long statMowInvalidRecoveries = 0; // counter
 unsigned long statImuRecoveries = 0; // counter
 float statTempMin = 9999;
 float statTempMax = -9999;
@@ -386,7 +388,7 @@ void start(){
   CONSOLE.println("NOTE: if you experience GPS checksum errors, try to increase UART FIFO size:");
   CONSOLE.println("1. Arduino IDE->File->Preferences->Click on 'preferences.txt' at the bottom");
   CONSOLE.println("2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h");
-  CONSOLE.println("change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 1024");
+  CONSOLE.println("change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 2048");
   CONSOLE.println("-----------------------------------------------------");
 
   gps.begin();
@@ -418,8 +420,10 @@ void calcStats(){
         statMowDuration++;
         if (gps.solution == UBLOX::SOL_FIXED) statMowDurationFix++;
           else if (gps.solution == UBLOX::SOL_FLOAT) statMowDurationFloat++;
+          else if (gps.solution == UBLOX::SOL_INVALID) statMowDurationInvalid++;
         if (gps.solution != lastSolution){
           if ((lastSolution == UBLOX::SOL_FLOAT) && (gps.solution == UBLOX::SOL_FIXED)) statMowFloatToFixRecoveries++;
+          if (lastSolution == UBLOX::SOL_INVALID) statMowInvalidRecoveries++;
           lastSolution = gps.solution;
         }
         statMowMaxDgpsAge = max(statMowMaxDgpsAge, (millis() - gps.dgpsAge)/1000.0);
@@ -531,6 +535,7 @@ void controlRobotVelocity(){
   pt_t target = maps.targetPoint;
   pt_t lastTarget = maps.lastTargetPoint;
   float linear = 1.0;
+  bool mow = true;
   float angular = 0;
   float targetDelta = pointsAngle(stateX, stateY, target.x, target.y);
   if (maps.trackReverse) targetDelta = scalePI(targetDelta + PI);
@@ -553,6 +558,7 @@ void controlRobotVelocity(){
     stateSensor = SENS_OBSTACLE;
     setOperation(OP_ERROR);
     buzzer.sound(SND_STUCK, true);
+    return;
   }
   if (ENABLE_ODOMETRY_ERROR_DETECTION){
     if (motor.odometryError){
@@ -560,6 +566,7 @@ void controlRobotVelocity(){
       stateSensor = SENS_ODOMETRY_ERROR;
       setOperation(OP_ERROR);
       buzzer.sound(SND_STUCK, true);
+      return;
     }
   }
   if (ENABLE_OVERLOAD_DETECTION){
@@ -568,6 +575,7 @@ void controlRobotVelocity(){
       stateSensor = SENS_OVERLOAD;
       setOperation(OP_ERROR);
       buzzer.sound(SND_STUCK, true);
+      return;
     }
   }
   if (ENABLE_FAULT_DETECTION){
@@ -577,6 +585,7 @@ void controlRobotVelocity(){
       stateSensor = SENS_MOTOR_ERROR;
       setOperation(OP_ERROR);
       buzzer.sound(SND_STUCK, true);
+      return;
     }
   }
 
@@ -586,6 +595,7 @@ void controlRobotVelocity(){
       stateSensor = SENS_KIDNAPPED;
       setOperation(OP_ERROR);
       buzzer.sound(SND_STUCK, true);
+      return;
    }
   }
 
@@ -633,10 +643,10 @@ void controlRobotVelocity(){
         linear = setSpeed;         // desired speed
     }
     //angular = 3.0 * diffDelta + 3.0 * lateralError;       // correct for path errors
-    float k = 0.5;
-    if (maps.trackSlow) k = 0.1;
+    float k = STANLEY_CONTROL_K_NORMAL;
+    if (maps.trackSlow) k = STANLEY_CONTROL_K_SLOW;
     angular = diffDelta + atan2(k * lateralError, (0.001 + fabs(motor.linearSpeedSet)));       // correct for path errors
-    /*pidLine.w = 0;
+    /*pidLine.w = 0;              
     pidLine.x = lateralError;
     pidLine.max_output = PI;
     pidLine.y_min = -PI;
@@ -654,21 +664,25 @@ void controlRobotVelocity(){
       // stop on fix solution timeout (fixme: optionally: turn on place if fix-timeout)
       linear = 0;
       angular = 0;
+      mow = false;
       stateSensor = SENS_GPS_FIX_TIMEOUT;
       //angular = 0.2;
     } else {
       if (stateSensor == SENS_GPS_FIX_TIMEOUT) stateSensor = SENS_NONE; // clear fix timeout
     }
   }
-  motor.setLinearAngularSpeed(linear, angular);
+
   if ((gps.solution == UBLOX::SOL_FIXED) || (gps.solution == UBLOX::SOL_FLOAT)){
     if (linear > 0.06) {
       if ((millis() > linearMotionStartTime + 5000) && (stateGroundSpeed < 0.03)){
         // if in linear motion and not enough ground speed => obstacle
-        CONSOLE.println("gps obstacle!");
-        stateSensor = SENS_OBSTACLE;
-        setOperation(OP_ERROR);
-        buzzer.sound(SND_STUCK, true);
+        if (GPS_OBSTACLE_DETECTION){
+          CONSOLE.println("gps obstacle!");
+          stateSensor = SENS_OBSTACLE;
+          setOperation(OP_ERROR);
+          buzzer.sound(SND_STUCK, true);
+          return;
+        }
       }
     } else {
       resetMotionMeasurement();
@@ -676,12 +690,18 @@ void controlRobotVelocity(){
   } else {
     // no gps solution
     if (REQUIRE_VALID_GPS){
-      CONSOLE.println("no gps solution!");
+      //CONSOLE.println("no gps solution!");
       stateSensor = SENS_GPS_INVALID;
-      setOperation(OP_ERROR);
-      buzzer.sound(SND_STUCK, true);
+      //setOperation(OP_ERROR);
+      //buzzer.sound(SND_STUCK, true);
+      linear = 0;
+      angular = 0;
+      mow = false;
     }
   }
+
+  motor.setLinearAngularSpeed(linear, angular);
+  motor.setMowState(mow);
 
   if (targetReached){
     bool straight = maps.nextPointIsStraight();
@@ -785,10 +805,12 @@ void run(){
 
   computeRobotState();
 
-  if (!imuIsCalibrating){
-    if (millis() >= nextControlTime){
-      nextControlTime = millis() + 20;
-      controlLoops++;
+
+  if (millis() >= nextControlTime){
+    nextControlTime = millis() + 20;
+    controlLoops++;
+
+    if (!imuIsCalibrating){
 
       if (battery.chargerConnected() != stateChargerConnected) {
         stateChargerConnected = battery.chargerConnected();
@@ -808,6 +830,8 @@ void run(){
           maps.setIsDocked(false);
         }
       }
+
+
       if ((stateOp == OP_MOW) ||  (stateOp == OP_DOCK)) {
         if (stateOp == OP_DOCK){
           //docking();
@@ -832,6 +856,8 @@ void run(){
           setOperation(OP_IDLE);
         }
       }
+
+
     }
   }
 

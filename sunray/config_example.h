@@ -81,7 +81,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // NOTE: if you experience GPS checksum errors, try to increase UART FIFO size:
 // 1. Arduino IDE->File->Preferences->Click on 'preferences.txt' at the bottom
 // 2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h
-// change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 1024
+// change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 2048
 
 
 // ------ odometry -----------------------------------
@@ -166,6 +166,17 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define CURRENT_FACTOR 0.5     // (non-bridged INA169, max. 2.5A)
 //#define CURRENT_FACTOR 1.0   // (bridged INA169, max. 5A)
 
+
+// ------ GPS ------------------------------------------
+
+// require valid GPS signal all time? mower will go into error (fix timeout) if no valid GPS signal during mowing
+#define REQUIRE_VALID_GPS  true
+//#define REQUIRE_VALID_GPS  false
+
+#define GPS_OBSTACLE_DETECTION true  // will detect obstacles via GPS feedback (no motion)
+//#define GPS_OBSTACLE_DETECTION false
+
+
 // ------ experimental options -------------------------
 // detect robot being kidnapped?
 #define KIDNAP_DETECT true
@@ -175,10 +186,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define SMOOTH_CURVES  true
 #define SMOOTH_CURVES  false
 
-// require valid GPS signal all time? mower will go into error (fix timeout) if no valid GPS signal during mowing
-#define REQUIRE_VALID_GPS  true
-//#define REQUIRE_VALID_GPS  false
-
 #define ENABLE_PATH_FINDER  true     // path finder is experimental (can be slow - you may have to wait until robot actually starts)
 //#define ENABLE_PATH_FINDER  false
 
@@ -186,6 +193,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define DOCKING_STATION true   // use this if docking station available and mower should dock automatically
 #define DOCKING_STATION false    // use this if mower should not dock automatically
 
+// stanley control for path tracking - determines gain how fast to correct for lateral path errors
+#define STANLEY_CONTROL_K_NORMAL  0.5   // 0.5 for path tracking control when in normal or fast motion
+#define STANLEY_CONTROL_K_SLOW    0.1   // 0.1 for path tracking control when in slow motion (e.g. docking tracking)
 
 // ------- I2C addresses -----------------------------
 #define DS1307_ADDRESS B1101000

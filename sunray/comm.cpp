@@ -333,6 +333,10 @@ void cmdStats(){
   s += statMaxControlCycleTime;
   s += ",";
   s += SERIAL_BUFFER_SIZE;
+  s += ",";
+  s += statMowDurationInvalid;
+  s += ",";
+  s += statMowInvalidRecoveries;
   cmdAnswer(s);  
 }
 
@@ -342,9 +346,11 @@ void cmdClearStats(){
   statIdleDuration = 0;
   statChargeDuration = 0;
   statMowDuration = 0;
+  statMowDurationInvalid = 0;
   statMowDurationFloat = 0;
   statMowDurationFix = 0;
   statMowFloatToFixRecoveries = 0;
+  statMowInvalidRecoveries = 0;
   statMowDistanceTraveled = 0;
   statMowMaxDgpsAge = 0;
   statImuRecoveries = 0;
@@ -513,8 +519,12 @@ void outputConsole(){
   if (millis() > nextInfoTime){        
     nextInfoTime = millis() + 5000;               
     CONSOLE.print ("ctlDur=");    
-    statControlCycleTime = 1.0 / (controlLoops/5.0);
-    statMaxControlCycleTime = max(statMaxControlCycleTime, statControlCycleTime);
+    if (millis() > 10000){
+      if (controlLoops > 0){
+        statControlCycleTime = 1.0 / (((float)controlLoops)/5.0);
+      } else statControlCycleTime = 5;
+      statMaxControlCycleTime = max(statMaxControlCycleTime, statControlCycleTime);
+    }    
     controlLoops=0;
     CONSOLE.print (statControlCycleTime);        
     CONSOLE.print (" op=");    
