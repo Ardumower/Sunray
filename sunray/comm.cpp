@@ -517,14 +517,16 @@ void processWifi()
 // output summary on console
 void outputConsole(){
   if (millis() > nextInfoTime){        
-    nextInfoTime = millis() + 5000;               
-    CONSOLE.print ("ctlDur=");    
-    if (millis() > 10000){
+    bool started = (nextInfoTime == 0);
+    nextInfoTime = millis() + 5000;                   
+    CONSOLE.print ("ctlDur=");        
+    //if (!imuIsCalibrating){
+    if (!started){
       if (controlLoops > 0){
         statControlCycleTime = 1.0 / (((float)controlLoops)/5.0);
       } else statControlCycleTime = 5;
-      statMaxControlCycleTime = max(statMaxControlCycleTime, statControlCycleTime);
-    }    
+      statMaxControlCycleTime = max(statMaxControlCycleTime, statControlCycleTime);    
+    }
     controlLoops=0;
     CONSOLE.print (statControlCycleTime);        
     CONSOLE.print (" op=");    
