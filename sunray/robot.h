@@ -21,7 +21,7 @@
 #include "WiFiEsp.h"
 
 
-#define VER "Ardumower Sunray,1.0.82"
+#define VER "Ardumower Sunray,1.0.83"
 
 enum OperationType {
       OP_IDLE,      
@@ -76,6 +76,7 @@ extern WiFiEspClient client;
 extern WiFiEspServer server;
 
 extern unsigned long controlLoops;
+extern bool imuIsCalibrating;
 extern bool wifiFound;
 
 extern "C" char* sbrk(int incr);
