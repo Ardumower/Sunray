@@ -92,6 +92,8 @@ class Map
     bool setExclusionLength(int idx, int len);
     // choose progress (0..100%) in mowing point list
     void setMowingPointPercent(float perc);
+    // skip next mowing point
+    void skipNextMowingPoint();
     // set last target point
     void setLastTargetPoint(float stateX, float stateY);
     // distance to target waypoint
