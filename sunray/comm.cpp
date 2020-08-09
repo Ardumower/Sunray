@@ -56,7 +56,9 @@ void cmdControl(){
           if (intValue >= 0) finishAndRestart = (intValue == 1);
       } else if (counter == 6){
           if (floatValue >= 0) maps.setMowingPointPercent(floatValue);
-      } 
+      } else if (counter == 7){
+          if (intValue > 0) maps.skipNextMowingPoint();
+      }
       counter++;
       lastCommaIdx = idx;
     }    

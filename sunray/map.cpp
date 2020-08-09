@@ -169,6 +169,14 @@ void Map::setMowingPointPercent(float perc){
   targetPointIdx = mowStartIdx + mowPointsIdx;
 }
 
+void Map::skipNextMowingPoint(){
+  mowPointsIdx++;
+  if (mowPointsIdx >= mowPointsCount) {
+    mowPointsIdx = mowPointsCount-1;
+  }
+  targetPointIdx = mowStartIdx + mowPointsIdx;
+}
+
 void Map::run(){
   targetPoint = points[targetPointIdx];  
   percentCompleted = (((float)mowPointsIdx) / ((float)mowPointsCount) * 100.0);
