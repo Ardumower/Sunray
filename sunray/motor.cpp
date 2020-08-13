@@ -387,9 +387,9 @@ void Motor::sense(){
   motorLeftPWMCurrLP = 0.995 * motorLeftPWMCurrLP + 0.005 * ((float)motorLeftPWMCurr);
   motorMowPWMCurrLP = 0.995 * motorMowPWMCurrLP + 0.005 * ((float)motorMowPWMCurr); 
  
-  motorLeftOverload = (motorLeftSenseLP > 0.8);
-  motorRightOverload = (motorRightSenseLP > 0.8);
-  motorMowOverload = (motorMowSenseLP > 2.0);
+  motorLeftOverload = (motorLeftSenseLP > MOTOR_OVERLOAD_CURRENT);
+  motorRightOverload = (motorRightSenseLP > MOTOR_OVERLOAD_CURRENT);
+  motorMowOverload = (motorMowSenseLP > MOW_OVERLOAD_CURRENT);
   if (motorLeftOverload || motorRightOverload || motorMowOverload){
     motorOverloadDuration += 20;    
     CONSOLE.print("ERROR motor overload duration=");

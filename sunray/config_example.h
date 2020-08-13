@@ -114,8 +114,13 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define TICKS_PER_REVOLUTION  1050 / 2    // odometry ticks per wheel revolution 
 
 
+// ----- gear motors --------------------------------------------------
+#define MOTOR_OVERLOAD_CURRENT 0.8    // gear motors overload current (amps)
+
 
 // ----- mowing motor -------------------------------------------------
+#define MOW_OVERLOAD_CURRENT 2.0    // mowing motor overload current (amps)
+
 // should the direction of mowing motor toggle each start? (yes: true, no: false)
 #define MOW_TOGGLE_DIR       true
 //#define MOW_TOGGLE_DIR       false
