@@ -43,16 +43,16 @@ void Motor::begin() {
   pinMode(pinMotorMowDir, OUTPUT);
   pinMode(pinMotorMowPWM, OUTPUT);
   pinMode(pinMotorMowSense, INPUT);
-  pinMode(pinMotorMowRpm, INPUT);
+  //pinMode(pinMotorMowRpm, INPUT);
   pinMode(pinMotorMowEnable, OUTPUT);
   digitalWrite(pinMotorMowEnable, HIGH);
   pinMode(pinMotorMowFault, INPUT);
 
   // odometry
   pinMode(pinOdometryLeft, INPUT_PULLUP);
-  pinMode(pinOdometryLeft2, INPUT_PULLUP);
+  //pinMode(pinOdometryLeft2, INPUT_PULLUP);
   pinMode(pinOdometryRight, INPUT_PULLUP);
-  pinMode(pinOdometryRight2, INPUT_PULLUP);
+  //pinMode(pinOdometryRight2, INPUT_PULLUP);
 	  
   // enable interrupts
   attachInterrupt(pinOdometryLeft, OdometryLeftInt, RISING);  
@@ -169,14 +169,22 @@ void Motor::speedPWM ( MotorSelect motor, int speedPWM )
 
 // linear: m/s
 // angular: rad/s
+// -------unicycle model equations----------
+//      L: wheel-to-wheel distance
+//     VR: right speed (m/s)
+//     VL: left speed  (m/s)
+//  omega: rotation speed (rad/s)
+//      V     = (VR + VL) / 2       =>  VR = V + omega * L/2
+//      omega = (VR - VL) / L       =>  VL = V - omega * L/2
 void Motor::setLinearAngularSpeed(float linear, float angular){
    linearSpeedSet = linear;
    angularSpeedSet = angular;
    setLinearAngularSpeedTimeout = millis() + 1000;
    setLinearAngularSpeedTimeoutActive = true;
    float rspeed = linear + angular * (wheelBaseCm /100.0 /2);          
-   float lspeed = linear * 2.0 - rspeed;          
-   motorRightRpmSet =  rspeed / (PI*(wheelDiameter/1000.0)) * 60.0;
+   float lspeed = linear - angular * (wheelBaseCm /100.0 /2);          
+   // RPM = V / (2*PI*r) * 60
+   motorRightRpmSet =  rspeed / (PI*(wheelDiameter/1000.0)) * 60.0;   
    motorLeftRpmSet = lspeed / (PI*(wheelDiameter/1000.0)) * 60.0;   
    /*CONSOLE.print("setLinearAngularSpeed ");
    CONSOLE.print(linear);
