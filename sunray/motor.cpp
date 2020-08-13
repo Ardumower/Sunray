@@ -184,6 +184,8 @@ void Motor::setLinearAngularSpeed(float linear, float angular){
    float rspeed = linear + angular * (wheelBaseCm /100.0 /2);          
    float lspeed = linear - angular * (wheelBaseCm /100.0 /2);          
    // RPM = V / (2*PI*r) * 60
+   motorRightRpmSet =  rspeed / (PI*(((float)wheelDiameter)/1000.0)) * 60.0;   
+   motorLeftRpmSet = lspeed / (PI*(((float)wheelDiameter)/1000.0)) * 60.0;   
    /*CONSOLE.print("setLinearAngularSpeed ");
    CONSOLE.print(linear);
    CONSOLE.print(",");
