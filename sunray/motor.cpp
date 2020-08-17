@@ -308,19 +308,21 @@ void Motor::run() {
          ||  ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (motorLeftSenseLP < 0.005))    
          ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (motorRightSenseLP < 0.005))  ){        
       // at least one motor is not consuming current      
-      CONSOLE.print("ERROR: motor malfunction pwm=");
-      CONSOLE.print(motorLeftPWMCurr);
-      CONSOLE.print(",");
-      CONSOLE.print(motorRightPWMCurr);
-      CONSOLE.print(",");
-      CONSOLE.print(motorMowPWMCurr);
-      CONSOLE.print("  sense=");
-      CONSOLE.print(motorLeftSenseLP);
-      CONSOLE.print(",");
-      CONSOLE.print(motorRightSenseLP);
-      CONSOLE.print(",");
-      CONSOLE.println(motorMowSenseLP);
-      motorError = true;
+      if (!motorError){
+        CONSOLE.print("ERROR: motor malfunction pwm=");
+        CONSOLE.print(motorLeftPWMCurr);
+        CONSOLE.print(",");
+        CONSOLE.print(motorRightPWMCurr);
+        CONSOLE.print(",");
+        CONSOLE.print(motorMowPWMCurr);
+        CONSOLE.print("  sense=");
+        CONSOLE.print(motorLeftSenseLP);
+        CONSOLE.print(",");
+        CONSOLE.print(motorRightSenseLP);
+        CONSOLE.print(",");
+        CONSOLE.println(motorMowSenseLP);
+        motorError = true;
+      }
     }
   }   
 }  
