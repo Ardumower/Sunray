@@ -122,6 +122,7 @@ bool Map::setWayCount(WayType type, int count){
       break;
     case WAY_DOCK:    
       dockPointsCount = count;      
+      break;
     case WAY_MOW:      
       mowPointsCount = count;            
       break;    
@@ -135,6 +136,7 @@ bool Map::setWayCount(WayType type, int count){
   mowStartIdx = dockStartIdx + dockPointsCount;
   freeStartIdx = mowStartIdx + mowPointsCount;
   targetPointIdx = mowStartIdx;
+  return true;
 }
 
 
