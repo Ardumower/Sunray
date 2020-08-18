@@ -43,16 +43,16 @@ void Motor::begin() {
   pinMode(pinMotorMowDir, OUTPUT);
   pinMode(pinMotorMowPWM, OUTPUT);
   pinMode(pinMotorMowSense, INPUT);
-  pinMode(pinMotorMowRpm, INPUT);
+  //pinMode(pinMotorMowRpm, INPUT);
   pinMode(pinMotorMowEnable, OUTPUT);
   digitalWrite(pinMotorMowEnable, HIGH);
   pinMode(pinMotorMowFault, INPUT);
 
   // odometry
   pinMode(pinOdometryLeft, INPUT_PULLUP);
-  pinMode(pinOdometryLeft2, INPUT_PULLUP);
+  //pinMode(pinOdometryLeft2, INPUT_PULLUP);
   pinMode(pinOdometryRight, INPUT_PULLUP);
-  pinMode(pinOdometryRight2, INPUT_PULLUP);
+  //pinMode(pinOdometryRight2, INPUT_PULLUP);
 	  
   // enable interrupts
   attachInterrupt(pinOdometryLeft, OdometryLeftInt, RISING);  
@@ -169,15 +169,23 @@ void Motor::speedPWM ( MotorSelect motor, int speedPWM )
 
 // linear: m/s
 // angular: rad/s
+// -------unicycle model equations----------
+//      L: wheel-to-wheel distance
+//     VR: right speed (m/s)
+//     VL: left speed  (m/s)
+//  omega: rotation speed (rad/s)
+//      V     = (VR + VL) / 2       =>  VR = V + omega * L/2
+//      omega = (VR - VL) / L       =>  VL = V - omega * L/2
 void Motor::setLinearAngularSpeed(float linear, float angular){
    linearSpeedSet = linear;
    angularSpeedSet = angular;
    setLinearAngularSpeedTimeout = millis() + 1000;
    setLinearAngularSpeedTimeoutActive = true;
    float rspeed = linear + angular * (wheelBaseCm /100.0 /2);          
-   float lspeed = linear * 2.0 - rspeed;          
-   motorRightRpmSet =  rspeed / (PI*(wheelDiameter/1000.0)) * 60.0;
-   motorLeftRpmSet = lspeed / (PI*(wheelDiameter/1000.0)) * 60.0;   
+   float lspeed = linear - angular * (wheelBaseCm /100.0 /2);          
+   // RPM = V / (2*PI*r) * 60
+   motorRightRpmSet =  rspeed / (PI*(((float)wheelDiameter)/1000.0)) * 60.0;   
+   motorLeftRpmSet = lspeed / (PI*(((float)wheelDiameter)/1000.0)) * 60.0;   
    /*CONSOLE.print("setLinearAngularSpeed ");
    CONSOLE.print(linear);
    CONSOLE.print(",");
@@ -300,19 +308,21 @@ void Motor::run() {
          ||  ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (motorLeftSenseLP < 0.005))    
          ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (motorRightSenseLP < 0.005))  ){        
       // at least one motor is not consuming current      
-      CONSOLE.print("ERROR: motor malfunction pwm=");
-      CONSOLE.print(motorLeftPWMCurr);
-      CONSOLE.print(",");
-      CONSOLE.print(motorRightPWMCurr);
-      CONSOLE.print(",");
-      CONSOLE.print(motorMowPWMCurr);
-      CONSOLE.print("  sense=");
-      CONSOLE.print(motorLeftSenseLP);
-      CONSOLE.print(",");
-      CONSOLE.print(motorRightSenseLP);
-      CONSOLE.print(",");
-      CONSOLE.println(motorMowSenseLP);
-      motorError = true;
+      if (!motorError){
+        CONSOLE.print("ERROR: motor malfunction pwm=");
+        CONSOLE.print(motorLeftPWMCurr);
+        CONSOLE.print(",");
+        CONSOLE.print(motorRightPWMCurr);
+        CONSOLE.print(",");
+        CONSOLE.print(motorMowPWMCurr);
+        CONSOLE.print("  sense=");
+        CONSOLE.print(motorLeftSenseLP);
+        CONSOLE.print(",");
+        CONSOLE.print(motorRightSenseLP);
+        CONSOLE.print(",");
+        CONSOLE.println(motorMowSenseLP);
+        motorError = true;
+      }
     }
   }   
 }  
@@ -379,9 +389,9 @@ void Motor::sense(){
   motorLeftPWMCurrLP = 0.995 * motorLeftPWMCurrLP + 0.005 * ((float)motorLeftPWMCurr);
   motorMowPWMCurrLP = 0.995 * motorMowPWMCurrLP + 0.005 * ((float)motorMowPWMCurr); 
  
-  motorLeftOverload = (motorLeftSenseLP > 0.8);
-  motorRightOverload = (motorRightSenseLP > 0.8);
-  motorMowOverload = (motorMowSenseLP > 2.0);
+  motorLeftOverload = (motorLeftSenseLP > MOTOR_OVERLOAD_CURRENT);
+  motorRightOverload = (motorRightSenseLP > MOTOR_OVERLOAD_CURRENT);
+  motorMowOverload = (motorMowSenseLP > MOW_OVERLOAD_CURRENT);
   if (motorLeftOverload || motorRightOverload || motorMowOverload){
     motorOverloadDuration += 20;    
     CONSOLE.print("ERROR motor overload duration=");
