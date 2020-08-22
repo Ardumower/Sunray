@@ -1075,6 +1075,7 @@ bool Map::findPath(Point &src, Point &dst){
     freePoints.points[0].assign(src);    
     freePoints.points[1].assign(dst);        
   }    
+  freePointsIdx=0;  
   
   return true;  
 }
