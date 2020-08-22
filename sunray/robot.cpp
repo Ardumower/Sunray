@@ -8,6 +8,7 @@
 #include "WiFiEsp.h"
 #include "SparkFunMPU9250-DMP.h"
 #include "SparkFunHTU21D.h"
+#include "RunningMedian.h"
 #include "pinman.h"
 #include "ble.h"
 #include "motor.h"
@@ -38,6 +39,7 @@ UBLOX gps(GPS,GPS_BAUDRATE);
 BLEConfig bleConfig;
 Buzzer buzzer;
 Sonar sonar;
+VL53L0X tof(VL53L0X_ADDRESS_DEFAULT);
 Map maps;
 HTU21D myHumidity;
 PID pidLine(0.2, 0.01, 0); // not used
@@ -79,6 +81,7 @@ float pitchChange = 0;
 
 UBLOX::SolType lastSolution = UBLOX::SOL_INVALID;
 unsigned long nextStatTime = 0;
+unsigned long nextToFTime = 0;
 unsigned long statIdleDuration = 0; // seconds
 unsigned long statChargeDuration = 0; // seconds
 unsigned long statMowDurationInvalid = 0; // seconds
@@ -118,6 +121,8 @@ int status = WL_IDLE_STATUS;     // the Wifi radio's status
 float dockSignal = 0;
 bool foundDockSignal = true;
 float dockAngularSpeed = 0.1;
+
+RunningMedian<unsigned int,3> tofMeasurements;
 
 
 // must be defined to override default behavior
@@ -381,6 +386,16 @@ void start(){
   motor.begin();
   sonar.begin();
 
+  if (TOF_ENABLE){
+    tof.setTimeout(500);
+    if (!tof.init())
+    {
+      CONSOLE.println("Failed to detect and initialize tof sensor");
+      delay(1000);
+    }
+    tof.startContinuous(100);
+  }
+
   CONSOLE.print("SERIAL_BUFFER_SIZE=");
   CONSOLE.print(SERIAL_BUFFER_SIZE);
   CONSOLE.println(" (increase if you experience GPS checksum errors)");
@@ -388,7 +403,7 @@ void start(){
   CONSOLE.println("NOTE: if you experience GPS checksum errors, try to increase UART FIFO size:");
   CONSOLE.println("1. Arduino IDE->File->Preferences->Click on 'preferences.txt' at the bottom");
   CONSOLE.println("2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h");
-  CONSOLE.println("change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 2048");
+  CONSOLE.println("change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 1024");
   CONSOLE.println("-----------------------------------------------------");
 
   gps.begin();
@@ -532,8 +547,8 @@ void computeRobotState(){
 // uses a stanley controller for line tracking
 // https://medium.com/@dingyan7361/three-methods-of-vehicle-lateral-control-pure-pursuit-stanley-and-mpc-db8cc1d32081
 void controlRobotVelocity(){
-  pt_t target = maps.targetPoint;
-  pt_t lastTarget = maps.lastTargetPoint;
+  Point target = maps.targetPoint;
+  Point lastTarget = maps.lastTargetPoint;
   float linear = 1.0;
   bool mow = true;
   float angular = 0;
@@ -555,6 +570,27 @@ void controlRobotVelocity(){
   if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
     linear = 0.1;
   }
+
+  if (TOF_ENABLE){
+    if (millis() >= nextToFTime){
+      nextToFTime = millis() + 200;
+      int v = tof.readRangeContinuousMillimeters();
+      if (!tof.timeoutOccurred()) {
+        tofMeasurements.add(v);
+        float avg = 0;
+        if (tofMeasurements.getAverage(avg) == tofMeasurements.OK){
+          //CONSOLE.println(avg);
+          if (avg < TOF_OBSTACLE_CM * 10){
+            stateSensor = SENS_OBSTACLE;
+            setOperation(OP_ERROR);
+            buzzer.sound(SND_STUCK, true);
+            return;
+          }
+        }
+      }
+    }
+  }
+
   if (sonar.obstacle()){
     CONSOLE.println("sonar obstacle!");
     stateSensor = SENS_OBSTACLE;

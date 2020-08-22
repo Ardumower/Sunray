@@ -161,6 +161,12 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define SONAR_ENABLE false
 #define SONAR_OBSTACLE_CM 12      // stop mowing operation below this distance (cm)
 
+// ------ time-of-flight distance sensor -----------------------------
+// do not use this sensor (not recommended)
+//#define TOF_ENABLE true
+#define TOF_ENABLE false
+#define TOF_OBSTACLE_CM 100      // stop mowing operation below this distance (cm) 
+
 
 // ----- battery charging current measurement (INA169) --------------
 // the Marotronics charger outputs max 1.5A
