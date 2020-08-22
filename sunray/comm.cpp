@@ -188,7 +188,7 @@ void cmdWayCount(){
   }        
   String s = F("N");    
   cmdAnswer(s);         
-  maps.dump();
+  //maps.dump();
 }
 
 
@@ -261,6 +261,14 @@ void cmdVersion(){
   s += F(VER);
   cmdAnswer(s);
 }
+
+// request add obstacle
+void cmdObstacle(){
+  String s = F("O");
+  cmdAnswer(s);  
+  maps.addObstacle(stateX, stateY);  
+}
+
 
 // request summary
 void cmdSummary(){
@@ -408,6 +416,7 @@ void processCmd(bool checkCrc){
   if (cmd[3] == 'T') cmdStats();
   if (cmd[3] == 'L') cmdClearStats();
   if (cmd[3] == 'E') cmdMotorTest();  
+  if (cmd[3] == 'O') cmdObstacle();  
 }
 
 // process console input

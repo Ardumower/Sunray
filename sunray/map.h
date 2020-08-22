@@ -10,21 +10,83 @@
 #include <Arduino.h>
 
 
-#define MAX_POINTS 5000
-#define MAX_EXCLUSIONS 100
-
-
 // waypoint type
 enum WayType {WAY_PERIMETER, WAY_EXCLUSION, WAY_DOCK, WAY_MOW, WAY_FREE};
 typedef enum WayType WayType;
 
 
-struct pt_t {
-  float x; 
-  float y;  
+class Point
+{
+  public:
+    float x;
+    float y;       
+    Point();
+    Point(float ax, float ay);
+    virtual void init();
+    virtual void setXY(float ax, float ay);
+    virtual void assign(Point &fromPoint);
 };
 
-typedef struct pt_t pt_t;
+
+class Polygon
+{
+  public:
+    Point *points;    
+    short numPoints;    
+    Polygon();
+    Polygon(short aNumPoints);
+    virtual ~Polygon();
+    virtual void init();
+    virtual void alloc(short aNumPoints);
+    virtual void dealloc();
+    virtual void dump();
+};
+
+class PolygonList // owns polygons!
+{
+   public:
+     Polygon *polygons;    
+     short numPolygons;     
+     PolygonList();
+     PolygonList(short aNumPolygons);
+     virtual ~PolygonList();
+     virtual void init();
+     virtual void alloc(short aNumPolygons);
+     virtual void dealloc();
+     virtual void dump();
+     virtual int numPoints();
+};
+
+class Node   // nodes just hold references to points and other nodes
+{
+  public:
+    Point *point;
+    Node *parent;
+    bool opened;
+    bool closed;
+    float g;
+    float h;
+    float f;
+    Node();
+    Node(Point *aPoint, Node *aParentNode);
+    virtual void init();
+    virtual void dealloc();
+};
+
+
+class NodeList  // owns nodes!
+{
+  public:
+    Node *nodes;    
+    short numNodes;     
+    NodeList();
+    NodeList(short aNumNodes);
+    virtual ~NodeList();
+    virtual void init();
+    virtual void alloc(short aNumNodes);
+    virtual void dealloc();    
+};
+
 
 
 // there are three types of points used as waypoints:
@@ -46,9 +108,9 @@ class Map
     WayType wayMode;
     
     // the line defined by (lastTargetPoint, targetPoint) is the current line to drive
-    pt_t targetPoint; // target point
-    pt_t lastTargetPoint; // last target point
-    int targetPointIdx; // index of target point    
+    Point targetPoint; // target point
+    Point lastTargetPoint; // last target point
+    //int targetPointIdx; // index of target point    
     bool trackReverse; // get to target in reverse?
     bool trackSlow;    // get to target slowly?
     bool useGPSfloatForPosEstimation;    // use GPS float solution for position estimation?
@@ -56,32 +118,25 @@ class Map
     bool useIMU; // allow using IMU?
     
     // keeps track of the progress in the different point types
-    int mowPointsIdx;    // next mowing point in mowing point list    
-    int dockPointsIdx;   // next dock point in docking point list
-    int freePointsIdx;   // next free point in free point list
+    int mowPointsIdx;    // next mowing point in mowing point polygon
+    int dockPointsIdx;   // next dock point in docking point polygon
+    int freePointsIdx;   // next free point in free point polygon
     int percentCompleted; 
-    
-    // all points are stored in one array and we need to know the counts and start indexes
-    int perimeterPointsCount;    
     int exclusionPointsCount;        
-    int dockPointsCount;
-    int mowPointsCount;    
-    int freePointsCount;
-                  
-    short perimeterStartIdx; // perimeter start index into points    
-    short exclusionCount;    // number exclusions      
-    short exclusionLength[MAX_EXCLUSIONS]; // number points in exclusion
-    short exclusionStartIdx[MAX_EXCLUSIONS]; // exclusion start index into points        
-    short dockStartIdx;  // docking start index into points
-    short mowStartIdx; // mowing start index into points    
-    short freeStartIdx;  // free points start index into points
-        
-    pt_t points[MAX_POINTS]; // points list in this order: ( perimeter, exclusions, docking, mowing, free )
-    short storeIdx;  // index where to store next transferred point
     
+    Polygon points;
+    Polygon perimeterPoints;
+    Polygon mowPoints;    
+    Polygon dockPoints;
+    Polygon freePoints;
+    PolygonList exclusions;     
+    PolygonList obstacles;     
+    PolygonList pathFinderObstacles;
+    NodeList pathFinderNodes;
+           
     bool shouldDock;  // start docking?
     bool shouldMow;  // start mowing?
-    
+        
     void begin();    
     void run();    
     // set point coordinate
@@ -108,32 +163,27 @@ class Map
     void setIsDocked(bool flag);
     void startDocking(float stateX, float stateY);
     void startMowing(float stateX, float stateY);
-    void addDynamicObstacle(float x, float y);
-    void dump();
-    void clipperTest();
+    void addObstacle(float stateX, float stateY);
+    void dump();    
   private:
+    bool findObstacleSafeMowPoint();
     bool nextMowPoint(bool sim);
     bool nextDockPoint(bool sim);
-    bool nextFreePoint(bool sim);
-    void addFreePoint(pt_t pt);
-    void clearFreePoints();
-    bool includesFreePoint(pt_t pt);
-    bool getObstaclePolygonPoint(int polyIdx, int ptIdx, pt_t &pt);
-    int getObstaclePolygonLen(int polyIdx);
-    bool isInsideObstaclePolygon(int polyIdx, float x, float y);    
-    bool lineObstaclePolygonIntersection ( int polyIdx, pt_t src, pt_t dst);
-    bool lineIntersects (pt_t p0, pt_t p1, pt_t p2, pt_t p3);    
-    bool lineIsObstacleSafe(pt_t src, pt_t dst);
-    bool findPath(pt_t src, pt_t dst);
-    float distance(pt_t src, pt_t dst);    
-    bool isPointInBoundingBox(pt_t pt, pt_t A, pt_t B);
-    bool lineLineIntersection(pt_t A, pt_t B, pt_t C, pt_t D, pt_t &pt);
-    float goPathOnPolygon(int polyIdx, int idxSrc, int idxDst, bool goForward, bool add);
-    bool getPolyIntersections(int polyIdx, pt_t src, pt_t dst, pt_t &secPt1, pt_t &secPt2, int &polyIdx1, int &polyIdx2 );
+    bool nextFreePoint(bool sim);        
+    bool findPath(Point &src, Point &dst);
+    float distance(Point &src, Point &dst);        
     float pointsAngle(float x1, float y1, float x2, float y2);
     float scalePI(float v);
     float distancePI(float x, float w);
+    float distanceManhattan(Point &pos0, Point &pos1);
+    float calcHeuristic(Point &pos0, Point &pos1);
     float scalePIangles(float setAngle, float currAngle);
+    bool lineIntersects (Point &p0, Point &p1, Point &p2, Point &p3);        
+    bool linePolygonIntersection( Point &src, Point &dst, Polygon &poly);
+    float polygonArea(Polygon &poly);
+    void polygonOffset(Polygon &srcPoly, Polygon &dstPoly, float dist);
+    int findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, int startIdx);
+    bool pointIsInsidePolygon( Polygon &polygon, float x, float y);
 };
 
 
