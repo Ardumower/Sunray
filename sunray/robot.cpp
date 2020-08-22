@@ -549,6 +549,8 @@ void controlRobotVelocity(){
   else
     targetReached = (targetDist < 0.05);
 
+  if (stateOp == OP_DOCK)(mow = false);
+
 
   if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
     linear = 0.1;
@@ -646,7 +648,7 @@ void controlRobotVelocity(){
     float k = STANLEY_CONTROL_K_NORMAL;
     if (maps.trackSlow) k = STANLEY_CONTROL_K_SLOW;
     angular = diffDelta + atan2(k * lateralError, (0.001 + fabs(motor.linearSpeedSet)));       // correct for path errors
-    /*pidLine.w = 0;              
+    /*pidLine.w = 0;
     pidLine.x = lateralError;
     pidLine.max_output = PI;
     pidLine.y_min = -PI;
