@@ -22,7 +22,7 @@
 #include "WiFiEsp.h"
 
 
-#define VER "Ardumower Sunray,1.0.90"
+#define VER "Ardumower Sunray,1.0.91"
 
 enum OperationType {
       OP_IDLE,      
@@ -44,6 +44,8 @@ enum Sensor {
       SENS_MOTOR_ERROR,
       SENS_GPS_INVALID,
       SENS_ODOMETRY_ERROR,
+      SENS_MAP_NO_ROUTE,
+      SENS_MEM_OVERFLOW,
 };
 
 extern OperationType stateOp; // operation

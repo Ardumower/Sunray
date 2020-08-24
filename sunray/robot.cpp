@@ -911,6 +911,7 @@ void setOperation(OperationType op){
   if (stateOp == op) return;  
   CONSOLE.print("setOperation op=");
   CONSOLE.println(op);
+  bool error = false;
   switch (op){
     case OP_IDLE:
       motor.setLinearAngularSpeed(0,0);
@@ -919,28 +920,40 @@ void setOperation(OperationType op){
     case OP_DOCK:
       motor.setLinearAngularSpeed(0,0);
       motor.setMowState(false);                
-      maps.startDocking(stateX, stateY);
-      if (maps.nextPoint(true)) {
-        resetMotionMeasurement();                
-        maps.setLastTargetPoint(stateX, stateY);        
-        stateSensor = SENS_NONE;        
-        foundDockSignal = true;
-      } else {
-        CONSOLE.println("error: no waypoints!");
-        op = stateOp;                
+      if (maps.startDocking(stateX, stateY)){
+        if (maps.nextPoint(true)) {
+          resetMotionMeasurement();                
+          maps.setLastTargetPoint(stateX, stateY);        
+          stateSensor = SENS_NONE;        
+          foundDockSignal = true;
+        } else {
+          error = true;
+          CONSOLE.println("error: no waypoints!");
+          //op = stateOp;                
+        }
+      } else error = true;
+      if (error){
+        stateSensor = SENS_MAP_NO_ROUTE;
+        op = OP_ERROR;
       }
       break;
     case OP_MOW:      
       motor.setLinearAngularSpeed(0,0);
-      maps.startMowing(stateX, stateY);
-      if (maps.nextPoint(true)) {
-        resetMotionMeasurement();                
-        maps.setLastTargetPoint(stateX, stateY);        
-        stateSensor = SENS_NONE;
-        motor.setMowState(true);                
-      } else {
-        CONSOLE.println("error: no waypoints!");
-        op = stateOp;                
+      if (maps.startMowing(stateX, stateY)){
+        if (maps.nextPoint(true)) {
+          resetMotionMeasurement();                
+          maps.setLastTargetPoint(stateX, stateY);        
+          stateSensor = SENS_NONE;
+          motor.setMowState(true);                
+        } else {
+          error = true;
+          CONSOLE.println("error: no waypoints!");
+          //op = stateOp;                
+        }
+      } else error = true;
+      if (error){
+        stateSensor = SENS_MAP_NO_ROUTE;
+        op = OP_ERROR;
       }
       break;
     case OP_CHARGE:

@@ -514,7 +514,7 @@ void Map::setIsDocked(bool flag){
   }  
 }
 
-void Map::startDocking(float stateX, float stateY){
+bool Map::startDocking(float stateX, float stateY){
   shouldDock = true;
   shouldMow = false;
   if (dockPoints.numPoints > 0){
@@ -523,13 +523,15 @@ void Map::startDocking(float stateX, float stateY){
     Point src;
     Point dst;
     src.setXY(stateX, stateY);    
-    dst.assign(dockPoints.points[0]);    
-    findPath(src, dst);
     wayMode = WAY_FREE;          
-  }    
+    dst.assign(dockPoints.points[0]);    
+    if (findPath(src, dst)){
+      return true;
+    } else return false;
+  } else return false; 
 }
 
-void Map::startMowing(float stateX, float stateY){
+bool Map::startMowing(float stateX, float stateY){
   shouldDock = false;
   shouldMow = true;    
   if (mowPoints.numPoints > 0){
@@ -546,9 +548,11 @@ void Map::startMowing(float stateX, float stateY){
     }        
     if (findObstacleSafeMowPoint()){
       dst.assign(mowPoints.points[mowPointsIdx]);
-      findPath(src, dst);       
-    }
-  }  
+      if (findPath(src, dst)){
+        return true;
+      } else return false;      
+    } else return false;
+  } else return false; 
 }
 
 // add dynamic octagon obstacle in front of robot on line going from robot to target point
@@ -971,7 +975,7 @@ bool Map::findPath(Point &src, Point &dst){
     //CONSOLE.print("sz=");
     //CONSOLE.println(sizeof(visitedPoints));
     
-    int timeout = 300;    
+    int timeout = 1000;    
     Node *currentNode = NULL;
     
     CONSOLE.println("starting path-finder");
@@ -1066,9 +1070,10 @@ bool Map::findPath(Point &src, Point &dst){
     } else {
       // No result was found
       CONSOLE.println("no path");      
-      freePoints.alloc(2);
-      freePoints.points[0].assign(src);    
-      freePoints.points[1].assign(dst);        
+      return false;
+      //freePoints.alloc(2);
+      //freePoints.points[0].assign(src);    
+      //freePoints.points[1].assign(dst);        
     }       
   } else {
     freePoints.alloc(2);

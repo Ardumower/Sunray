@@ -161,8 +161,8 @@ class Map
     // set robot state position to docking position
     void setRobotStatePosToDockingPos(float &x, float &y, float &delta);
     void setIsDocked(bool flag);
-    void startDocking(float stateX, float stateY);
-    void startMowing(float stateX, float stateY);
+    bool startDocking(float stateX, float stateY);
+    bool startMowing(float stateX, float stateY);
     void addObstacle(float stateX, float stateY);
     void dump();    
   private:
