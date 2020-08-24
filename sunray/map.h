@@ -17,11 +17,14 @@ typedef enum WayType WayType;
 
 class Point
 {
+  protected:
+    short px;
+    short py;           
   public:
-    float x;
-    float y;       
     Point();
     Point(float ax, float ay);
+    float x();
+    float y();
     void init();
     void setXY(float ax, float ay);
     void assign(Point &fromPoint);

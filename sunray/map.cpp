@@ -14,23 +14,32 @@ Point::Point(){
 }
 
 void Point::init(){
-  x = 0;
-  y = 0;
+  px = 0;
+  py = 0;
 }
 
+float Point::x(){
+  return ((float)px) / 100.0;
+}
+
+float Point::y(){
+  return ((float)py) / 100.0;
+}
+
+
 Point::Point(float ax, float ay){
-  x = ax;
-  y = ay;
+  px = ax * 100;
+  py = ay * 100;
 }
 
 void Point::assign(Point &fromPoint){
-  x = fromPoint.x;
-  y = fromPoint.y;
+  px = fromPoint.px;
+  py = fromPoint.py;
 }
 
 void Point::setXY(float ax, float ay){
-  x = ax;
-  y = ay;
+  px = ax * 100;
+  py = ay * 100;
 }
 
 // -----------------------------------
@@ -74,9 +83,9 @@ void Polygon::dealloc(){
 void Polygon::dump(){
   for (int i=0; i < numPoints; i++){
     CONSOLE.print("(");
-    CONSOLE.print(points[i].x);
+    CONSOLE.print(points[i].x());
     CONSOLE.print(",");
-    CONSOLE.print(points[i].y);
+    CONSOLE.print(points[i].y());
     CONSOLE.print(")");   
     if (i < numPoints-1) CONSOLE.print(",");
   }
@@ -271,8 +280,8 @@ float Map::distancePI(float x, float w)
 
 // This is the Manhattan distance
 float Map::distanceManhattan(Point &pos0, Point &pos1){
-  float d1 = abs (pos1.x - pos0.x);
-  float d2 = abs (pos1.y - pos0.y);
+  float d1 = abs (pos1.x() - pos0.x());
+  float d2 = abs (pos1.y() - pos0.y());
   return d1 + d2;
 }
 
@@ -311,9 +320,9 @@ void Map::dump(){
   CONSOLE.println(mowPoints.numPoints);  
   //mowPoints.dump();
   CONSOLE.print("first mow point:");
-  CONSOLE.print(mowPoints.points[0].x);
+  CONSOLE.print(mowPoints.points[0].x());
   CONSOLE.print(",");
-  CONSOLE.println(mowPoints.points[0].y);
+  CONSOLE.println(mowPoints.points[0].y());
   CONSOLE.print("free pts: ");
   CONSOLE.println(freePoints.numPoints);
 }
@@ -453,15 +462,15 @@ void Map::run(){
 }
 
 float Map::distanceToTargetPoint(float stateX, float stateY){  
-  float dX = targetPoint.x - stateX;
-  float dY = targetPoint.y - stateY;
+  float dX = targetPoint.x() - stateX;
+  float dY = targetPoint.y() - stateY;
   float targetDist = sqrt( sq(dX) + sq(dY) );    
   return targetDist;
 }
 
 float Map::distanceToLastTargetPoint(float stateX, float stateY){  
-  float dX = lastTargetPoint.x - stateX;
-  float dY = lastTargetPoint.y - stateY;
+  float dX = lastTargetPoint.x() - stateX;
+  float dY = lastTargetPoint.y() - stateY;
   float targetDist = sqrt( sq(dX) + sq(dY) );    
   return targetDist;
 }
@@ -472,8 +481,8 @@ bool Map::nextPointIsStraight(){
   if (mowPointsIdx+1 >= mowPoints.numPoints) return false;     
   Point nextPt;
   nextPt.assign(mowPoints.points[mowPointsIdx+1]);  
-  float angleCurr = pointsAngle(lastTargetPoint.x, lastTargetPoint.y, targetPoint.x, targetPoint.y);
-  float angleNext = pointsAngle(targetPoint.x, targetPoint.y, nextPt.x, nextPt.y);
+  float angleCurr = pointsAngle(lastTargetPoint.x(), lastTargetPoint.y(), targetPoint.x(), targetPoint.y());
+  float angleNext = pointsAngle(targetPoint.x(), targetPoint.y(), nextPt.x(), nextPt.y());
   angleNext = scalePIangles(angleNext, angleCurr);                    
   float diffDelta = distancePI(angleCurr, angleNext);                 
   //CONSOLE.println(fabs(diffDelta)/PI*180.0);
@@ -488,9 +497,9 @@ void Map::setRobotStatePosToDockingPos(float &x, float &y, float &delta){
   Point dockPrevPt;
   dockFinalPt.assign(dockPoints.points[ dockPoints.numPoints-1]);  
   dockPrevPt.assign(dockPoints.points[ dockPoints.numPoints-2]);
-  x = dockFinalPt.x;
-  y = dockFinalPt.y;
-  delta = pointsAngle(dockPrevPt.x, dockPrevPt.y, dockFinalPt.x, dockFinalPt.y);  
+  x = dockFinalPt.x();
+  y = dockFinalPt.y();
+  delta = pointsAngle(dockPrevPt.x(), dockPrevPt.y(), dockFinalPt.x(), dockFinalPt.y());  
 }             
 
 // mower has been docked
@@ -562,7 +571,7 @@ void Map::addObstacle(float stateX, float stateY){
   float d1 = 0.1;   // distance from center to nearest octagon edges
   float d2 = 3*d1;  // distance from center to farest octagon edges
   
-  float angleCurr = pointsAngle(stateX, stateY, targetPoint.x, targetPoint.y);
+  float angleCurr = pointsAngle(stateX, stateY, targetPoint.x(), targetPoint.y());
   float r = d2 + 0.05;
   float x = stateX + cos(angleCurr) * r;
   float y = stateY + sin(angleCurr) * r;
@@ -594,11 +603,11 @@ bool Map::findObstacleSafeMowPoint(){
     safe = true;  
     dst.assign(mowPoints.points[mowPointsIdx]);
     CONSOLE.print("findObstacleSafeMowPoint checking ");    
-    CONSOLE.print(dst.x);
+    CONSOLE.print(dst.x());
     CONSOLE.print(",");
-    CONSOLE.println(dst.y);
+    CONSOLE.println(dst.y());
     for (int idx=0; idx < obstacles.numPolygons; idx++){
-      if (pointIsInsidePolygon( obstacles.polygons[idx], dst.x, dst.y)){
+      if (pointIsInsidePolygon( obstacles.polygons[idx], dst.x(), dst.y())){
         safe = false;
         break;
       }
@@ -729,7 +738,7 @@ void Map::setLastTargetPoint(float stateX, float stateY){
 
 
 float Map::distance(Point &src, Point &dst) {
-  return sqrt(sq(src.x-dst.x)+sq(src.y-dst.y));  
+  return sqrt(sq(src.x()-dst.x())+sq(src.y()-dst.y()));  
 }
 
 
@@ -751,8 +760,8 @@ bool Map::pointIsInsidePolygon( Polygon &polygon, float x, float y)
   for (i = 0, j = nvert-1; i < nvert; j = i++) {
     pti.assign(polygon.points[i]);
     ptj.assign(polygon.points[j]);    
-    if ( ((pti.y>y) != (ptj.y>y)) &&
-     (x < (ptj.x-pti.x) * (y-pti.y) / (ptj.y-pti.y) + pti.x) )
+    if ( ((pti.y()>y) != (ptj.y()>y)) &&
+     (x < (ptj.x()-pti.x()) * (y-pti.y()) / (ptj.y()-pti.y()) + pti.x()) )
        c = !c;
   }
   return (c % 2 != 0);
@@ -779,12 +788,12 @@ bool Map::lineIntersects (Point &p0, Point &p1, Point &p2, Point &p3) {
   CONSOLE.print(",");
   CONSOLE.print(p3.y);
   CONSOLE.print(")) ");*/  
-  float s1x = p1.x - p0.x;
-  float s1y = p1.y - p0.y;
-  float s2x = p3.x - p2.x;
-  float s2y = p3.y - p2.y;
-  float s = (-s1y * (p0.x - p2.x) + s1x * (p0.y - p2.y)) / (-s2x * s1y + s1x * s2y);
-  float t = (s2x * (p0.y - p2.y) - s2y * (p0.x - p2.x)) / (-s2x * s1y + s1x * s2y);
+  float s1x = p1.x() - p0.x();
+  float s1y = p1.y() - p0.y();
+  float s2x = p3.x() - p2.x();
+  float s2y = p3.y() - p2.y();
+  float s = (-s1y * (p0.x() - p2.x()) + s1x * (p0.y() - p2.y())) / (-s2x * s1y + s1x * s2y);
+  float t = (s2x * (p0.y() - p2.y()) - s2y * (p0.x() - p2.x())) / (-s2x * s1y + s1x * s2y);
   bool res =  ((s >= 0) && (s <= 1) && (t >= 0) && (t <= 1));
   //CONSOLE.println(res);  
   return res;
@@ -820,8 +829,8 @@ float Map::polygonArea(Polygon &poly){
   for (i = 0, l = poly.numPoints; i < l; i++) {
     v0.assign( poly.points[i] );
     v1.assign( poly.points[i == l - 1 ? 0 : i + 1] );
-    a += v0.x * v1.y;
-    a -= v1.x * v0.y;
+    a += v0.x() * v1.y();
+    a -= v1.x() * v0.y();
   }
   return a / 2;
 }
@@ -850,12 +859,12 @@ void Map::polygonOffset(Polygon &srcPoly, Polygon &dstPoly, float dist){
     p2.assign(srcPoly.points[idx2]); // previous           
     p1.assign(srcPoly.points[idx1]); // center
     p3.assign(srcPoly.points[idx3]); // next                 
-    float a3 = atan2(p3.y - p1.y, p3.x - p1.x);            
-    float a2 = atan2(p2.y - p1.y, p2.x - p1.x);      
+    float a3 = atan2(p3.y() - p1.y(), p3.x() - p1.x());            
+    float a2 = atan2(p2.y() - p1.y(), p2.x() - p1.x());      
     float angle = a2 + (a3-a2)/2;      
     if (a3 < a2) angle-=PI;      
     if (!orient) angle+=PI;    
-    dstPoly.points[idx1].setXY( p1.x + dist * cos(angle), p1.y + dist * sin(angle) );     
+    dstPoly.points[idx1].setXY( p1.x() + dist * cos(angle), p1.y() + dist * sin(angle) );     
   }  
 }
 
@@ -897,13 +906,13 @@ int Map::findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, i
 // https://briangrinstead.com/blog/astar-search-algorithm-in-javascript/
 bool Map::findPath(Point &src, Point &dst){
   CONSOLE.print("findPath (");
-  CONSOLE.print(src.x);
+  CONSOLE.print(src.x());
   CONSOLE.print(",");
-  CONSOLE.print(src.y);
+  CONSOLE.print(src.y());
   CONSOLE.print(") (");
-  CONSOLE.print(dst.x);
+  CONSOLE.print(dst.x());
   CONSOLE.print(",");
-  CONSOLE.print(dst.y);
+  CONSOLE.print(dst.y());
   CONSOLE.println(")");  
       
   if (ENABLE_PATH_FINDER){
@@ -1063,9 +1072,9 @@ bool Map::findPath(Point &src, Point &dst){
       while(curr) {                                
         freePoints.points[idx].assign( *curr->point );
         CONSOLE.print("node pt=");
-        CONSOLE.print(curr->point->x);
+        CONSOLE.print(curr->point->x());
         CONSOLE.print(",");
-        CONSOLE.println(curr->point->y);
+        CONSOLE.println(curr->point->y());
         idx--;
         curr = curr->parent;                
       }            

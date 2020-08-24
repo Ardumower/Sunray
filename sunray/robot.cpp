@@ -553,11 +553,11 @@ void controlRobotVelocity(){
   bool mow = true;
   if (stateOp == OP_DOCK) mow = false;
   float angular = 0;      
-  float targetDelta = pointsAngle(stateX, stateY, target.x, target.y);      
+  float targetDelta = pointsAngle(stateX, stateY, target.x(), target.y());      
   if (maps.trackReverse) targetDelta = scalePI(targetDelta + PI);
   targetDelta = scalePIangles(targetDelta, stateDelta);
   float diffDelta = distancePI(stateDelta, targetDelta);                         
-  float lateralError = distanceLine(stateX, stateY, lastTarget.x, lastTarget.y, target.x, target.y);        
+  float lateralError = distanceLine(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
   float targetDist = maps.distanceToTargetPoint(stateX, stateY);
   float lastTargetDist = maps.distanceToLastTargetPoint(stateX, stateY);  
   if (SMOOTH_CURVES)

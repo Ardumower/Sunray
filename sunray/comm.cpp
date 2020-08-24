@@ -291,9 +291,9 @@ void cmdSummary(){
   s += ",";
   s += stateSensor;
   s += ",";
-  s += maps.targetPoint.x;
+  s += maps.targetPoint.x();
   s += ",";
-  s += maps.targetPoint.y;  
+  s += maps.targetPoint.y();  
   s += ",";
   s += gps.accuracy;  
   s += ",";
@@ -549,9 +549,9 @@ void outputConsole(){
     CONSOLE.print(" chg=");
     CONSOLE.print(battery.chargingCurrent);    
     CONSOLE.print(" tg=");
-    CONSOLE.print(maps.targetPoint.x);
+    CONSOLE.print(maps.targetPoint.x());
     CONSOLE.print(",");
-    CONSOLE.print(maps.targetPoint.y);
+    CONSOLE.print(maps.targetPoint.y());
     CONSOLE.print(" x=");
     CONSOLE.print(stateX);
     CONSOLE.print(" y=");
