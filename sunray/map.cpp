@@ -316,7 +316,7 @@ void Map::dump(){
   CONSOLE.print("dock pts: ");
   CONSOLE.println(dockPoints.numPoints);
   //dockPoints.dump();
-  CONSOLE.print("mow: ");  
+  CONSOLE.print("mow pts: ");  
   CONSOLE.println(mowPoints.numPoints);  
   //mowPoints.dump();
   CONSOLE.print("first mow point:");
@@ -788,12 +788,20 @@ bool Map::lineIntersects (Point &p0, Point &p1, Point &p2, Point &p3) {
   CONSOLE.print(",");
   CONSOLE.print(p3.y);
   CONSOLE.print(")) ");*/  
-  float s1x = p1.x() - p0.x();
-  float s1y = p1.y() - p0.y();
-  float s2x = p3.x() - p2.x();
-  float s2y = p3.y() - p2.y();
-  float s = (-s1y * (p0.x() - p2.x()) + s1x * (p0.y() - p2.y())) / (-s2x * s1y + s1x * s2y);
-  float t = (s2x * (p0.y() - p2.y()) - s2y * (p0.x() - p2.x())) / (-s2x * s1y + s1x * s2y);
+  int p0x = p0.px;
+  int p0y = p0.py;
+  int p1x = p1.px;
+  int p1y = p1.py;
+  int p2x = p2.px;
+  int p2y = p2.py;
+  int p3x = p3.px;
+  int p3y = p3.py;  
+  int s1x = p1x - p0x;
+  int s1y = p1y - p0y;
+  int s2x = p3x - p2x;
+  int s2y = p3y - p2y;
+  float s = ((float) (-s1y * (p0x - p2x) + s1x * (p0y - p2y))  ) /  ((float) (-s2x * s1y + s1x * s2y)  );
+  float t = ((float) (s2x * (p0y - p2y) - s2y * (p0x - p2x))   ) /  ((float)  (-s2x * s1y + s1x * s2y) );
   bool res =  ((s >= 0) && (s <= 1) && (t >= 0) && (t <= 1));
   //CONSOLE.println(res);  
   return res;

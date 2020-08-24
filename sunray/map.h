@@ -17,10 +17,9 @@ typedef enum WayType WayType;
 
 class Point
 {
-  protected:
-    short px;
-    short py;           
   public:
+    short px;
+    short py;             
     Point();
     Point(float ax, float ay);
     float x();
