@@ -880,6 +880,7 @@ int Map::findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, i
   //var y = node.pos.Y;   
   for (int idx = startIdx+1; idx < nodes.numNodes; idx++){
     if (nodes.nodes[idx].opened) continue;
+    if (nodes.nodes[idx].closed) continue;                
     if (nodes.nodes[idx].point == node.point) continue;     
     Point *pt = nodes.nodes[idx].point;            
     //if (pt.visited) continue;
@@ -905,6 +906,7 @@ int Map::findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, i
 // astar path finder 
 // https://briangrinstead.com/blog/astar-search-algorithm-in-javascript/
 bool Map::findPath(Point &src, Point &dst){
+  unsigned long nextProgressTime = 0;
   CONSOLE.print("findPath (");
   CONSOLE.print(src.x());
   CONSOLE.print(",");
@@ -915,7 +917,7 @@ bool Map::findPath(Point &src, Point &dst){
   CONSOLE.print(dst.y());
   CONSOLE.println(")");  
       
-  if (ENABLE_PATH_FINDER){
+  if (ENABLE_PATH_FINDER){    
     CONSOLE.println("path finder is enabled");      
     
     // create path-finder obstacles    
@@ -989,9 +991,17 @@ bool Map::findPath(Point &src, Point &dst){
     int timeout = 1000;    
     Node *currentNode = NULL;
     
+    CONSOLE.print ("freem=");
+    CONSOLE.println (freeMemory ());
+    
     CONSOLE.println("starting path-finder");
     while(true) {       
-      timeout--;      
+      if (millis() >= nextProgressTime){
+        nextProgressTime = millis() + 4000;          
+        CONSOLE.print(".");
+        watchdogReset();     
+      }
+      timeout--;            
       if (timeout == 0){
         CONSOLE.println("timeout");
         break;
@@ -1017,16 +1027,23 @@ bool Map::findPath(Point &src, Point &dst){
       //CONSOLE.print("currentNode ");
       //CONSOLE.print(currentNode->point->x);
       //CONSOLE.print(",");
-      //CONSOLE.println(currentNode->point->y);
+      //CONSOLE.println(currentNode->point->y);      
       while (true) {        
         neighborIdx = findNextNeighbor(pathFinderNodes, pathFinderObstacles, *currentNode, neighborIdx); 
         if (neighborIdx == -1) break;
-        Node* neighbor = &pathFinderNodes.nodes[neighborIdx];        
-        if (neighbor->closed) continue;                
-        //CONSOLE.print("neighbor ");
-        //CONSOLE.print(neighbor->point->x);
+        Node* neighbor = &pathFinderNodes.nodes[neighborIdx];                
+        
+        if (millis() >= nextProgressTime){
+          nextProgressTime = millis() + 4000;          
+          CONSOLE.print("+");
+          watchdogReset();     
+        }
+        //CONSOLE.print("neighbor=");
+        //CONSOLE.print(neighborIdx);
+        //CONSOLE.print(":");
+        //CONSOLE.print(neighbor->point->x());
         //CONSOLE.print(",");
-        //CONSOLE.println(neighbor->point->y);
+        //CONSOLE.println(neighbor->point->y());
         //this.debugPaths.push( [currentNode.pos, neighbor.pos] );
         // g score is the shortest distance from start to current node, we need to check if
         //   the path we have arrived at this neighbor is the shortest one we have seen yet
