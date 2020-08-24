@@ -800,11 +800,23 @@ bool Map::lineIntersects (Point &p0, Point &p1, Point &p2, Point &p3) {
   int s1y = p1y - p0y;
   int s2x = p3x - p2x;
   int s2y = p3y - p2y;
-  float s = ((float) (-s1y * (p0x - p2x) + s1x * (p0y - p2y))  ) /  ((float) (-s2x * s1y + s1x * s2y)  );
-  float t = ((float) (s2x * (p0y - p2y) - s2y * (p0x - p2x))   ) /  ((float)  (-s2x * s1y + s1x * s2y) );
-  bool res =  ((s >= 0) && (s <= 1) && (t >= 0) && (t <= 1));
-  //CONSOLE.println(res);  
-  return res;
+  
+  //float s = ((float) (-s1y * (p0x - p2x) + s1x * (p0y - p2y))  ) /  ((float) (-s2x * s1y + s1x * s2y)  );
+  //float t = ((float) (s2x * (p0y - p2y) - s2y * (p0x - p2x))   ) /  ((float)  (-s2x * s1y + s1x * s2y) );
+  //return ((s >= 0) && (s <= 1) && (t >= 0) && (t <= 1));
+  
+  int snom = (-s1y * (p0x - p2x) + s1x * (p0y - p2y));
+  int sdenom = (-s2x * s1y + s1x * s2y);
+  int tnom = (s2x * (p0y - p2y) - s2y * (p0x - p2x));
+  int tdenom = (-s2x * s1y + s1x * s2y);  
+  
+  if ( (snom < 0) && ( (sdenom > 0) || (snom < sdenom) ) ) return false;
+  if ( (snom > 0) && ( (sdenom < 0) || (snom > sdenom) ) ) return false;
+      
+  if ( (tnom < 0) && ( (tdenom > 0) || (tnom < tdenom) ) ) return false;
+  if ( (tnom > 0) && ( (tdenom < 0) || (tnom > tdenom) ) ) return false;  
+  
+  return true;
 }
     
   
