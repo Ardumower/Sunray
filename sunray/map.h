@@ -22,9 +22,9 @@ class Point
     float y;       
     Point();
     Point(float ax, float ay);
-    virtual void init();
-    virtual void setXY(float ax, float ay);
-    virtual void assign(Point &fromPoint);
+    void init();
+    void setXY(float ax, float ay);
+    void assign(Point &fromPoint);
 };
 
 
@@ -35,11 +35,11 @@ class Polygon
     short numPoints;    
     Polygon();
     Polygon(short aNumPoints);
-    virtual ~Polygon();
-    virtual void init();
-    virtual void alloc(short aNumPoints);
-    virtual void dealloc();
-    virtual void dump();
+    ~Polygon();
+    void init();
+    void alloc(short aNumPoints);
+    void dealloc();
+    void dump();
 };
 
 class PolygonList // owns polygons!
@@ -49,12 +49,12 @@ class PolygonList // owns polygons!
      short numPolygons;     
      PolygonList();
      PolygonList(short aNumPolygons);
-     virtual ~PolygonList();
-     virtual void init();
-     virtual void alloc(short aNumPolygons);
-     virtual void dealloc();
-     virtual void dump();
-     virtual int numPoints();
+     ~PolygonList();
+     void init();
+     void alloc(short aNumPolygons);
+     void dealloc();
+     void dump();
+     int numPoints();
 };
 
 class Node   // nodes just hold references to points and other nodes
@@ -69,8 +69,8 @@ class Node   // nodes just hold references to points and other nodes
     float f;
     Node();
     Node(Point *aPoint, Node *aParentNode);
-    virtual void init();
-    virtual void dealloc();
+    void init();
+    void dealloc();
 };
 
 
@@ -81,10 +81,10 @@ class NodeList  // owns nodes!
     short numNodes;     
     NodeList();
     NodeList(short aNumNodes);
-    virtual ~NodeList();
-    virtual void init();
-    virtual void alloc(short aNumNodes);
-    virtual void dealloc();    
+    ~NodeList();
+    void init();
+    void alloc(short aNumNodes);
+    void dealloc();    
 };
 
 

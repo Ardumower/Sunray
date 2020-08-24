@@ -288,6 +288,8 @@ void Map::begin(){
   mowPointsIdx = 0;
   freePointsIdx = 0;
   dockPointsIdx = 0;  
+  CONSOLE.print("sizeof Point=");
+  CONSOLE.println(sizeof(Point));
 }
 
 void Map::dump(){
