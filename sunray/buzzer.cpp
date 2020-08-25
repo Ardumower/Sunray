@@ -110,7 +110,7 @@ void Buzzer::tone( uint16_t  freq )
   pinMode(pinBuzzer, OUTPUT);
   Timer1.attachInterrupt(toneHandler).setFrequency(freq).start();   
 #else  
-  ::tone(pinBuzzer, freq);  
+  //::tone(pinBuzzer, freq);    // TODO
 #endif     
 }
 
@@ -121,6 +121,6 @@ void Buzzer::noTone(){
   //pinMode(pinBuzzer, INPUT);  
   digitalWrite(pinBuzzer, LOW);
 #else
-  ::noTone(pinBuzzer);  
+  //::noTone(pinBuzzer);     // TODO
 #endif     
 }

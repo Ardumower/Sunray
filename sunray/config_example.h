@@ -35,7 +35,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 
 // --------- choose Arduino Due or Adafruit Grand Central M4
-#define HAVE_DUE  1           // comment line for Adafruit Grand Central M4
+#define HAVE_DUE  1           // comment out line for Adafruit Grand Central M4
 
 
 #ifdef __cplusplus

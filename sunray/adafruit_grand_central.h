@@ -1,5 +1,8 @@
 // Adafruit Grand Central M4 
 
+
+// Don't have Adafruit Grand Central M4 board? Then activate HAVE_DUE in file 'config.h' 
+
 #ifndef HAVE_DUE
 
 extern Uart Serial2;
