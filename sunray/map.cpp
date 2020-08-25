@@ -340,6 +340,12 @@ bool Map::setPoint(int idx, float x, float y){
     pathFinderObstacles.dealloc();
     pathFinderNodes.dealloc();
   }    
+  if (idx % 100 == 0){
+    if (freeMemory () < 20000){
+      CONSOLE.println("OUT OF MEMORY");
+      return false;
+    }
+  }
   points.alloc(idx+1);
   points.points[idx].setXY(x, y);      
   return true;
@@ -943,6 +949,11 @@ bool Map::findPath(Point &src, Point &dst){
     // create path-finder obstacles    
     int idx = 0;
     pathFinderObstacles.alloc(1 + exclusions.numPolygons + obstacles.numPolygons);        
+    
+    if (freeMemory () < 5000){
+      CONSOLE.println("OUT OF MEMORY");
+      return false;
+    }
     
     polygonOffset(perimeterPoints, pathFinderObstacles.polygons[idx], 0.02);      
     idx++;

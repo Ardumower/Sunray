@@ -155,7 +155,10 @@ void cmdWaypoint(){
     String s = F("W,");
     s += widx;              
     cmdAnswer(s);       
-  }  
+  } else {
+    stateSensor = SENS_MEM_OVERFLOW;
+    setOperation(OP_ERROR);
+  } 
 }
 
 
