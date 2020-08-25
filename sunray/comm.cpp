@@ -151,11 +151,12 @@ void cmdWaypoint(){
   CONSOLE.print(x);
   CONSOLE.print(",");
   CONSOLE.println(y);*/  
-  if (success){    
-    String s = F("W,");
-    s += widx;              
-    cmdAnswer(s);       
-  } else {
+  
+  String s = F("W,");
+  s += widx;              
+  cmdAnswer(s);       
+  
+  if (!success){   
     stateSensor = SENS_MEM_OVERFLOW;
     setOperation(OP_ERROR);
   } 
