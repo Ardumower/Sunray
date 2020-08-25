@@ -32,7 +32,7 @@ void PinManager::setDebounce(int pin, int usecs){  // reject spikes shorter than
     // set clock divider for slow clock -> rejects pulses shorter than (DIV+1)*31µs and accepts pulses longer than 2*(DIV+1)*31µs
     //REG_PIOA_SCDR = 10;
     
-  #else   // __SAM3X8E__
+  #else   // _SAM3XA_
     // CMSIS cortex m3 (sam3x8e)
     // C:\Users\alex\AppData\Local\Arduino15\packages\arduino\hardware\...
     //   sam\1.6.12\system\CMSIS\Device\ATMEL\sam3xa\include\component\component_pio.h
@@ -74,7 +74,7 @@ static inline uint32_t mapResolution(uint32_t value, uint32_t from, uint32_t to)
 		return value << (to-from);
 }
 
-#ifdef HAVE_DUE
+#if defined(_SAM3XA_)
 static void TC_SetCMR_ChannelA(Tc *tc, uint32_t chan, uint32_t v)
 {
 	tc->TC_CHANNEL[chan].TC_CMR = (tc->TC_CHANNEL[chan].TC_CMR & 0xFFF0FFFF) | v;
@@ -92,7 +92,7 @@ static void TC_SetCMR_ChannelB(Tc *tc, uint32_t chan, uint32_t v)
 // pins_*.c file.  For the rest of the pins, we default
 // to digital output.
 void PinManager::analogWrite(uint32_t ulPin, uint32_t ulValue) {
-#ifdef HAVE_DUE
+#if defined(_SAM3XA_)
 	uint32_t attr = g_APinDescription[ulPin].ulPinAttribute;
 
 	if ((attr & PIN_ATTR_ANALOG) == PIN_ATTR_ANALOG) {

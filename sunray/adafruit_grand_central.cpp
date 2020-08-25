@@ -4,7 +4,7 @@
 
 #include "config.h"
 
-#ifndef HAVE_DUE
+#if defined(__SAMD51__)
 
 #include "variant.h"
 

@@ -1,9 +1,7 @@
 // Adafruit Grand Central M4 
 
 
-// Don't have Adafruit Grand Central M4 board? Then activate HAVE_DUE in file 'config.h' 
-
-#ifndef HAVE_DUE
+#if defined(__SAMD51__)
 
 extern Uart Serial2;
 extern Uart Serial3;

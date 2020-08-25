@@ -34,9 +34,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 */
 
 
-// --------- choose Arduino Due or Adafruit Grand Central M4
-#define HAVE_DUE  1           // comment out line for Adafruit Grand Central M4
-
 
 #ifdef __cplusplus
   #include "udpserial.h"
@@ -69,7 +66,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // which Arduino Due USB port do you want to your for serial monitor output (CONSOLE)?
 // Arduino Due native USB port  => choose SerialUSB
 // Arduino Due programming port => choose Serial
-#ifdef HAVE_DUE
+#if defined(_SAM3XA_)
   #define CONSOLE SerialUSB   // do not change (used for Due native USB serial console)
 #else
   #define CONSOLE Serial        // NOTE: Adafruit Grand Central M4 uses this for native USB serial console
@@ -83,7 +80,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define GPS_BAUDRATE  115200          // baudrate for GPS RTK module
 #define WIFI_BAUDRATE 115200          // baudrate for WIFI module
 
-#ifdef HAVE_DUE
+#if defined(_SAM3XA_)
   #define WIFI Serial1
   #define BLE Serial2
   #define GPS Serial3
@@ -282,7 +279,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define pinRemoteSpeed 10          // remote control speed
 #define pinRemoteSwitch 52         // remote control switch
 #define pinVoltageMeasurement A7   // test pin for your own voltage measurements
-#ifdef HAVE_DUE
+#if defined(_SAM3XA_)
   #define pinOdometryLeft DAC0     // left odometry sensor
   #define pinOdometryLeft2 DAC1    // left odometry sensor (optional two-wire)
   #define pinOdometryRight CANRX   // right odometry sensor  
