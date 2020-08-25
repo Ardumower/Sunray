@@ -19,19 +19,37 @@ static uint8_t TCChanEnabled[] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 
 void PinManager::setDebounce(int pin, int usecs){  // reject spikes shorter than usecs on pin
-#ifdef HAVE_DUE
-  if(usecs){
-   g_APinDescription[pin].pPort -> PIO_IFER = g_APinDescription[pin].ulPin;
-   g_APinDescription[pin].pPort -> PIO_DIFSR |= g_APinDescription[pin].ulPin;
-  }
-  else {
-   g_APinDescription[pin].pPort -> PIO_IFDR = g_APinDescription[pin].ulPin;
-   g_APinDescription[pin].pPort -> PIO_DIFSR &=~ g_APinDescription[pin].ulPin;
-   return;
-  }
-  int div=(usecs/31)-1; if(div<0)div=0; if(div > 16383) div=16383;
-  g_APinDescription[pin].pPort -> PIO_SCDR = div;
-#endif  
+  #if defined(__SAMD51__)
+    // CMSIS cortex m4f  (samd51p20)
+    // C:\Users\alex\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0\CMSIS\Device\ATMEL\samd51\include\component\port.h    
+    
+    // get bitmask for register manipulation
+    //int mask = digitalPinToBitMask(pin); 
+    // activate input filters for pin 24
+    //REG_PIOA_IFER = mask;
+    // choose debounce filter as input filter for pin 24
+    //REG_PIOA_DIFSR = mask;
+    // set clock divider for slow clock -> rejects pulses shorter than (DIV+1)*31µs and accepts pulses longer than 2*(DIV+1)*31µs
+    //REG_PIOA_SCDR = 10;
+    
+  #else   // __SAM3X8E__
+    // CMSIS cortex m3 (sam3x8e)
+    // C:\Users\alex\AppData\Local\Arduino15\packages\arduino\hardware\...
+    //   sam\1.6.12\system\CMSIS\Device\ATMEL\sam3xa\include\component\component_pio.h
+    // findstr /s /i "PIO_DIFSR" *.h
+
+    if(usecs){
+     g_APinDescription[pin].pPort -> PIO_IFER = g_APinDescription[pin].ulPin;
+     g_APinDescription[pin].pPort -> PIO_DIFSR |= g_APinDescription[pin].ulPin;
+    }
+    else {
+     g_APinDescription[pin].pPort -> PIO_IFDR = g_APinDescription[pin].ulPin;
+     g_APinDescription[pin].pPort -> PIO_DIFSR &=~ g_APinDescription[pin].ulPin;
+     return;
+    }
+    int div=(usecs/31)-1; if(div<0)div=0; if(div > 16383) div=16383;
+    g_APinDescription[pin].pPort -> PIO_SCDR = div;
+  #endif
 }
 
 
