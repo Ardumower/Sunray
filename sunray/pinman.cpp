@@ -4,6 +4,7 @@
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
 #include "pinman.h"
+#include "config.h"
 
 
 #define PWM_FREQUENCY 3900
@@ -18,17 +19,19 @@ static uint8_t TCChanEnabled[] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 
 void PinManager::setDebounce(int pin, int usecs){  // reject spikes shorter than usecs on pin
- if(usecs){
+#ifdef HAVE_DUE
+  if(usecs){
    g_APinDescription[pin].pPort -> PIO_IFER = g_APinDescription[pin].ulPin;
    g_APinDescription[pin].pPort -> PIO_DIFSR |= g_APinDescription[pin].ulPin;
- }
- else {
+  }
+  else {
    g_APinDescription[pin].pPort -> PIO_IFDR = g_APinDescription[pin].ulPin;
    g_APinDescription[pin].pPort -> PIO_DIFSR &=~ g_APinDescription[pin].ulPin;
    return;
- }
+  }
   int div=(usecs/31)-1; if(div<0)div=0; if(div > 16383) div=16383;
   g_APinDescription[pin].pPort -> PIO_SCDR = div;
+#endif  
 }
 
 
@@ -53,7 +56,7 @@ static inline uint32_t mapResolution(uint32_t value, uint32_t from, uint32_t to)
 		return value << (to-from);
 }
 
-#ifndef __AVR__
+#ifdef HAVE_DUE
 static void TC_SetCMR_ChannelA(Tc *tc, uint32_t chan, uint32_t v)
 {
 	tc->TC_CHANNEL[chan].TC_CMR = (tc->TC_CHANNEL[chan].TC_CMR & 0xFFF0FFFF) | v;
@@ -71,9 +74,7 @@ static void TC_SetCMR_ChannelB(Tc *tc, uint32_t chan, uint32_t v)
 // pins_*.c file.  For the rest of the pins, we default
 // to digital output.
 void PinManager::analogWrite(uint32_t ulPin, uint32_t ulValue) {
-#ifdef __AVR__
-  ::analogWritE(ulPin, ulValue);
-#else  
+#ifdef HAVE_DUE
 	uint32_t attr = g_APinDescription[ulPin].ulPinAttribute;
 
 	if ((attr & PIN_ATTR_ANALOG) == PIN_ATTR_ANALOG) {
@@ -220,5 +221,7 @@ void PinManager::analogWrite(uint32_t ulPin, uint32_t ulValue) {
 		digitalWrite(ulPin, LOW);
 	else
 		digitalWrite(ulPin, HIGH);
+#else
+  ::analogWrite(ulPin, ulValue);
 #endif
 }

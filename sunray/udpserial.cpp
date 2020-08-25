@@ -23,7 +23,7 @@ bool udpActive = false;
 
 
 void UdpSerial::begin(unsigned long baud){  
-  SerialUSB.begin(baud);
+  CONSOLE.begin(baud);
 }  
 
 void UdpSerial::beginUDP(){  
@@ -45,27 +45,27 @@ size_t UdpSerial::write(uint8_t data){
     }
     udpActive = false;
   }  
-  SerialUSB.write(data);
+  CONSOLE.write(data);
   return 1; 
 }
   
   
 int UdpSerial::available(){
-  return SerialUSB.available();
+  return CONSOLE.available();
 }
 
 
 int UdpSerial::read(){
-  return SerialUSB.read();
+  return CONSOLE.read();
 }
 
 
 int UdpSerial::peek(){
-  return SerialUSB.peek();
+  return CONSOLE.peek();
 }
 
 void UdpSerial::flush(){  
-  SerialUSB.flush();    
+  CONSOLE.flush();    
 }
 
 

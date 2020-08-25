@@ -48,7 +48,7 @@ void startHCSR04(int triggerPin, int aechoPin){
   
 }
 
-ISR(echoLeft){
+void echoLeft(){
   if (sonarIdx != 0) return;
   if (digitalRead(pinSonarLeftEcho) == HIGH) {    
     startTime = micros();           
@@ -59,7 +59,7 @@ ISR(echoLeft){
   }
 }
 
-ISR(echoCenter){
+void echoCenter(){
   if (sonarIdx != 1) return;
   if (digitalRead(pinSonarCenterEcho) == HIGH) {    
     startTime = micros();           
@@ -70,7 +70,7 @@ ISR(echoCenter){
   }
 }
 
-ISR(echoRight){
+void echoRight(){
   if (sonarIdx != 2) return;
   if (digitalRead(pinSonarRightEcho) == HIGH) {    
     startTime = micros();           

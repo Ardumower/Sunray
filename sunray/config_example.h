@@ -9,14 +9,14 @@
    requirements:
    + Ardumower chassis and Ardumower motors   
    + Ardumower PCB 1.3 
-   +   Arduino Due
+   +   Arduino Due  
    +   Ardumower BLE UART module (HM-10/CC2540/CC2541)
    +   optional: Ardumower IMU (MPU6050/MPU9150/MPU9250/MPU9255) - choose your IMU below
    +   optional: Ardumower WIFI (ESP8266 ESP-01 with stock firmware)   
    +   optional: HTU21D temperature/humidity sensor
    + Ardumower RTK (ublox F9P)
 
-   
+
 1. Rename file 'config_example.h' into 'config.h'
 
 2. Configure the options below and finally compile and upload this project.
@@ -33,8 +33,14 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
    
 */
 
+
+// --------- choose Arduino Due or Adafruit Grand Central M4
+#define HAVE_DUE  1           // comment line for Adafruit Grand Central M4
+
+
 #ifdef __cplusplus
   #include "udpserial.h"
+  #include "adafruit_grand_central.h"
 #endif
 
 
@@ -63,8 +69,11 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // which Arduino Due USB port do you want to your for serial monitor output (CONSOLE)?
 // Arduino Due native USB port  => choose SerialUSB
 // Arduino Due programming port => choose Serial
-#define CONSOLE SerialUSB   // do not change
-//#define CONSOLE Serial
+#ifdef HAVE_DUE
+  #define CONSOLE SerialUSB   // do not change (used for Due native USB serial console)
+#else
+  #define CONSOLE Serial        // NOTE: Adafruit Grand Central M4 uses this for native USB serial console
+#endif
 //#define CONSOLE udpSerial         
 
 // ------- serial ports and baudrates---------------------------------
@@ -74,9 +83,15 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define GPS_BAUDRATE  115200          // baudrate for GPS RTK module
 #define WIFI_BAUDRATE 115200          // baudrate for WIFI module
 
-#define WIFI Serial1
-#define BLE Serial2
-#define GPS Serial3
+#ifdef HAVE_DUE
+  #define WIFI Serial1
+  #define BLE Serial2
+  #define GPS Serial3
+#else 
+  #define WIFI Serial2
+  #define BLE Serial3
+  #define GPS Serial4
+#endif
 
 // NOTE: if you experience GPS checksum errors, try to increase UART FIFO size:
 // 1. Arduino IDE->File->Preferences->Click on 'preferences.txt' at the bottom
@@ -96,9 +111,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define WHEEL_BASE_CM         36         // wheel-to-wheel distance (cm)        
 #define WHEEL_DIAMETER        250        // wheel diameter (mm)                 
 
-// #define ENABLE_ODOMETRY_ERROR_DETECTION  true    // use this to detect odometry erros
-#define ENABLE_ODOMETRY_ERROR_DETECTION  false
-
+#define ENABLE_ODOMETRY_ERROR_DETECTION  true    // use this to detect odometry erros
+//#define ENABLE_ODOMETRY_ERROR_DETECTION  false
 
 // choose ticks per wheel revolution :
 // ...for the 36mm diameter motor (blue cap)  https://www.marotronics.de/2-x-36er-DC-Planeten-Getriebemotor-24-Volt-mit-HallIC-30-33-RPM-8mm-Welle
@@ -129,9 +143,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define ENABLE_OVERLOAD_DETECTION  true
 #define ENABLE_OVERLOAD_DETECTION  false
 
-// should the motor fault (error) detection be enabled?
-//#define ENABLE_FAULT_DETECTION  true
-#define ENABLE_FAULT_DETECTION  false      // use this if you keep getting 'motor error'
+// should the motor fault (error) detection be enabled? 
+#define ENABLE_FAULT_DETECTION  true
+//#define ENABLE_FAULT_DETECTION  false       // use this if you keep getting 'motor error'
 
 
 // ------ WIFI module (ESP8266 ESP-01) --------------------------------
@@ -144,8 +158,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define START_AP  false             // should WIFI module start its own access point? 
 #define WIFI_IP   192,168,2,15      // choose IP e.g. 192.168.4.1  (comment out for dynamic IP/DHCP)
-#define WIFI_SSID "test"            // choose WiFi network ID
-#define WIFI_PASS "test"            // choose WiFi network password
+#define WIFI_SSID "myssid"            // choose WiFi network ID
+#define WIFI_PASS "mypassword"      // choose WiFi network password
 
 #define ENABLE_SERVER true          // must be enabled for web app
 //#define ENABLE_SERVER false
@@ -181,8 +195,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // ------ GPS ------------------------------------------
 
 // require valid GPS signal all time? mower will go into error (fix timeout) if no valid GPS signal during mowing
-#define REQUIRE_VALID_GPS  true    
-//#define REQUIRE_VALID_GPS  false    
+//#define REQUIRE_VALID_GPS  true    
+#define REQUIRE_VALID_GPS  false    
 
 #define GPS_OBSTACLE_DETECTION true  // will detect obstacles via GPS feedback (no motion)
 //#define GPS_OBSTACLE_DETECTION false
@@ -197,16 +211,18 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define SMOOTH_CURVES  true
 #define SMOOTH_CURVES  false
 
+
 #define ENABLE_PATH_FINDER  true     // path finder is experimental (can be slow - you may have to wait until robot actually starts)
 //#define ENABLE_PATH_FINDER  false
 
 // is a docking station available?
-//#define DOCKING_STATION true   // use this if docking station available and mower should dock automatically
-#define DOCKING_STATION false    // use this if mower should not dock automatically 
+#define DOCKING_STATION true   // use this if docking station available and mower should dock automatically
+//#define DOCKING_STATION false    // use this if mower should not dock automatically 
 
 // stanley control for path tracking - determines gain how fast to correct for lateral path errors
 #define STANLEY_CONTROL_K_NORMAL  0.5   // 0.5 for path tracking control when in normal or fast motion
 #define STANLEY_CONTROL_K_SLOW    0.1   // 0.1 for path tracking control when in slow motion (e.g. docking tracking)
+
 
 // ------- I2C addresses -----------------------------
 #define DS1307_ADDRESS B1101000
@@ -266,16 +282,16 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define pinRemoteSpeed 10          // remote control speed
 #define pinRemoteSwitch 52         // remote control switch
 #define pinVoltageMeasurement A7   // test pin for your own voltage measurements
-#ifdef __AVR__
-  #define pinOdometryLeft A12      // left odometry sensor
-  #define pinOdometryLeft2 A13     // left odometry sensor (optional two-wire)
-  #define pinOdometryRight A14     // right odometry sensor 
-  #define pinOdometryRight2 A15    // right odometry sensor (optional two-wire)  
-#else
+#ifdef HAVE_DUE
   #define pinOdometryLeft DAC0     // left odometry sensor
   #define pinOdometryLeft2 DAC1    // left odometry sensor (optional two-wire)
   #define pinOdometryRight CANRX   // right odometry sensor  
   #define pinOdometryRight2 CANTX  // right odometry sensor (optional two-wire)  
+#else
+  #define pinOdometryLeft A12      // left odometry sensor
+  #define pinOdometryLeft2 A13     // left odometry sensor (optional two-wire)
+  #define pinOdometryRight A14     // right odometry sensor 
+  #define pinOdometryRight2 A15    // right odometry sensor (optional two-wire)  
 #endif
 #define pinLawnFrontRecv 40        // lawn sensor front receive
 #define pinLawnFrontSend 41        // lawn sensor front sender 

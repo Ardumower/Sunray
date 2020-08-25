@@ -7,13 +7,13 @@
 #include "buzzer.h"
 #include "config.h"
 #include <Arduino.h>
-#ifndef __AVR__
+#ifdef HAVE_DUE
   #include "DueTimer.h"
 #endif
 
 
 
-#ifndef __AVR__
+#ifdef HAVE_DUE
 static boolean tone_pin_state = false;
 
 void toneHandler(){  
@@ -106,21 +106,21 @@ void Buzzer::begin()
 
 void Buzzer::tone( uint16_t  freq )
 {
-#ifdef __AVR__   
-   ::tone(pinBuzzer, freq);  
-#else  
+#ifdef HAVE_DUE
   pinMode(pinBuzzer, OUTPUT);
-  Timer1.attachInterrupt(toneHandler).setFrequency(freq).start(); 
+  Timer1.attachInterrupt(toneHandler).setFrequency(freq).start();   
+#else  
+  ::tone(pinBuzzer, freq);  
 #endif     
 }
 
 
 void Buzzer::noTone(){
-#ifdef __AVR__   
-   ::noTone(pinBuzzer);
-#else
+#ifdef HAVE_DUE
   Timer1.stop();
   //pinMode(pinBuzzer, INPUT);  
   digitalWrite(pinBuzzer, LOW);
+#else
+  ::noTone(pinBuzzer);  
 #endif     
 }
