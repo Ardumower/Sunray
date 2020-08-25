@@ -335,6 +335,7 @@ void readIMU(){
 
 // check for RTC module
 bool checkAT24C32() {
+#ifdef HAVE_DUE  
   byte b = 0;
   int r = 0;
   unsigned int address = 0;
@@ -352,6 +353,9 @@ bool checkAT24C32() {
     }
   }
   return (r == 1);
+#else 
+  return true;
+#endif  
 }
 
 
