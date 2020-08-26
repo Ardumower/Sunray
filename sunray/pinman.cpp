@@ -19,20 +19,7 @@ static uint8_t TCChanEnabled[] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 
 void PinManager::setDebounce(int pin, int usecs){  // reject spikes shorter than usecs on pin
-  #if defined(__SAMD51__)
-    // CMSIS cortex m4f  (samd51p20)
-    // C:\Users\alex\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0\CMSIS\Device\ATMEL\samd51\include\component\port.h    
-    
-    // get bitmask for register manipulation
-    //int mask = digitalPinToBitMask(pin); 
-    // activate input filters for pin 24
-    //REG_PIOA_IFER = mask;
-    // choose debounce filter as input filter for pin 24
-    //REG_PIOA_DIFSR = mask;
-    // set clock divider for slow clock -> rejects pulses shorter than (DIV+1)*31µs and accepts pulses longer than 2*(DIV+1)*31µs
-    //REG_PIOA_SCDR = 10;
-    
-  #else   // _SAM3XA_
+  #if defined(_SAM3XA_)
     // CMSIS cortex m3 (sam3x8e)
     // C:\Users\alex\AppData\Local\Arduino15\packages\arduino\hardware\...
     //   sam\1.6.12\system\CMSIS\Device\ATMEL\sam3xa\include\component\component_pio.h
@@ -49,6 +36,18 @@ void PinManager::setDebounce(int pin, int usecs){  // reject spikes shorter than
     }
     int div=(usecs/31)-1; if(div<0)div=0; if(div > 16383) div=16383;
     g_APinDescription[pin].pPort -> PIO_SCDR = div;
+  #else // __SAMD51__
+    // CMSIS cortex m4f  (samd51p20)
+    // C:\Users\alex\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0\CMSIS\Device\ATMEL\samd51\include\component\port.h    
+    
+    // get bitmask for register manipulation
+    //int mask = digitalPinToBitMask(pin); 
+    // activate input filters for pin 24
+    //REG_PIOA_IFER = mask;
+    // choose debounce filter as input filter for pin 24
+    //REG_PIOA_DIFSR = mask;
+    // set clock divider for slow clock -> rejects pulses shorter than (DIV+1)*31µs and accepts pulses longer than 2*(DIV+1)*31µs
+    //REG_PIOA_SCDR = 10;  
   #endif
 }
 

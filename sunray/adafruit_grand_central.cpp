@@ -2,6 +2,10 @@
 
 // https://learn.adafruit.com/adafruit-grand-central/pinouts
 
+
+// FIFO size can be adjusted here (click on Arduino IDE->File->Preferences to jump into that folder):
+// C:\Users\alex\AppData\Local\Arduino15\packages\adafruit\hardware\samd\1.6.0\cores\arduino\RingBuffer.h
+
 #include "config.h"
 
 #if defined(__SAMD51__)
