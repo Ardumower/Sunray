@@ -9,7 +9,7 @@
    requirements:
    + Ardumower chassis and Ardumower motors   
    + Ardumower PCB 1.3 
-   +   Arduino Due  
+   +   Arduino Due     (or Adafruit Grand Central M4)
    +   Ardumower BLE UART module (HM-10/CC2540/CC2541)
    +   optional: Ardumower IMU (MPU6050/MPU9150/MPU9250/MPU9255) - choose your IMU below
    +   optional: Ardumower WIFI (ESP8266 ESP-01 with stock firmware)   
