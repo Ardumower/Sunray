@@ -92,7 +92,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // NOTE: if you experience GPS checksum errors, try to increase UART FIFO size:
 // 1. Arduino IDE->File->Preferences->Click on 'preferences.txt' at the bottom
-// 2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h
+// 2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h'
+//    (for Adafruit Grand Central M4: 'packages\adafruit\hardware\samd\xxxxx\cores\arduino\RingBuffer.h')
 // change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 1024
 
 
