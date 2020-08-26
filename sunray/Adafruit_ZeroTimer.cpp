@@ -10,7 +10,9 @@
  *
  * BSD license, all text above must be included in any redistribution
  */
-#include "Adafruit_ZeroTimer.h"
+#if defined(__SAMD51__)
+
+ #include "Adafruit_ZeroTimer.h"
 
 // mostly from asfdoc_sam0_tc_basic_use_case.html
 
@@ -753,3 +755,5 @@ void Adafruit_ZeroTimer::timerHandler(uint8_t timerNum) {
   }
 }
 };
+ 
+#endif   // (__SAMD51__

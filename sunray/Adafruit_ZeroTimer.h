@@ -1,6 +1,8 @@
 /*!
  * @file Adafruit_ZeroTimer.h
  */
+ 
+#if defined(__SAMD51__)
 
 #include "Arduino.h"
 #include "wiring_private.h"
@@ -182,3 +184,7 @@ protected:
   bool tc_init();
 };
 #endif // once
+
+
+#endif  // __SAMD51__
+
