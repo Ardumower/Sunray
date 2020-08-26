@@ -128,7 +128,7 @@ void Buzzer::tone( uint16_t  freq )
   
   divider = 16;
   prescaler = TC_CLOCK_PRESCALER_DIV16;
-  compare = (CPU_FREQ/16)/freq;   
+  compare = (48000000/16)/freq;   
   
   zerotimer.enable(false);
   zerotimer.configure(prescaler,       // prescaler
