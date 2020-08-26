@@ -11,6 +11,7 @@
 #if defined(__SAMD51__)
 
 #include "variant.h"
+#include "WatchdogSAMD.h"
 
  
 Uart Serial2(&sercom4, PIN_SERIAL2_RX, PIN_SERIAL2_TX, PAD_SERIAL2_RX, PAD_SERIAL2_TX);
@@ -31,13 +32,15 @@ void SERCOM5_1_Handler() { Serial4.IrqHandler(); }
 void SERCOM5_2_Handler() { Serial4.IrqHandler(); }
 void SERCOM5_3_Handler() { Serial4.IrqHandler(); }
 
+WatchdogSAMD watchdog;
+
 
 void watchdogReset(){
-  // TODO
+  watchdog.reset();
 }
 
 void watchdogEnable(uint32_t timeout){
-  // TODO
+  watchdog.enable(timeout);
 }
 
 #endif
