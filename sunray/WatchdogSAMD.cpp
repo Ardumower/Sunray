@@ -1,5 +1,3 @@
-// Requires Adafruit_ASFcore library!
-
 // Be careful to use a platform-specific conditional include to only make the
 // code visible for the appropriate platform.  Arduino will try to compile and
 // link all .cpp files regardless of platform.

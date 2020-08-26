@@ -1,3 +1,5 @@
+// watchdog for SAMD21 and SAMD51 
+
 #ifndef WATCHDOGSAMD_H
 #define WATCHDOGSAMD_H
 

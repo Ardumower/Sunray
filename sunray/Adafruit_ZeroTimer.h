@@ -1,5 +1,5 @@
-/*!
- * @file Adafruit_ZeroTimer.h
+/*
+ * timer for SAMD21 and SAMD51
  */
  
 #if defined(__SAMD51__)
