@@ -32,7 +32,8 @@ Arduino IDE and COM port 'Arduino Due programming port'.
 Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 
-Adafruit Grand Central M4 NOTE: You have to add SDA, SCL pull-up resistors to the board:
+Adafruit Grand Central M4 NOTE: You have to add SDA, SCL pull-up resistors to the board 
+and deactivate Due clone reset cicuit (JP13):
 https://forum.ardumower.de/threads/adafruit-grand-central-m4-sunray.23939/
 
    
