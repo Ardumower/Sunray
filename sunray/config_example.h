@@ -304,6 +304,12 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // GPS: Serial3 (TX3, RX3) 
 // WIFI: Serial1 (TX1, RX1) 
 
+// cpu frequency
+#if defined(__SAMD51__)
+  #define CPU_FREQ 120000000
+#endif  
+
+
 #define DEBUG(x) CONSOLE.print(x)
 #define DEBUGLN(x) CONSOLE.println(x)
 

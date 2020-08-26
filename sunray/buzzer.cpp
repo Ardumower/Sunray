@@ -9,15 +9,24 @@
 #include <Arduino.h>
 #if defined(_SAM3XA_)
   #include "DueTimer.h"
+#else
+  #include "Adafruit_ZeroTimer.h"    // __SAMD51__
 #endif
 
 
 
-#if defined(_SAM3XA_)
-static boolean tone_pin_state = false;
+volatile boolean tone_pin_state = false;
 
 void toneHandler(){  
   digitalWrite(pinBuzzer, tone_pin_state= !tone_pin_state);  
+}
+
+
+#if defined(__SAMD51__)
+Adafruit_ZeroTimer zerotimer = Adafruit_ZeroTimer(3);
+
+void TC3_Handler() {
+  Adafruit_ZeroTimer::timerHandler(3);
 }
 #endif 
 
@@ -109,18 +118,38 @@ void Buzzer::tone( uint16_t  freq )
 #if defined(_SAM3XA_)
   pinMode(pinBuzzer, OUTPUT);
   Timer1.attachInterrupt(toneHandler).setFrequency(freq).start();   
-#else  
-  //::tone(pinBuzzer, freq);    // TODO
+#else      // __SAMD51__
+  //::tone(pinBuzzer, freq);    
+
+  // Set up the flexible divider/compare
+  uint8_t divider  = 1;
+  uint16_t compare = 0;
+  tc_clock_prescaler prescaler = TC_CLOCK_PRESCALER_DIV1;
+  
+  divider = 16;
+  prescaler = TC_CLOCK_PRESCALER_DIV16;
+  compare = (CPU_FREQ/16)/freq;   
+  
+  zerotimer.enable(false);
+  zerotimer.configure(prescaler,       // prescaler
+          TC_COUNTER_SIZE_16BIT,       // bit width of timer/counter
+          TC_WAVE_GENERATION_MATCH_PWM // frequency or PWM mode
+          );
+
+  zerotimer.setCompare(0, compare);
+  zerotimer.setCallback(true, TC_CALLBACK_CC_CHANNEL0, toneHandler);
+  zerotimer.enable(true);
 #endif     
 }
 
 
 void Buzzer::noTone(){
 #if defined(_SAM3XA_)
-  Timer1.stop();
-  //pinMode(pinBuzzer, INPUT);  
+  Timer1.stop();  
   digitalWrite(pinBuzzer, LOW);
 #else
-  //::noTone(pinBuzzer);     // TODO
+  //::noTone(pinBuzzer);     
+  zerotimer.enable(false);
 #endif     
 }
+
