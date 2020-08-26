@@ -30,6 +30,11 @@ If using Arduino Due 'programming' USB port for uploading, choose board 'Arduino
 Arduino IDE and COM port 'Arduino Due programming port'. 
 
 Also, you may choose the serial port below for serial monitor output (CONSOLE).
+
+
+Adafruit Grand Central M4 NOTE: You have to add SDA, SCL pull-up resistors to the board:
+https://forum.ardumower.de/threads/adafruit-grand-central-m4-sunray.23939/
+
    
 */
 
