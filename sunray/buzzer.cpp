@@ -147,9 +147,10 @@ void Buzzer::noTone(){
 #if defined(_SAM3XA_)
   Timer1.stop();  
   digitalWrite(pinBuzzer, LOW);
-#else
+#else  // __SAMD51__
   //::noTone(pinBuzzer);     
   zerotimer.enable(false);
+  digitalWrite(pinBuzzer, LOW);
 #endif     
 }
 
