@@ -540,8 +540,9 @@ bool Map::startDocking(float stateX, float stateY){
     Point src;
     Point dst;
     src.setXY(stateX, stateY);    
+    findPathFinderSafePoint(src);      
     wayMode = WAY_FREE;          
-    dst.assign(dockPoints.points[0]);    
+    dst.assign(dockPoints.points[0]);        
     if (findPath(src, dst)){
       return true;
     } else return false;
@@ -564,7 +565,8 @@ bool Map::startMowing(float stateX, float stateY){
       freePointsIdx = 0;    
     }        
     if (findObstacleSafeMowPoint()){
-      dst.assign(mowPoints.points[mowPointsIdx]);
+      dst.assign(mowPoints.points[mowPointsIdx]);      
+      findPathFinderSafePoint(src);      
       if (findPath(src, dst)){
         return true;
       } else return false;      
@@ -748,6 +750,107 @@ float Map::distance(Point &src, Point &dst) {
 }
 
 
+// checks if point is inside bounding box given by points A, B
+bool Map::isPointInBoundingBox(Point &pt, Point &A, Point &B){
+  float minX = min(A.x(), B.x());
+  float minY = min(A.y(), B.y());
+  float maxX = max(A.x(), B.x());
+  float maxY = max(A.y(), B.y());    
+  if (pt.x() < minX-0.02) return false;
+  if (pt.y() < minY-0.02) return false;
+  if (pt.x() > maxX+0.02) return false;
+  if (pt.y() > maxY+0.02) return false;
+  return true;
+}
+
+// calculates intersection point (or touch point) of two lines 
+// (A,B) 1st line
+// (C,D) 2nd line  
+// https://www.geeksforgeeks.org/program-for-point-of-intersection-of-two-lines/
+bool Map::lineLineIntersection(Point &A, Point &B, Point &C, Point &D, Point &pt)  { 
+  //console.log('lineLineIntersection', A,B,C,D);
+  if ((distance(A, C) < 0.02) || (distance(A, D) < 0.02)) { 
+    pt.assign(A);   
+    return true;
+  } 
+  if ((distance(B, C) < 0.02) || (distance(B, D) < 0.02)){
+    pt.assign(B);
+    return true;
+  }   
+  // Line AB represented as a1x + b1y = c1 
+  float a1 = B.y() - A.y(); 
+  float b1 = A.x() - B.x(); 
+  float c1 = a1*(A.x()) + b1*(A.y()); 
+  // Line CD represented as a2x + b2y = c2 
+  float a2 = D.y() - C.y(); 
+  float b2 = C.x() - D.x(); 
+  float c2 = a2*(C.x())+ b2*(C.y());   
+  float determinant = a1*b2 - a2*b1;   
+  if (determinant == 0)  { 
+      // The lines are parallel.         
+      //console.log('lines are parallel');
+      return false;
+  } else { 
+      float x = (b2*c1 - b1*c2)/determinant; 
+      float y = (a1*c2 - a2*c1)/determinant;             
+      Point cp;
+      cp.setXY(x, y);    
+      if (!isPointInBoundingBox(cp, A, B)) return false; // not in bounding box of 1st line
+      if (!isPointInBoundingBox(cp, C, D)) return false; // not in bounding box of 2nd line
+      pt.assign(cp);
+      return true;
+  } 
+} 
+
+
+// determines if a line intersects (or touches) a polygon and returns intersection point
+bool Map::linePolygonIntersectPoint( Point &src, Point &dst, Polygon &poly, Point &sect) {      
+  //Poly testpoly = poly;
+  //if (allowtouch) testpoly = this.polygonOffset(poly, -0.02);      
+  Point p1;
+  Point p2;
+  for (int i = 0; i < poly.numPoints; i++) {      
+    p1.assign( poly.points[i] );
+    p2.assign( poly.points[ (i+1) % poly.numPoints] );             
+    if (lineIntersects(p1, p2, src, dst)) {        
+      if (lineLineIntersection(p1, p2, src, dst, sect)){        
+        return true; 
+      }
+    }
+    //if (this.doIntersect(p1, p2, src, dst)) return true;
+    //if (this.lineLineIntersection(p1, p2, src, dst) != null) return true;      
+  }       
+  return false;
+}
+
+
+// find start point for path finder on line from lastTargetPoint to point 
+// that is insider perimeter and outside exclusions
+void Map::findPathFinderSafePoint(Point &pt){   
+  /*CONSOLE.print("findPathFinderSafePoint (");  
+  CONSOLE.print(lastTargetPoint.x());
+  CONSOLE.print(",");
+  CONSOLE.print(lastTargetPoint.y());
+  CONSOLE.print(") (");
+  CONSOLE.print(pt.x());
+  CONSOLE.print(",");
+  CONSOLE.print(pt.y());
+  CONSOLE.println(")");  
+  Point sect;
+  if (linePolygonIntersectPoint( lastTargetPoint, pt, perimeterPoints, pt)){
+    CONSOLE.println("found safe point inside perimeter");
+    return;
+  }
+  for (int i=0; i < exclusions.numPolygons; i++){
+    if (linePolygonIntersectPoint( lastTargetPoint, pt, exclusions.polygons[i], pt)){    
+      CONSOLE.println("found safe point outside exclusion");
+      return;
+    }
+  }  
+  // point is inside perimeter and outside exclusions
+  CONSOLE.println("point is inside perimeter and outside exclusions");*/
+}
+  
 
 // checks if point is inside  polygon
 // The algorithm is ray-casting to the right. Each iteration of the loop, the test point is checked against
