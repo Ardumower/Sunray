@@ -298,7 +298,7 @@ void Map::begin(){
   freePointsIdx = 0;
   dockPointsIdx = 0;  
   CONSOLE.print("sizeof Point=");
-  CONSOLE.println(sizeof(Point));
+  CONSOLE.println(sizeof(Point));  
 }
 
 void Map::dump(){
@@ -540,9 +540,9 @@ bool Map::startDocking(float stateX, float stateY){
     Point src;
     Point dst;
     src.setXY(stateX, stateY);    
-    findPathFinderSafePoint(src);      
-    wayMode = WAY_FREE;          
     dst.assign(dockPoints.points[0]);        
+    findPathFinderSafeStartPoint(src, dst);      
+    wayMode = WAY_FREE;              
     if (findPath(src, dst)){
       return true;
     } else return false;
@@ -566,7 +566,7 @@ bool Map::startMowing(float stateX, float stateY){
     }        
     if (findObstacleSafeMowPoint()){
       dst.assign(mowPoints.points[mowPointsIdx]);      
-      findPathFinderSafePoint(src);      
+      findPathFinderSafeStartPoint(src, dst);      
       if (findPath(src, dst)){
         return true;
       } else return false;      
@@ -628,6 +628,44 @@ bool Map::findObstacleSafeMowPoint(){
     mowPointsIdx++;
   }
 }
+
+
+// find start point for path finder on line from src to dst
+// that is insider perimeter and outside exclusions
+void Map::findPathFinderSafeStartPoint(Point &src, Point &dst){
+  CONSOLE.print("findPathFinderSafePoint (");  
+  CONSOLE.print(src.x());
+  CONSOLE.print(",");
+  CONSOLE.print(src.y());
+  CONSOLE.print(") (");
+  CONSOLE.print(dst.x());
+  CONSOLE.print(",");
+  CONSOLE.print(dst.y());
+  CONSOLE.println(")");  
+  Point sect;
+  if (!pointIsInsidePolygon( perimeterPoints, src.x(), src.y())){
+    if (linePolygonIntersectPoint( src, dst, perimeterPoints, sect)){
+      src.assign(sect);
+      CONSOLE.println("found safe point inside perimeter");
+      return;
+    }    
+  }
+  for (int i=0; i < exclusions.numPolygons; i++){
+    if (pointIsInsidePolygon( exclusions.polygons[i], src.x(), src.y())){
+      if (linePolygonIntersectionCount(src, dst, exclusions.polygons[i]) == 1){
+        // source point is not reachable      
+        if (linePolygonIntersectPoint( src, dst, exclusions.polygons[i], sect)){    
+          src.assign(sect);
+          CONSOLE.println("found safe point outside exclusion");
+          return;
+        }
+      }
+    }
+  }  
+  // point is inside perimeter and outside exclusions
+  CONSOLE.println("point is inside perimeter and outside exclusions");
+}
+
 
 // go to next point
 // sim=true: only simulate (do not change data)
@@ -802,57 +840,62 @@ bool Map::lineLineIntersection(Point &A, Point &B, Point &C, Point &D, Point &pt
   } 
 } 
 
+    
 
-// determines if a line intersects (or touches) a polygon and returns intersection point
+// determines if a line intersects (or touches) a polygon and returns shortest intersection point
 bool Map::linePolygonIntersectPoint( Point &src, Point &dst, Polygon &poly, Point &sect) {      
   //Poly testpoly = poly;
   //if (allowtouch) testpoly = this.polygonOffset(poly, -0.02);      
   Point p1;
   Point p2;
+  Point cp;
+  float minDist = 9999;
+  //CONSOLE.print("linePolygonIntersectPoint (");
+  //CONSOLE.print(src.x());  
+  //CONSOLE.print(",");
+  //CONSOLE.print(src.y());
+  //CONSOLE.print(") (");
+  //CONSOLE.print(dst.x());
+  //CONSOLE.print(",");
+  //CONSOLE.print(dst.y());
+  //CONSOLE.println(")");
   for (int i = 0; i < poly.numPoints; i++) {      
     p1.assign( poly.points[i] );
-    p2.assign( poly.points[ (i+1) % poly.numPoints] );             
+    p2.assign( poly.points[ (i+1) % poly.numPoints] );                
+    //CONSOLE.print("(");
+    //CONSOLE.print(p1.x());
+    //CONSOLE.print(",");
+    //CONSOLE.print(p1.y());
+    //CONSOLE.print(") ");
+    //CONSOLE.print("(");
+    //CONSOLE.print(p2.x());
+    //CONSOLE.print(",");
+    //CONSOLE.print(p2.y());
+    //CONSOLE.print(") ");
     if (lineIntersects(p1, p2, src, dst)) {        
-      if (lineLineIntersection(p1, p2, src, dst, sect)){        
-        return true; 
+      //CONSOLE.print(" intersect  ");
+      if (lineLineIntersection(p1, p2, src, dst, cp)){        
+        //CONSOLE.print(cp.x());
+        //CONSOLE.print(",");
+        //CONSOLE.print(cp.y());
+        float dist = distance(src, cp);
+        //CONSOLE.print("  dist=");
+        //CONSOLE.println(dist);
+        if (dist < minDist){
+          minDist = dist;
+          sect.assign(cp);
+        }        
       }
-    }
+    } // else CONSOLE.println();    
     //if (this.doIntersect(p1, p2, src, dst)) return true;
     //if (this.lineLineIntersection(p1, p2, src, dst) != null) return true;      
-  }       
-  return false;
+  }     
+  return (minDist < 9999);  
 }
 
 
-// find start point for path finder on line from lastTargetPoint to point 
-// that is insider perimeter and outside exclusions
-void Map::findPathFinderSafePoint(Point &pt){   
-  /*CONSOLE.print("findPathFinderSafePoint (");  
-  CONSOLE.print(lastTargetPoint.x());
-  CONSOLE.print(",");
-  CONSOLE.print(lastTargetPoint.y());
-  CONSOLE.print(") (");
-  CONSOLE.print(pt.x());
-  CONSOLE.print(",");
-  CONSOLE.print(pt.y());
-  CONSOLE.println(")");  
-  Point sect;
-  if (linePolygonIntersectPoint( lastTargetPoint, pt, perimeterPoints, pt)){
-    CONSOLE.println("found safe point inside perimeter");
-    return;
-  }
-  for (int i=0; i < exclusions.numPolygons; i++){
-    if (linePolygonIntersectPoint( lastTargetPoint, pt, exclusions.polygons[i], pt)){    
-      CONSOLE.println("found safe point outside exclusion");
-      return;
-    }
-  }  
-  // point is inside perimeter and outside exclusions
-  CONSOLE.println("point is inside perimeter and outside exclusions");*/
-}
-  
 
-// checks if point is inside  polygon
+// checks if point is inside obstacle polygon (or touching polygon line or points)
 // The algorithm is ray-casting to the right. Each iteration of the loop, the test point is checked against
 // one of the polygon's edges. The first line of the if-test succeeds if the point's y-coord is within the
 // edge's scope. The second line checks whether the test point is to the left of the line
@@ -875,6 +918,7 @@ bool Map::pointIsInsidePolygon( Polygon &polygon, float x, float y)
   }
   return (c % 2 != 0);
 }      
+
 
 // checks if two lines intersect (or if single line points touch with line or line points)
 // (p0,p1) 1st line
@@ -926,6 +970,22 @@ bool Map::lineIntersects (Point &p0, Point &p1, Point &p2, Point &p3) {
   if ( (tnom > 0) && ( (tdenom < 0) || (tnom > tdenom) ) ) return false;  
   
   return true;
+}
+
+
+// determines how often a line intersects (or touches) a polygon
+int Map::linePolygonIntersectionCount(Point &src, Point &dst, Polygon &poly){
+  Point p1;
+  Point p2;
+  int count = 0;
+  for (int i = 0; i < poly.numPoints; i++) {      
+    p1.assign( poly.points[i] );
+    p2.assign( poly.points[ (i+1) % poly.numPoints] );             
+    if (lineIntersects(p1, p2, src, dst)) {        
+      count++;
+    }  
+  }       
+  return count;
 }
     
   

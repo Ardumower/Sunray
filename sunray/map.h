@@ -186,10 +186,11 @@ class Map
     void polygonOffset(Polygon &srcPoly, Polygon &dstPoly, float dist);
     int findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, int startIdx);
     bool pointIsInsidePolygon( Polygon &polygon, float x, float y);
-    void findPathFinderSafePoint(Point &pt);
+    void findPathFinderSafeStartPoint(Point &src, Point &dst);
     bool linePolygonIntersectPoint( Point &src, Point &dst, Polygon &poly, Point &sect);
     bool lineLineIntersection(Point &A, Point &B, Point &C, Point &D, Point &pt);
     bool isPointInBoundingBox(Point &pt, Point &A, Point &B);
+    int linePolygonIntersectionCount(Point &src, Point &dst, Polygon &poly);
 };
 
 
