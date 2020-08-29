@@ -207,6 +207,11 @@ https://forum.ardumower.de/threads/adafruit-grand-central-m4-sunray.23939/
 
 
 // ------ experimental options -------------------------
+
+#define OSTACLE_AVOIDANCE true   // try to find a way around obstacle
+//#define OSTACLE_AVOIDANCE false  // stop robot on obstacle
+
+
 // detect robot being kidnapped?
 //#define KIDNAP_DETECT true
 #define KIDNAP_DETECT false

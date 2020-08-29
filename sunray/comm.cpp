@@ -270,7 +270,7 @@ void cmdVersion(){
 void cmdObstacle(){
   String s = F("O");
   cmdAnswer(s);  
-  maps.addObstacle(stateX, stateY);  
+  triggerObstacle();  
 }
 
 

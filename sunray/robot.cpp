@@ -102,6 +102,7 @@ float lastPosE = 0;
 
 
 unsigned long linearMotionStartTime = 0;
+unsigned long driveReverseStopTime = 0;
 unsigned long nextControlTime = 0;
 unsigned long lastComputeTime = 0;
 
@@ -119,7 +120,6 @@ WiFiEspClient client = NULL;
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
 float dockSignal = 0;
-bool foundDockSignal = true;
 float dockAngularSpeed = 0.1;
 
 RunningMedian<unsigned int,3> tofMeasurements;
@@ -543,10 +543,23 @@ void computeRobotState(){
 }
 
 
+void triggerObstacle(){
+  if (OSTACLE_AVOIDANCE){
+    CONSOLE.println("triggerObstacle");
+    if (stateOp != OP_MOW) return;
+    driveReverseStopTime = millis() + 3000;      
+  } else { 
+    stateSensor = SENS_OBSTACLE;
+    setOperation(OP_ERROR);
+    buzzer.sound(SND_STUCK, true);        
+  }
+}
+
+
 // control robot velocity (linear,angular) to track line to next waypoint (target)
 // uses a stanley controller for line tracking
 // https://medium.com/@dingyan7361/three-methods-of-vehicle-lateral-control-pure-pursuit-stanley-and-mpc-db8cc1d32081
-void controlRobotVelocity(){  
+void trackLine(){  
   Point target = maps.targetPoint;
   Point lastTarget = maps.lastTargetPoint;
   float linear = 1.0;  
@@ -592,9 +605,7 @@ void controlRobotVelocity(){
   
   if (sonar.obstacle()){
     CONSOLE.println("sonar obstacle!");    
-    stateSensor = SENS_OBSTACLE;
-    setOperation(OP_ERROR);
-    buzzer.sound(SND_STUCK, true);        
+    triggerObstacle();    
     return;
   }
   if (ENABLE_ODOMETRY_ERROR_DETECTION){
@@ -714,9 +725,7 @@ void controlRobotVelocity(){
         // if in linear motion and not enough ground speed => obstacle
         if (GPS_OBSTACLE_DETECTION){
           CONSOLE.println("gps obstacle!");
-          stateSensor = SENS_OBSTACLE;
-          setOperation(OP_ERROR);
-          buzzer.sound(SND_STUCK, true);                
+          triggerObstacle();
           return;
         }
       }
@@ -740,6 +749,9 @@ void controlRobotVelocity(){
   motor.setMowState(mow);
    
   if (targetReached){
+    if (maps.wayMode == WAY_MOW){
+      maps.clearObstacles();
+    }
     bool straight = maps.nextPointIsStraight();
     if (!maps.nextPoint(false)){
       // finish        
@@ -763,29 +775,6 @@ void controlRobotVelocity(){
   }  
 }
 
-
-// docking via IR reflector 
-// https://www.ebay.de/itm/IR-Hindernis-Vermeidungs-Sensor-fur-Arduino-KY-032-Infrarot-Detektor/182379351623?hash=item2a76a80e47:g:Qb8AAOSwo4pYRr~S
-// https://www.ebay.de/itm/Reflektor-rund-84-mm-fur-Reflex-Reflexions-Lichtschranke-Tor-Antrieb-Schiebetor/300933885600?hash=item46110eaea0:g:o4oAAOxy3zNSmMck
-void docking(){
-  float signal = 0;
-  float dockLinearSpeed = 0.05;  
-  bool value = digitalRead(pinDockingReflector);    
-  if (value == LOW) signal = 1.0;
-  dockSignal = 0.9 * dockSignal + 0.1 * signal;
-  if (dockSignal > 0.1){  
-    // reflection    
-    foundDockSignal = true;
-  } else if (dockSignal < 0.1) {
-    // no reflection
-    if (foundDockSignal){
-      dockAngularSpeed *= -1; 
-      foundDockSignal = false;
-    }        
-  }
-  motor.setLinearAngularSpeed(dockLinearSpeed, dockAngularSpeed);    
-  //CONSOLE.println(v);
-}
 
 
 // robot main loop
@@ -869,11 +858,37 @@ void run(){
       
       
       if ((stateOp == OP_MOW) ||  (stateOp == OP_DOCK)) {      
-        if (stateOp == OP_DOCK){
-          //docking();
-          controlRobotVelocity();       
+        if (stateOp == OP_DOCK){          
+          trackLine();       
         } else {
-          controlRobotVelocity();       
+          if (driveReverseStopTime > 0){
+            motor.setLinearAngularSpeed(-0.1,0);
+            if (millis() > driveReverseStopTime){
+              CONSOLE.println("driveReverseStopTime");
+              motor.setLinearAngularSpeed(0,0);
+              driveReverseStopTime = 0;
+              maps.addObstacle(stateX, stateY);
+              bool error = false;
+              if (maps.startMowing(stateX, stateY)){
+                if (maps.nextPoint(true)) {
+                  resetMotionMeasurement();                
+                  maps.setLastTargetPoint(stateX, stateY);        
+                  stateSensor = SENS_NONE;
+                  motor.setMowState(true);                
+                } else {
+                  error = true;
+                  CONSOLE.println("error: no waypoints!");
+                  //op = stateOp;                
+                }
+              } else error = true;
+              if (error){
+                stateSensor = SENS_MAP_NO_ROUTE;
+                setOperation(OP_ERROR);
+              }
+            }
+          } else {          
+            trackLine();       
+          }
         }      
         battery.resetIdle();
         if (battery.underVoltage()){
@@ -906,6 +921,8 @@ void run(){
 }
 
 
+
+
 // set new robot operation
 void setOperation(OperationType op){  
   if (stateOp == op) return;  
@@ -924,8 +941,7 @@ void setOperation(OperationType op){
         if (maps.nextPoint(true)) {
           resetMotionMeasurement();                
           maps.setLastTargetPoint(stateX, stateY);        
-          stateSensor = SENS_NONE;        
-          foundDockSignal = true;
+          stateSensor = SENS_NONE;                  
         } else {
           error = true;
           CONSOLE.println("error: no waypoints!");
@@ -960,11 +976,13 @@ void setOperation(OperationType op){
       motor.setLinearAngularSpeed(0,0);
       motor.setMowState(false);
       break;
-    case OP_ERROR:
+    case OP_ERROR:      
       motor.setLinearAngularSpeed(0,0);
       motor.setMowState(false);
+      maps.clearObstacles();
       break;
   }
   stateOp = op;  
 }
+
 

@@ -166,6 +166,7 @@ class Map
     bool startDocking(float stateX, float stateY);
     bool startMowing(float stateX, float stateY);
     void addObstacle(float stateX, float stateY);
+    void clearObstacles();
     void dump();    
   private:
     bool findObstacleSafeMowPoint();

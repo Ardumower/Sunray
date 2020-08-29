@@ -574,9 +574,14 @@ bool Map::startMowing(float stateX, float stateY){
   } else return false; 
 }
 
+
+void Map::clearObstacles(){  
+  obstacles.dealloc();  
+}
+
 // add dynamic octagon obstacle in front of robot on line going from robot to target point
 void Map::addObstacle(float stateX, float stateY){    
-  float d1 = 0.1;   // distance from center to nearest octagon edges
+  float d1 = 0.2;   // distance from center to nearest octagon edges
   float d2 = 3*d1;  // distance from center to farest octagon edges
   
   float angleCurr = pointsAngle(stateX, stateY, targetPoint.x(), targetPoint.y());
@@ -588,6 +593,10 @@ void Map::addObstacle(float stateX, float stateY){
   CONSOLE.print(x);
   CONSOLE.print(",");
   CONSOLE.println(y);
+  if (obstacles.numPolygons > 50){
+    CONSOLE.println("error: too many obstacles");
+    return;
+  }
   int idx = obstacles.numPolygons;
   obstacles.alloc(idx+1);
   obstacles.polygons[idx].alloc(8);
