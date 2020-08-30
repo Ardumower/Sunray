@@ -8,6 +8,8 @@
 #include <Arduino.h>
 
 
+#define FLOAT_CALC    1    // comment out line for using faster (but incorrect) integer calculations instead of float
+
 
 Point::Point(){
   init();
@@ -923,15 +925,21 @@ bool Map::pointIsInsidePolygon( Polygon &polygon, Point &pt)
   for (i = 0, j = nvert-1; i < nvert; j = i++) {
     pti.assign(polygon.points[i]);
     ptj.assign(polygon.points[j]);    
-    //if ( ((pti.y()>y) != (ptj.y()>y)) &&
-    // (x < (ptj.x()-pti.x()) * (y-pti.y()) / (ptj.y()-pti.y()) + pti.x()) )
-    //   c = !c;
     
+    #ifdef FLOAT_CALC    
+    if ( ((pti.y()>pt.y()) != (ptj.y()>pt.y())) &&
+     (pt.x() < (ptj.x()-pti.x()) * (pt.y()-pti.y()) / (ptj.y()-pti.y()) + pti.x()) )
+       c = !c;             
+    #else           
     if ( ((pti.py>y) != (ptj.py>y)) &&
      (x < (ptj.px-pti.px) * (y-pti.py) / (ptj.py-pti.py) + pti.px) )
        c = !c;
+    #endif       
     
   }
+  //if (c != d){
+  //  CONSOLE.println("pointIsInsidePolygon bogus");
+  //}
   return (c % 2 != 0);
 }      
 
@@ -970,10 +978,12 @@ bool Map::lineIntersects (Point &p0, Point &p1, Point &p2, Point &p3) {
   int s2x = p3x - p2x;
   int s2y = p3y - p2y;
   
-  //float s = ((float) (-s1y * (p0x - p2x) + s1x * (p0y - p2y))  ) /  ((float) (-s2x * s1y + s1x * s2y)  );
-  //float t = ((float) (s2x * (p0y - p2y) - s2y * (p0x - p2x))   ) /  ((float)  (-s2x * s1y + s1x * s2y) );
-  //return ((s >= 0) && (s <= 1) && (t >= 0) && (t <= 1));
+  #ifdef FLOAT_CALC
+  float s = ((float) (-s1y * (p0x - p2x) + s1x * (p0y - p2y))  ) /  ((float) (-s2x * s1y + s1x * s2y)  );
+  float t = ((float) (s2x * (p0y - p2y) - s2y * (p0x - p2x))   ) /  ((float)  (-s2x * s1y + s1x * s2y) );
+  return ((s >= 0) && (s <= 1) && (t >= 0) && (t <= 1));
   
+  #else  
   int snom = (-s1y * (p0x - p2x) + s1x * (p0y - p2y));
   int sdenom = (-s2x * s1y + s1x * s2y);
   int tnom = (s2x * (p0y - p2y) - s2y * (p0x - p2x));
@@ -983,9 +993,10 @@ bool Map::lineIntersects (Point &p0, Point &p1, Point &p2, Point &p3) {
   if ( (snom > 0) && ( (sdenom < 0) || (snom > sdenom) ) ) return false;
       
   if ( (tnom < 0) && ( (tdenom > 0) || (tnom < tdenom) ) ) return false;
-  if ( (tnom > 0) && ( (tdenom < 0) || (tnom > tdenom) ) ) return false;  
+  if ( (tnom > 0) && ( (tdenom < 0) || (tnom > tdenom) ) ) return false;    
   
   return true;
+  #endif
 }
 
 
