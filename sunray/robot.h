@@ -15,6 +15,7 @@
 #include "ble.h"
 #include "pinman.h"
 #include "buzzer.h"
+#include "bumper.h"
 #include "sonar.h"
 #include "VL53L0X.h"
 #include "map.h"   
@@ -22,7 +23,7 @@
 #include "WiFiEsp.h"
 
 
-#define VER "Ardumower Sunray,1.0.99"
+#define VER "Ardumower Sunray,1.0.100"
 
 enum OperationType {
       OP_IDLE,      
@@ -88,6 +89,7 @@ extern Motor motor;
 extern Battery battery;
 extern BLEConfig bleConfig;
 extern Buzzer buzzer;
+extern Bumper bumper;
 extern Sonar sonar;
 extern VL53L0X tof;
 extern PinManager pinMan;

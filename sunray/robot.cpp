@@ -15,6 +15,7 @@
 #include "battery.h"
 #include "ublox.h"
 #include "buzzer.h"
+#include "bumper.h"
 #include "map.h"
 #include "config.h"
 #include "helper.h"
@@ -38,6 +39,7 @@ PinManager pinMan;
 UBLOX gps(GPS,GPS_BAUDRATE);
 BLEConfig bleConfig;
 Buzzer buzzer;
+Bumper bumper;
 Sonar sonar;
 VL53L0X tof(VL53L0X_ADDRESS_DEFAULT);
 Map maps;
@@ -385,6 +387,7 @@ void start(){
     
   motor.begin();
   sonar.begin();
+  bumper.begin();
   
   if (TOF_ENABLE){
     tof.setTimeout(500);
@@ -603,6 +606,11 @@ void trackLine(){
     }    
   }
   
+  if (bumper.obstacle()){
+    CONSOLE.println("bumper obstacle!");    
+    triggerObstacle();    
+    return;
+  }
   if (sonar.obstacle()){
     CONSOLE.println("sonar obstacle!");    
     triggerObstacle();    

@@ -14,6 +14,7 @@
    +   optional: Ardumower IMU (MPU6050/MPU9150/MPU9250/MPU9255) - choose your IMU below
    +   optional: Ardumower WIFI (ESP8266 ESP-01 with stock firmware)   
    +   optional: HTU21D temperature/humidity sensor
+   +   optional: sonar, bumperduino, freewheel sensor
    + Ardumower RTK (ublox F9P)
 
 
@@ -186,6 +187,14 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define TOF_ENABLE true
 #define TOF_ENABLE false
 #define TOF_OBSTACLE_CM 100      // stop mowing operation below this distance (cm) 
+
+
+// ------ bumper sensor (bumperduino, freewheel etc.) ----------------
+// see Wiki on how to install bumperduino or freewheel sensor:
+// https://wiki.ardumower.de/index.php?title=Bumper_sensor
+// https://wiki.ardumower.de/index.php?title=Free_wheel_sensor
+// #define BUMPER_ENABLE true
+#define BUMPER_ENABLE false
 
 
 // ----- battery charging current measurement (INA169) --------------
