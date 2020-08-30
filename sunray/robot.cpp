@@ -547,9 +547,8 @@ void computeRobotState(){
 
 
 void triggerObstacle(){
-  if (OSTACLE_AVOIDANCE){
-    CONSOLE.println("triggerObstacle");
-    if (stateOp != OP_MOW) return;
+  if ((OSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){
+    CONSOLE.println("triggerObstacle");    
     driveReverseStopTime = millis() + 3000;      
   } else { 
     stateSensor = SENS_OBSTACLE;
@@ -865,39 +864,21 @@ void run(){
       }
       
       
-      if ((stateOp == OP_MOW) ||  (stateOp == OP_DOCK)) {      
-        if (stateOp == OP_DOCK){          
-          trackLine();       
-        } else {
-          if (driveReverseStopTime > 0){
-            motor.setLinearAngularSpeed(-0.1,0);
-            if (millis() > driveReverseStopTime){
-              CONSOLE.println("driveReverseStopTime");
-              motor.setLinearAngularSpeed(0,0);
-              driveReverseStopTime = 0;
-              maps.addObstacle(stateX, stateY);
-              bool error = false;
-              if (maps.startMowing(stateX, stateY)){
-                if (maps.nextPoint(true)) {
-                  resetMotionMeasurement();                
-                  maps.setLastTargetPoint(stateX, stateY);        
-                  stateSensor = SENS_NONE;
-                  motor.setMowState(true);                
-                } else {
-                  error = true;
-                  CONSOLE.println("error: no waypoints!");
-                  //op = stateOp;                
-                }
-              } else error = true;
-              if (error){
-                stateSensor = SENS_MAP_NO_ROUTE;
-                setOperation(OP_ERROR);
-              }
-            }
-          } else {          
-            trackLine();       
+      if ((stateOp == OP_MOW) ||  (stateOp == OP_DOCK)) {              
+        if (driveReverseStopTime > 0){
+          // obstacle avoidance
+          motor.setLinearAngularSpeed(-0.1,0);
+          if (millis() > driveReverseStopTime){
+            CONSOLE.println("driveReverseStopTime");
+            motor.setLinearAngularSpeed(0,0);
+            driveReverseStopTime = 0;
+            maps.addObstacle(stateX, stateY);
+            setOperation(stateOp, true);    // continue current operation
           }
-        }      
+        } else {          
+          // line tracking
+          trackLine();       
+        }        
         battery.resetIdle();
         if (battery.underVoltage()){
           stateSensor = SENS_BAT_UNDERVOLTAGE;
@@ -932,8 +913,8 @@ void run(){
 
 
 // set new robot operation
-void setOperation(OperationType op){  
-  if (stateOp == op) return;  
+void setOperation(OperationType op, bool allowOverride){  
+  if ((stateOp == op) && (!allowOverride)) return;  
   CONSOLE.print("setOperation op=");
   CONSOLE.println(op);
   bool error = false;
@@ -959,6 +940,7 @@ void setOperation(OperationType op){
       if (error){
         stateSensor = SENS_MAP_NO_ROUTE;
         op = OP_ERROR;
+        maps.clearObstacles();
       }
       break;
     case OP_MOW:      
@@ -978,6 +960,7 @@ void setOperation(OperationType op){
       if (error){
         stateSensor = SENS_MAP_NO_ROUTE;
         op = OP_ERROR;
+        maps.clearObstacles();
       }
       break;
     case OP_CHARGE:
@@ -986,8 +969,7 @@ void setOperation(OperationType op){
       break;
     case OP_ERROR:      
       motor.setLinearAngularSpeed(0,0);
-      motor.setMowState(false);
-      maps.clearObstacles();
+      motor.setMowState(false);      
       break;
   }
   stateOp = op;  

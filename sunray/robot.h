@@ -23,7 +23,7 @@
 #include "WiFiEsp.h"
 
 
-#define VER "Ardumower Sunray,1.0.100"
+#define VER "Ardumower Sunray,1.0.101"
 
 enum OperationType {
       OP_IDLE,      
@@ -99,7 +99,7 @@ extern UBLOX gps;
 extern int freeMemory();
 extern void start();
 extern void run();
-extern void setOperation(OperationType op);
+extern void setOperation(OperationType op, bool allowOverride = false);
 extern void triggerObstacle();
 
 
