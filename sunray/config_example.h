@@ -174,6 +174,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 
 // ------ ultrasonic sensor -----------------------------
+// see Wiki on how to install the ultrasonic sensors: 
+// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Ultrasonic_sensor
+
 //#define SONAR_ENABLE true
 #define SONAR_ENABLE false
 #define SONAR_OBSTACLE_CM 30      // stop mowing operation below this distance (cm) 
