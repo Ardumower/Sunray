@@ -46,8 +46,8 @@ void Battery::begin()
   
   currentFactor = CURRENT_FACTOR;         // ADC voltage to current ampere  (0.5 for non-bridged)
   batMonitor = true;              // monitor battery and charge voltage?    
-  batGoHomeIfBelow = 23.7;     // drive home voltage (Volt)  
-  batSwitchOffIfBelow = 21.7;  // switch off battery if below voltage (Volt)  
+  batGoHomeIfBelow = 21.0;     // drive home voltage (Volt)  
+  batSwitchOffIfBelow = 18.9;  // switch off battery if below voltage (Volt)  
   batSwitchOffIfIdle = 300;      // switch off battery if idle (seconds)
   batFullCurrent  = 0.2;      // current flowing when battery is fully charged
   batFullVoltage = 28.7;      // voltage when battery is fully charged (we charge to only 90% to increase battery life time)

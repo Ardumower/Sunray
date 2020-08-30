@@ -941,6 +941,7 @@ void setOperation(OperationType op, bool allowOverride){
         stateSensor = SENS_MAP_NO_ROUTE;
         op = OP_ERROR;
         maps.clearObstacles();
+        motor.setMowState(false);
       }
       break;
     case OP_MOW:      
@@ -961,6 +962,7 @@ void setOperation(OperationType op, bool allowOverride){
         stateSensor = SENS_MAP_NO_ROUTE;
         op = OP_ERROR;
         maps.clearObstacles();
+        motor.setMowState(false);
       }
       break;
     case OP_CHARGE:
