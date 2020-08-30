@@ -541,7 +541,7 @@ bool Map::startDocking(float stateX, float stateY){
     Point dst;
     src.setXY(stateX, stateY);    
     dst.assign(dockPoints.points[0]);        
-    findPathFinderSafeStartPoint(src, dst);      
+    //findPathFinderSafeStartPoint(src, dst);      
     wayMode = WAY_FREE;              
     if (findPath(src, dst)){
       return true;
@@ -566,7 +566,7 @@ bool Map::startMowing(float stateX, float stateY){
     }        
     if (findObstacleSafeMowPoint()){
       dst.assign(mowPoints.points[mowPointsIdx]);      
-      findPathFinderSafeStartPoint(src, dst);      
+      //findPathFinderSafeStartPoint(src, dst);      
       if (findPath(src, dst)){
         return true;
       } else return false;      
@@ -624,7 +624,7 @@ bool Map::findObstacleSafeMowPoint(){
     CONSOLE.print(",");
     CONSOLE.println(dst.y());
     for (int idx=0; idx < obstacles.numPolygons; idx++){
-      if (pointIsInsidePolygon( obstacles.polygons[idx], dst.x(), dst.y())){
+      if (pointIsInsidePolygon( obstacles.polygons[idx], dst)){
         safe = false;
         break;
       }
@@ -652,7 +652,7 @@ void Map::findPathFinderSafeStartPoint(Point &src, Point &dst){
   CONSOLE.print(dst.y());
   CONSOLE.println(")");  
   Point sect;
-  if (!pointIsInsidePolygon( perimeterPoints, src.x(), src.y())){
+  if (!pointIsInsidePolygon( perimeterPoints, src)){
     if (linePolygonIntersectPoint( src, dst, perimeterPoints, sect)){
       src.assign(sect);
       CONSOLE.println("found safe point inside perimeter");
@@ -660,7 +660,7 @@ void Map::findPathFinderSafeStartPoint(Point &src, Point &dst){
     }    
   }
   for (int i=0; i < exclusions.numPolygons; i++){
-    if (pointIsInsidePolygon( exclusions.polygons[i], src.x(), src.y())){
+    if (pointIsInsidePolygon( exclusions.polygons[i], src)){
       if (linePolygonIntersectionCount(src, dst, exclusions.polygons[i]) == 1){
         // source point is not reachable      
         if (linePolygonIntersectPoint( src, dst, exclusions.polygons[i], sect)){    
@@ -911,19 +911,26 @@ bool Map::linePolygonIntersectPoint( Point &src, Point &dst, Polygon &poly, Poin
 // If that is true the line drawn rightwards from the test point crosses that edge.
 // By repeatedly inverting the value of c, the algorithm counts how many times the rightward line crosses the
 // polygon. If it crosses an odd number of times, then the point is inside; if an even number, the point is outside.
-bool Map::pointIsInsidePolygon( Polygon &polygon, float x, float y)
+bool Map::pointIsInsidePolygon( Polygon &polygon, Point &pt)
 {
   int i, j, c = 0;
   int nvert = polygon.numPoints;
   if (nvert == 0) return false;
   Point pti;
   Point ptj;  
+  int x = pt.px;
+  int y = pt.py;
   for (i = 0, j = nvert-1; i < nvert; j = i++) {
     pti.assign(polygon.points[i]);
     ptj.assign(polygon.points[j]);    
-    if ( ((pti.y()>y) != (ptj.y()>y)) &&
-     (x < (ptj.x()-pti.x()) * (y-pti.y()) / (ptj.y()-pti.y()) + pti.x()) )
+    //if ( ((pti.y()>y) != (ptj.y()>y)) &&
+    // (x < (ptj.x()-pti.x()) * (y-pti.y()) / (ptj.y()-pti.y()) + pti.x()) )
+    //   c = !c;
+    
+    if ( ((pti.py>y) != (ptj.py>y)) &&
+     (x < (ptj.px-pti.px) * (y-pti.py) / (ptj.py-pti.py) + pti.px) )
        c = !c;
+    
   }
   return (c % 2 != 0);
 }      
@@ -1084,7 +1091,11 @@ int Map::findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, i
     //if (pt.visited) continue;
     //if (this.distance(pt, node.pos) > 10) continue;
     bool safe = true;
+    bool startShouldBeInside;
     for (int idx2 = 0; idx2 < obstacles.numPolygons; idx2++){
+       startShouldBeInside = (idx2 == 0); // if first index, it's perimeter, otherwise exclusions
+       // skip obstacle, if startpoint is outside perimeter (or inside exclusions) 
+       if (pointIsInsidePolygon(obstacles.polygons[idx2], *node.point) != startShouldBeInside) continue;         
        if (linePolygonIntersection (*node.point, *pt, obstacles.polygons[idx2])) {
          safe = false;
          break;
