@@ -610,7 +610,7 @@ void trackLine(){
     triggerObstacle();    
     return;
   }
-  if (sonar.obstacle()){
+  if (sonar.obstacle() && (maps.wayMode != WAY_DOCK)){
     CONSOLE.println("sonar obstacle!");    
     triggerObstacle();    
     return;
