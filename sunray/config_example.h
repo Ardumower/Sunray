@@ -9,7 +9,7 @@
    requirements:
    + Ardumower chassis and Ardumower motors   
    + Ardumower PCB 1.3 
-   +   Arduino Due     (or Adafruit Grand Central M4)
+   +   Adafruit Grand Central M4 (highly recommended) or Arduino Due 
    +   Ardumower BLE UART module (HM-10/CC2540/CC2541)
    +   optional: Ardumower IMU (MPU6050/MPU9150/MPU9250/MPU9255) - choose your IMU below
    +   optional: Ardumower WIFI (ESP8266 ESP-01 with stock firmware)   
@@ -21,7 +21,12 @@
 
 2. Configure the options below and finally compile and upload this project.
 
-Arduino UPLOAD NOTE:  
+
+Adafruit Grand Central M4 NOTE: You have to add SDA, SCL pull-up resistors to the board 
+and deactivate Due clone reset cicuit (JP13):
+https://forum.ardumower.de/threads/adafruit-grand-central-m4-sunray.23939/
+
+Arduino Due UPLOAD NOTE:  
 
 If using Arduino Due 'native' USB port for uploading, choose board 'Arduino Due native' in the 
 Arduino IDE and COM port 'Arduino Due native port'. 
@@ -30,12 +35,6 @@ If using Arduino Due 'programming' USB port for uploading, choose board 'Arduino
 Arduino IDE and COM port 'Arduino Due programming port'. 
 
 Also, you may choose the serial port below for serial monitor output (CONSOLE).
-
-
-Adafruit Grand Central M4 NOTE: You have to add SDA, SCL pull-up resistors to the board 
-and deactivate Due clone reset cicuit (JP13):
-https://forum.ardumower.de/threads/adafruit-grand-central-m4-sunray.23939/
-
    
 */
 
