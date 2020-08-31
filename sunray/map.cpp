@@ -1106,7 +1106,11 @@ int Map::findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, i
     for (int idx2 = 0; idx2 < obstacles.numPolygons; idx2++){
        startShouldBeInside = (idx2 == 0); // if first index, it's perimeter, otherwise exclusions
        // skip obstacle, if startpoint is outside perimeter (or inside exclusions) 
-       if (pointIsInsidePolygon(obstacles.polygons[idx2], *node.point) != startShouldBeInside) continue;         
+       if (pointIsInsidePolygon(obstacles.polygons[idx2], *node.point) != startShouldBeInside) {
+         //continue;
+         float dist = distance(*node.point, *pt);
+         if (dist < 1) continue;                  
+       }
        if (linePolygonIntersection (*node.point, *pt, obstacles.polygons[idx2])) {
          safe = false;
          break;
