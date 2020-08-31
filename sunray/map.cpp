@@ -551,7 +551,9 @@ bool Map::startDocking(float stateX, float stateY){
   } else return false; 
 }
 
-bool Map::startMowing(float stateX, float stateY){
+bool Map::startMowing(float stateX, float stateY){  
+  //stressTest();
+  // ------
   shouldDock = false;
   shouldMow = true;    
   if (mowPoints.numPoints > 0){
@@ -1343,6 +1345,21 @@ bool Map::findPath(Point &src, Point &dst){
 }
 
 
+// path finder stress test
+void Map::stressTest(){  
+  Point src;
+  Point dst;
+  float d = 30.0;
+  for (int i=0 ; i < 1000; i++){
+    for (int j=0 ; j < 10; j++){
+      addObstacle( ((float)random(d*10))/10.0-d/2, ((float)random(d*10))/10.0-d/2 );
+    }
+    src.setXY( ((float)random(d*10))/10.0-d/2, ((float)random(d*10))/10.0-d/2 );
+    dst.setXY( ((float)random(d*10))/10.0-d/2, ((float)random(d*10))/10.0-d/2 );
+    findPath(src, dst);    
+    clearObstacles();
+  }
+}
   
   
   
