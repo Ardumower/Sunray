@@ -182,7 +182,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define SONAR_ENABLE false
 #define SONAR_OBSTACLE_CM 30      // stop mowing operation below this distance (cm) 
 
-// ------ time-of-flight distance sensor -----------------------------
+// ------ time-of-flight distance sensor (VL53L0X) -----------------------------
 // do not use this sensor (not recommended)
 //#define TOF_ENABLE true
 #define TOF_ENABLE false

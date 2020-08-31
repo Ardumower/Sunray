@@ -1,4 +1,4 @@
-  // Ardumower Sunray 
+// Ardumower Sunray 
 // Copyright (c) 2013-2020 by Alexander Grau, Grau GmbH
 // Licensed GPLv3 for open source use
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
@@ -656,23 +656,20 @@ void trackLine(){
       return;
    }
   }
-    
-  if (millis() > linearMotionStartTime + 5000){
-    if (millis() > nextTargetDistCheckTime){        
-      nextTargetDistCheckTime = millis() + 8000;
-      float delta = abs(targetDist - previousTargetDist);   
-      if (delta < 0.05){
-        if (TARGET_APPROACHING_DETECTION){
-          CONSOLE.println("target obstacle!");
-          triggerObstacle();
-          return;
-        }
+      
+  // check if approaching target (obstacle detection)
+  if (millis() > nextTargetDistCheckTime){        
+    nextTargetDistCheckTime = millis() + 30000;
+    float delta = abs(targetDist - previousTargetDist);   
+    if (delta < 0.05){
+      if (TARGET_APPROACHING_DETECTION){
+        CONSOLE.println("target obstacle!");
+        triggerObstacle();
+        return;
       }
-      previousTargetDist = targetDist;      
-    }    
-  } else {
-    nextTargetDistCheckTime = millis() + 8000;
-  }
+    }
+    previousTargetDist = targetDist;      
+  }    
   
     
   // allow rotations only near last or next waypoint
@@ -949,6 +946,7 @@ void setOperation(OperationType op, bool allowOverride){
       motor.setMowState(false);                
       if (maps.startDocking(stateX, stateY)){
         if (maps.nextPoint(true)) {
+          nextTargetDistCheckTime = millis() + 30000;
           resetMotionMeasurement();                
           maps.setLastTargetPoint(stateX, stateY);        
           stateSensor = SENS_NONE;                  
@@ -969,6 +967,7 @@ void setOperation(OperationType op, bool allowOverride){
       motor.setLinearAngularSpeed(0,0);
       if (maps.startMowing(stateX, stateY)){
         if (maps.nextPoint(true)) {
+          nextTargetDistCheckTime = millis() + 30000;
           resetMotionMeasurement();                
           maps.setLastTargetPoint(stateX, stateY);        
           stateSensor = SENS_NONE;
