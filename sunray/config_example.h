@@ -115,8 +115,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define WHEEL_BASE_CM         36         // wheel-to-wheel distance (cm)        
 #define WHEEL_DIAMETER        250        // wheel diameter (mm)                 
 
-#define ENABLE_ODOMETRY_ERROR_DETECTION  true    // use this to detect odometry erros
-//#define ENABLE_ODOMETRY_ERROR_DETECTION  false
+//#define ENABLE_ODOMETRY_ERROR_DETECTION  true    // use this to detect odometry erros
+#define ENABLE_ODOMETRY_ERROR_DETECTION  false
 
 // choose ticks per wheel revolution :
 // ...for the 36mm diameter motor (blue cap)  https://www.marotronics.de/2-x-36er-DC-Planeten-Getriebemotor-24-Volt-mit-HallIC-30-33-RPM-8mm-Welle
@@ -222,6 +222,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define OSTACLE_AVOIDANCE true   // try to find a way around obstacle
 //#define OSTACLE_AVOIDANCE false  // stop robot on obstacle
 
+// detect if target is actually reached (obstacle detection)
+#define TARGET_APPROACHING_DETECTION true    // if target not approaching trigger obstacle avoidance
+//#define TARGET_APPROACHING_DETECTION false   // ignore if target not approaching 
 
 // detect robot being kidnapped?
 //#define KIDNAP_DETECT true

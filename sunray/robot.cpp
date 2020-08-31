@@ -80,6 +80,8 @@ int imuCalibrationSeconds = 0;
 unsigned long nextImuCalibrationSecond = 0;
 float rollChange = 0;
 float pitchChange = 0;
+float previousTargetDist = 0;
+unsigned long nextTargetDistCheckTime = 0;
 
 UBLOX::SolType lastSolution = UBLOX::SOL_INVALID;    
 unsigned long nextStatTime = 0;
@@ -574,6 +576,7 @@ void trackLine(){
   float diffDelta = distancePI(stateDelta, targetDelta);                         
   float lateralError = distanceLine(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
   float targetDist = maps.distanceToTargetPoint(stateX, stateY);
+  
   float lastTargetDist = maps.distanceToLastTargetPoint(stateX, stateY);  
   if (SMOOTH_CURVES)
     targetReached = (targetDist < 0.2);    
@@ -653,6 +656,24 @@ void trackLine(){
       return;
    }
   }
+    
+  if (millis() > linearMotionStartTime + 5000){
+    if (millis() > nextTargetDistCheckTime){        
+      nextTargetDistCheckTime = millis() + 8000;
+      float delta = abs(targetDist - previousTargetDist);   
+      if (delta < 0.05){
+        if (TARGET_APPROACHING_DETECTION){
+          CONSOLE.println("target obstacle!");
+          triggerObstacle();
+          return;
+        }
+      }
+      previousTargetDist = targetDist;      
+    }    
+  } else {
+    nextTargetDistCheckTime = millis() + 8000;
+  }
+  
     
   // allow rotations only near last or next waypoint
   if ((targetDist < 0.5) || (lastTargetDist < 0.5)) {
