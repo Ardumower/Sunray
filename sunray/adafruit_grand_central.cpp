@@ -36,11 +36,11 @@ WatchdogSAMD watchdog;
 
 
 void watchdogReset(){
-  watchdog.reset();
+  //watchdog.reset();
 }
 
 void watchdogEnable(uint32_t timeout){
-  watchdog.enable(timeout);
+  //watchdog.enable(timeout);
 }
 
 #endif
