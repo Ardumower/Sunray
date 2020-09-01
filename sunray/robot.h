@@ -23,7 +23,7 @@
 #include "WiFiEsp.h"
 
 
-#define VER "Ardumower Sunray,1.0.103"
+#define VER "Ardumower Sunray,1.0.104"
 
 enum OperationType {
       OP_IDLE,      
@@ -71,6 +71,7 @@ extern unsigned long statMowDurationFix ; // seconds
 extern unsigned long statMowFloatToFixRecoveries ; // counter
 extern unsigned long statMowInvalidRecoveries ; // counter
 extern unsigned long statImuRecoveries ; // counter
+extern unsigned long statMowObstacles ; // counter
 extern float statMowMaxDgpsAge ; // seconds
 extern float statMowDistanceTraveled ; // meter
 extern float statTempMin;

@@ -351,6 +351,8 @@ void cmdStats(){
   s += statMowDurationInvalid;
   s += ",";
   s += statMowInvalidRecoveries;
+  s += ",";
+  s += statMowObstacles;
   cmdAnswer(s);  
 }
 
@@ -373,6 +375,7 @@ void cmdClearStats(){
   gps.chksumErrorCounter = 0;
   gps.dgpsChecksumErrorCounter = 0;
   statMaxControlCycleTime = 0;
+  statMowObstacles = 0;
   cmdAnswer(s);  
 }
 

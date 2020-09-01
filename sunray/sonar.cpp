@@ -130,7 +130,9 @@ void Sonar::run(){
 void Sonar::begin()
 {	
 	enabled = SONAR_ENABLE;
-	triggerBelow = SONAR_OBSTACLE_CM;
+	triggerLeftBelow = SONAR_LEFT_OBSTACLE_CM;
+  triggerCenterBelow = SONAR_CENTER_OBSTACLE_CM;
+  triggerRightBelow = SONAR_RIGHT_OBSTACLE_CM;
 	pinMode(pinSonarLeftTrigger , OUTPUT);
   pinMode(pinSonarCenterTrigger , OUTPUT);  
   pinMode(pinSonarRightTrigger , OUTPUT);
@@ -154,7 +156,12 @@ void Sonar::begin()
 bool Sonar::obstacle()
 {
   if (!enabled) return false;
-	return ( (distanceLeft < triggerBelow) || (distanceRight < triggerBelow) ||(distanceCenter < triggerBelow) );
+  //CONSOLE.print(distanceLeft);
+  //CONSOLE.print(",");
+  //CONSOLE.print(distanceCenter);
+  //CONSOLE.print(",");
+  //CONSOLE.println(distanceRight);
+  return ( (distanceLeft < triggerLeftBelow) || (distanceCenter < triggerCenterBelow) || (distanceRight < triggerRightBelow) );  
 }
 
 

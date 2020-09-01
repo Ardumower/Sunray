@@ -95,6 +95,7 @@ unsigned long statMowDurationFix = 0; // seconds
 unsigned long statMowFloatToFixRecoveries = 0; // counter
 unsigned long statMowInvalidRecoveries = 0; // counter
 unsigned long statImuRecoveries = 0; // counter
+unsigned long statMowObstacles ; // counter
 float statTempMin = 9999; 
 float statTempMax = -9999; 
 float statMowMaxDgpsAge = 0; // seconds
@@ -549,6 +550,7 @@ void computeRobotState(){
 
 
 void triggerObstacle(){
+  statMowObstacles++;    
   if ((OSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){
     CONSOLE.println("triggerObstacle");    
     driveReverseStopTime = millis() + 3000;      
