@@ -193,6 +193,7 @@ class Map
     bool isPointInBoundingBox(Point &pt, Point &A, Point &B);
     int linePolygonIntersectionCount(Point &src, Point &dst, Polygon &poly);
     void stressTest();
+    void testIntegerCalcs();
 };
 
 

@@ -7,8 +7,9 @@
 #include "config.h"
 #include <Arduino.h>
 
-
-#define FLOAT_CALC    1    // comment out line for using faster (but incorrect) integer calculations instead of float
+#if defined(__SAMD51__)     // Adafruit Grand Central M4
+  #define FLOAT_CALC    1    // comment out line for using integer calculations instead of float
+#endif
 
 
 Point::Point(){
@@ -553,6 +554,8 @@ bool Map::startDocking(float stateX, float stateY){
 
 bool Map::startMowing(float stateX, float stateY){  
   //stressTest();
+  //testIntegerCalcs();
+  //return false;
   // ------
   shouldDock = false;
   shouldMow = true;    
@@ -934,7 +937,7 @@ bool Map::pointIsInsidePolygon( Polygon &polygon, Point &pt)
        c = !c;             
     #else           
     if ( ((pti.py>y) != (ptj.py>y)) &&
-     (x < (ptj.px-pti.px) * (y-pti.py) / (ptj.py-pti.py) + pti.px) )
+     (x < (ptj.px-pti.px) * (y-pti.py) * 10 / (ptj.py-pti.py) / 10 + pti.px) )
        c = !c;
     #endif       
     
@@ -999,6 +1002,9 @@ bool Map::lineIntersects (Point &p0, Point &p1, Point &p2, Point &p3) {
   
   return true;
   #endif
+  //if (res1 != res2){
+  //  CONSOLE.println("lineIntersects bogus");
+  //}  
 }
 
 
@@ -1361,5 +1367,30 @@ void Map::stressTest(){
   }
 }
   
+  
+
+// integer calculation correctness test
+void Map::testIntegerCalcs(){  
+  Point pt;
+  float d = 30.0;
+  for (int i=0 ; i < 5000; i++){
+    pt.setXY( ((float)random(d*10))/10.0-d/2, ((float)random(d*10))/10.0-d/2 );
+    pointIsInsidePolygon( perimeterPoints, pt);    
+    CONSOLE.print(".");
+  }
+  
+  Point p1;
+  Point p2;
+  Point p3;
+  Point p4;
+  for (int i=0 ; i < 5000; i++){
+    p1.setXY( ((float)random(d*10))/10.0-d/2, ((float)random(d*10))/10.0-d/2 );
+    p2.setXY( ((float)random(d*10))/10.0-d/2, ((float)random(d*10))/10.0-d/2 );
+    p3.setXY( ((float)random(d*10))/10.0-d/2, ((float)random(d*10))/10.0-d/2 );
+    p4.setXY( ((float)random(d*10))/10.0-d/2, ((float)random(d*10))/10.0-d/2 );
+    lineIntersects (p1, p2, p3, p4);
+    CONSOLE.print(",");
+  }   
+}
   
   
