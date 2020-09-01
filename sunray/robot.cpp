@@ -890,7 +890,7 @@ void run(){
           motor.setLinearAngularSpeed(-0.1,0);
           if (millis() > driveReverseStopTime){
             CONSOLE.println("driveReverseStopTime");
-            motor.setLinearAngularSpeed(0,0);
+            motor.stopImmediately(true);
             driveReverseStopTime = 0;
             maps.addObstacle(stateX, stateY);
             setOperation(stateOp, true);    // continue current operation
