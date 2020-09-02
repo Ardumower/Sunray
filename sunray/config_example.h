@@ -90,6 +90,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
   #define WIFI Serial1
   #define BLE Serial2
   #define GPS Serial3
+  //#define GPS Serial                // only use this for .ubx logs (sendgps.py)
 #else                                 // Adafruit Grand Central M4 
   #define WIFI Serial2                
   #define BLE Serial3
