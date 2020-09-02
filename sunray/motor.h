@@ -20,6 +20,7 @@ class Motor {
     int wheelDiameter;   // wheel diameter (mm)
     int ticksPerRevolution; // ticks per revolution
     float ticksPerCm;  // ticks per cm
+    bool useLinearSpeedRamp;  // use ramp to accelerate/slow down?
     bool toggleMowDir; // toggle mowing motor direction each mow motor start?    
     bool motorLeftSwapDir;
     bool motorRightSwapDir;

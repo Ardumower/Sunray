@@ -380,11 +380,11 @@ void UBLOX::run()
     byte data = _bus->read();        
 		parse(data);
 #ifdef GPS_DUMP
-      if (data == 0xB5) CONSOLE.println("\n");
-      CONSOLE.print(data, HEX);
-      CONSOLE.print(",");
-    }
+    if (data == 0xB5) CONSOLE.println("\n");
+    CONSOLE.print(data, HEX);
+    CONSOLE.print(",");    
 #endif
+  }
 }
 
 
