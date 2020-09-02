@@ -8,6 +8,10 @@
 #include "config.h"
 
 
+// used to send .ubx log files via 'sendgps.py' to Arduino (also set GPS to Serial in config for this)
+//#define GPS_DUMP   1    
+
+
 /* uBlox object, input the serial bus and baud rate */
 UBLOX::UBLOX(HardwareSerial& bus,uint32_t baud)
 {
@@ -15,6 +19,9 @@ UBLOX::UBLOX(HardwareSerial& bus,uint32_t baud)
 	_baud = baud;
   debug = false;
   verbose = false;
+  #ifdef GPS_DUMP
+    verbose = true;
+  #endif
 }
 
 /* starts the serial communication */
@@ -158,6 +165,7 @@ void UBLOX::addchk(int b) {
     
 
 void UBLOX::dispatchMessage() {
+    if (verbose) CONSOLE.println();
     switch (this->msgclass){
       case 0x01:
         switch (this->msgid) {
@@ -175,7 +183,13 @@ void UBLOX::dispatchMessage() {
               heading = ((double)this->unpack_int32(24)) * 1e-5 / 180.0 * PI;
               //CONSOLE.print("heading:");
               //CONSOLE.println(heading);
-              if (verbose) CONSOLE.println("UBX-NAV-VELNED");
+              if (verbose) {
+                CONSOLE.print("UBX-NAV-VELNED ");
+                CONSOLE.print("groundSpeed=");
+                CONSOLE.print(groundSpeed);
+                CONSOLE.print("  heading=");
+                CONSOLE.println(heading);                
+              }
             }
             break;
           case 0x14: 
@@ -287,7 +301,25 @@ void UBLOX::dispatchMessage() {
                 CONSOLE.print("n=");
                 CONSOLE.print(relPosN,2);
                 CONSOLE.print("  e=");
-                CONSOLE.println(relPosE,2);                       
+                CONSOLE.print(relPosE,2);                       
+                CONSOLE.print("  sol=");                       
+                CONSOLE.print(solution);                       
+                CONSOLE.print(" ");                       
+                switch(solution){
+                  case 0: 
+                    CONSOLE.print("invalid");                       
+                    break;
+                  case 1: 
+                    CONSOLE.print("float");                       
+                    break;
+                  case 2: 
+                    CONSOLE.print("fix");                       
+                    break;                  
+                  default:
+                    CONSOLE.print("unknown");                       
+                    break;
+                }
+                CONSOLE.println();
               }              
             }
             break;            
@@ -307,6 +339,7 @@ void UBLOX::dispatchMessage() {
         }
         break;
     }    
+    if (verbose) CONSOLE.println();
 }
 
 long UBLOX::unpack_int32(int offset) {
@@ -346,10 +379,12 @@ void UBLOX::run()
   while (_bus->available()) {		
     byte data = _bus->read();        
 		parse(data);
-    //if (data == 0xB5) CONSOLE.println("\n");
-    //CONSOLE.print(data, HEX);
-    //CONSOLE.print(",");
-	}	
+#ifdef GPS_DUMP
+      if (data == 0xB5) CONSOLE.println("\n");
+      CONSOLE.print(data, HEX);
+      CONSOLE.print(",");
+    }
+#endif
 }
 
 
