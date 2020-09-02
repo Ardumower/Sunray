@@ -115,7 +115,7 @@ void Motor::begin() {
   motorMowSenseLP = 0;  
   motorsSenseLP = 0;
 
-  useLinearSpeedRamp = USE_LINEAR_SPEED_RAMP;
+  activateLinearSpeedRamp = USE_LINEAR_SPEED_RAMP;
   linearSpeedSet = 0;
   angularSpeedSet = 0;
   motorLeftRpmSet = 0;
@@ -194,10 +194,10 @@ void Motor::speedPWM ( MotorSelect motor, int speedPWM )
 //  omega: rotation speed (rad/s)
 //      V     = (VR + VL) / 2       =>  VR = V + omega * L/2
 //      omega = (VR - VL) / L       =>  VL = V - omega * L/2
-void Motor::setLinearAngularSpeed(float linear, float angular){
+void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRamp){
    setLinearAngularSpeedTimeout = millis() + 1000;
    setLinearAngularSpeedTimeoutActive = true;
-   if (useLinearSpeedRamp){
+   if ((activateLinearSpeedRamp) && (useLinearRamp)) {
      linearSpeedSet = 0.9 * linearSpeedSet + 0.1 * linear;
    } else {
      linearSpeedSet = linear;
