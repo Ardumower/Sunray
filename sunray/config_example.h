@@ -212,7 +212,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // ------ GPS ------------------------------------------
 
-// require valid GPS signal all time? mower will go into error (fix timeout) if no valid GPS signal during mowing
+// require valid GPS signal all time? mower will go into error (invalid gps) if no valid GPS signal during mowing
 //#define REQUIRE_VALID_GPS  true    
 #define REQUIRE_VALID_GPS  false    
 
