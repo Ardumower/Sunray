@@ -234,26 +234,20 @@ void Motor::setMowState(bool switchOn){
 }
 
 void Motor::stopImmediately(bool includeMowerMotor){
-  //motorRightRpmSet = 0;
-  //motorLeftRpmSet = 0;  
-  //linearSpeedSet = 0;
-  //angularSpeedSet = 0;  
+  linearSpeedSet = 0;
+  motorRightRpmSet = 0;
+  motorLeftRpmSet = 0;      
   motorLeftPWMCurr = 0;
-  motorRightPWMCurr = 0; 
+  motorRightPWMCurr = 0;   
   speedPWM(MOTOR_LEFT, motorLeftPWMCurr);
   speedPWM(MOTOR_RIGHT, motorRightPWMCurr);  
   if (includeMowerMotor) {
-    //motorMowPWMSet = 0;
+    motorMowPWMSet = 0;
     motorMowPWMCurr = 0;    
     speedPWM(MOTOR_MOW, motorMowPWMCurr);  
   }
 }
 
-void Motor::stopControl(){
-  motorRightRpmSet = 0;
-  motorLeftRpmSet = 0;
-  motorMowPWMSet = 0;
-}
 
 void Motor::run() {
   if (millis() < lastControlTime + 50) return;
@@ -265,39 +259,7 @@ void Motor::run() {
       motorRightRpmSet = 0;
     }
   }
-  
-  int ticksLeft = odoTicksLeft;
-  odoTicksLeft = 0;
-  int ticksRight = odoTicksRight;
-  odoTicksRight = 0;
-
-  if (motorLeftPWMCurr < 0) ticksLeft *= -1;
-  if (motorRightPWMCurr < 0) ticksRight *= -1;
-  motorLeftTicks += ticksLeft;
-  motorRightTicks += ticksRight;
-
-  unsigned long currTime = millis();
-  float deltaControlTimeSec =  ((float)(currTime - lastControlTime)) / 1000.0;
-  lastControlTime = currTime;
-
-  // calculate speed via tick count
-  // 2000 ticksPerRevolution: @ 30 rpm  => 0.5 rps => 1000 ticksPerSec
-  // 20 ticksPerRevolution: @ 30 rpm => 0.5 rps => 10 ticksPerSec
-  motorLeftRpmCurr = 60.0 * ( ((float)ticksLeft) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
-  motorRightRpmCurr = 60.0 * ( ((float)ticksRight) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
-
-  if (ticksLeft == 0) {
-    motorLeftTicksZero++;
-    if (motorLeftTicksZero > 2) motorLeftRpmCurr = 0;
-  } else motorLeftTicksZero = 0;
-
-  if (ticksRight == 0) {
-    motorRightTicksZero++;
-    if (motorRightTicksZero > 2) motorRightRpmCurr = 0;
-  } else motorRightTicksZero = 0;
-
-  
-  control();  
+    
   checkFault();
   sense();        
   
@@ -307,7 +269,7 @@ void Motor::run() {
       resetFault();
       resetMotorFaultCounter++;        
       if (resetMotorFaultCounter > 10){ // too many successive motor faults
-        stopControl();
+        //stopImmediately();
         CONSOLE.println("ERROR: motor recovery failed");
         motorError = true;
       }      
@@ -347,6 +309,39 @@ void Motor::run() {
       }
     }
   }   
+  
+  int ticksLeft = odoTicksLeft;
+  odoTicksLeft = 0;
+  int ticksRight = odoTicksRight;
+  odoTicksRight = 0;
+
+  if (motorLeftPWMCurr < 0) ticksLeft *= -1;
+  if (motorRightPWMCurr < 0) ticksRight *= -1;
+  motorLeftTicks += ticksLeft;
+  motorRightTicks += ticksRight;
+
+  unsigned long currTime = millis();
+  float deltaControlTimeSec =  ((float)(currTime - lastControlTime)) / 1000.0;
+  lastControlTime = currTime;
+
+  // calculate speed via tick count
+  // 2000 ticksPerRevolution: @ 30 rpm  => 0.5 rps => 1000 ticksPerSec
+  // 20 ticksPerRevolution: @ 30 rpm => 0.5 rps => 10 ticksPerSec
+  motorLeftRpmCurr = 60.0 * ( ((float)ticksLeft) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
+  motorRightRpmCurr = 60.0 * ( ((float)ticksRight) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
+
+  if (ticksLeft == 0) {
+    motorLeftTicksZero++;
+    if (motorLeftTicksZero > 2) motorLeftRpmCurr = 0;
+  } else motorLeftTicksZero = 0;
+
+  if (ticksRight == 0) {
+    motorRightTicksZero++;
+    if (motorRightTicksZero > 2) motorRightRpmCurr = 0;
+  } else motorRightTicksZero = 0;
+
+  
+  control();    
 }  
 
 
@@ -376,19 +371,19 @@ void Motor::checkFault() {
   if (resetMotorFault) return;
   if (digitalRead(pinMotorLeftFault) == LOW) {
     CONSOLE.println("Error: motor left fault");
-    stopControl();
+    stopImmediately(true);
     resetMotorFault = true;        
     nextResetMotorFaultTime = millis() + 1000;
   }
   if  (digitalRead(pinMotorRightFault) == LOW) {
     CONSOLE.println("Error: motor right fault"); 
-    stopControl();
+    stopImmediately(true);
     resetMotorFault = true;        
     nextResetMotorFaultTime = millis() + 1000;
   }
   if (digitalRead(pinMotorMowFault) == LOW) {
     CONSOLE.println("Error: motor mow fault");
-    stopControl();
+    stopImmediately(true);
     resetMotorFault = true;            
     nextResetMotorFaultTime = millis() + 1000;
   }
