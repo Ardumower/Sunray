@@ -988,7 +988,7 @@ void setOperation(OperationType op, bool allowOverride){
       }
       break;
     case OP_CHARGE:
-      motor.setLinearAngularSpeed(0,0);
+      motor.setLinearAngularSpeed(0,0, false);
       motor.setMowState(false);
       break;
     case OP_ERROR:      
