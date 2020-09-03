@@ -87,9 +87,9 @@ void Motor::begin() {
   wheelDiameter = WHEEL_DIAMETER; // wheel diameter (mm)
   ticksPerCm         = ((float)ticksPerRevolution) / (((float)wheelDiameter)/10.0) / 3.1415;    // computes encoder ticks per cm (do not change)  
 
-  motorLeftPID.Kp       = 2.0;  
-  motorLeftPID.Ki       = 0.03; 
-  motorLeftPID.Kd       = 0.03; 
+  motorLeftPID.Kp       = MOTOR_PID_KP;  // 2.0;  
+  motorLeftPID.Ki       = MOTOR_PID_KI;  // 0.03; 
+  motorLeftPID.Kd       = MOTOR_PID_KD;  // 0.03; 
   motorRightPID.Kp       = motorLeftPID.Kp;
   motorRightPID.Ki       = motorLeftPID.Ki;
   motorRightPID.Kd       = motorLeftPID.Kd;		 

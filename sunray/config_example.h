@@ -139,6 +139,12 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define USE_LINEAR_SPEED_RAMP  true      // use a speed ramp for the linear speed
 #define USE_LINEAR_SPEED_RAMP  false      // do not use a speed ramp 
 
+// motor speed control (PID coefficients) - these values are tuned for Ardumower motors
+// general information about PID controllers: https://wiki.ardumower.de/index.php?title=PID_control
+#define MOTOR_PID_KP     2.0
+#define MOTOR_PID_KI     0.03
+#define MOTOR_PID_KD     0.03
+
 
 // ----- mowing motor -------------------------------------------------
 #define MOW_OVERLOAD_CURRENT 2.0    // mowing motor overload current (amps)
