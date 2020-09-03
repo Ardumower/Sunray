@@ -100,7 +100,7 @@ extern UBLOX gps;
 extern int freeMemory();
 extern void start();
 extern void run();
-extern void setOperation(OperationType op, bool allowOverride = false);
+extern void setOperation(OperationType op, bool allowOverride = false, bool initiatedbyOperator = false);
 extern void triggerObstacle();
 
 

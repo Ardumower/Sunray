@@ -126,6 +126,7 @@ int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
 float dockSignal = 0;
 float dockAngularSpeed = 0.1;
+bool dockingInitiatedByOperator = true;
 
 RunningMedian<unsigned int,3> tofMeasurements;
 
@@ -914,7 +915,7 @@ void run(){
       else if (stateOp == OP_CHARGE){      
         if (battery.chargerConnected()){
           if (battery.chargingHasCompleted()){
-            if (DOCKING_STATION){
+            if ((DOCKING_STATION) && (!dockingInitiatedByOperator)) {
               if (maps.mowPointsIdx > 0){  // if mowing not completed yet
                 setOperation(OP_MOW); // continue mowing
               }
@@ -941,7 +942,7 @@ void run(){
 
 
 // set new robot operation
-void setOperation(OperationType op, bool allowOverride){  
+void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator){  
   if ((stateOp == op) && (!allowOverride)) return;  
   CONSOLE.print("setOperation op=");
   CONSOLE.println(op);
@@ -952,6 +953,7 @@ void setOperation(OperationType op, bool allowOverride){
       motor.setMowState(false);
       break;
     case OP_DOCK:
+      dockingInitiatedByOperator = initiatedbyOperator;
       motor.setLinearAngularSpeed(0,0);
       motor.setMowState(false);                
       if (maps.startDocking(stateX, stateY)){
