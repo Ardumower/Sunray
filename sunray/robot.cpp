@@ -661,7 +661,7 @@ void trackLine(){
       
   // check if approaching target (obstacle detection)
   if (millis() > nextTargetDistCheckTime){        
-    nextTargetDistCheckTime = millis() + 30000;
+    nextTargetDistCheckTime = millis() + TARGET_APPROACHING_DETECTION_TIMEOUT * 1000;
     float delta = abs(targetDist - previousTargetDist);   
     if (delta < 0.05){
       if (TARGET_APPROACHING_DETECTION){
