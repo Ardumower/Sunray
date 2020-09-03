@@ -221,10 +221,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 
 // ------ GPS ------------------------------------------
+//#define REQUIRE_VALID_GPS  true       // mower will pause if invalid GPS signal (invalid gps) during mowing
+#define REQUIRE_VALID_GPS  false    // mower will ignore invalid GPS signal (invalid gps) during mowing
 
-// require valid GPS signal all time? mower will go into error (invalid gps) if no valid GPS signal during mowing
-//#define REQUIRE_VALID_GPS  true    
-#define REQUIRE_VALID_GPS  false    
 
 #define GPS_OBSTACLE_DETECTION true  // will detect obstacles via GPS feedback (no motion)
 //#define GPS_OBSTACLE_DETECTION false
