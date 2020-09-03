@@ -219,6 +219,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define CURRENT_FACTOR 0.5     // (non-bridged INA169, max. 2.5A)
 //#define CURRENT_FACTOR 1.0   // (bridged INA169, max. 5A)
 
+#define GO_HOME_VOLTAGE   21.5  // start going to dock below this voltage
+#define BAT_FULL_VOLTAGE  28.7  // start mowing again at this voltage
+#define BAT_FULL_CURRENT  0.2   // start mowing again below this charging current (amps)
+
 
 // ------ GPS ------------------------------------------
 //#define REQUIRE_VALID_GPS  true       // mower will pause if invalid GPS signal (invalid gps) during mowing

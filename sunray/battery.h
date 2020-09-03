@@ -25,6 +25,7 @@ class Battery {
 	  float chargingVoltage;  // volts
 	  float chargingCurrent;  // amps
     bool chargingEnabled;
+    bool chargingCompleted;
 	  float ADCRef;
     void begin();            
     void run();	  
@@ -32,6 +33,7 @@ class Battery {
     void enableCharging(bool flag);   	  
     void allowSwitchOff(bool flag);      
     bool shouldGoHome();    
+    bool chargingHasCompleted();
     bool underVoltage();
     void resetIdle();
   protected:           

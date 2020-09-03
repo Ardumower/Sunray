@@ -30,6 +30,7 @@ void Battery::begin()
   nextEnableTime = 0;
 	timeMinutes=0;  
   chargerConnectedState = false;      
+  chargingCompleted = false;
   chargingEnabled = true;
   batteryFactor = (100+10) / 10;    // ADC voltage to battery voltage
   
@@ -45,12 +46,12 @@ void Battery::begin()
   //   b) non-bridged  RL=20k:  Is = 1v * 1k / (0.1*20K)  = 0.5A
   
   currentFactor = CURRENT_FACTOR;         // ADC voltage to current ampere  (0.5 for non-bridged)
-  batMonitor = true;              // monitor battery and charge voltage?    
-  batGoHomeIfBelow = 21.5;     // drive home voltage (Volt)  
+  batMonitor = true;              // monitor battery and charge voltage?      
+  batGoHomeIfBelow = GO_HOME_VOLTAGE; // 21.5  drive home voltage (Volt)  
   batSwitchOffIfBelow = 18.9;  // switch off battery if below voltage (Volt)  
   batSwitchOffIfIdle = 300;      // switch off battery if idle (seconds)
-  batFullCurrent  = 0.2;      // current flowing when battery is fully charged
-  batFullVoltage = 28.7;      // voltage when battery is fully charged (we charge to only 90% to increase battery life time)
+  batFullCurrent  = BAT_FULL_CURRENT;  // 0.2  current flowing when battery is fully charged (A)
+  batFullVoltage = BAT_FULL_VOLTAGE;  //28.7  voltage when battery is fully charged (we charge to only 90% to increase battery life time)
   enableChargingTimeout = 60 * 30; // if battery is full, wait this time before enabling charging again (seconds)
   batteryVoltage = 0;
 
@@ -78,7 +79,11 @@ void Battery::enableCharging(bool flag){
 bool Battery::chargerConnected(){
   return chargerConnectedState;  
 }
-  
+ 
+bool Battery::chargingHasCompleted(){
+  return chargingCompleted;
+}
+ 
 
 bool Battery::shouldGoHome(){
   return (batteryVoltage < batGoHomeIfBelow);
@@ -164,11 +169,13 @@ void Battery::run(){
         // charger in connected state
         if (chargingEnabled){
           //if ((timeMinutes > 180) || (chargingCurrent < batFullCurrent)) {        
-          if ((chargingCurrent <= batFullCurrent) || (batteryVoltage >= batFullVoltage)) {
+          chargingCompleted = ((chargingCurrent <= batFullCurrent) || (batteryVoltage >= batFullVoltage));
+          if (chargingCompleted) {
             // stop charging
             nextEnableTime = millis() + 1000 * enableChargingTimeout;   // check charging current again in 30 minutes
+            chargingCompleted = true;
             enableCharging(false);
-          }
+          } 
         } else {
            //if (batteryVoltage < startChargingIfBelow) {
               // start charging

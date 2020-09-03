@@ -912,7 +912,15 @@ void run(){
         }
       }
       else if (stateOp == OP_CHARGE){      
-        if (!battery.chargerConnected()){
+        if (battery.chargerConnected()){
+          if (battery.chargingHasCompleted()){
+            if (DOCKING_STATION){
+              if (maps.mowPointsIdx > 0){  // if mowing not completed yet
+                setOperation(OP_MOW); // continue mowing
+              }
+            }
+          }
+        } else {
           setOperation(OP_IDLE);        
         }
       }
