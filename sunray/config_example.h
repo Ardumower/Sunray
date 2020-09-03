@@ -141,9 +141,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // motor speed control (PID coefficients) - these values are tuned for Ardumower motors
 // general information about PID controllers: https://wiki.ardumower.de/index.php?title=PID_control
-#define MOTOR_PID_KP     2.0
-#define MOTOR_PID_KI     0.03
-#define MOTOR_PID_KD     0.03
+#define MOTOR_PID_KP     2.0    // do not change
+#define MOTOR_PID_KI     0.03   // do not change
+#define MOTOR_PID_KD     0.03   // do not change
 
 
 // ----- mowing motor -------------------------------------------------
