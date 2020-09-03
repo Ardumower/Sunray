@@ -67,6 +67,7 @@ void cmdControl(){
   CONSOLE.print(linear);
   CONSOLE.print(" angular=");
   CONSOLE.println(angular);*/    
+  if (op >= 0) setOperation((OperationType)op, false, true);
   String s = F("C");
   cmdAnswer(s);
 }
