@@ -203,7 +203,7 @@ void startWIFI(){
 
 // https://learn.sparkfun.com/tutorials/9dof-razor-imu-m0-hookup-guide#using-the-mpu-9250-dmp-arduino-library
 // start IMU sensor and calibrate
-void startIMU(bool forceIMU){    
+bool startIMU(bool forceIMU){    
   // detect MPU9250
   uint8_t data = 0;
   int counter = 0;  
@@ -236,8 +236,16 @@ void startIMU(bool forceIMU){
        Wire.setClock(I2C_SPEED);   
      #endif
      counter++;
+     if (counter > 5){    
+      // no I2C recovery possible - this should not happen (I2C module error)
+      CONSOLE.println("ERROR IMU not found");
+      stateSensor = SENS_IMU_TIMEOUT;
+      setOperation(OP_ERROR);      
+      //buzzer.sound(SND_STUCK, true);            
+      return false;
+    }  
   }  
-  if (!imuFound) return;  
+  if (!imuFound) return false;  
   while (true){
     if (imu.begin() == INV_SUCCESS) break;
     CONSOLE.print("Unable to communicate with IMU.");
@@ -255,6 +263,7 @@ void startIMU(bool forceIMU){
   imuIsCalibrating = true;   
   nextImuCalibrationSecond = millis() + 1000;
   imuCalibrationSeconds = 0;
+  return true;
 }
 
 
@@ -273,15 +282,23 @@ void readIMU(){
   unsigned long duration = millis() - startTime;    
   //CONSOLE.print("duration:");
   //CONSOLE.println(duration);  
-  if (duration > 10){
-    CONSOLE.print("ERROR IMU timeout: ");
-    CONSOLE.println(duration);          
+  if ((duration > 10) || (millis() > imuDataTimeout)) {
+    if (millis() > imuDataTimeout){
+      CONSOLE.println("ERROR IMU data timeout");  
+    } else {
+      CONSOLE.print("ERROR IMU timeout: ");
+      CONSOLE.println(duration);          
+    }
+    stateSensor = SENS_IMU_TIMEOUT;
     motor.stopImmediately(true);    
-    startIMU(true); // restart I2C bus
-    statImuRecoveries++;    
+    statImuRecoveries++;            
+    if (!startIMU(true)){ // restart I2C bus
+      return;
+    }    
     return;
-  }      
-  if (avail) {    
+  } 
+  
+  if (avail) {        
     //CONSOLE.println("fifoAvailable");
     // Use dmpUpdateFifo to update the ax, gx, mx, etc. values
     if ( imu.dmpUpdateFifo() == INV_SUCCESS)
@@ -328,15 +345,7 @@ void readIMU(){
       lastIMUYaw = imu.yaw;      
       imuDataTimeout = millis() + 10000;
     }     
-  }  
-  if (millis() > imuDataTimeout){
-    imuDataTimeout = millis() + 10000;
-    // no IMU data within timeout - this should not happen (I2C module error)
-    CONSOLE.println("ERROR IMU data timeout");
-    stateSensor = SENS_IMU_TIMEOUT;
-    setOperation(OP_ERROR);
-    //buzzer.sound(SND_STUCK, true);        
-  }
+  }     
 }
 
 // check for RTC module
@@ -1004,7 +1013,7 @@ void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator
       motor.setLinearAngularSpeed(0,0, false);
       motor.setMowState(false);     
       break;
-    case OP_ERROR:      
+    case OP_ERROR:            
       motor.setLinearAngularSpeed(0,0);
       motor.setMowState(false);      
       break;
