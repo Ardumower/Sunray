@@ -949,6 +949,7 @@ void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator
   bool error = false;
   switch (op){
     case OP_IDLE:
+      dockingInitiatedByOperator = true;
       motor.setLinearAngularSpeed(0,0);
       motor.setMowState(false);
       break;
