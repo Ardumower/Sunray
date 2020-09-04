@@ -259,6 +259,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DOCKING_STATION true   // use this if docking station available and mower should dock automatically
 //#define DOCKING_STATION false    // use this if mower should not dock automatically 
 
+//#define DOCK_AUTO_START true     // robot will automatically continue mowing after docked automatically
+#define DOCK_AUTO_START false      // robot will not automatically continue mowing after docked automatically
+
+
 // stanley control for path tracking - determines gain how fast to correct for lateral path errors
 #define STANLEY_CONTROL_K_NORMAL  0.5   // 0.5 for path tracking control when in normal or fast motion
 #define STANLEY_CONTROL_K_SLOW    0.1   // 0.1 for path tracking control when in slow motion (e.g. docking tracking)

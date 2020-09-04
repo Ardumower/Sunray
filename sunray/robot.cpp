@@ -917,7 +917,9 @@ void run(){
           if (battery.chargingHasCompleted()){
             if ((DOCKING_STATION) && (!dockingInitiatedByOperator)) {
               if (maps.mowPointsIdx > 0){  // if mowing not completed yet
-                setOperation(OP_MOW); // continue mowing
+                if (DOCK_AUTO_START) { // automatic continue mowing allowed?
+                  setOperation(OP_MOW); // continue mowing
+                }
               }
             }
           }
