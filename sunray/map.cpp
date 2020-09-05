@@ -1366,7 +1366,7 @@ void Map::stressTest(){
   Point src;
   Point dst;
   float d = 30.0;
-  for (int i=0 ; i < 1000; i++){
+  for (int i=0 ; i < 10; i++){
     for (int j=0 ; j < 20; j++){
       addObstacle( ((float)random(d*10))/10.0-d/2, ((float)random(d*10))/10.0-d/2 );
     }
@@ -1374,7 +1374,7 @@ void Map::stressTest(){
     dst.setXY( ((float)random(d*10))/10.0-d/2, ((float)random(d*10))/10.0-d/2 );
     findPath(src, dst);    
     clearObstacles();
-  }
+  }  
 }
   
   
