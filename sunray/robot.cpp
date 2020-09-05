@@ -156,7 +156,7 @@ void sensorTest(){
     sonar.run();
     bumper.run();
     if (millis() > nextMeasureTime){
-      nextMeasureTime = millis() + 1000;
+      nextMeasureTime = millis() + 1000;      
       if (SONAR_ENABLE){
         CONSOLE.print("sonar (left,center,right): ");
         CONSOLE.print(sonar.distanceLeft);
@@ -183,6 +183,7 @@ void sensorTest(){
        
       } 
       CONSOLE.println();  
+      watchdogReset();     
     }
   }
   CONSOLE.println("end of sensor test");
