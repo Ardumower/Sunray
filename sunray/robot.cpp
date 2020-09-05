@@ -380,6 +380,7 @@ void start(){
   buzzer.begin();      
   CONSOLE.begin(CONSOLE_BAUDRATE);  
   Wire.begin();      
+  analogReadResolution(12);  // configure ADC 12 bit resolution
   unsigned long timeout = millis() + 2000;
   while (millis() < timeout){
     if (!checkAT24C32()){
