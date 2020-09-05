@@ -983,11 +983,12 @@ void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator
       motor.setMowState(false);
       break;
     case OP_DOCK:
-      dockingInitiatedByOperator = initiatedbyOperator;
+      dockingInitiatedByOperator = initiatedbyOperator;      
       motor.setLinearAngularSpeed(0,0);
       motor.setMowState(false);                
-      if (maps.startDocking(stateX, stateY)){
+      if (maps.startDocking(stateX, stateY)){       
         if (maps.nextPoint(true)) {
+          maps.repeatLastMowingPoint();
           nextTargetDistCheckTime = millis() + 30000;
           resetMotionMeasurement();                
           maps.setLastTargetPoint(stateX, stateY);        

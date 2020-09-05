@@ -151,6 +151,8 @@ class Map
     void setMowingPointPercent(float perc);
     // skip next mowing point
     void skipNextMowingPoint();
+    // move progress to last mowing point
+    void repeatLastMowingPoint();
     // set last target point
     void setLastTargetPoint(float stateX, float stateY);
     // distance to target waypoint

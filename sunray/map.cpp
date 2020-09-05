@@ -449,6 +449,13 @@ void Map::skipNextMowingPoint(){
   }  
 }
 
+
+void Map::repeatLastMowingPoint(){
+  if (mowPointsIdx > 1) {
+    mowPointsIdx--;
+  }
+}
+
 void Map::run(){
   switch (wayMode){
     case WAY_DOCK:      
