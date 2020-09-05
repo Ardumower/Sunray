@@ -109,6 +109,12 @@ void cmdMotorTest(){
   motor.test();  
 }
 
+void cmdSensorTest(){
+  String s = F("F");
+  cmdAnswer(s);
+  sensorTest();  
+}
+
 
 // request waypoint
 void cmdWaypoint(){
@@ -426,6 +432,7 @@ void processCmd(bool checkCrc){
   if (cmd[3] == 'L') cmdClearStats();
   if (cmd[3] == 'E') cmdMotorTest();  
   if (cmd[3] == 'O') cmdObstacle();  
+  if (cmd[3] == 'F') cmdSensorTest();  
 }
 
 // process console input

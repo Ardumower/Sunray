@@ -148,6 +148,47 @@ void resetMotionMeasurement(){
 }
 
 
+void sensorTest(){
+  CONSOLE.println("testing sensors for 60 seconds...");
+  unsigned long stopTime = millis() + 60000;  
+  unsigned long nextMeasureTime = 0;
+  while (millis() < stopTime){
+    sonar.run();
+    bumper.run();
+    if (millis() > nextMeasureTime){
+      nextMeasureTime = millis() + 1000;
+      if (SONAR_ENABLE){
+        CONSOLE.print("sonar (left,center,right): ");
+        CONSOLE.print(sonar.distanceLeft);
+        CONSOLE.print("\t");
+        CONSOLE.print(sonar.distanceCenter);
+        CONSOLE.print("\t");
+        CONSOLE.print(sonar.distanceRight);
+        CONSOLE.print(" triggered: ");
+        CONSOLE.print(((int)sonar.obstacle()));
+        CONSOLE.print("\t");
+      }
+      if (TOF_ENABLE){   
+        CONSOLE.print("ToF: ");
+        int v = tof.readRangeContinuousMillimeters();        
+        if (!tof.timeoutOccurred()) {     
+          CONSOLE.print(v/10);
+        }
+        CONSOLE.print("\t");
+      }    
+      if (BUMPER_ENABLE){
+        CONSOLE.print("bumper triggered: ");
+        CONSOLE.print(((int)bumper.obstacle()));
+        CONSOLE.print("\t");
+       
+      } 
+      CONSOLE.println();  
+    }
+  }
+  CONSOLE.println("end of sensor test");
+}
+
+
 void startWIFI(){
   WIFI.begin(WIFI_BAUDRATE); 
   WIFI.print("AT\r\n");  

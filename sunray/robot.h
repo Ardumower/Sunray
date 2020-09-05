@@ -23,7 +23,7 @@
 #include "WiFiEsp.h"
 
 
-#define VER "Ardumower Sunray,1.0.116"
+#define VER "Ardumower Sunray,1.0.117"
 
 enum OperationType {
       OP_IDLE,      
@@ -102,6 +102,7 @@ extern void start();
 extern void run();
 extern void setOperation(OperationType op, bool allowOverride = false, bool initiatedbyOperator = false);
 extern void triggerObstacle();
+extern void sensorTest();
 
 
 #endif

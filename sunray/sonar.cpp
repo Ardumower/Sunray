@@ -156,16 +156,7 @@ void Sonar::begin()
 bool Sonar::obstacle()
 {
   if (!enabled) return false;
-  bool triggered = ((distanceLeft < triggerLeftBelow) || (distanceCenter < triggerCenterBelow) || (distanceRight < triggerRightBelow));
-  if (triggered){
-    CONSOLE.print("sonar triggered (distances left,center,right): ");
-    CONSOLE.print(distanceLeft);
-    CONSOLE.print(",");
-    CONSOLE.print(distanceCenter);    
-    CONSOLE.print(",");
-    CONSOLE.println(distanceRight);
-  }  
-  return triggered; 
+  return ((distanceLeft < triggerLeftBelow) || (distanceCenter < triggerCenterBelow) || (distanceRight < triggerRightBelow));  
 }
 
 
