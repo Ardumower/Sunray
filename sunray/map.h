@@ -170,6 +170,7 @@ class Map
     void addObstacle(float stateX, float stateY);
     void clearObstacles();
     void dump();    
+    void stressTest();
   private:
     bool findObstacleSafeMowPoint();
     bool nextMowPoint(bool sim);
@@ -194,7 +195,6 @@ class Map
     bool lineLineIntersection(Point &A, Point &B, Point &C, Point &D, Point &pt);
     bool isPointInBoundingBox(Point &pt, Point &A, Point &B);
     int linePolygonIntersectionCount(Point &src, Point &dst, Polygon &poly);
-    void stressTest();
     void testIntegerCalcs();
 };
 

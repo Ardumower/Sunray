@@ -279,6 +279,13 @@ void cmdObstacle(){
   triggerObstacle();  
 }
 
+// perform pathfinder stress test
+void cmdStressTest(){
+  String s = F("Z");
+  cmdAnswer(s);  
+  maps.stressTest();  
+}
+
 
 // request summary
 void cmdSummary(){
@@ -433,6 +440,7 @@ void processCmd(bool checkCrc){
   if (cmd[3] == 'E') cmdMotorTest();  
   if (cmd[3] == 'O') cmdObstacle();  
   if (cmd[3] == 'F') cmdSensorTest();  
+  if (cmd[3] == 'Z') cmdStressTest();   // for developers
 }
 
 // process console input
