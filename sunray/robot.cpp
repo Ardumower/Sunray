@@ -560,15 +560,88 @@ void computeRobotState(){
 }
 
 
+// should robot move?
+bool robotShouldMove(){
+  return ( (fabs(motor.linearSpeedSet) > 0.001) ||  (fabs(motor.angularSpeedSet) > 0.001) );
+}
+
+
 void triggerObstacle(){
+  CONSOLE.println("triggerObstacle");    
   statMowObstacles++;    
-  if ((OSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){
-    CONSOLE.println("triggerObstacle");    
+  if ((OSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){    
     driveReverseStopTime = millis() + 3000;      
   } else { 
     stateSensor = SENS_OBSTACLE;
     setOperation(OP_ERROR);
     buzzer.sound(SND_STUCK, true);        
+  }
+}
+
+
+// detect sensor malfunction
+void detectSensorMalfunction(){  
+  if (ENABLE_ODOMETRY_ERROR_DETECTION){
+    if (motor.odometryError){
+      CONSOLE.println("odometry error!");    
+      stateSensor = SENS_ODOMETRY_ERROR;
+      setOperation(OP_ERROR);
+      buzzer.sound(SND_STUCK, true); 
+      return;      
+    }
+  }
+  if (ENABLE_OVERLOAD_DETECTION){
+    if (motor.motorOverloadDuration > 20000){
+      CONSOLE.println("overload!");    
+      stateSensor = SENS_OVERLOAD;
+      setOperation(OP_ERROR);
+      buzzer.sound(SND_STUCK, true);        
+      return;
+    }  
+  }
+  if (ENABLE_FAULT_DETECTION){
+    if (motor.motorError){
+      motor.motorError = false;
+      CONSOLE.println("motor error!");
+      stateSensor = SENS_MOTOR_ERROR;
+      setOperation(OP_ERROR);
+      buzzer.sound(SND_STUCK, true);       
+      return;       
+    }  
+  }
+}
+
+
+// detect obstacle (bumper, sonar, ToF) 
+void detectObstacle(){  
+  if (!robotShouldMove()) return;  
+  if (TOF_ENABLE){
+    if (millis() >= nextToFTime){
+      nextToFTime = millis() + 200;
+      int v = tof.readRangeContinuousMillimeters();        
+      if (!tof.timeoutOccurred()) {     
+        tofMeasurements.add(v);        
+        float avg = 0;
+        if (tofMeasurements.getAverage(avg) == tofMeasurements.OK){
+          //CONSOLE.println(avg);
+          if (avg < TOF_OBSTACLE_CM * 10){
+            CONSOLE.println("ToF obstacle!");    
+            triggerObstacle();                
+            return; 
+          }
+        }      
+      } 
+    }    
+  }   
+  if (bumper.obstacle()){
+    CONSOLE.println("bumper obstacle!");    
+    triggerObstacle();    
+    return;
+  }
+  if (sonar.obstacle() && (maps.wayMode != WAY_DOCK)){
+    CONSOLE.println("sonar obstacle!");    
+    triggerObstacle();    
+    return;
   }
 }
 
@@ -599,66 +672,7 @@ void trackLine(){
   
   if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
     linear = 0.1;  
-  }
-  
-  if (TOF_ENABLE){
-    if (millis() >= nextToFTime){
-      nextToFTime = millis() + 200;
-      int v = tof.readRangeContinuousMillimeters();        
-      if (!tof.timeoutOccurred()) {     
-        tofMeasurements.add(v);        
-        float avg = 0;
-        if (tofMeasurements.getAverage(avg) == tofMeasurements.OK){
-          //CONSOLE.println(avg);
-          if (avg < TOF_OBSTACLE_CM * 10){
-            stateSensor = SENS_OBSTACLE;
-            setOperation(OP_ERROR);
-            buzzer.sound(SND_STUCK, true);        
-            return; 
-          }
-        }      
-      } 
-    }    
-  }
-  
-  if (bumper.obstacle()){
-    CONSOLE.println("bumper obstacle!");    
-    triggerObstacle();    
-    return;
-  }
-  if (sonar.obstacle() && (maps.wayMode != WAY_DOCK)){
-    CONSOLE.println("sonar obstacle!");    
-    triggerObstacle();    
-    return;
-  }
-  if (ENABLE_ODOMETRY_ERROR_DETECTION){
-    if (motor.odometryError){
-      CONSOLE.println("odometry error!");    
-      stateSensor = SENS_ODOMETRY_ERROR;
-      setOperation(OP_ERROR);
-      buzzer.sound(SND_STUCK, true); 
-      return;      
-    }
-  }
-  if (ENABLE_OVERLOAD_DETECTION){
-    if (motor.motorOverloadDuration > 20000){
-      CONSOLE.println("overload!");    
-      stateSensor = SENS_OVERLOAD;
-      setOperation(OP_ERROR);
-      buzzer.sound(SND_STUCK, true);        
-      return;
-    }  
-  }
-  if (ENABLE_FAULT_DETECTION){
-    if (motor.motorError){
-      motor.motorError = false;
-      CONSOLE.println("motor error!");
-      stateSensor = SENS_MOTOR_ERROR;
-      setOperation(OP_ERROR);
-      buzzer.sound(SND_STUCK, true);       
-      return;       
-    }  
-  }
+  }   
   
   if (KIDNAP_DETECT){
     if (fabs(lateralError) > 1.0){ // actually, this should not happen (except something strange is going on...)
@@ -671,19 +685,20 @@ void trackLine(){
   }
       
   // check if approaching target (obstacle detection)
-  if (millis() > nextTargetDistCheckTime){        
-    nextTargetDistCheckTime = millis() + TARGET_APPROACHING_DETECTION_TIMEOUT * 1000;
-    float delta = abs(targetDist - previousTargetDist);   
-    if (delta < 0.05){
-      if (TARGET_APPROACHING_DETECTION){
-        CONSOLE.println("target obstacle!");
-        triggerObstacle();
-        return;
+  if (robotShouldMove()) {
+    if (millis() > nextTargetDistCheckTime){        
+      nextTargetDistCheckTime = millis() + TARGET_APPROACHING_DETECTION_TIMEOUT * 1000;
+      float delta = abs(targetDist - previousTargetDist);   
+      if (delta < 0.05){
+        if (TARGET_APPROACHING_DETECTION){
+          CONSOLE.println("target obstacle!");
+          triggerObstacle();
+          return;
+        }
       }
-    }
-    previousTargetDist = targetDist;      
-  }    
-  
+      previousTargetDist = targetDist;      
+    }    
+  }  
     
   // allow rotations only near last or next waypoint
   if ((targetDist < 0.5) || (lastTargetDist < 0.5)) {
@@ -908,6 +923,8 @@ void run(){
           }
         } else {          
           // line tracking
+          detectSensorMalfunction();
+          detectObstacle();
           trackLine();       
         }        
         battery.resetIdle();
