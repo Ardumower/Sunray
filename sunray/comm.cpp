@@ -353,6 +353,8 @@ void cmdStats(){
   s += statMowInvalidRecoveries;
   s += ",";
   s += statMowObstacles;
+  s += ",";
+  s += freeMemory();
   cmdAnswer(s);  
 }
 
