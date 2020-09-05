@@ -436,6 +436,7 @@ bool Map::setExclusionLength(int idx, int len){
 // 1.0 = 100%
 // TODO: use path finder for valid free points to target point
 void Map::setMowingPointPercent(float perc){
+  if (mowPoints.numPoints == 0) return;
   mowPointsIdx = (int)( ((float)mowPoints.numPoints) * perc);
   if (mowPointsIdx >= mowPoints.numPoints) {
     mowPointsIdx = mowPoints.numPoints-1;
@@ -443,6 +444,7 @@ void Map::setMowingPointPercent(float perc){
 }
 
 void Map::skipNextMowingPoint(){
+  if (mowPoints.numPoints == 0) return;
   mowPointsIdx++;
   if (mowPointsIdx >= mowPoints.numPoints) {
     mowPointsIdx = mowPoints.numPoints-1;
@@ -451,6 +453,7 @@ void Map::skipNextMowingPoint(){
 
 
 void Map::repeatLastMowingPoint(){
+  if (mowPoints.numPoints == 0) return;
   if (mowPointsIdx > 1) {
     mowPointsIdx--;
   }
