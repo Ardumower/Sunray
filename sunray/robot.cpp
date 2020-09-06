@@ -16,6 +16,7 @@
 #include "ublox.h"
 #include "buzzer.h"
 #include "bumper.h"
+#include "rcmodel.h"
 #include "map.h"
 #include "config.h"
 #include "helper.h"
@@ -44,6 +45,7 @@ Sonar sonar;
 VL53L0X tof(VL53L0X_ADDRESS_DEFAULT);
 Map maps;
 HTU21D myHumidity;
+RCModel rcmodel;
 PID pidLine(0.2, 0.01, 0); // not used
 PID pidAngle(2, 0.1, 0);  // not used
 
@@ -413,12 +415,13 @@ bool checkAT24C32() {
 
 
 // robot start routine
-void start(){  
+void start(){    
   pinMan.begin();       
   // keep battery switched ON
   pinMode(pinBatterySwitch, OUTPUT);    
   pinMode(pinDockingReflector, INPUT);
-  digitalWrite(pinBatterySwitch, HIGH);       
+  digitalWrite(pinBatterySwitch, HIGH);         
+  pinMode(pinButton, INPUT_PULLUP);
   buzzer.begin();      
   CONSOLE.begin(CONSOLE_BAUDRATE);  
   Wire.begin();      
@@ -441,6 +444,7 @@ void start(){
   bleConfig.run();   
   BLE.println(VER);  
     
+  //rcmodel.begin();    
   motor.begin();
   sonar.begin();
   bumper.begin();
@@ -466,7 +470,7 @@ void start(){
   CONSOLE.println("-----------------------------------------------------");
   
   gps.begin();   
-  maps.begin();  
+  maps.begin();    
   //maps.clipperTest();
   
   myHumidity.begin();    
@@ -879,6 +883,7 @@ void run(){
   motor.run();
   sonar.run();
   maps.run();  
+  //rcmodel.run();
   
   // temp
   if (millis() > nextTempTime){
