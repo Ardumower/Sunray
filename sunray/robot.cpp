@@ -444,7 +444,7 @@ void start(){
   bleConfig.run();   
   BLE.println(VER);  
     
-  //rcmodel.begin();    
+  rcmodel.begin();    
   motor.begin();
   sonar.begin();
   bumper.begin();
@@ -883,7 +883,7 @@ void run(){
   motor.run();
   sonar.run();
   maps.run();  
-  //rcmodel.run();
+  rcmodel.run();
   
   // temp
   if (millis() > nextTempTime){

@@ -35,12 +35,14 @@ void RCModel::begin(){
   // R/C
   pinMode(pinRemoteSteer, INPUT);
   pinMode(pinRemoteSpeed, INPUT); 
-  attachInterrupt(digitalPinToInterrupt(pinRemoteSpeed), get_lin_PPM, CHANGE);// Interrupt aktivieren
-  attachInterrupt(digitalPinToInterrupt(pinRemoteSteer), get_ang_PPM, CHANGE);// Interrupt aktivieren 
+  if (RCMODEL_ENABLE){
+    //attachInterrupt(digitalPinToInterrupt(pinRemoteSpeed), get_lin_PPM, CHANGE);// Interrupt aktivieren
+    //attachInterrupt(digitalPinToInterrupt(pinRemoteSteer), get_ang_PPM, CHANGE);// Interrupt aktivieren 
+  }
 } 
 
 void RCModel::run(){  
-  return;
+  if (!RCMODEL_ENABLE) return;
   if (millis() < nextControlTime) return; 
   nextControlTime = millis() + 100;                                       // save CPU resources by running at 10 Hz
   
@@ -50,14 +52,14 @@ void RCModel::run(){
       RC_Mode = !RC_Mode;                                                   // R/C-Mode toggle
       if (RC_Mode)  {                                                       // R/C-Mode ist aktiv
         buzzer.sound(SND_STUCK, true);                                      // 3x Piep für R/C aktiv        
-        //attachInterrupt(digitalPinToInterrupt(pinRemoteSpeed), get_lin_PPM, CHANGE);// Interrupt aktivieren
-        //attachInterrupt(digitalPinToInterrupt(pinRemoteSteer), get_ang_PPM, CHANGE);// Interrupt aktivieren 
+        attachInterrupt(digitalPinToInterrupt(pinRemoteSpeed), get_lin_PPM, CHANGE);// Interrupt aktivieren
+        attachInterrupt(digitalPinToInterrupt(pinRemoteSteer), get_ang_PPM, CHANGE);// Interrupt aktivieren 
       }
       if (!RC_Mode) {                                                       // R/C-Mode inaktiv
         buzzer.sound(SND_PERIMETER_TIMEOUT, true);                          // 2x Piiiiiiiep für R/C aus
         motor.setLinearAngularSpeed(0, 0);                                 
-        //detachInterrupt(digitalPinToInterrupt(pinRemoteSpeed));             // Interrupt deaktivieren
-        //detachInterrupt(digitalPinToInterrupt(pinRemoteSteer));             // Interrupt deaktivieren
+        detachInterrupt(digitalPinToInterrupt(pinRemoteSpeed));             // Interrupt deaktivieren
+        detachInterrupt(digitalPinToInterrupt(pinRemoteSteer));             // Interrupt deaktivieren
       }
     }
   }

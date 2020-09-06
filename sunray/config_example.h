@@ -267,6 +267,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define STANLEY_CONTROL_K_NORMAL  0.5   // 0.5 for path tracking control when in normal or fast motion
 #define STANLEY_CONTROL_K_SLOW    0.1   // 0.1 for path tracking control when in slow motion (e.g. docking tracking)
 
+// activate support for model R/C control?
+//#define RCMODEL_ENABLE true
+#define RCMODEL_ENABLE false
 
 // ------- I2C addresses -----------------------------
 #define DS1307_ADDRESS B1101000

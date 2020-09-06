@@ -1,6 +1,7 @@
 // Adafruit Grand Central M4 
 
 // https://learn.adafruit.com/adafruit-grand-central/pinouts
+// https://github.com/adafruit/ArduinoCore-samd
 
 
 // FIFO size can be adjusted here (click on Arduino IDE->File->Preferences to jump into that folder):
