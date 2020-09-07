@@ -14,7 +14,7 @@ volatile unsigned long PPM_end_ang = 0 ;
 
 void get_lin_PPM()                                                        // Interrupt Service Routine
 {
-  if (digitalRead(pinRemoteSpeed)==HIGH) PPM_start_lin = micros();  
+  if (digitalRead(pinRemoteMow)==HIGH) PPM_start_lin = micros();  
   else                                   PPM_end_lin = micros();    
 }
 
@@ -34,9 +34,9 @@ void RCModel::begin(){
   nextControlTime = 0;
   // R/C
   pinMode(pinRemoteSteer, INPUT);
-  pinMode(pinRemoteSpeed, INPUT); 
+  pinMode(pinRemoteMow, INPUT); 
   if (RCMODEL_ENABLE){
-    //attachInterrupt(digitalPinToInterrupt(pinRemoteSpeed), get_lin_PPM, CHANGE);// Interrupt aktivieren
+    //attachInterrupt(digitalPinToInterrupt(pinRemoteMow), get_lin_PPM, CHANGE);// Interrupt aktivieren
     //attachInterrupt(digitalPinToInterrupt(pinRemoteSteer), get_ang_PPM, CHANGE);// Interrupt aktivieren 
   }
 } 
@@ -52,13 +52,13 @@ void RCModel::run(){
       RC_Mode = !RC_Mode;                                                   // R/C-Mode toggle
       if (RC_Mode)  {                                                       // R/C-Mode ist aktiv
         buzzer.sound(SND_STUCK, true);                                      // 3x Piep für R/C aktiv        
-        attachInterrupt(digitalPinToInterrupt(pinRemoteSpeed), get_lin_PPM, CHANGE);// Interrupt aktivieren
+        attachInterrupt(digitalPinToInterrupt(pinRemoteMow), get_lin_PPM, CHANGE);// Interrupt aktivieren
         attachInterrupt(digitalPinToInterrupt(pinRemoteSteer), get_ang_PPM, CHANGE);// Interrupt aktivieren 
       }
       if (!RC_Mode) {                                                       // R/C-Mode inaktiv
         buzzer.sound(SND_PERIMETER_TIMEOUT, true);                          // 2x Piiiiiiiep für R/C aus
         motor.setLinearAngularSpeed(0, 0);                                 
-        detachInterrupt(digitalPinToInterrupt(pinRemoteSpeed));             // Interrupt deaktivieren
+        detachInterrupt(digitalPinToInterrupt(pinRemoteMow));             // Interrupt deaktivieren
         detachInterrupt(digitalPinToInterrupt(pinRemoteSteer));             // Interrupt deaktivieren
       }
     }
