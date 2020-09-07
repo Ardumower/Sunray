@@ -202,7 +202,7 @@ void startWIFI(){
     res += ch;
   }
   if (res.indexOf("OK") == -1){
-    CONSOLE.println("WIFI (ESP8266) not found!");
+    CONSOLE.println("WIFI (ESP8266) not found! If the problem persist, you may need to flash your ESP to firmware 2.2.1");
     return;
   }    
   WiFi.init(&WIFI);  
