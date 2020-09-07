@@ -20,6 +20,13 @@
 // verdoppeln - das gleiche gilt bei der endladung
 
 
+// --- battery switch off circuit --------------------
+// JP8 Dauer-ON : automatic switch off circuit disabled
+// JP8 Autom.   : automatic switch off circuit enabled
+// Note: to increase hardware switch-off time increase capacitor C12  (under DC/DC module)
+// http://www.sprut.de/electronic/switch/pkanal/pkanal.html
+
+
 void Battery::begin()
 {
   // keep battery switched ON
