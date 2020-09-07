@@ -180,6 +180,8 @@ void Motor::speedPWM ( MotorSelect motor, int speedPWM )
       setMC33926(pinMotorRightDir, pinMotorRightPWM, speedPWM);
       break;
     case MOTOR_MOW:        
+      //CONSOLE.print("speedPWM=");
+      //CONSOLE.println(speedPWM);
       setMC33926(pinMotorMowDir, pinMotorMowPWM, speedPWM);
       break;
   }
