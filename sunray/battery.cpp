@@ -24,7 +24,7 @@
 // JP8 Dauer-ON : automatic switch off circuit disabled
 // JP8 Autom.   : automatic switch off circuit enabled
 // Note: to increase hardware switch-off time increase capacitor C12  (under DC/DC module)
-// http://www.sprut.de/electronic/switch/pkanal/pkanal.html
+
 
 
 void Battery::begin()
@@ -61,6 +61,8 @@ void Battery::begin()
   batFullVoltage = BAT_FULL_VOLTAGE;  //28.7  voltage when battery is fully charged (we charge to only 90% to increase battery life time)
   enableChargingTimeout = 60 * 30; // if battery is full, wait this time before enabling charging again (seconds)
   batteryVoltage = 0;
+  switchOffAllowedUndervoltage = BAT_SWITCH_OFF_UNDERVOLTAGE;
+  switchOffAllowedIdle = BAT_SWITCH_OFF_IDLE;
 
   pinMode(pinChargeRelay, OUTPUT);
   pinMode(pinBatteryVoltage, INPUT);
@@ -68,7 +70,6 @@ void Battery::begin()
   pinMode(pinChargeCurrent, INPUT);
   
   enableCharging(false);
-  allowSwitchOff(false);
   resetIdle();    
 }
 
@@ -104,11 +105,6 @@ void Battery::resetIdle(){
   switchOffTime = millis() + batSwitchOffIfIdle * 1000;    
 }
 
-void Battery::allowSwitchOff(bool flag){
-  switchOffAllowed = flag;
-  if (flag) resetIdle();
-}
-
 
 void Battery::run(){  
   chargingVoltage = ((float)ADC2voltage(analogRead(pinChargeVoltage))) * batteryFactor;  
@@ -135,17 +131,15 @@ void Battery::run(){
       }
     }      		
     timeMinutes = (millis()-chargingStartTime) / 1000 /60;
-    if (switchOffAllowed) {
-      if (underVoltage()) {
-        DEBUGLN(F("SWITCHING OFF (undervoltage)"));              
-        buzzer.sound(SND_OVERCURRENT, true);
-        digitalWrite(pinBatterySwitch, LOW);    
-      } else if (millis() >= switchOffTime) {
-        DEBUGLN(F("SWITCHING OFF (idle timeout)"));              
-        buzzer.sound(SND_OVERCURRENT, true);
-        digitalWrite(pinBatterySwitch, LOW);    
-      } else digitalWrite(pinBatterySwitch, HIGH);          
-    }
+    if (underVoltage()) {
+      DEBUGLN(F("SWITCHING OFF (undervoltage)"));              
+      buzzer.sound(SND_OVERCURRENT, true);
+      if (switchOffAllowedUndervoltage) digitalWrite(pinBatterySwitch, LOW);    
+    } else if (millis() >= switchOffTime) {
+      DEBUGLN(F("SWITCHING OFF (idle timeout)"));              
+      buzzer.sound(SND_OVERCURRENT, true);
+      if (switchOffAllowedIdle) digitalWrite(pinBatterySwitch, LOW);    
+    } else digitalWrite(pinBatterySwitch, HIGH);              
     	      
 		if (millis() >= nextPrintTime){
 			nextPrintTime = millis() + 60000;  	   	   	

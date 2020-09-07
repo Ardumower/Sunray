@@ -30,8 +30,7 @@ class Battery {
     void begin();            
     void run();	  
 	  bool chargerConnected();
-    void enableCharging(bool flag);   	  
-    void allowSwitchOff(bool flag);      
+    void enableCharging(bool flag);   	      
     bool shouldGoHome();    
     bool chargingHasCompleted();
     bool underVoltage();
@@ -39,7 +38,8 @@ class Battery {
   protected:           
     unsigned long timeMinutes;
 		bool chargerConnectedState;
-    bool switchOffAllowed;
+    bool switchOffAllowedUndervoltage;
+    bool switchOffAllowedIdle;
     unsigned long switchOffTime;
     unsigned long chargingStartTime;
 	  unsigned long nextCheckTime;	  

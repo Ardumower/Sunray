@@ -466,6 +466,7 @@ void start(){
   CONSOLE.println("NOTE: if you experience GPS checksum errors, try to increase UART FIFO size:");
   CONSOLE.println("1. Arduino IDE->File->Preferences->Click on 'preferences.txt' at the bottom");
   CONSOLE.println("2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h");
+  CONSOLE.println("   for Grand Central M4 'packages/adafruit/hardware/samd/xxxxx/cores/arduino/RingBuffer.h");  
   CONSOLE.println("change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 1024");
   CONSOLE.println("-----------------------------------------------------");
   
@@ -481,7 +482,7 @@ void start(){
   startIMU(false);        
   
   buzzer.sound(SND_READY);  
-  battery.allowSwitchOff(true);  
+  battery.resetIdle();        
   watchdogEnable(10000L);   // 10 seconds  
 }
 
