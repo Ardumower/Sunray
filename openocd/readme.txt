@@ -11,6 +11,9 @@ interface: Raspberry PI4
   AGCM4 SWD  SWCLK  ---- Raspberry PI GPIO 25
   AGCM4 SWD  SWDIO  ---- Raspberry PI GPIO 24
   AGCM4 SWD  RESET  ---- Raspberry PI GPIO 18
+  
+  (see AGCM4 schematics:  https://learn.adafruit.com/adafruit-grand-central/downloads
+   and Raspberry pinout:  https://www.raspberrypi.org/documentation/usage/gpio/ )
 
 
 2. On the PI4, disable the pull-ups for GPIO25, 24 and only activate pull-ups for GPIO18:
