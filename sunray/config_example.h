@@ -271,7 +271,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define STANLEY_CONTROL_K_SLOW    0.1   // 0.1 for path tracking control when in slow motion (e.g. docking tracking)
 
 // activate support for model R/C control?
-// use PCB pin 'mow' for R/C model control speed and PCB pin 'steering' for R/C model control steering
+// use PCB pin 'mow' for R/C model control speed and PCB pin 'steering' for R/C model control steering, 
+// also connect 5v and GND and activate model R/C control via PCB P20 start button for 3 sec.
 //#define RCMODEL_ENABLE true
 #define RCMODEL_ENABLE false
 
