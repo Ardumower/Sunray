@@ -69,11 +69,11 @@ interface: Raspberry PI4
   /.arduino15/packages/adafruit/tools/arm-none-eabi-gcc/9-2019q4/bin/arm-none-eabi-gdb 
     -ex="target remote localhost:3333" /tmp/arduino_build_276904/sunray.ino.elf 
 
-  Set a breakpoint like this:
+  Set a breakpoint in function 'loop' like this:
      break loop
   Run program:
      continue
-  Get a backtrace:
+  Get a backtrace of the last function calls:
      backtrace
 
      
