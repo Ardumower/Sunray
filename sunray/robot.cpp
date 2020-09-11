@@ -909,7 +909,11 @@ void run(){
     CONSOLE.print("temp=");
     CONSOLE.print(stateTemp,1);
     CONSOLE.print("  humidity=");
-    CONSOLE.println(stateHumidity,0);    
+    CONSOLE.print(stateHumidity,0);    
+    CONSOLE.print(" ");    
+    #if defined(__SAMD51__)
+      logCPUHealth();
+    #endif
   }
   
   // IMU

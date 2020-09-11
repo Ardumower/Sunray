@@ -13,6 +13,7 @@
 
 #include "variant.h"
 #include "WatchdogSAMD.h"  
+#include <sam.h>
 
  
 Uart Serial2(&sercom4, PIN_SERIAL2_RX, PIN_SERIAL2_TX, PAD_SERIAL2_RX, PAD_SERIAL2_TX);
@@ -86,8 +87,106 @@ void logResetCause(){
   }
 }
 
+// https://github.com/adafruit/circuitpython/blob/master/ports/atmel-samd/common-hal/microcontroller/Processor.c
+
+// MUXPOS
+#define SCALEDCOREVCC   0x18  // 1/4 Scaled Core Supply
+#define SCALEDVBAT      0x19  // 1/4 Scaled VBAT Supply
+#define SCALEDIOVCC     0x1A  // 1/4 Scaled I/O Supply  (nominal 3.3V/4)
+#define BANDGAP         0x1B  // Bandgap Voltage
+#define PTAT            0x1C  // Temperature Sensor
+#define CTAT            0x1D  // Temperature Sensor
+// MUXNEG
+#define GND             0x18  // Internal ground
+
+
+
+uint32_t readADC(uint8_t channel){
+  uint32_t valueRead = 0;
+ 
+  Adc *adc;
+  adc = ADC0;
+  
+  while( adc->SYNCBUSY.reg & ADC_SYNCBUSY_INPUTCTRL ); //wait for sync
+  adc->INPUTCTRL.bit.MUXPOS = channel; // Selection for the positive ADC input
+  
+  // Control A
+  /*
+   * Bit 1 ENABLE: Enable
+   *   0: The ADC is disabled.
+   *   1: The ADC is enabled.
+   * Due to synchronization, there is a delay from writing CTRLA.ENABLE until the peripheral is enabled/disabled. The
+   * value written to CTRL.ENABLE will read back immediately and the Synchronization Busy bit in the Status register
+   * (STATUS.SYNCBUSY) will be set. STATUS.SYNCBUSY will be cleared when the operation is complete.
+   *
+   * Before enabling the ADC, the asynchronous clock source must be selected and enabled, and the ADC reference must be
+   * configured. The first conversion after the reference is changed must not be used.
+   */
+  while( adc->SYNCBUSY.reg & ADC_SYNCBUSY_ENABLE ); //wait for sync
+  adc->CTRLA.bit.ENABLE = 0x01;             // Enable ADC
+
+  // Start conversion
+  while( adc->SYNCBUSY.reg & ADC_SYNCBUSY_ENABLE ); //wait for sync
+  
+  adc->SWTRIG.bit.START = 1;
+
+  // Clear the Data Ready flag
+  adc->INTFLAG.reg = ADC_INTFLAG_RESRDY;
+
+  // Start conversion again, since The first conversion after the reference is changed must not be used.
+  adc->SWTRIG.bit.START = 1;
+
+  // Store the value
+  while (adc->INTFLAG.bit.RESRDY == 0);   // Waiting for conversion to complete
+  valueRead = adc->RESULT.reg;
+
+  while( adc->SYNCBUSY.reg & ADC_SYNCBUSY_ENABLE ); //wait for sync
+  adc->CTRLA.bit.ENABLE = 0x00;             // Disable ADC
+  while( adc->SYNCBUSY.reg & ADC_SYNCBUSY_ENABLE ); //wait for sync
+  return valueRead;
+}
+
+
 void logCPUHealth(){
-  CONSOLE.println("CPU: ");
+  uint32_t valueRead;
+  float voltage;
+  
+  CONSOLE.print("CPU ");
+  
+  // TODO: cpu temperatures need translation by calibrated data
+  CONSOLE.print("temp1=");    
+  SUPC->VREF.bit.TSSEL = 0;    
+  SUPC->VREF.bit.TSEN = 1;     
+  valueRead = readADC(PTAT);      
+  SUPC->VREF.bit.TSEN = 0;  
+  CONSOLE.print(valueRead);   
+  
+  
+  CONSOLE.print(" temp2=");        
+  SUPC->VREF.bit.TSSEL = 1;    
+  SUPC->VREF.bit.TSEN = 1;     
+  valueRead = readADC(CTAT);      
+  SUPC->VREF.bit.TSEN = 0;  
+  CONSOLE.print(valueRead);     
+    
+  
+  CONSOLE.print(" voltages: I/O=");
+  valueRead = readADC(SCALEDIOVCC);  
+  voltage  = (((float)valueRead) / 4095.0f) * 3.3f * 4.0f;  
+  CONSOLE.print(voltage);                       
+  
+  CONSOLE.print(" Core=");
+  valueRead = readADC(SCALEDCOREVCC);  
+  voltage  = (((float)valueRead) / 4095.0f) * 3.3f * 4.0f;  
+  CONSOLE.print(voltage);                       
+  
+  CONSOLE.print(" VBAT=");
+  valueRead = readADC(SCALEDVBAT);  
+  voltage  = (((float)valueRead) / 4095.0f) * 3.3f * 4.0f;  
+  CONSOLE.print(voltage);                         
+  
+  
+  CONSOLE.println();
 }
 
 
