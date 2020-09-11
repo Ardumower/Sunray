@@ -441,14 +441,14 @@ void start(){
     } else break;
   }  
   delay(1500);
-  
-  #if defined(__SAMD51__)
-    logResetCause();
-  #endif  
-  
+    
   #if defined(ENABLE_SD)
     sdSerial.beginSD();  
   #endif 
+  
+  #if defined(__SAMD51__)
+    logResetCause();
+  #endif    
   
   CONSOLE.println(VER);          
   battery.begin();      
