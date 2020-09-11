@@ -231,8 +231,10 @@ void startWIFI(){
           WiFi.config(localIp);  
         #endif
       }    
-    }    
-    if (ENABLE_UDP) udpSerial.beginUDP();  
+    }        
+    #if defined(ENABLE_UDP)
+      udpSerial.beginUDP();  
+    #endif    
     CONSOLE.print("You're connected with SSID=");    
     CONSOLE.print(WiFi.SSID());
     CONSOLE.print(" and IP=");        
@@ -424,6 +426,7 @@ void start(){
   pinMode(pinButton, INPUT_PULLUP);
   buzzer.begin();      
   CONSOLE.begin(CONSOLE_BAUDRATE);  
+    
   Wire.begin();      
   analogReadResolution(12);  // configure ADC 12 bit resolution
   unsigned long timeout = millis() + 2000;
@@ -438,6 +441,11 @@ void start(){
     } else break;
   }  
   delay(1500);
+  
+  #if defined(ENABLE_SD)
+    sdSerial.beginSD();  
+  #endif 
+  
   CONSOLE.println(VER);          
   battery.begin();      
   

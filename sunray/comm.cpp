@@ -554,7 +554,17 @@ void outputConsole(){
   if (millis() > nextInfoTime){        
     bool started = (nextInfoTime == 0);
     nextInfoTime = millis() + 5000;                   
-    CONSOLE.print ("ctlDur=");        
+    unsigned long totalsecs = millis()/1000;
+    unsigned long totalmins = totalsecs/60;
+    unsigned long hour = totalmins/60;
+    unsigned long min = totalmins % 60;
+    unsigned long sec = totalsecs % 60;
+    CONSOLE.print (hour);        
+    CONSOLE.print (":");    
+    CONSOLE.print (min);        
+    CONSOLE.print (":");    
+    CONSOLE.print (sec);     
+    CONSOLE.print (" ctlDur=");        
     //if (!imuIsCalibrating){
     if (!started){
       if (controlLoops > 0){
@@ -562,7 +572,7 @@ void outputConsole(){
       } else statControlCycleTime = 5;
       statMaxControlCycleTime = max(statMaxControlCycleTime, statControlCycleTime);    
     }
-    controlLoops=0;
+    controlLoops=0;    
     CONSOLE.print (statControlCycleTime);        
     CONSOLE.print (" op=");    
     CONSOLE.print (stateOp);

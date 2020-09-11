@@ -43,6 +43,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #ifdef __cplusplus
   #include "udpserial.h"
+  #include "sdserial.h"
   #include "adafruit_grand_central.h"
 #endif
 
@@ -68,6 +69,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // should the mower turn off if IMU is tilt over? (yes: uncomment line, no: comment line)
 #define ENABLE_TILT_DETECTION  1
 
+// ------- SD card (Adafruit Grand Central M4) ---------------------------------
+//#define ENABLE_SD  1                 // enable SD card logging? (uncomment for SD card logging)
+
 // --------- serial monitor output (CONSOLE) ------------------------
 // which Arduino Due USB port do you want to your for serial monitor output (CONSOLE)?
 // Arduino Due native USB port  => choose SerialUSB
@@ -77,7 +81,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #else
   #define CONSOLE Serial      // Adafruit Grand Central M4 
 #endif
-//#define CONSOLE udpSerial         
 
 // ------- serial ports and baudrates---------------------------------
 #define CONSOLE_BAUDRATE    115200    // baudrate used for console
@@ -178,8 +181,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define ENABLE_SERVER true          // must be enabled for web app
 //#define ENABLE_SERVER false
 
-//#define ENABLE_UDP true                // enable console for UDP?
-#define ENABLE_UDP false
+//#define ENABLE_UDP 1                // enable console for UDP?
 #define UDP_SERVER_IP   192,168,2,56     // remote UDP IP and port to connect to
 #define UDP_SERVER_PORT 4210
 
@@ -361,5 +363,11 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define DEBUG(x) CONSOLE.print(x)
 #define DEBUGLN(x) CONSOLE.println(x)
+
+#if defined(ENABLE_SD)
+  #define CONSOLE sdSerial         
+#elif defined(ENABLE_UDP)
+  #define CONSOLE udpSerial         
+#endif
 
 

@@ -7,6 +7,14 @@
 #include "WiFiEsp.h"
 #include "WiFiEspUdp.h"
 
+
+#if defined(_SAM3XA_)                 // Arduino Due
+  #define CONSOLE SerialUSB
+#else
+  #define CONSOLE Serial
+#endif
+
+
 #if !defined(NO_GLOBAL_INSTANCES) && !defined(NO_GLOBAL_SERIAL)
 UdpSerial udpSerial;
 #endif
