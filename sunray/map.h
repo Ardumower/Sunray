@@ -137,7 +137,7 @@ class Map
     NodeList pathFinderNodes;
            
     bool shouldDock;  // start docking?
-    bool shouldMow;  // start mowing?
+    bool shouldMow;  // start mowing?       
         
     void begin();    
     void run();    
@@ -172,6 +172,7 @@ class Map
     void dump();    
     void stressTest();
   private:
+    void checkMemoryCorruptions();
     bool findObstacleSafeMowPoint();
     bool nextMowPoint(bool sim);
     bool nextDockPoint(bool sim);

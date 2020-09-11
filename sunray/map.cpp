@@ -11,6 +11,15 @@
   #define FLOAT_CALC    1    // comment out line for using integer calculations instead of float
 #endif
 
+// we check for memory corruptions by storing one additional item in all dynamic arrays and 
+// checking the value of the item during free operation
+#define CHECK_CORRUPT   1
+#define CHECK_ID        0x4A4A
+
+Point *CHECK_POINT = (Point*)0x12345678;  // just some arbitray address for corruption check
+
+unsigned long memoryCorruptions = 0;        
+
 
 Point::Point(){
   init();
@@ -67,17 +76,23 @@ Polygon::~Polygon(){
 
 void Polygon::alloc(short aNumPoints){
   if (aNumPoints == numPoints) return;
-  Point* newPoints = new Point[aNumPoints];  
+  Point* newPoints = new Point[aNumPoints+CHECK_CORRUPT];  
   if (points != NULL){
     memcpy(newPoints, points, sizeof(Point)* min(numPoints,aNumPoints) );        
+    if (points[numPoints].px != CHECK_ID) memoryCorruptions++;
+    if (points[numPoints].py != CHECK_ID) memoryCorruptions++;
     delete[] points;    
   } 
   points = newPoints;              
   numPoints = aNumPoints;
+  points[numPoints].px=CHECK_ID;
+  points[numPoints].py=CHECK_ID;
 }
 
 void Polygon::dealloc(){
   if (points == NULL) return;  
+  if (points[numPoints].px != CHECK_ID) memoryCorruptions++;
+  if (points[numPoints].py != CHECK_ID) memoryCorruptions++;
   delete[] points;  
   points = NULL;
   numPoints = 0;  
@@ -117,7 +132,7 @@ PolygonList::~PolygonList(){
 
 void PolygonList::alloc(short aNumPolygons){  
   if (aNumPolygons == numPolygons) return;
-  Polygon* newPolygons = new Polygon[aNumPolygons];  
+  Polygon* newPolygons = new Polygon[aNumPolygons+CHECK_CORRUPT];  
   if (polygons != NULL){
     memcpy(newPolygons, polygons, sizeof(Polygon)* min(numPolygons, aNumPolygons));        
     if (aNumPolygons < numPolygons){
@@ -125,10 +140,12 @@ void PolygonList::alloc(short aNumPolygons){
         //polygons[i].dealloc();        
       }  
     }
+    if (polygons[numPolygons].points != CHECK_POINT) memoryCorruptions++;
     delete[] polygons;    
   } 
   polygons = newPolygons;              
   numPolygons = aNumPolygons;  
+  polygons[numPolygons].points = CHECK_POINT;
 }
 
 void PolygonList::dealloc(){
@@ -136,6 +153,7 @@ void PolygonList::dealloc(){
   for (int i=0; i < numPolygons; i++){
     polygons[i].dealloc();        
   }  
+  if (polygons[numPolygons].points != CHECK_POINT) memoryCorruptions++;
   delete[] polygons;
   polygons = NULL;
   numPolygons = 0;  
@@ -208,7 +226,7 @@ NodeList::~NodeList(){
 
 void NodeList::alloc(short aNumNodes){  
   if (aNumNodes == numNodes) return;
-  Node* newNodes = new Node[aNumNodes];  
+  Node* newNodes = new Node[aNumNodes+CHECK_CORRUPT];  
   if (nodes != NULL){
     memcpy(newNodes, nodes, sizeof(Node)* min(numNodes, aNumNodes));        
     if (aNumNodes < numNodes){
@@ -216,10 +234,12 @@ void NodeList::alloc(short aNumNodes){
         //nodes[i].dealloc();        
       }  
     }
+    if (nodes[numNodes].point != CHECK_POINT) memoryCorruptions++;
     delete[] nodes;    
   } 
   nodes = newNodes;              
   numNodes = aNumNodes;  
+  nodes[numNodes].point=CHECK_POINT;
 }
 
 void NodeList::dealloc(){
@@ -227,6 +247,7 @@ void NodeList::dealloc(){
   for (int i=0; i < numNodes; i++){
     nodes[i].dealloc();        
   }  
+  if (nodes[numNodes].point != CHECK_POINT) memoryCorruptions++;
   delete[] nodes;
   nodes = NULL;
   numNodes = 0;  
@@ -291,6 +312,7 @@ float Map::distanceManhattan(Point &pos0, Point &pos1){
 
 
 void Map::begin(){
+  memoryCorruptions = 0;
   wayMode = WAY_MOW;
   trackReverse = false;
   trackSlow = false;
@@ -304,7 +326,7 @@ void Map::begin(){
   CONSOLE.println(sizeof(Point));  
 }
 
-void Map::dump(){
+void Map::dump(){ 
   CONSOLE.println("map dump");  
   CONSOLE.print("points: ");
   points.dump();
@@ -327,9 +349,18 @@ void Map::dump(){
   CONSOLE.print(",");
   CONSOLE.println(mowPoints.points[0].y());
   CONSOLE.print("free pts: ");
-  CONSOLE.println(freePoints.numPoints);
+  CONSOLE.println(freePoints.numPoints);  
+  checkMemoryCorruptions();
 }
-  
+
+void Map::checkMemoryCorruptions(){
+  if (memoryCorruptions == 0) return;
+  CONSOLE.print("********************* ERROR: memory corruptions=");
+  CONSOLE.println(memoryCorruptions);
+  CONSOLE.print(" *********************");
+}
+ 
+ 
 // set point
 bool Map::setPoint(int idx, float x, float y){  
   if (idx == 0){   
@@ -1356,7 +1387,8 @@ bool Map::findPath(Point &src, Point &dst){
     freePoints.points[1].assign(dst);        
   }    
   freePointsIdx=0;  
-  
+ 
+  checkMemoryCorruptions();
   return true;  
 }
 
@@ -1375,6 +1407,7 @@ void Map::stressTest(){
     findPath(src, dst);    
     clearObstacles();
   }  
+  checkMemoryCorruptions();
 }
   
   
