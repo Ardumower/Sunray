@@ -12,31 +12,18 @@
 volatile uint16_t odoTicksLeft = 0;
 volatile uint16_t odoTicksRight = 0;
 
-volatile bool odoTicksLeftCapture = false;
-volatile bool odoTicksRightCapture = false;
 
 
 // odometry signal change interrupt
-// simulates a deadband threshold  (signal must be falling before accepting a rising)
 
 void OdometryLeftInt(){			
-  if (digitalRead(pinOdometryLeft) == LOW) {
-    odoTicksLeftCapture = true;
-    return;
-  }
-  if (!odoTicksLeftCapture) return;
-  odoTicksLeft++;  
-  odoTicksLeftCapture = false;
+  if (digitalRead(pinOdometryLeft) == LOW) return;  
+  odoTicksLeft++;    
 }
 
 void OdometryRightInt(){			
-  if (digitalRead(pinOdometryRight) == LOW) {
-    odoTicksRightCapture = true;
-    return;
-  }
-  if (!odoTicksRightCapture) return;
-  odoTicksRight++;
-  odoTicksRightCapture = false;
+  if (digitalRead(pinOdometryRight) == LOW) return;
+  odoTicksRight++;  
 }
 
 
