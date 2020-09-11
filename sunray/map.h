@@ -172,7 +172,7 @@ class Map
     void dump();    
     void stressTest();
   private:
-    void checkMemoryCorruptions();
+    void checkMemoryErrors();
     bool findObstacleSafeMowPoint();
     bool nextMowPoint(bool sim);
     bool nextDockPoint(bool sim);

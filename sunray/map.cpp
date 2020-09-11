@@ -19,6 +19,7 @@
 Point *CHECK_POINT = (Point*)0x12345678;  // just some arbitray address for corruption check
 
 unsigned long memoryCorruptions = 0;        
+unsigned long memoryAllocErrors = 0;
 
 
 Point::Point(){
@@ -77,6 +78,11 @@ Polygon::~Polygon(){
 void Polygon::alloc(short aNumPoints){
   if (aNumPoints == numPoints) return;
   Point* newPoints = new Point[aNumPoints+CHECK_CORRUPT];  
+  if (newPoints == NULL){
+    CONSOLE.println("ERROR Polygon::alloc");
+    memoryAllocErrors++;
+    return;
+  }
   if (points != NULL){
     memcpy(newPoints, points, sizeof(Point)* min(numPoints,aNumPoints) );        
     if (points[numPoints].px != CHECK_ID) memoryCorruptions++;
@@ -133,6 +139,11 @@ PolygonList::~PolygonList(){
 void PolygonList::alloc(short aNumPolygons){  
   if (aNumPolygons == numPolygons) return;
   Polygon* newPolygons = new Polygon[aNumPolygons+CHECK_CORRUPT];  
+  if (newPolygons == NULL){
+    CONSOLE.println("ERROR PolygonList::alloc");
+    memoryAllocErrors++;
+    return;
+  }
   if (polygons != NULL){
     memcpy(newPolygons, polygons, sizeof(Polygon)* min(numPolygons, aNumPolygons));        
     if (aNumPolygons < numPolygons){
@@ -227,6 +238,11 @@ NodeList::~NodeList(){
 void NodeList::alloc(short aNumNodes){  
   if (aNumNodes == numNodes) return;
   Node* newNodes = new Node[aNumNodes+CHECK_CORRUPT];  
+  if (newNodes == NULL){
+    CONSOLE.println("ERROR NodeList::alloc");
+    memoryAllocErrors++;
+    return;
+  }
   if (nodes != NULL){
     memcpy(newNodes, nodes, sizeof(Node)* min(numNodes, aNumNodes));        
     if (aNumNodes < numNodes){
@@ -350,14 +366,20 @@ void Map::dump(){
   CONSOLE.println(mowPoints.points[0].y());
   CONSOLE.print("free pts: ");
   CONSOLE.println(freePoints.numPoints);  
-  checkMemoryCorruptions();
+  checkMemoryErrors();
 }
 
-void Map::checkMemoryCorruptions(){
-  if (memoryCorruptions == 0) return;
-  CONSOLE.print("********************* ERROR: memory corruptions=");
-  CONSOLE.println(memoryCorruptions);
-  CONSOLE.print(" *********************");
+void Map::checkMemoryErrors(){
+  if (memoryCorruptions != 0){
+    CONSOLE.print("********************* ERROR: memoryCorruptions=");
+    CONSOLE.println(memoryCorruptions);
+    CONSOLE.print(" *********************");
+  } 
+  if (memoryAllocErrors != 0){
+    CONSOLE.print("********************* ERROR: memoryAllocErrors=");
+    CONSOLE.println(memoryAllocErrors);
+    CONSOLE.print(" *********************");
+  } 
 }
  
  
@@ -1388,7 +1410,7 @@ bool Map::findPath(Point &src, Point &dst){
   }    
   freePointsIdx=0;  
  
-  checkMemoryCorruptions();
+  checkMemoryErrors();
   return true;  
 }
 
@@ -1407,7 +1429,7 @@ void Map::stressTest(){
     findPath(src, dst);    
     clearObstacles();
   }  
-  checkMemoryCorruptions();
+  checkMemoryErrors();
 }
   
   
