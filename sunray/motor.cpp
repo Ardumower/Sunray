@@ -512,5 +512,5 @@ void Motor::test(){
   }
   speedPWM(MOTOR_LEFT, 0);
   speedPWM(MOTOR_RIGHT, 0);  
-  CONSOLE.println("motor test done");
+  CONSOLE.println("motor test done - please ignore any IMU/GPS errors");
 }

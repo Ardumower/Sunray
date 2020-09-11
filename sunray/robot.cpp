@@ -188,7 +188,7 @@ void sensorTest(){
       watchdogReset();     
     }
   }
-  CONSOLE.println("end of sensor test");
+  CONSOLE.println("end of sensor test - please ignore any IMU/GPS errors");
 }
 
 
