@@ -1,4 +1,4 @@
-// Adafruit Grand Central M4 
+// Adafruit Grand Central M4  (SAMD51P20A, 1024KB Flash, 256KB RAM)
 
 // https://learn.adafruit.com/adafruit-grand-central/pinouts
 // https://github.com/adafruit/ArduinoCore-samd
@@ -12,7 +12,7 @@
 #if defined(__SAMD51__)
 
 #include "variant.h"
-#include "WatchdogSAMD.h"
+#include "WatchdogSAMD.h"  
 
  
 Uart Serial2(&sercom4, PIN_SERIAL2_RX, PIN_SERIAL2_TX, PAD_SERIAL2_RX, PAD_SERIAL2_TX);
@@ -44,6 +44,52 @@ void watchdogEnable(uint32_t timeout){
   watchdog.enable(timeout);
 }
 
-#endif
 
+enum ResetCause {
+  RST_UNKNOWN,
+  RST_POWER_ON,
+  RST_EXTERNAL,
+  RST_BROWN_OUT,
+  RST_WATCHDOG,
+  RST_SOFTWARE,
+  RST_BACKUP,
+};
+
+
+// C:\Users\alex\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0\CMSIS\Device\ATMEL\samd51\include\component\rstc.h
+#pragma push_macro("WDT")
+#undef WDT    // Required to be able to use '.bit.WDT'. Compiler wrongly replace struct field with WDT define
+ResetCause getResetCause() {
+  RSTC_RCAUSE_Type resetCause;
+  
+  resetCause.reg = REG_RSTC_RCAUSE;
+  if (resetCause.bit.POR)                                   return RST_POWER_ON;
+  else if (resetCause.bit.EXT)                              return RST_EXTERNAL;
+  else if (resetCause.bit.BODCORE || resetCause.bit.BODVDD) return RST_BROWN_OUT;
+  else if (resetCause.bit.WDT)                              return RST_WATCHDOG;
+  else if (resetCause.bit.SYST || resetCause.bit.NVM)       return RST_SOFTWARE;
+  else if (resetCause.bit.BACKUP)                           return RST_BACKUP;
+  return RST_UNKNOWN;
+}
+#pragma pop_macro("WDT")
+
+void logResetCause(){
+  CONSOLE.print("RESET cause: ");
+  switch (getResetCause()){
+    case RST_UNKNOWN: CONSOLE.println("unknown"); break;
+    case RST_POWER_ON : CONSOLE.println("power-on"); break;
+    case RST_EXTERNAL : CONSOLE.println("external"); break;
+    case RST_BROWN_OUT : CONSOLE.println("brown-out"); break;
+    case RST_WATCHDOG : CONSOLE.println("watchdog"); break;
+    case RST_SOFTWARE : CONSOLE.println("software"); break;
+    case RST_BACKUP: CONSOLE.println("backup"); break;
+  }
+}
+
+void logCPUHealth(){
+  CONSOLE.println("CPU: ");
+}
+
+
+#endif   //  __SAMD51__
 

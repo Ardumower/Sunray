@@ -442,6 +442,10 @@ void start(){
   }  
   delay(1500);
   
+  #if defined(__SAMD51__)
+    logResetCause();
+  #endif  
+  
   #if defined(ENABLE_SD)
     sdSerial.beginSD();  
   #endif 
