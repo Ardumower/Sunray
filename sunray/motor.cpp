@@ -454,6 +454,21 @@ void Motor::control(){
 }
 
 
+void Motor::dumpOdoTicks(int seconds){
+  CONSOLE.print("t=");
+  CONSOLE.print(seconds);
+  CONSOLE.print("  ticks Left=");
+  CONSOLE.print(odoTicksLeft);  
+  CONSOLE.print("  Right=");
+  CONSOLE.print(odoTicksRight);             
+  CONSOLE.print("  current Left=");
+  CONSOLE.print(motorLeftSense);
+  CONSOLE.print("  Right=");
+  CONSOLE.print(motorRightSense);
+  CONSOLE.println();               
+}
+
+
 void Motor::test(){
   CONSOLE.println("motor test - 10 revolutions");
   odoTicksLeft = 0;  
@@ -472,17 +487,7 @@ void Motor::test(){
     }    
     if (millis() > nextInfoTime){      
       nextInfoTime = millis() + 1000;            
-      CONSOLE.print("t=");
-      CONSOLE.print(seconds);
-      CONSOLE.print("  ticks Left=");
-      CONSOLE.print(odoTicksLeft);  
-      CONSOLE.print("  Right=");
-      CONSOLE.print(odoTicksRight);             
-      CONSOLE.print("  current Left=");
-      CONSOLE.print(motorLeftSense);
-      CONSOLE.print("  Right=");
-      CONSOLE.print(motorRightSense);
-      CONSOLE.println();             
+      dumpOdoTicks(seconds);
       seconds++;      
     }    
     if(odoTicksLeft >= stopTicks)
@@ -497,6 +502,7 @@ void Motor::test(){
     delay(1);
     watchdogReset();     
   }
+  dumpOdoTicks(seconds);
   speedPWM(MOTOR_LEFT, 0);
   speedPWM(MOTOR_RIGHT, 0);  
   CONSOLE.println("motor test done - please ignore any IMU/GPS errors");

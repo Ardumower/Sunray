@@ -79,6 +79,7 @@ class Motor {
     void control();    
     void checkFault();
     void sense();
+    void dumpOdoTicks(int seconds);
     
 };
 
