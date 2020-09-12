@@ -385,6 +385,10 @@ void Map::checkMemoryErrors(){
  
 // set point
 bool Map::setPoint(int idx, float x, float y){  
+  if ((memoryCorruptions != 0) || (memoryAllocErrors != 0)){
+    CONSOLE.println("ERROR setPoint: memory errors");
+    return false; 
+  }  
   if (idx == 0){   
     points.dealloc();    
     perimeterPoints.dealloc();    
@@ -410,6 +414,10 @@ bool Map::setPoint(int idx, float x, float y){
 
 // set number points for point type
 bool Map::setWayCount(WayType type, int count){
+  if ((memoryCorruptions != 0) || (memoryAllocErrors != 0)){
+    CONSOLE.println("ERROR setWayCount: memory errors");
+    return false; 
+  }  
   switch (type){
     case WAY_PERIMETER:            
       perimeterPoints.alloc(count);
@@ -450,6 +458,10 @@ bool Map::setWayCount(WayType type, int count){
 
 // set number exclusion points for exclusion
 bool Map::setExclusionLength(int idx, int len){  
+  if ((memoryCorruptions != 0) || (memoryAllocErrors != 0)){
+    CONSOLE.println("ERROR setExclusionLength: memory errors");
+    return false; 
+  }  
   /*CONSOLE.print("setExclusionLength ");
   CONSOLE.print(idx);
   CONSOLE.print("=");
@@ -598,6 +610,10 @@ void Map::setIsDocked(bool flag){
 }
 
 bool Map::startDocking(float stateX, float stateY){
+  if ((memoryCorruptions != 0) || (memoryAllocErrors != 0)){
+    CONSOLE.println("ERROR startDocking: memory errors");
+    return false; 
+  }  
   shouldDock = true;
   shouldMow = false;
   if (dockPoints.numPoints > 0){
@@ -620,6 +636,10 @@ bool Map::startMowing(float stateX, float stateY){
   //testIntegerCalcs();
   //return false;
   // ------
+  if ((memoryCorruptions != 0) || (memoryAllocErrors != 0)){
+    CONSOLE.println("ERROR startMowing: memory errors");
+    return false; 
+  }  
   shouldDock = false;
   shouldMow = true;    
   if (mowPoints.numPoints > 0){
@@ -1201,6 +1221,11 @@ int Map::findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, i
 // astar path finder 
 // https://briangrinstead.com/blog/astar-search-algorithm-in-javascript/
 bool Map::findPath(Point &src, Point &dst){
+  if ((memoryCorruptions != 0) || (memoryAllocErrors != 0)){
+    CONSOLE.println("ERROR findPath: memory errors");
+    return false; 
+  }  
+  
   unsigned long nextProgressTime = 0;
   CONSOLE.print("findPath (");
   CONSOLE.print(src.x());
