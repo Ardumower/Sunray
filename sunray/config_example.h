@@ -70,6 +70,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define ENABLE_TILT_DETECTION  1
 
 // ------- SD card (Adafruit Grand Central M4) ---------------------------------
+// all serial console output can be logged to a (FAT32 formatted) SD card
 //#define ENABLE_SD  1                 // enable SD card logging? (uncomment for SD card logging)
 
 // --------- serial monitor output (CONSOLE) ------------------------
