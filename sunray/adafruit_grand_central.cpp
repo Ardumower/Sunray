@@ -189,6 +189,16 @@ void logCPUHealth(){
   
   CONSOLE.print("CPU: ");
   
+  // ------ cpu temperature --------
+  // If the SUPC is not in on-demand mode (SUPC.VREF.ONDEMAND=0), and if SUPC.VREF.TSEN=1 and
+  // SUPC.VREF.VREFOE=0, the temperature sensor is selected by writing to the Temperature Sensor Channel
+  // Selection bit in the Voltage Reference System Control register (SUPC.VREF.TSSEL).
+  //
+  // If the SUPC is in on-demand mode in (SUPC.VREF.ONDEMAND=1) and SUPC.VREF.TSEN=1, the output will
+  // be automatically set to the sensor requested by the ADC, independent of SUPC.VREF.TSSEL.
+  // SUPC.VREF.VREFOE can also be set to '1'.
+    
+  //analogReference(AR_INTERNAL1V65);     // ref 1/2 VDDANA = 1.65
   SUPC->VREF.bit.TSSEL = 0;      
   SUPC->VREF.bit.TSEN = 1;        
   uint32_t ptat = readADC(PTAT);        
@@ -197,8 +207,7 @@ void logCPUHealth(){
   SUPC->VREF.bit.TSSEL = 1;    
   SUPC->VREF.bit.TSEN = 1;  
   uint32_t ctat = readADC(CTAT);      
-  SUPC->VREF.bit.TSEN = 0;  
-  
+  SUPC->VREF.bit.TSEN = 0;    
     
   CONSOLE.print("PTAT=");      
   CONSOLE.print(ptat);      
@@ -210,21 +219,24 @@ void logCPUHealth(){
   CONSOLE.print(" deg=");     
   CONSOLE.print(temp);     
   
-  CONSOLE.print(" voltages: I/O=");
+  // ------- cpu voltages -------
+  //analogReference(AR_INTERNAL1V0);     // ref 1.0V
+  CONSOLE.print(" voltages: I/O=");  
   valueRead = readADC(SCALEDIOVCC);  
-  voltage  = (((float)valueRead) / 4095.0f) * 3.3f * 4.0f;  
+  voltage  = (((float)valueRead) / 4095.0f) * 3.3f * 4.0f;    // 12 bit, ref 3.3 volt
   CONSOLE.print(voltage);                       
   
   CONSOLE.print(" Core=");
   valueRead = readADC(SCALEDCOREVCC);  
-  voltage  = (((float)valueRead) / 4095.0f) * 3.3f * 4.0f;  
+  voltage  = (((float)valueRead) / 4095.0f) * 3.3f * 4.0f;    // 12 bit, ref 3.3 volt
   CONSOLE.print(voltage);                       
   
   CONSOLE.print(" VBAT=");
   valueRead = readADC(SCALEDVBAT);  
-  voltage  = (((float)valueRead) / 4095.0f) * 3.3f * 4.0f;  
-  CONSOLE.print(voltage);                         
+  voltage  = (((float)valueRead) / 4095.0f) * 3.3f * 4.0f;    // 12 bit, ref 3.3 volt
+  CONSOLE.print(voltage);                           
   
+  //analogReference(AR_DEFAULT);  // ref default
   
   CONSOLE.println();
 }
