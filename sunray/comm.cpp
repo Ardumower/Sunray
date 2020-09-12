@@ -58,6 +58,8 @@ void cmdControl(){
           if (floatValue >= 0) maps.setMowingPointPercent(floatValue);
       } else if (counter == 7){
           if (intValue > 0) maps.skipNextMowingPoint();
+      } else if (counter == 8){
+          if (intValue >= 0) sonar.enabled = (intValue == 1);
       }
       counter++;
       lastCommaIdx = idx;
