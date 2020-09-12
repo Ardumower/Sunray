@@ -190,6 +190,13 @@ void logCPUHealth(){
   CONSOLE.print("CPU: ");
   
   // ------ cpu temperature --------
+  // The voltage reference output is enabled/disabled by setting/clearing the Voltage Reference Output Enable bit in the
+  // Voltage Reference register (VREF.VREFOE).
+  // The temperature sensor is enabled/disabled by setting/clearing the Temperature Sensor Enable bit in the Voltage
+  // Reference register (VREF.TSEN).
+  // Note: When VREF.ONDEMAND=0, it is not recommended to enable both voltage reference output and temperature
+  // sensor at the same time - only the voltage reference output will be present at both ADC inputs.
+  
   // If the SUPC is not in on-demand mode (SUPC.VREF.ONDEMAND=0), and if SUPC.VREF.TSEN=1 and
   // SUPC.VREF.VREFOE=0, the temperature sensor is selected by writing to the Temperature Sensor Channel
   // Selection bit in the Voltage Reference System Control register (SUPC.VREF.TSSEL).
