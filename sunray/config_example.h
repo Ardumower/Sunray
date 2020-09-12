@@ -262,7 +262,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // is a docking station available?
 #define DOCKING_STATION true   // use this if docking station available and mower should dock automatically
-//#define DOCKING_STATION false    // use this if mower should not dock automatically 
+//#define DOCKING_STATION false    // mower will just stop after mowing instead of docking automatically 
 
 //#define DOCK_AUTO_START true     // robot will automatically continue mowing after docked automatically
 #define DOCK_AUTO_START false      // robot will not automatically continue mowing after docked automatically
