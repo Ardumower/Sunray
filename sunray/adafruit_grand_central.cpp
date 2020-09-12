@@ -15,6 +15,30 @@
 #include "WatchdogSAMD.h"  
 #include <sam.h>
 
+
+// MUXPOS
+#define SCALEDCOREVCC   0x18  // 1/4 Scaled Core Supply
+#define SCALEDVBAT      0x19  // 1/4 Scaled VBAT Supply
+#define SCALEDIOVCC     0x1A  // 1/4 Scaled I/O Supply  (nominal 3.3V/4)
+#define BANDGAP         0x1B  // Bandgap Voltage
+#define PTAT            0x1C  // Temperature Sensor
+#define CTAT            0x1D  // Temperature Sensor
+// MUXNEG
+#define GND             0x18  // Internal ground
+
+#define NVMCTRL_TEMP_LOG   NVMCTRL_TEMP_LOG_W0
+
+
+enum ResetCause {
+  RST_UNKNOWN,
+  RST_POWER_ON,
+  RST_EXTERNAL,
+  RST_BROWN_OUT,
+  RST_WATCHDOG,
+  RST_SOFTWARE,
+  RST_BACKUP,
+};
+
  
 Uart Serial2(&sercom4, PIN_SERIAL2_RX, PIN_SERIAL2_TX, PAD_SERIAL2_RX, PAD_SERIAL2_TX);
 void SERCOM4_0_Handler() { Serial2.IrqHandler(); }
@@ -46,17 +70,6 @@ void watchdogEnable(uint32_t timeout){
 }
 
 
-enum ResetCause {
-  RST_UNKNOWN,
-  RST_POWER_ON,
-  RST_EXTERNAL,
-  RST_BROWN_OUT,
-  RST_WATCHDOG,
-  RST_SOFTWARE,
-  RST_BACKUP,
-};
-
-
 // C:\Users\alex\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0\CMSIS\Device\ATMEL\samd51\include\component\rstc.h
 #pragma push_macro("WDT")
 #undef WDT    // Required to be able to use '.bit.WDT'. Compiler wrongly replace struct field with WDT define
@@ -86,18 +99,6 @@ void logResetCause(){
     case RST_BACKUP: CONSOLE.println("backup"); break;
   }
 }
-
-// https://github.com/adafruit/circuitpython/blob/master/ports/atmel-samd/common-hal/microcontroller/Processor.c
-
-// MUXPOS
-#define SCALEDCOREVCC   0x18  // 1/4 Scaled Core Supply
-#define SCALEDVBAT      0x19  // 1/4 Scaled VBAT Supply
-#define SCALEDIOVCC     0x1A  // 1/4 Scaled I/O Supply  (nominal 3.3V/4)
-#define BANDGAP         0x1B  // Bandgap Voltage
-#define PTAT            0x1C  // Temperature Sensor
-#define CTAT            0x1D  // Temperature Sensor
-// MUXNEG
-#define GND             0x18  // Internal ground
 
 
 
@@ -147,28 +148,67 @@ uint32_t readADC(uint8_t channel){
 }
 
 
+// Decimal to fraction conversion. (adapted from ASF sample).
+float convert_dec_to_frac(uint8_t val) {
+    float float_val = (float)val;
+    if (val < 10) {
+        return (float_val/10.0);
+    } else if (val < 100) {
+        return (float_val/100.0);
+    } else {
+        return (float_val/1000.0);
+    }
+}
+
+
+// https://github.com/adafruit/circuitpython/blob/master/ports/atmel-samd/common-hal/microcontroller/Processor.c
+
+float calcTemperature(uint16_t TP, uint16_t TC) {
+    uint32_t TLI = (*(uint32_t *)FUSES_ROOM_TEMP_VAL_INT_ADDR & FUSES_ROOM_TEMP_VAL_INT_Msk) >> FUSES_ROOM_TEMP_VAL_INT_Pos;
+    uint32_t TLD = (*(uint32_t *)FUSES_ROOM_TEMP_VAL_DEC_ADDR & FUSES_ROOM_TEMP_VAL_DEC_Msk) >> FUSES_ROOM_TEMP_VAL_DEC_Pos;
+    float TL = TLI + convert_dec_to_frac(TLD);
+
+    uint32_t THI = (*(uint32_t *)FUSES_HOT_TEMP_VAL_INT_ADDR & FUSES_HOT_TEMP_VAL_INT_Msk) >> FUSES_HOT_TEMP_VAL_INT_Pos;
+    uint32_t THD = (*(uint32_t *)FUSES_HOT_TEMP_VAL_DEC_ADDR & FUSES_HOT_TEMP_VAL_DEC_Msk) >> FUSES_HOT_TEMP_VAL_DEC_Pos;
+    float TH = THI + convert_dec_to_frac(THD);
+
+    uint16_t VPL = (*(uint32_t *)FUSES_ROOM_ADC_VAL_PTAT_ADDR & FUSES_ROOM_ADC_VAL_PTAT_Msk) >> FUSES_ROOM_ADC_VAL_PTAT_Pos;
+    uint16_t VPH = (*(uint32_t *)FUSES_HOT_ADC_VAL_PTAT_ADDR & FUSES_HOT_ADC_VAL_PTAT_Msk) >> FUSES_HOT_ADC_VAL_PTAT_Pos;
+
+    uint16_t VCL = (*(uint32_t *)FUSES_ROOM_ADC_VAL_CTAT_ADDR & FUSES_ROOM_ADC_VAL_CTAT_Msk) >> FUSES_ROOM_ADC_VAL_CTAT_Pos;
+    uint16_t VCH = (*(uint32_t *)FUSES_HOT_ADC_VAL_CTAT_ADDR & FUSES_HOT_ADC_VAL_CTAT_Msk) >> FUSES_HOT_ADC_VAL_CTAT_Pos;
+
+    // From SAMD51 datasheet: section 45.6.3.1 (page 1327).
+    return (TL*VPH*TC - VPL*TH*TC - TL*VCH*TP + TH*VCL*TP) / (VCL*TP - VCH*TP - VPL*TC + VPH*TC);
+}
+
+
 void logCPUHealth(){
   uint32_t valueRead;
   float voltage;
   
-  CONSOLE.print("CPU ");
+  CONSOLE.print("CPU: ");
   
-  // TODO: cpu temperatures need translation by calibrated data
-  CONSOLE.print("temp1=");    
-  SUPC->VREF.bit.TSSEL = 0;    
-  SUPC->VREF.bit.TSEN = 1;     
-  valueRead = readADC(PTAT);      
-  SUPC->VREF.bit.TSEN = 0;  
-  CONSOLE.print(valueRead);   
+  SUPC->VREF.bit.TSSEL = 0;      
+  SUPC->VREF.bit.TSEN = 1;        
+  uint32_t ptat = readADC(PTAT);        
+  SUPC->VREF.bit.TSEN = 0;     
   
-  
-  CONSOLE.print(" temp2=");        
   SUPC->VREF.bit.TSSEL = 1;    
-  SUPC->VREF.bit.TSEN = 1;     
-  valueRead = readADC(CTAT);      
+  SUPC->VREF.bit.TSEN = 1;  
+  uint32_t ctat = readADC(CTAT);      
   SUPC->VREF.bit.TSEN = 0;  
-  CONSOLE.print(valueRead);     
+  
     
+  CONSOLE.print("PTAT=");      
+  CONSOLE.print(ptat);      
+  CONSOLE.print(" CTAT=");        
+  CONSOLE.print(ctat);     
+  
+  // cpu temperatures need translation by calibrated data
+  float temp = calcTemperature(ptat, ctat);
+  CONSOLE.print(" deg=");     
+  CONSOLE.print(temp);     
   
   CONSOLE.print(" voltages: I/O=");
   valueRead = readADC(SCALEDIOVCC);  
