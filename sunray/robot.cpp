@@ -82,8 +82,9 @@ int imuCalibrationSeconds = 0;
 unsigned long nextImuCalibrationSecond = 0;
 float rollChange = 0;
 float pitchChange = 0;
-float previousTargetDist = 0;
-unsigned long nextTargetDistCheckTime = 0;
+float lastGPSMotionX = 0;
+float lastGPSMotionY = 0;
+unsigned long nextGPSMotionCheckTime = 0;
 
 UBLOX::SolType lastSolution = UBLOX::SOL_INVALID;    
 unsigned long nextStatTime = 0;
@@ -138,6 +139,7 @@ void watchdogSetup (void){}
 
 
 // get free memory
+// https://learn.adafruit.com/memories-of-an-arduino/measuring-free-memory
 int freeMemory() {
   char top;
   return &top - reinterpret_cast<char*>(sbrk(0));
@@ -701,7 +703,23 @@ void detectObstacle(){
     CONSOLE.println("sonar obstacle!");    
     triggerObstacle();    
     return;
-  }
+  }  
+  // check if GPS motion (obstacle detection)  
+  if (millis() > nextGPSMotionCheckTime){        
+    nextGPSMotionCheckTime = millis() + GPS_MOTION_DETECTION_TIMEOUT * 1000;
+    float dX = lastGPSMotionX - stateX;
+    float dY = lastGPSMotionY - stateY;
+    float delta = sqrt( sq(dX) + sq(dY) );    
+    if (delta < 0.05){
+      if (GPS_MOTION_DETECTION){
+        CONSOLE.println("gps no motion => obstacle!");
+        triggerObstacle();
+        return;
+      }
+    }
+    lastGPSMotionX = stateX;      
+    lastGPSMotionY = stateY;      
+  }    
 }
 
 
@@ -742,23 +760,7 @@ void trackLine(){
       return;
    }
   }
-      
-  // check if approaching target (obstacle detection)
-  if (robotShouldMove()) {
-    if (millis() > nextTargetDistCheckTime){        
-      nextTargetDistCheckTime = millis() + TARGET_APPROACHING_DETECTION_TIMEOUT * 1000;
-      float delta = abs(targetDist - previousTargetDist);   
-      if (delta < 0.05){
-        if (TARGET_APPROACHING_DETECTION){
-          CONSOLE.println("target obstacle!");
-          triggerObstacle();
-          return;
-        }
-      }
-      previousTargetDist = targetDist;      
-    }    
-  }  
-    
+          
   // allow rotations only near last or next waypoint
   if ((targetDist < 0.5) || (lastTargetDist < 0.5)) {
     if (SMOOTH_CURVES)
@@ -835,8 +837,8 @@ void trackLine(){
     if (linear > 0.06) {
       if ((millis() > linearMotionStartTime + 5000) && (stateGroundSpeed < 0.03)){
         // if in linear motion and not enough ground speed => obstacle
-        if (GPS_OBSTACLE_DETECTION){
-          CONSOLE.println("gps obstacle!");
+        if (GPS_SPEED_DETECTION){
+          CONSOLE.println("gps no speed => obstacle!");
           triggerObstacle();
           return;
         }
@@ -1053,7 +1055,7 @@ void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator
       if (maps.startDocking(stateX, stateY)){       
         if (maps.nextPoint(true)) {
           maps.repeatLastMowingPoint();
-          nextTargetDistCheckTime = millis() + 30000;
+          nextGPSMotionCheckTime = millis() + 30000;
           resetMotionMeasurement();                
           maps.setLastTargetPoint(stateX, stateY);        
           stateSensor = SENS_NONE;                  
@@ -1074,7 +1076,7 @@ void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator
       motor.setLinearAngularSpeed(0,0);
       if (maps.startMowing(stateX, stateY)){
         if (maps.nextPoint(true)) {
-          nextTargetDistCheckTime = millis() + 30000;
+          nextGPSMotionCheckTime = millis() + 30000;
           resetMotionMeasurement();                
           maps.setLastTargetPoint(stateX, stateY);        
           stateSensor = SENS_NONE;
