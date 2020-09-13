@@ -272,7 +272,7 @@ void Motor::run() {
         CONSOLE.print("ERROR: odometry error rpm=");
         CONSOLE.print(motorLeftRpmCurr);
         CONSOLE.print(",");
-        CONSOLE.print(motorRightRpmCurr);     
+        CONSOLE.println(motorRightRpmCurr);     
         odometryError = true;
       }      
     } else odometryError = false;
