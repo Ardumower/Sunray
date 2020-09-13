@@ -20,9 +20,9 @@
 
 
 
-RunningMedian<unsigned int,10> sonarLeftMeasurements;
-RunningMedian<unsigned int,10> sonarRightMeasurements;
-RunningMedian<unsigned int,10> sonarCenterMeasurements;
+RunningMedian<unsigned int,3> sonarLeftMeasurements;
+RunningMedian<unsigned int,3> sonarRightMeasurements;
+RunningMedian<unsigned int,3> sonarCenterMeasurements;
 
 volatile unsigned long startTime = 0;
 volatile unsigned long echoTime = 0;
@@ -114,14 +114,18 @@ void Sonar::run(){
   }
   if (millis() > nextEvalTime){
     nextEvalTime = millis() + 200;        				
-		//sonar1Measurements.getAverage(avg);      
-		sonarLeftMeasurements.getLowest(distanceLeft);   
-		distanceLeft = convertCm(distanceLeft);
-		
-		sonarRightMeasurements.getLowest(distanceRight);   
+    float value;
+    //sonarLeftMeasurements.getLowest(distanceLeft);   
+		sonarLeftMeasurements.getMedian(distanceLeft);    
+    //sonar1Measurements.getAverage(avg);      
+    distanceLeft = convertCm(distanceLeft);
+    
+		//sonarRightMeasurements.getLowest(distanceRight);   
+    sonarRightMeasurements.getMedian(distanceRight);   
 		distanceRight = convertCm(distanceRight);
 		
-		sonarCenterMeasurements.getLowest(distanceCenter);   				
+		//sonarCenterMeasurements.getLowest(distanceCenter);   				
+    sonarCenterMeasurements.getMedian(distanceCenter);   				
 		distanceCenter = convertCm(distanceCenter);
 				
   }     
@@ -146,9 +150,9 @@ void Sonar::begin()
   attachInterrupt(pinSonarRightEcho, echoRight, CHANGE);
   
 	
-	pinMan.setDebounce(pinSonarCenterEcho, 100);  // reject spikes shorter than usecs on pin
-	pinMan.setDebounce(pinSonarRightEcho, 100);  // reject spikes shorter than usecs on pin
-	pinMan.setDebounce(pinSonarLeftEcho, 100);  // reject spikes shorter than usecs on pin
+	//pinMan.setDebounce(pinSonarCenterEcho, 100);  // reject spikes shorter than usecs on pin
+	//pinMan.setDebounce(pinSonarRightEcho, 100);  // reject spikes shorter than usecs on pin
+	//pinMan.setDebounce(pinSonarLeftEcho, 100);  // reject spikes shorter than usecs on pin
 	verboseOutput = false;
 }
 
