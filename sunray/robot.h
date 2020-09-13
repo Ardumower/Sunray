@@ -23,7 +23,7 @@
 #include "WiFiEsp.h"
 
 
-#define VER "Ardumower Sunray,1.0.126"
+#define VER "Ardumower Sunray,1.0.127"
 
 enum OperationType {
       OP_IDLE,      
@@ -48,6 +48,7 @@ enum Sensor {
       SENS_MAP_NO_ROUTE,
       SENS_MEM_OVERFLOW,
 };
+
 
 extern OperationType stateOp; // operation
 extern Sensor stateSensor; // last triggered sensor
@@ -97,12 +98,12 @@ extern PinManager pinMan;
 extern Map maps;
 extern UBLOX gps;
 
-extern int freeMemory();
-extern void start();
-extern void run();
-extern void setOperation(OperationType op, bool allowOverride = false, bool initiatedbyOperator = false);
-extern void triggerObstacle();
-extern void sensorTest();
+int freeMemory();
+void start();
+void run();
+void setOperation(OperationType op, bool allowOverride = false, bool initiatedbyOperator = false);
+void triggerObstacle();
+void sensorTest();
 
 
 #endif

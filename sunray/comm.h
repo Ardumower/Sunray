@@ -9,11 +9,11 @@
 #define COMM_H
 
 
-extern void outputConsole();
+void outputConsole();
 
-extern void processWifi();
-extern void processConsole();
-extern void processBLE();
+void processWifi();
+void processConsole();
+void processBLE();
 
 
 

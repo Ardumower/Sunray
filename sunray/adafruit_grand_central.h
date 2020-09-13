@@ -12,8 +12,6 @@ extern Uart Serial4;
 
 extern void watchdogReset();
 extern void watchdogEnable(uint32_t timeout);
-extern void logResetCause();
-extern void logCPUHealth();
 
 #endif  // ADAFRUIT_GRAND_CENTRAL
 

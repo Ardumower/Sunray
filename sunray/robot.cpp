@@ -21,6 +21,8 @@
 #include "config.h"
 #include "helper.h"
 #include "pid.h"
+#include "reset.h"
+#include "cpu.h"
 #include "i2c.h"
 #include <Arduino.h>
 
@@ -448,9 +450,7 @@ void start(){
     sdSerial.beginSD();  
   #endif 
   
-  #if defined(__SAMD51__)
-    logResetCause();
-  #endif    
+  logResetCause();
   
   CONSOLE.println(VER);          
   battery.begin();      
@@ -913,9 +913,7 @@ void run(){
     CONSOLE.print("  humidity=");
     CONSOLE.print(stateHumidity,0);    
     CONSOLE.print(" ");    
-    #if defined(__SAMD51__)
-      logCPUHealth();
-    #endif
+    logCPUHealth();    
   }
   
   // IMU

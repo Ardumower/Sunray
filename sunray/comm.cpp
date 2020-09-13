@@ -1,6 +1,7 @@
 #include "comm.h"
 #include "config.h"
 #include "robot.h"
+#include "reset.h"
 #include "WiFiEsp.h"
 
 unsigned long nextInfoTime = 0;
@@ -380,6 +381,8 @@ void cmdStats(){
   s += statMowObstacles;
   s += ",";
   s += freeMemory();
+  s += ",";
+  s += getResetCause();
   cmdAnswer(s);  
 }
 
@@ -622,9 +625,7 @@ void outputConsole(){
     CONSOLE.print(" age=");    
     CONSOLE.print((millis()-gps.dgpsAge)/1000.0);
     CONSOLE.println();
-    #if defined(__SAMD51__)
-      //logCPUHealth();
-    #endif
+    //logCPUHealth();    
   }
 }
 
