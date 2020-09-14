@@ -74,6 +74,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // NOTE: for full log file inspections, we will need your sunray.ino.elf binary 
 // (you can find out the location of the compiled .elf file while compiling with verbose compilation switched on 
 //  via 'File->Preferences->Full output during compile')
+// detailed steps here:  https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#SD_card_logging
 //#define ENABLE_SD  1                 // enable SD card logging? (uncomment for SD card logging)
 
 // --------- serial monitor output (CONSOLE) ------------------------
