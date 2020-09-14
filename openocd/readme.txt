@@ -75,6 +75,19 @@ interface: Raspberry PI4
      continue
   Get a backtrace of the last function calls:
      backtrace
-
+  Delete all breakpoints 
+     delete
+  Reset MCU:   
+     monitor reset halt
      
+
+7. Using alternative hardware debuggers (JLink):
+
+7.1. Run JLinkGDBServer:
+  "D:\Program Files (x86)\SEGGER\JLink\JLinkGDBServer.exe" -device ATSAMD51P20A -if swd -speed 4000 -port 3333arm-none-eabi-gdb
+
+7.2. Connect with GDB:
+  C:\Users\alex\AppData\Local\Arduino15\packages\adafruit\tools\arm-none-eabi-gcc\9-2019q4\bin>arm-none-eabi-gdb -ex="target remote localhost:3333" c:\users\alex\AppData\local\temp\arduino_build_408598\sunray.ino.elf
+    
+    
     
