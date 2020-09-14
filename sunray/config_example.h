@@ -71,6 +71,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // ------- SD card (Adafruit Grand Central M4) ---------------------------------
 // all serial console output can be logged to a (FAT32 formatted) SD card
+// NOTE: for full log file inspections, we will need your sunray.ino.elf binary 
+// (you can find out the location of the compiled .elf file while compiling with verbose compilation switched on 
+//  via 'File->Preferences->Full output during compile')
 //#define ENABLE_SD  1                 // enable SD card logging? (uncomment for SD card logging)
 
 // --------- serial monitor output (CONSOLE) ------------------------
