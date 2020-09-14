@@ -44,6 +44,7 @@ bool WatchdogSAMD::readFlashStackDump(){
   for (int i = 0; i < 15; i++) {        
     uint32_t sp = *read_pointer_to_page_in_flash;
     if (sp != 0x00000000) stackEmpty = false;
+    CONSOLE.print("0x");
     CONSOLE.print(sp, HEX);
     CONSOLE.print(",");
     read_pointer_to_page_in_flash++;            
