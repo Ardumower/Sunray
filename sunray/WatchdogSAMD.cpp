@@ -1,12 +1,74 @@
+
+// https://github.com/adafruit/Adafruit_SleepyDog/blob/master/utility/WatchdogSAMD.cpp
+
 // Be careful to use a platform-specific conditional include to only make the
 // code visible for the appropriate platform.  Arduino will try to compile and
 // link all .cpp files regardless of platform.
 #if defined(ARDUINO_ARCH_SAMD)
 
 #include "WatchdogSAMD.h"
+#include "config.h"
 #include <sam.h>
 
-int WatchdogSAMD::enable(int maxPeriodMS, bool isForSleep) {
+
+// Adafruit Grand Central M4: flash size 1024 kb (0x100000 bytes), flash page size 512 bytes
+#define FLASH_ADDRESS (0x100000 - 512) 
+//#define FLASH_ADDRESS  0x3FF80
+uint32_t *spReg;
+uint32_t *wdg_pointer_to_page_in_flash = (uint32_t*)FLASH_ADDRESS;
+
+
+
+// https://github.com/cmaglie/FlashStorage/tree/master/src
+void WatchdogSAMD::clearFlashStackDump(){
+  CONSOLE.println("deleting flash stack dump...");  
+  uint32_t *write_pointer_to_page_in_flash = (uint32_t*)FLASH_ADDRESS;
+  // erase flash page
+  NVMCTRL->ADDR.reg = ((uint32_t)write_pointer_to_page_in_flash);
+  NVMCTRL->CTRLB.reg = NVMCTRL_CTRLB_CMDEX_KEY | NVMCTRL_CTRLB_CMD_EB;
+  while (!NVMCTRL->INTFLAG.bit.DONE) { }  
+  for (int i = 0; i < 15; i++) {        
+    *write_pointer_to_page_in_flash = 0x00000000;        
+    write_pointer_to_page_in_flash++;            
+  }  
+  //write page buffer to flash:    
+  NVMCTRL->CTRLB.reg = NVMCTRL_CTRLB_CMDEX_KEY | NVMCTRL_CTRLB_CMD_WP;
+  while (NVMCTRL->INTFLAG.bit.DONE == 0) { }  
+}
+
+
+bool WatchdogSAMD::readFlashStackDump(){  
+  CONSOLE.println("reading flash stack dump from last watchdog reset...");
+  uint32_t *read_pointer_to_page_in_flash = (uint32_t*)FLASH_ADDRESS;    
+  bool stackEmpty = true;
+  for (int i = 0; i < 15; i++) {        
+    uint32_t sp = *read_pointer_to_page_in_flash;
+    if (sp != 0x00000000) stackEmpty = false;
+    CONSOLE.print(sp, HEX);
+    CONSOLE.print(",");
+    read_pointer_to_page_in_flash++;            
+  } 
+  CONSOLE.println();    
+  return stackEmpty;
+}
+
+
+void WatchdogSAMD::logFlashStackDump(){    
+  if (readFlashStackDump()){
+    CONSOLE.println("stack dump is empty (this does not look like a stack dump)");
+  } else {
+    CONSOLE.println("this looks like a real stack dump");
+    CONSOLE.println("NOTE: we will need your .ino.elf binary file for further inspections");    
+    clearFlashStackDump();    
+  } 
+  CONSOLE.println();    
+}
+
+
+int WatchdogSAMD::enable(int maxPeriodMS, bool isForSleep) { 
+
+  logFlashStackDump();
+  
   // Enable the watchdog with a period up to the specified max period in
   // milliseconds.
 
@@ -17,17 +79,11 @@ int WatchdogSAMD::enable(int maxPeriodMS, bool isForSleep) {
   uint8_t bits;
 
   if (!_initialized)
-    _initialize_wdt();
+    _initialize_wdt();    
 
-#if defined(__SAMD51__)
-  WDT->CTRLA.reg = 0; // Disable watchdog for config
+  WDT->CTRLA.bit.ENABLE = 0; // Disable watchdog for config
   while (WDT->SYNCBUSY.reg)
     ;
-#else
-  WDT->CTRL.reg = 0; // Disable watchdog for config
-  while (WDT->STATUS.bit.SYNCBUSY)
-    ;
-#endif
 
   // You'll see some occasional conversion here compensating between
   // milliseconds (1000 Hz) and WDT clock cycles (~1024 Hz).  The low-
@@ -97,49 +153,31 @@ int WatchdogSAMD::enable(int maxPeriodMS, bool isForSleep) {
   // function (later in this file) explicitly passes 'true' to get the
   // alternate behavior.
 
-#if defined(__SAMD51__)
   if (isForSleep) {
     WDT->INTFLAG.bit.EW = 1;        // Clear interrupt flag
     WDT->INTENSET.bit.EW = 1;       // Enable early warning interrupt
     WDT->CONFIG.bit.PER = 0xB;      // Period = max
     WDT->CONFIG.bit.WINDOW = bits;  // Set time of interrupt
     WDT->EWCTRL.bit.EWOFFSET = 0x0; // Early warning offset
-    WDT->CTRLA.bit.WEN = 1;         // Enable window mode
+    WDT->CTRLA.bit.WEN = 1;         // Enable window mode    
     while (WDT->SYNCBUSY.reg)
       ; // Sync CTRL write
   } else {
-    WDT->INTENCLR.bit.EW = 1;   // Disable early warning interrupt
-    WDT->CONFIG.bit.PER = bits; // Set period for chip reset
+    WDT->INTFLAG.bit.EW = 1; // Clear interrupt flag
+    //WDT->INTENCLR.bit.EW = 1;   // Disable early warning interrupt   
+    WDT->EWCTRL.bit.EWOFFSET = bits; // Early warning offset    
+    WDT->CONFIG.bit.PER = 0xB; // Set period for chip reset    
+    //WDT->CONFIG.bit.PER = bits; // Set period for chip reset    
     WDT->CTRLA.bit.WEN = 0;     // Disable window mode
+    WDT->INTENSET.bit.EW = 1;       // Enable early warning interrupt        
     while (WDT->SYNCBUSY.reg)
       ; // Sync CTRL write
   }
-
+  
   reset();                   // Clear watchdog interval
   WDT->CTRLA.bit.ENABLE = 1; // Start watchdog now!
   while (WDT->SYNCBUSY.reg)
     ;
-#else
-  if (isForSleep) {
-    WDT->INTENSET.bit.EW = 1;      // Enable early warning interrupt
-    WDT->CONFIG.bit.PER = 0xB;     // Period = max
-    WDT->CONFIG.bit.WINDOW = bits; // Set time of interrupt
-    WDT->CTRL.bit.WEN = 1;         // Enable window mode
-    while (WDT->STATUS.bit.SYNCBUSY)
-      ; // Sync CTRL write
-  } else {
-    WDT->INTENCLR.bit.EW = 1;   // Disable early warning interrupt
-    WDT->CONFIG.bit.PER = bits; // Set period for chip reset
-    WDT->CTRL.bit.WEN = 0;      // Disable window mode
-    while (WDT->STATUS.bit.SYNCBUSY)
-      ; // Sync CTRL write
-  }
-
-  reset();                  // Clear watchdog interval
-  WDT->CTRL.bit.ENABLE = 1; // Start watchdog now!
-  while (WDT->STATUS.bit.SYNCBUSY)
-    ;
-#endif
 
   return (cycles * 1000L + 512) / 1024; // WDT cycles -> ms
 }
@@ -147,49 +185,50 @@ int WatchdogSAMD::enable(int maxPeriodMS, bool isForSleep) {
 void WatchdogSAMD::reset() {
   // Write the watchdog clear key value (0xA5) to the watchdog
   // clear register to clear the watchdog timer and reset it.
-#if defined(__SAMD51__)
   while (WDT->SYNCBUSY.reg)
     ;
-#else
-  while (WDT->STATUS.bit.SYNCBUSY)
-    ;
-#endif
   WDT->CLEAR.reg = WDT_CLEAR_CLEAR_KEY;
 }
 
 uint8_t WatchdogSAMD::resetCause() {
-#if defined(__SAMD51__)
   return RSTC->RCAUSE.reg;
-#else
-  return PM->RCAUSE.reg;
-#endif
 }
 
 void WatchdogSAMD::disable() {
-#if defined(__SAMD51__)
   WDT->CTRLA.bit.ENABLE = 0;
   while (WDT->SYNCBUSY.reg)
     ;
-#else
-  WDT->CTRL.bit.ENABLE = 0;
-  while (WDT->STATUS.bit.SYNCBUSY)
-    ;
-#endif
 }
+
 
 void WDT_Handler(void) {
   // ISR for watchdog early warning, DO NOT RENAME!
-#if defined(__SAMD51__)
-  WDT->CTRLA.bit.ENABLE = 0; // Disable watchdog
-  while (WDT->SYNCBUSY.reg)
-    ;
-#else
-  WDT->CTRL.bit.ENABLE = 0; // Disable watchdog
-  while (WDT->STATUS.bit.SYNCBUSY)
-    ; // Sync CTRL write
-#endif
-  WDT->INTFLAG.bit.EW = 1; // Clear interrupt flag
+  //WDT->CLEAR.reg = WDT_CLEAR_CLEAR_KEY;
+  
+  // erase flash page
+  NVMCTRL->ADDR.reg = ((uint32_t)wdg_pointer_to_page_in_flash);
+  NVMCTRL->CTRLB.reg = NVMCTRL_CTRLB_CMDEX_KEY | NVMCTRL_CTRLB_CMD_EB;
+  while (!NVMCTRL->INTFLAG.bit.DONE) { }
+    
+  spReg = (uint32_t*)__get_MSP();  //copy 15 top values of stack to flash:
+  for (int i = 0; i < 15; i++) {        
+    *wdg_pointer_to_page_in_flash = *spReg;        
+    wdg_pointer_to_page_in_flash++;        
+    spReg++;    
+  }    
+  //write page buffer to flash ( https://github.com/cmaglie/FlashStorage/tree/master/src )
+  NVMCTRL->CTRLB.reg = NVMCTRL_CTRLB_CMDEX_KEY | NVMCTRL_CTRLB_CMD_WP;
+  while (NVMCTRL->INTFLAG.bit.DONE == 0) { };  
+    
+  //WDT->CTRLA.bit.ENABLE = 0; // Disable watchdog
+  //while (WDT->SYNCBUSY.reg)
+  //  ;
+  //WDT->INTFLAG.bit.EW = 1; // Clear interrupt flag
+  
+  WDT->CLEAR.reg = 0xFF; // value different than WDT_CLEAR_CLEAR_KEY causes reset
+  while(true);  
 }
+
 
 int WatchdogSAMD::sleep(int maxPeriodMS) {
 
@@ -197,17 +236,9 @@ int WatchdogSAMD::sleep(int maxPeriodMS) {
 
   // Enable standby sleep mode (deepest sleep) and activate.
   // Insights from Atmel ASF library.
-#if (SAMD20 || SAMD21)
-  // Don't fully power down flash when in sleep
-  NVMCTRL->CTRLB.bit.SLEEPPRM = NVMCTRL_CTRLB_SLEEPPRM_DISABLED_Val;
-#endif
-#if defined(__SAMD51__)
   PM->SLEEPCFG.bit.SLEEPMODE = 0x4; // Standby sleep mode
   while (PM->SLEEPCFG.bit.SLEEPMODE != 0x4)
     ; // Wait for it to take
-#else
-  SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
-#endif
 
   __DSB(); // Data sync to ensure outgoing memory accesses complete
   __WFI(); // Wait for interrupt (places device in sleep mode)
@@ -227,7 +258,6 @@ void WatchdogSAMD::_initialize_wdt() {
   // One-time initialization of watchdog timer.
   // Insights from rickrlh and rbrucemtl in Arduino forum!
 
-#if defined(__SAMD51__)
   // SAMD51 WDT uses OSCULP32k as input clock now
   // section: 20.5.3
   OSC32KCTRL->OSCULP32K.bit.EN1K = 1;  // Enable out 1K (for WDT)
@@ -249,25 +279,6 @@ void WatchdogSAMD::_initialize_wdt() {
   USB->DEVICE.CTRLA.bit.ENABLE = 1;   // Enable the USB peripheral
   while (USB->DEVICE.SYNCBUSY.bit.ENABLE)
     ; // Wait for synchronization
-#else
-  // Generic clock generator 2, divisor = 32 (2^(DIV+1))
-  GCLK->GENDIV.reg = GCLK_GENDIV_ID(2) | GCLK_GENDIV_DIV(4);
-  // Enable clock generator 2 using low-power 32KHz oscillator.
-  // With /32 divisor above, this yields 1024Hz(ish) clock.
-  GCLK->GENCTRL.reg = GCLK_GENCTRL_ID(2) | GCLK_GENCTRL_GENEN |
-                      GCLK_GENCTRL_SRC_OSCULP32K | GCLK_GENCTRL_DIVSEL;
-  while (GCLK->STATUS.bit.SYNCBUSY)
-    ;
-  // WDT clock = clock gen 2
-  GCLK->CLKCTRL.reg =
-      GCLK_CLKCTRL_ID_WDT | GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK2;
-
-  // Enable WDT early-warning interrupt
-  NVIC_DisableIRQ(WDT_IRQn);
-  NVIC_ClearPendingIRQ(WDT_IRQn);
-  NVIC_SetPriority(WDT_IRQn, 0); // Top priority
-  NVIC_EnableIRQ(WDT_IRQn);
-#endif
 
   _initialized = true;
 }

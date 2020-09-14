@@ -1,4 +1,4 @@
-// watchdog for SAMD21 and SAMD51 
+// watchdog for SAMD51 
 
 #ifndef WATCHDOGSAMD_H
 #define WATCHDOGSAMD_H
@@ -37,12 +37,16 @@ public:
   //
   // The actual period (in milliseconds) that the hardware was asleep will be
   // returned.
-  int sleep(int maxPeriodMS = 0);
+  int sleep(int maxPeriodMS = 0);   
 
 private:
   void _initialize_wdt();
 
   bool _initialized;
+  
+  void logFlashStackDump();
+  void clearFlashStackDump();
+  bool readFlashStackDump();
 };
 
 #endif

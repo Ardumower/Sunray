@@ -7,8 +7,7 @@
 #pragma push_macro("WDT")
 #undef WDT    // Required to be able to use '.bit.WDT'. Compiler wrongly replace struct field with WDT define
 ResetCause getResetCause() {
-  RSTC_RCAUSE_Type resetCause;
-  
+  RSTC_RCAUSE_Type resetCause;  
   resetCause.reg = REG_RSTC_RCAUSE;
   if (resetCause.bit.POR)                                   return RST_POWER_ON;
   else if (resetCause.bit.EXT)                              return RST_EXTERNAL;
