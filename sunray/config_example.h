@@ -248,11 +248,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define OSTACLE_AVOIDANCE true   // try to find a way around obstacle
 //#define OSTACLE_AVOIDANCE false  // stop robot on obstacle
 
-// detect if target is actually reached (obstacle detection)
-//#define TARGET_APPROACHING_DETECTION        true    // if target not approaching trigger obstacle avoidance
-#define TARGET_APPROACHING_DETECTION          false   // ignore if target not approaching 
-#define TARGET_APPROACHING_DETECTION_TIMEOUT  30      // timeout for motion (secs)
-
 // detect robot being kidnapped?
 //#define KIDNAP_DETECT true
 #define KIDNAP_DETECT false
