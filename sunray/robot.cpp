@@ -287,18 +287,18 @@ bool startIMU(bool forceIMU){
      #endif
      counter++;
      if (counter > 5){    
-      // no I2C recovery possible - this should not happen (I2C module error)
-      CONSOLE.println("ERROR IMU not found");
-      stateSensor = SENS_IMU_TIMEOUT;
-      setOperation(OP_ERROR);      
-      //buzzer.sound(SND_STUCK, true);            
-      return false;
-    }  
+       // no I2C recovery possible - this should not happen (I2C module error)
+       CONSOLE.println("ERROR IMU not found");
+       stateSensor = SENS_IMU_TIMEOUT;
+       setOperation(OP_ERROR);      
+       //buzzer.sound(SND_STUCK, true);            
+       return false;
+     }
+     watchdogReset();          
   }  
   if (!imuFound) return false;  
   counter = 0;  
-  while (true){
-    watchdogReset();     
+  while (true){    
     if (imu.begin() == INV_SUCCESS) break;
     CONSOLE.print("Unable to communicate with IMU.");
     CONSOLE.print("Check connections, and try again.");
@@ -311,6 +311,7 @@ bool startIMU(bool forceIMU){
       //buzzer.sound(SND_STUCK, true);            
       return false;
     }
+    watchdogReset();     
   }            
   imu.dmpBegin(DMP_FEATURE_6X_LP_QUAT  // Enable 6-axis quat
                |  DMP_FEATURE_GYRO_CAL // Use gyro calibration
