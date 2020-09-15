@@ -1192,20 +1192,34 @@ int Map::findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, i
     Point *pt = nodes.nodes[idx].point;            
     //if (pt.visited) continue;
     //if (this.distance(pt, node.pos) > 10) continue;
-    bool safe = true;
-    bool startShouldBeInside;
-    for (int idx2 = 0; idx2 < obstacles.numPolygons; idx2++){
-       startShouldBeInside = (idx2 == 0); // if first index, it's perimeter, otherwise exclusions
-       // skip obstacle, if startpoint is outside perimeter (or inside exclusions) 
-       if (pointIsInsidePolygon(obstacles.polygons[idx2], *node.point) != startShouldBeInside) {
-         continue;
-         //float dist = distance(*node.point, *pt);
-         //if (dist < 1) continue;                  
-       }
-       if (linePolygonIntersection (*node.point, *pt, obstacles.polygons[idx2])) {
+    bool safe = true;            
+    Point sectPt;
+    // check new path with all obstacle polygons (perimeter, exclusions, obstacles)     
+    for (int idx3 = 0; idx3 < obstacles.numPolygons; idx3++){             
+       bool isPeri = (idx3 == 0);  // if first index, it's perimeter, otherwise exclusions                           
+       if (isPeri){ // we check with the perimeter?         
+         bool insidePeri = pointIsInsidePolygon(obstacles.polygons[0], *node.point);
+         if (!insidePeri) { // start point outside perimeter?                                                                                      
+             if (linePolygonIntersectPoint( *node.point, *pt, obstacles.polygons[0], sectPt)){
+               float dist = distance(*node.point, sectPt);          
+               if (dist > 1){ safe = false; break; } // entering perimeter with long distance is not safe                             
+               continue;           
+             } else { safe = false; break; }                                          
+         }
+       } else {
+         bool insideObstacle = pointIsInsidePolygon(obstacles.polygons[idx3], *node.point);
+         if (insideObstacle) { // start point inside obstacle?                                                                         
+             if (linePolygonIntersectPoint( *node.point, *pt, obstacles.polygons[idx3], sectPt)){
+               float dist = distance(*node.point, sectPt);          
+               if (dist > 1){ safe = false; break; } // exiting obstacle with long distance is not safe                             
+               continue;           
+             } else { safe = false; break; }                                          
+         }
+       }        
+       if (linePolygonIntersection (*node.point, *pt, obstacles.polygons[idx3])){
          safe = false;
          break;
-       }
+       }             
     }
     if (safe) {          
       //pt.visited = true;
