@@ -296,12 +296,21 @@ bool startIMU(bool forceIMU){
     }  
   }  
   if (!imuFound) return false;  
+  counter = 0;  
   while (true){
+    watchdogReset();     
     if (imu.begin() == INV_SUCCESS) break;
     CONSOLE.print("Unable to communicate with IMU.");
     CONSOLE.print("Check connections, and try again.");
     CONSOLE.println();
-    delay(1000);
+    delay(1000);    
+    counter++;
+    if (counter > 5){
+      stateSensor = SENS_IMU_TIMEOUT;
+      setOperation(OP_ERROR);      
+      //buzzer.sound(SND_STUCK, true);            
+      return false;
+    }
   }            
   imu.dmpBegin(DMP_FEATURE_6X_LP_QUAT  // Enable 6-axis quat
                |  DMP_FEATURE_GYRO_CAL // Use gyro calibration
@@ -493,11 +502,13 @@ void start(){
   // initialize ESP module
   startWIFI();  
   
+  watchdogEnable(10000L);   // 10 seconds  
+  
   startIMU(false);        
   
   buzzer.sound(SND_READY);  
   battery.resetIdle();        
-  watchdogEnable(10000L);   // 10 seconds  
+  
 }
 
 

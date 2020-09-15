@@ -14,6 +14,7 @@
 // Adafruit Grand Central M4: flash size 1024 kb (0x100000 bytes), flash page size 512 bytes
 #define FLASH_ADDRESS (0x100000 - 512) 
 //#define FLASH_ADDRESS  0x3FF80
+#define SP_COUNT 32
 uint32_t *spReg;
 uint32_t *wdg_pointer_to_page_in_flash = (uint32_t*)FLASH_ADDRESS;
 
@@ -27,8 +28,8 @@ void WatchdogSAMD::clearFlashStackDump(){
   NVMCTRL->ADDR.reg = ((uint32_t)write_pointer_to_page_in_flash);
   NVMCTRL->CTRLB.reg = NVMCTRL_CTRLB_CMDEX_KEY | NVMCTRL_CTRLB_CMD_EB;
   while (!NVMCTRL->INTFLAG.bit.DONE) { }  
-  for (int i = 0; i < 15; i++) {        
-    *write_pointer_to_page_in_flash = 0x00000000;        
+  for (int i = 0; i < SP_COUNT; i++) {        
+    *write_pointer_to_page_in_flash = 0xFFFFFFFF;        
     write_pointer_to_page_in_flash++;            
   }  
   //write page buffer to flash:    
@@ -41,9 +42,9 @@ bool WatchdogSAMD::readFlashStackDump(){
   CONSOLE.println("reading flash stack dump from last watchdog reset...");
   uint32_t *read_pointer_to_page_in_flash = (uint32_t*)FLASH_ADDRESS;    
   bool stackEmpty = true;
-  for (int i = 0; i < 15; i++) {        
+  for (int i = 0; i < SP_COUNT; i++) {        
     uint32_t sp = *read_pointer_to_page_in_flash;
-    if (sp != 0x00000000) stackEmpty = false;
+    if (sp != 0xFFFFFFFF) stackEmpty = false;
     CONSOLE.print("0x");
     CONSOLE.print(sp, HEX);
     CONSOLE.print(",");
@@ -212,7 +213,7 @@ void WDT_Handler(void) {
   while (!NVMCTRL->INTFLAG.bit.DONE) { }
     
   spReg = (uint32_t*)__get_MSP();  //copy 15 top values of stack to flash:
-  for (int i = 0; i < 15; i++) {        
+  for (int i = 0; i < SP_COUNT; i++) {        
     *wdg_pointer_to_page_in_flash = *spReg;        
     wdg_pointer_to_page_in_flash++;        
     spReg++;    
