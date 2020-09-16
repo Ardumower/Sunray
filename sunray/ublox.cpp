@@ -34,8 +34,12 @@ bool UBLOX::configure(){
   //configGPS.enableDebugging(CONSOLE, false);  
   int counter = 0;
   if (configGPS.begin(*_bus) == false) {
-    CONSOLE.println(F("ERROR: unable to perform ublox configuration"));
-    return false;         
+    _bus->begin(38400);
+    if (configGPS.begin(*_bus) == false) {
+      _bus->begin(_baud);
+      CONSOLE.println(F("ERROR: unable to perform ublox configuration"));
+      return false;         
+    }
   }     
     
   bool setValueSuccess = true;
@@ -79,10 +83,13 @@ bool UBLOX::configure(){
   setValueSuccess &= configGPS.addCfgValset8(0x10740002, 0); // CFG-UART1OUTPROT-NMEA  
   setValueSuccess &= configGPS.addCfgValset8(0x10740004, 0); // CFG-UART1OUTPROT-RTCM3X    
   // uart1 baudrate (Ardumower) 
-  setValueSuccess &= configGPS.addCfgValset32(0x40520001, 115200); // CFG-UART1-BAUDRATE  
+  setValueSuccess &= configGPS.addCfgValset32(0x40520001, _baud); // CFG-UART1-BAUDRATE  
   // ----  gps rates ----------------------------------
   setValueSuccess &= configGPS.addCfgValset16(0x30210001, 200); // CFG-RATE-MEAS       
   setValueSuccess &= configGPS.sendCfgValset16(0x30210002, 1,   2000); //CFG-RATE-NAV
+  
+  _bus->begin(_baud);
+  
   if (setValueSuccess == true)
   {
     CONSOLE.println("Values were successfully set");
