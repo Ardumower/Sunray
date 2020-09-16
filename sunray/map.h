@@ -27,6 +27,7 @@ class Point
     void init();
     void setXY(float ax, float ay); // meter
     void assign(Point &fromPoint); 
+    long crc();
 };
 
 
@@ -42,6 +43,7 @@ class Polygon
     void alloc(short aNumPoints);
     void dealloc();
     void dump();
+    long crc();
 };
 
 class PolygonList // owns polygons!
@@ -57,6 +59,7 @@ class PolygonList // owns polygons!
      void dealloc();
      void dump();
      int numPoints();
+     long crc();
 };
 
 class Node   // nodes just hold references to points and other nodes
@@ -138,6 +141,8 @@ class Map
            
     bool shouldDock;  // start docking?
     bool shouldMow;  // start mowing?       
+    
+    long crc;  // map data CRC
         
     void begin();    
     void run();    
@@ -171,6 +176,7 @@ class Map
     void clearObstacles();
     void dump();    
     void stressTest();
+    void calcCRC();
   private:
     void checkMemoryErrors();
     bool findObstacleSafeMowPoint();

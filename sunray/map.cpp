@@ -55,6 +55,10 @@ void Point::setXY(float ax, float ay){
   py = ay * 100;
 }
 
+long Point::crc(){
+  return (px + py);  
+}
+
 // -----------------------------------
 Polygon::Polygon(){  
   init();
@@ -114,6 +118,14 @@ void Polygon::dump(){
     if (i < numPoints-1) CONSOLE.print(",");
   }
   CONSOLE.println();
+}
+
+long Polygon::crc(){
+  long crc = 0;
+  for (int i=0; i < numPoints; i++){
+    crc += points[i].crc();
+  }
+  return crc;
 }
 
 // -----------------------------------
@@ -187,6 +199,13 @@ void PolygonList::dump(){
   CONSOLE.println();
 }
 
+long PolygonList::crc(){
+  long crc = 0;
+  for (int i=0; i < numPolygons; i++){
+    crc += polygons[i].crc();
+  }
+  return crc;
+}
 
 // -----------------------------------
 
@@ -342,8 +361,15 @@ void Map::begin(){
   CONSOLE.println(sizeof(Point));  
 }
 
+void Map::calcCRC(){   
+   crc = perimeterPoints.crc() + exclusions.crc() + dockPoints.crc() + mowPoints.crc();       
+}
+
 void Map::dump(){ 
-  CONSOLE.println("map dump");  
+  calcCRC();
+  CONSOLE.print("map dump ");  
+  CONSOLE.print("crc=");  
+  CONSOLE.println(crc);  
   CONSOLE.print("points: ");
   points.dump();
   CONSOLE.print("perimeter pts: ");
