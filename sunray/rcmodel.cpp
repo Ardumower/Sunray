@@ -81,7 +81,7 @@ void RCModel::run(){
       if ((value_a < 0.05) && (value_a > -0.05)) value_a = 0;                 // NullLage vergrössern         
       angularPPM = value_a;                                                   // Weitergabe an Debug
     }         
-    motor.setLinearAngularSpeed(linearPPM, angularPPM);                     // R/C Signale an Motor leiten
+    motor.setLinearAngularSpeed(linearPPM, angularPPM, false);                     // R/C Signale an Motor leiten
   }
 }
 
