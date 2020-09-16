@@ -6,6 +6,10 @@
 #include "Arduino.h"
 #include "ublox.h"
 #include "config.h"
+#include "SparkFun_Ublox_Arduino_Library.h" 
+
+
+SFE_UBLOX_GPS configGPS; // used for f9p module configuration only
 
 
 // used to send .ubx log files via 'sendgps.py' to Arduino (also set GPS to Serial in config for this)
@@ -24,10 +28,76 @@ UBLOX::UBLOX(HardwareSerial& bus,uint32_t baud)
   #endif
 }
 
+
+bool UBLOX::configure(){
+  CONSOLE.print("ublox f9p configuring... ");
+  //configGPS.enableDebugging(CONSOLE, false);  
+  int counter = 0;
+  if (configGPS.begin(*_bus) == false) {
+    CONSOLE.println(F("ERROR: unable to perform ublox configuration"));
+    return false;         
+  }     
+    
+  bool setValueSuccess = true;
+  
+  // ---- uart2 messages (Xbee/NTRIP) -------------------
+  setValueSuccess &= configGPS.newCfgValset8(0x209100a8, 0, VAL_LAYER_RAM); // CFG-MSGOUT-NMEA_ID_DTM_UART2
+  setValueSuccess &= configGPS.addCfgValset8(0x209100df, 0); // CFG-MSGOUT-NMEA_ID_GBS_UART2
+  setValueSuccess &= configGPS.addCfgValset8(0x209100bc, 60); // CFG-MSGOUT-NMEA_ID_GGA_UART2
+  setValueSuccess &= configGPS.addCfgValset8(0x209100cb, 0); // CFG-MSGOUT-NMEA_ID_GLL_UART2
+  setValueSuccess &= configGPS.addCfgValset8(0x209100b7, 0); // CFG-MSGOUT-NMEA_ID_GNS_UART2
+  setValueSuccess &= configGPS.addCfgValset8(0x209100d0, 0); // CFG-MSGOUT-NMEA_ID_GRS_UART2
+  setValueSuccess &= configGPS.addCfgValset8(0x209100c1, 0); // CFG-MSGOUT-NMEA_ID_GSA_UART2  
+  setValueSuccess &= configGPS.addCfgValset8(0x209100d5, 0); // CFG-MSGOUT-NMEA_ID_GST_UART2    
+  setValueSuccess &= configGPS.addCfgValset8(0x209100c6, 0); // CFG-MSGOUT-NMEA_ID_GSV_UART2      
+  //setValueSuccess &= configGPS.addCfgValset8(0x20910402, 0); // CFG-MSGOUT-NMEA_ID_RLM_UART2    (fails)
+  setValueSuccess &= configGPS.addCfgValset8(0x209100ad, 0); // CFG-MSGOUT-NMEA_ID_RMC_UART2
+  setValueSuccess &= configGPS.addCfgValset8(0x209100e9, 0); // CFG-MSGOUT-NMEA_ID_VLW_UART2
+  setValueSuccess &= configGPS.addCfgValset8(0x209100b2, 0); // CFG-MSGOUT-NMEA_ID_VTG_UART2
+  setValueSuccess &= configGPS.addCfgValset8(0x209100da, 0);  // CFG-MSGOUT-NMEA_ID_ZDA_UART2  
+  // uart2 protocols (Xbee/NTRIP)
+  setValueSuccess &= configGPS.addCfgValset8(0x10750001, 0); // CFG-UART2INPROT-UBX
+  setValueSuccess &= configGPS.addCfgValset8(0x10750002, 0); // CFG-UART2INPROT-NMEA
+  setValueSuccess &= configGPS.addCfgValset8(0x10750004, 1); // CFG-UART2INPROT-RTCM3X
+  setValueSuccess &= configGPS.addCfgValset8(0x10760001, 0); // CFG-UART2OUTPROT-UBX
+  setValueSuccess &= configGPS.addCfgValset8(0x10760002, 1); // CFG-UART2OUTPROT-NMEA  
+  setValueSuccess &= configGPS.addCfgValset8(0x10760004, 0); // CFG-UART2OUTPROT-RTCM3X    
+  // uart2 baudrate  (Xbee/NTRIP)
+  setValueSuccess &= configGPS.addCfgValset32(0x40530001, 115200); // CFG-UART2-BAUDRATE
+  // ----- uart1 messages (Ardumower) -----------------  
+  setValueSuccess &= configGPS.addCfgValset8(0x20910007, 0); // CFG-MSGOUT-UBX_NAV_PVT_UART1
+  setValueSuccess &= configGPS.addCfgValset8(0x2091008e, 1); // CFG-MSGOUT-UBX_NAV_RELPOSNED_UART1
+  setValueSuccess &= configGPS.addCfgValset8(0x20910034, 1); // CFG-MSGOUT-UBX_NAV_HPPOSLLH_UART1
+  setValueSuccess &= configGPS.addCfgValset8(0x20910043, 1); // CFG-MSGOUT-UBX_NAV_VELNED_UART1  
+  setValueSuccess &= configGPS.addCfgValset8(0x20910269, 5); // CFG-MSGOUT-UBX_RXM_RTCM_UART1
+  setValueSuccess &= configGPS.addCfgValset8(0x20910346, 20); // CFG-MSGOUT-UBX_NAV_SIG_UART1  
+  // uart1 protocols (Ardumower) 
+  setValueSuccess &= configGPS.addCfgValset8(0x10730001, 1); // CFG-UART1INPROT-UBX
+  setValueSuccess &= configGPS.addCfgValset8(0x10730002, 1); // CFG-UART1INPROT-NMEA
+  setValueSuccess &= configGPS.addCfgValset8(0x10730004, 1); // CFG-UART1INPROT-RTCM3X
+  setValueSuccess &= configGPS.addCfgValset8(0x10740001, 1); // CFG-UART1OUTPROT-UBX
+  setValueSuccess &= configGPS.addCfgValset8(0x10740002, 0); // CFG-UART1OUTPROT-NMEA  
+  setValueSuccess &= configGPS.addCfgValset8(0x10740004, 0); // CFG-UART1OUTPROT-RTCM3X    
+  // uart1 baudrate (Ardumower) 
+  setValueSuccess &= configGPS.addCfgValset32(0x40520001, 115200); // CFG-UART1-BAUDRATE  
+  // ----  gps rates ----------------------------------
+  setValueSuccess &= configGPS.addCfgValset16(0x30210001, 200); // CFG-RATE-MEAS       
+  setValueSuccess &= configGPS.sendCfgValset16(0x30210002, 1,   2000); //CFG-RATE-NAV
+  if (setValueSuccess == true)
+  {
+    CONSOLE.println("Values were successfully set");
+    return true;
+  }
+  else {
+    CONSOLE.println("Value set failed");
+    return false;
+  }    
+}
+
 /* starts the serial communication */
 void UBLOX::begin()
-{
-	this->state    = GOT_NONE;
+{	
+  this->state    = GOT_NONE;
   this->msgclass = -1;
   this->msgid    = -1;
   this->msglen   = -1;
@@ -44,6 +114,9 @@ void UBLOX::begin()
   this->dgpsPacketCounter = 0;
 	// begin the serial port for uBlox	
   _bus->begin(_baud);
+  if (GPS_CONFIG){
+    configure();
+  }
 }
 
 
