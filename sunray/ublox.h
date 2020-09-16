@@ -5,13 +5,13 @@
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
   ublox f9p UBX parser
-  Note: only activate UBX messages: 
+  uses UBX messages: 
   1) 'UBX-NAV-PTV'        10  (Navigation Position Velocity Time Solution)
   2) 'UBX-NAV-RELPOSNED'   1  (Relative Positioning Information in NED frame)
   3) 'UBX-NAV-HPPOSLLH'    1  (absolute position)
   4) 'UBX-NAV-VELNED'      1  (velocity)
   5) 'UBX-RXM-RTCM'        5  (RTCM messages)
-  6) 'UBX-NAV-SIG'        10 (signal information)
+  6) 'UBX-NAV-SIG'        20 (signal information)
   https://www.u-blox.com/sites/default/files/u-blox_ZED-F9P_InterfaceDescription_%28UBX-18010854%29.pdf
 
 */

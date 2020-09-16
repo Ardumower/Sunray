@@ -84,14 +84,19 @@ bool UBLOX::configure(){
   setValueSuccess &= configGPS.addCfgValset8(0x10740004, 0); // CFG-UART1OUTPROT-RTCM3X    
   // uart1 baudrate (Ardumower) 
   setValueSuccess &= configGPS.addCfgValset32(0x40520001, _baud); // CFG-UART1-BAUDRATE  
+  
   // ----  gps navx5 input filter ----------------------------------
+  // minimum input signals the receiver should use
+  // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#RTK_float-to-fix_recovery_and_false-fix_issues  
   //setValueSuccess &= configGPS.addCfgValset8(0x201100a1, 3); // CFG-NAVSPG-INFIL_MINSVS
   //setValueSuccess &= configGPS.addCfgValset8(0x201100a2, 32); // CFG-NAVSPG-INFIL_MAXSVS
-  //setValueSuccess &= configGPS.addCfgValset8(0x201100a3, 6); // CFG-NAVSPG-INFIL_MINCNO
+  //setValueSuccess &= configGPS.addCfgValset8(0x201100a3, 6); // CFG-NAVSPG-INFIL_MINCNO     
   // ----  gps nav5 input filter ----------------------------------
-  setValueSuccess &= configGPS.addCfgValset8(0x201100a4, 10); // CFG-NAVSPG-INFIL_MINELEV
-  setValueSuccess &= configGPS.addCfgValset8(0x201100aa, 10); // CFG-NAVSPG-INFIL_NCNOTHRS
-  setValueSuccess &= configGPS.addCfgValset8(0x201100ab, 30); // CFG-NAVSPG-INFIL_CNOTHRS  
+  // minimum condition when the receiver should try a navigation solution
+  // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#RTK_float-to-fix_recovery_and_false-fix_issues
+  setValueSuccess &= configGPS.addCfgValset8(0x201100a4, 10); // 10 (10) CFG-NAVSPG-INFIL_MINELEV
+  setValueSuccess &= configGPS.addCfgValset8(0x201100aa, 0); // 10 (0) CFG-NAVSPG-INFIL_NCNOTHRS
+  setValueSuccess &= configGPS.addCfgValset8(0x201100ab, 0); // 30 (0) CFG-NAVSPG-INFIL_CNOTHRS  
   // ----  gps rates ----------------------------------
   setValueSuccess &= configGPS.addCfgValset16(0x30210001, 200); // CFG-RATE-MEAS       
   setValueSuccess &= configGPS.sendCfgValset16(0x30210002, 1,   2000); //CFG-RATE-NAV
