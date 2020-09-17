@@ -30,19 +30,28 @@ UBLOX::UBLOX(HardwareSerial& bus,uint32_t baud)
 
 
 bool UBLOX::configure(){
-  CONSOLE.print("ublox f9p configuring... ");
+  CONSOLE.print("ublox f9p: connecting - ");
+  CONSOLE.print("trying baud ");
+  CONSOLE.print(_baud);
+  CONSOLE.print("...");
   //configGPS.enableDebugging(CONSOLE, false);  
-  int counter = 0;
   if (configGPS.begin(*_bus) == false) {
+    CONSOLE.print("trying baud 38400...");    
     _bus->begin(38400);
     if (configGPS.begin(*_bus) == false) {
       _bus->begin(_baud);
-      CONSOLE.println(F("ERROR: unable to perform ublox configuration"));
+      CONSOLE.println(F("ERROR: GPS receiver is not responding"));
       return false;         
-    }
+    } 
+    configGPS.setVal32(0x40520001, _baud, VAL_LAYER_RAM);  // CFG-UART1-BAUDRATE   (Ardumower)
+    _bus->begin(_baud);          
   }     
-    
+  CONSOLE.println("GPS receiver found!");
+  
+   
   bool setValueSuccess = true;
+  
+  CONSOLE.print("ublox f9p: sending GPS rover configuration...");
   
   // ---- uart2 messages (Xbee/NTRIP) -------------------
   setValueSuccess &= configGPS.newCfgValset8(0x209100a8, 0, VAL_LAYER_RAM); // CFG-MSGOUT-NMEA_ID_DTM_UART2
@@ -83,7 +92,7 @@ bool UBLOX::configure(){
   setValueSuccess &= configGPS.addCfgValset8(0x10740002, 0); // CFG-UART1OUTPROT-NMEA  
   setValueSuccess &= configGPS.addCfgValset8(0x10740004, 0); // CFG-UART1OUTPROT-RTCM3X    
   // uart1 baudrate (Ardumower) 
-  setValueSuccess &= configGPS.addCfgValset32(0x40520001, _baud); // CFG-UART1-BAUDRATE  
+  //setValueSuccess &= configGPS.addCfgValset32(0x40520001, _baud); // CFG-UART1-BAUDRATE  
   
   // ----  gps navx5 input filter ----------------------------------
   // minimum input signals the receiver should use
@@ -100,17 +109,15 @@ bool UBLOX::configure(){
   // ----  gps rates ----------------------------------
   setValueSuccess &= configGPS.addCfgValset16(0x30210001, 200); // CFG-RATE-MEAS       
   setValueSuccess &= configGPS.sendCfgValset16(0x30210002, 1,   2000); //CFG-RATE-NAV
-  
-  
-  _bus->begin(_baud);
+     
   
   if (setValueSuccess == true)
   {
-    CONSOLE.println("Values were successfully set");
+    CONSOLE.println("config sent successfully");
     return true;
   }
   else {
-    CONSOLE.println("Value set failed");
+    CONSOLE.println("ERROR: config sending failed");
     return false;
   }    
 }

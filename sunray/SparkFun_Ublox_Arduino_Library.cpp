@@ -74,11 +74,20 @@ boolean SFE_UBLOX_GPS::begin(TwoWire &wirePort, uint8_t deviceAddress)
 
 //Initialize the Serial port
 boolean SFE_UBLOX_GPS::begin(Stream &serialPort)
-{
+{ 
   commType = COMM_TYPE_SERIAL;
   _serialPort = &serialPort; //Grab which port the user wants us to use
   
   return (isConnected());
+  /*int counter = 0;
+  while (true){
+    if (isConnected(200)) break;
+    if (counter > 50){
+      return false;
+    }
+    counter++;
+  }
+  return true;*/
 }
 
 //Enable or disable the printing of sent/response HEX values.
