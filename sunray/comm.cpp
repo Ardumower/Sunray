@@ -614,6 +614,8 @@ void outputConsole(){
     CONSOLE.print(gps.lon,8);
     CONSOLE.print(" lat=");
     CONSOLE.print(gps.lat,8);    
+    CONSOLE.print(" h=");
+    CONSOLE.print(gps.height,1);    
     CONSOLE.print(" n=");
     CONSOLE.print(gps.relPosN);
     CONSOLE.print(" e=");
