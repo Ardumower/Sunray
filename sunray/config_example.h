@@ -250,6 +250,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define GPS_CONFIG   true     // configure GPS receiver (recommended )
 //#define GPS_CONFIG   false  // do not configure GPS receiver
 
+#define GPS_CONFIG_FILTER   true     // use signal strength filter? (recommended)
+//#define GPS_CONFIG_FILTER   false     // use this if you have difficulties to get a FIX solution
+
 
 // ------ experimental options -------------------------
 

@@ -103,9 +103,15 @@ bool UBLOX::configure(){
   // ----  gps nav5 input filter ----------------------------------
   // minimum condition when the receiver should try a navigation solution
   // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#RTK_float-to-fix_recovery_and_false-fix_issues
-  setValueSuccess &= configGPS.addCfgValset8(0x201100a4, 10); // 10 (10) CFG-NAVSPG-INFIL_MINELEV
-  setValueSuccess &= configGPS.addCfgValset8(0x201100aa, 0); // 10 (0) CFG-NAVSPG-INFIL_NCNOTHRS
-  setValueSuccess &= configGPS.addCfgValset8(0x201100ab, 0); // 30 (0) CFG-NAVSPG-INFIL_CNOTHRS  
+  if (GPS_CONFIG_FILTER){
+    setValueSuccess &= configGPS.addCfgValset8(0x201100a4, 10); // CFG-NAVSPG-INFIL_MINELEV
+    setValueSuccess &= configGPS.addCfgValset8(0x201100aa, 10); // CFG-NAVSPG-INFIL_NCNOTHRS
+    setValueSuccess &= configGPS.addCfgValset8(0x201100ab, 30); // CFG-NAVSPG-INFIL_CNOTHRS     
+  } else {
+    setValueSuccess &= configGPS.addCfgValset8(0x201100a4, 10); // CFG-NAVSPG-INFIL_MINELEV
+    setValueSuccess &= configGPS.addCfgValset8(0x201100aa, 0);  // CFG-NAVSPG-INFIL_NCNOTHRS
+    setValueSuccess &= configGPS.addCfgValset8(0x201100ab, 0);  // CFG-NAVSPG-INFIL_CNOTHRS     
+  }
   // ----  gps rates ----------------------------------
   setValueSuccess &= configGPS.addCfgValset16(0x30210001, 200); // CFG-RATE-MEAS       
   setValueSuccess &= configGPS.sendCfgValset16(0x30210002, 1,   2000); //CFG-RATE-NAV
