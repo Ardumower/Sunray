@@ -247,7 +247,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define GPS_MOTION_DETECTION_TIMEOUT  30      // timeout for motion (secs)
 
 // configure ublox f9p with optimal settings (will be stored in f9p RAM only)
-// NOTE: due to a PCB1.3 bug this is not working yet (GPS RX pin is not working, we are working on a solution)
+// NOTE: due to a PCB1.3 bug GPS_RX pin is not working and you have to fix this by a wire:
+// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#PCB1.3_GPS_pin_fix   (see step 2)
 #define GPS_CONFIG   true     // configure GPS receiver (recommended )
 //#define GPS_CONFIG   false  // do not configure GPS receiver
 
