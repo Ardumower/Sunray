@@ -94,6 +94,12 @@ bool UBLOX::configure(){
   // uart1 baudrate (Ardumower) 
   //setValueSuccess &= configGPS.addCfgValset32(0x40520001, _baud); // CFG-UART1-BAUDRATE  
   
+  // ---- gps fix mode ---------------------------------------------    
+  // we contrain altitude here (when receiver is started in docking station it may report a wrong altitude)
+  setValueSuccess &= configGPS.addCfgValset8(0x20110011, 1); // CFG-NAVSPG-FIXMODE    (2d)
+  setValueSuccess &= configGPS.addCfgValset8(0x10110013, 1); // CFG-NAVSPG-INIFIX3D   
+  setValueSuccess &= configGPS.addCfgValset32(0x401100c1, 10000); // CFG-NAVSPG-CONSTR_ALT    (100m)
+  
   // ----  gps navx5 input filter ----------------------------------
   // minimum input signals the receiver should use
   // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#RTK_float-to-fix_recovery_and_false-fix_issues  
