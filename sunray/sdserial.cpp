@@ -35,10 +35,16 @@ void SDSerial::begin(unsigned long baud){
 
 void SDSerial::beginSD(){  
 
-  if (!SD.begin(SDCARD_SS_PIN)) {
-    CONSOLE.println("no SD card found");
-    return;
-  } 
+  int counter = 0;
+  while (true){
+    if (SD.begin(SDCARD_SS_PIN)) break;    
+    CONSOLE.println("no SD card found");          
+    delay(500);
+    counter++;
+    if (counter > 3){
+      return;
+    }
+  }
   CONSOLE.println("SD card found!");
   
   for (int i=1000; i < 9000; i++){
