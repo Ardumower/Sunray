@@ -14,7 +14,7 @@
 // Adafruit Grand Central M4: flash size 1024 kb (0x100000 bytes), flash page size 512 bytes
 #define FLASH_ADDRESS (0x100000 - 512) 
 //#define FLASH_ADDRESS  0x3FF80
-#define SP_COUNT 32
+#define SP_COUNT 128
 uint32_t *spReg;
 uint32_t *wdg_pointer_to_page_in_flash = (uint32_t*)FLASH_ADDRESS;
 
