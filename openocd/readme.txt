@@ -114,11 +114,12 @@ transport select swd
 set CHIPNAME at91samd51p20a
 source [find target/atsame5x.cfg]
 init
-reset
+reset 
 halt
 atsame5 bootloader 0
+program bootloader-grandcentral_m4-v3.10.0.bin verify
+atsame5 bootloader 16384
 reset
-program bootloader-grandcentral_m4-v3.10.0.bin verify reset
 shutdown
 
 3. Run 'sudo openocd'
