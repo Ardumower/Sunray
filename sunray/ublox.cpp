@@ -90,16 +90,13 @@ bool UBLOX::configure(){
   setValueSuccess &= configGPS.addCfgValset8(0x10730004, 1); // CFG-UART1INPROT-RTCM3X
   setValueSuccess &= configGPS.addCfgValset8(0x10740001, 1); // CFG-UART1OUTPROT-UBX
   setValueSuccess &= configGPS.addCfgValset8(0x10740002, 0); // CFG-UART1OUTPROT-NMEA  
-  setValueSuccess &= configGPS.addCfgValset8(0x10740004, 0); // CFG-UART1OUTPROT-RTCM3X    
-  // uart1 baudrate (Ardumower) 
-  //setValueSuccess &= configGPS.addCfgValset32(0x40520001, _baud); // CFG-UART1-BAUDRATE  
-  
+  setValueSuccess &= configGPS.addCfgValset8(0x10740004, 0); // CFG-UART1OUTPROT-RTCM3X      
   // ---- gps fix mode ---------------------------------------------    
   // we contrain altitude here (when receiver is started in docking station it may report a wrong 
   // altitude without correction data and SAPOS will not work with an unplausible reported altitute - the contrains are 
   // ignored once receiver is working in RTK mode)
-  setValueSuccess &= configGPS.addCfgValset8(0x20110011, 1); // CFG-NAVSPG-FIXMODE    (2d)
-  setValueSuccess &= configGPS.addCfgValset8(0x10110013, 1); // CFG-NAVSPG-INIFIX3D   
+  setValueSuccess &= configGPS.addCfgValset8(0x20110011, 3); // CFG-NAVSPG-FIXMODE    (1=2d only, 2=3d only, 3=auto)
+  setValueSuccess &= configGPS.addCfgValset8(0x10110013, 0); // CFG-NAVSPG-INIFIX3D   
   setValueSuccess &= configGPS.addCfgValset32(0x401100c1, 10000); // CFG-NAVSPG-CONSTR_ALT    (100m)
   
   // ----  gps navx5 input filter ----------------------------------
