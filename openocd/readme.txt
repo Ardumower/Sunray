@@ -97,8 +97,8 @@ interface: Segger JLink
   C:\Users\alex\AppData\Local\Arduino15\packages\adafruit\tools\arm-none-eabi-gcc\9-2019q4\bin>arm-none-eabi-gdb -ex="target remote localhost:3333" c:\users\alex\AppData\local\temp\arduino_build_408598\sunray.ino.elf -ex="load"
     
     
-c) How to flash bootloader
---------------------------
+c) How to flash bootloader using JLink and OpenOCD
+--------------------------------------------------
 target: Adafruit Grand Central M4 (SAMD51P20A, 1024KB Flash, 256KB RAM)
 interface: Segger JLink
 
@@ -124,4 +124,24 @@ shutdown
 
 3. Run 'sudo openocd'
     
+    
+
+d) How to flash bootloader using JLink and JLink-Commander
+----------------------------------------------------------
+target: Adafruit Grand Central M4 (SAMD51P20A, 1024KB Flash, 256KB RAM)
+interface: Segger JLink
+
+1. Start JLink-Command and enter:
+
+r
+h
+erase
+w2 0x41004000, 0xA51A
+loadbin bootloader-grandcentral_m4-v3.6.0.bin, 0x0
+verifybin bootloader-grandcentral_m4-v3.6.0.bin, 0x0
+r
+qc    
+    
+
+
     
