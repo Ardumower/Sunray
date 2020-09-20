@@ -75,7 +75,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // (you can find out the location of the compiled .elf file while compiling with verbose compilation switched on 
 //  via 'File->Preferences->Full output during compile')
 // detailed steps here:  https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#SD_card_logging
-//#define ENABLE_SD  1                 // enable SD card logging? (uncomment for SD card logging)
+//#define ENABLE_SD      1                 // enable SD card services (save, load, logging)? (uncomment to activate)
+//#define ENABLE_SD_LOG  1                 // enable SD card logging? (uncomment to activate)
+
 
 // --------- serial monitor output (CONSOLE) ------------------------
 // which Arduino Due USB port do you want to your for serial monitor output (CONSOLE)?
@@ -383,4 +385,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
   #define CONSOLE udpSerial         
 #endif
 
+#ifndef SDCARD_SS_PIN
+#define SDCARD_SS_PIN 4
+#endif
 

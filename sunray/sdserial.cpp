@@ -8,10 +8,6 @@
 
 
 
-#ifndef SDCARD_SS_PIN
-#define SDCARD_SS_PIN 4
-#endif
-
 #if defined(_SAM3XA_)                 // Arduino Due
   #define CONSOLE SerialUSB
 #else
@@ -34,12 +30,6 @@ void SDSerial::begin(unsigned long baud){
 }  
 
 void SDSerial::beginSD(){  
-
-  if (!SD.begin(SDCARD_SS_PIN)){
-    CONSOLE.println("no SD card found");          
-    return;
-  }
-  CONSOLE.println("SD card found!");
   
   for (int i=1000; i < 9000; i++){
     logFileName = "log";

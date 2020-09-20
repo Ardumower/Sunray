@@ -3,6 +3,9 @@
 // Licensed GPLv3 for open source use
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
+#include <Arduino.h>
+#include <SD.h>
+
 #include "robot.h"
 #include "comm.h"
 #include "WiFiEsp.h"
@@ -24,7 +27,7 @@
 #include "reset.h"
 #include "cpu.h"
 #include "i2c.h"
-#include <Arduino.h>
+
 
 // #define I2C_SPEED  10000
 #define _BV(x) (1 << (x))
@@ -457,7 +460,14 @@ void start(){
   delay(1500);
     
   #if defined(ENABLE_SD)
-    sdSerial.beginSD();  
+    if (SD.begin(SDCARD_SS_PIN)){
+      CONSOLE.println("SD card found!");
+      #if defined(ENABLE_SD_LOG)        
+        sdSerial.beginSD();  
+      #endif
+    } else {
+      CONSOLE.println("no SD card found");                
+    }    
   #endif 
   
   logResetCause();
@@ -495,7 +505,7 @@ void start(){
   CONSOLE.println("-----------------------------------------------------");
   
   gps.begin();   
-  maps.begin();    
+  maps.begin();      
   //maps.clipperTest();
   
   myHumidity.begin();    

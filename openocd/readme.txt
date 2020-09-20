@@ -89,5 +89,7 @@ interface: Raspberry PI4
 7.2. Connect with GDB:
   C:\Users\alex\AppData\Local\Arduino15\packages\adafruit\tools\arm-none-eabi-gcc\9-2019q4\bin>arm-none-eabi-gdb -ex="target remote localhost:3333" c:\users\alex\AppData\local\temp\arduino_build_408598\sunray.ino.elf
     
+7.3. Flash with GDB:
+  C:\Users\alex\AppData\Local\Arduino15\packages\adafruit\tools\arm-none-eabi-gcc\9-2019q4\bin>arm-none-eabi-gdb -ex="target remote localhost:3333" c:\users\alex\AppData\local\temp\arduino_build_408598\sunray.ino.elf -ex="load"
     
     

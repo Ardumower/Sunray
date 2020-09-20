@@ -7,6 +7,7 @@
 #include "config.h"
 #include <Arduino.h>
 
+
 #if defined(__SAMD51__)     // Adafruit Grand Central M4
   #define FLOAT_CALC    1    // comment out line for using integer calculations instead of float
 #endif
@@ -59,6 +60,28 @@ long Point::crc(){
   return (px + py);  
 }
 
+bool Point::read(File &file){
+  byte marker = file.read();
+  if (marker != 0xAA){
+    CONSOLE.println("ERROR reading point: invalid marker");
+    return false;
+  }
+  px = file.read() | (file.read() << 8);
+  py = file.read() | (file.read() << 8);
+  return true;
+}
+
+bool Point::write(File &file){
+  bool res = true;
+  res &= (file.write(0xAA) == 1);
+  res &= (file.write(px & 0xFF) == 1);
+  res &= (file.write( (px >> 8) & 0xFF) == 1);
+  res &= (file.write(py & 0xFF) == 1);
+  res &= (file.write( (py >> 8) & 0xFF) == 1);
+  return res;
+}
+
+
 // -----------------------------------
 Polygon::Polygon(){  
   init();
@@ -79,13 +102,17 @@ Polygon::~Polygon(){
   // dealloc();
 }
 
-void Polygon::alloc(short aNumPoints){
-  if (aNumPoints == numPoints) return;
-  Point* newPoints = new Point[aNumPoints+CHECK_CORRUPT];  
-  if (newPoints == NULL){
-    CONSOLE.println("ERROR Polygon::alloc");
+bool Polygon::alloc(short aNumPoints){
+  if (aNumPoints == numPoints) return true;
+  if ((aNumPoints < 0) || (aNumPoints > 5000)) {
+    CONSOLE.println("ERROR Polygon::alloc invalid number");    
+    return false;
+  }
+  Point* newPoints = new Point[aNumPoints+CHECK_CORRUPT];    
+  if (newPoints == NULL) {
+    CONSOLE.println("ERROR Polygon::alloc out of memory");
     memoryAllocErrors++;
-    return;
+    return false;
   }
   if (points != NULL){
     memcpy(newPoints, points, sizeof(Point)* min(numPoints,aNumPoints) );        
@@ -97,6 +124,7 @@ void Polygon::alloc(short aNumPoints){
   numPoints = aNumPoints;
   points[numPoints].px=CHECK_ID;
   points[numPoints].py=CHECK_ID;
+  return true;
 }
 
 void Polygon::dealloc(){
@@ -128,6 +156,28 @@ long Polygon::crc(){
   return crc;
 }
 
+bool Polygon::read(File &file){
+  byte marker = file.read();
+  if (marker != 0xBB){
+    CONSOLE.println("ERROR reading polygon: invalid marker");
+    return false;
+  }
+  int num = file.read() | (file.read() << 8);    
+  if (!alloc(num)) return false;
+  for (int i=0; i < num; i++){    
+    if (!points[i].read(file)) return false;
+  }
+  return true;
+}
+
+bool Polygon::write(File &file){
+  file.write(0xBB);  
+  for (int i=0; i < numPoints; i++){    
+    if (!points[i].write(file)) return false;
+  }
+  return true;  
+}
+
 // -----------------------------------
 
 PolygonList::PolygonList(){
@@ -148,13 +198,17 @@ PolygonList::~PolygonList(){
   //dealloc();
 }
 
-void PolygonList::alloc(short aNumPolygons){  
-  if (aNumPolygons == numPolygons) return;
+bool PolygonList::alloc(short aNumPolygons){  
+  if (aNumPolygons == numPolygons) return true;
+  if ((aNumPolygons < 0) || (aNumPolygons > 5000)) {
+    CONSOLE.println("ERROR PolygonList::alloc invalid number");    
+    return false;
+  }
   Polygon* newPolygons = new Polygon[aNumPolygons+CHECK_CORRUPT];  
   if (newPolygons == NULL){
-    CONSOLE.println("ERROR PolygonList::alloc");
+    CONSOLE.println("ERROR PolygonList::alloc out of memory");
     memoryAllocErrors++;
-    return;
+    return false;
   }
   if (polygons != NULL){
     memcpy(newPolygons, polygons, sizeof(Polygon)* min(numPolygons, aNumPolygons));        
@@ -169,6 +223,7 @@ void PolygonList::alloc(short aNumPolygons){
   polygons = newPolygons;              
   numPolygons = aNumPolygons;  
   polygons[numPolygons].points = CHECK_POINT;
+  return true;
 }
 
 void PolygonList::dealloc(){
@@ -206,6 +261,29 @@ long PolygonList::crc(){
   }
   return crc;
 }
+
+bool PolygonList::read(File &file){
+  byte marker = file.read();
+  if (marker != 0xCC){
+    CONSOLE.println("ERROR reading polygon list: invalid marker");
+    return false;
+  }
+  int num = file.read() | (file.read() << 8);    
+  if (!alloc(num)) return false;
+  for (int i=0; i < num; i++){    
+    if (!polygons[i].read(file)) return false;
+  }
+  return true;
+}
+
+bool PolygonList::write(File &file){
+  file.write(0xCC);  
+  for (int i=0; i < numPolygons; i++){    
+    if (!polygons[i].write(file)) return false;
+  }
+  return true;  
+}
+
 
 // -----------------------------------
 
@@ -254,13 +332,17 @@ NodeList::~NodeList(){
   //dealloc();
 }
 
-void NodeList::alloc(short aNumNodes){  
-  if (aNumNodes == numNodes) return;
+bool NodeList::alloc(short aNumNodes){  
+  if (aNumNodes == numNodes) return true;
+  if ((aNumNodes < 0) || (aNumNodes > 20000)) {
+    CONSOLE.println("ERROR NodeList::alloc invalid number");    
+    return false;
+  }
   Node* newNodes = new Node[aNumNodes+CHECK_CORRUPT];  
   if (newNodes == NULL){
     CONSOLE.println("ERROR NodeList::alloc");
     memoryAllocErrors++;
-    return;
+    return false;
   }
   if (nodes != NULL){
     memcpy(newNodes, nodes, sizeof(Node)* min(numNodes, aNumNodes));        
@@ -275,6 +357,7 @@ void NodeList::alloc(short aNumNodes){
   nodes = newNodes;              
   numNodes = aNumNodes;  
   nodes[numNodes].point=CHECK_POINT;
+  return true;
 }
 
 void NodeList::dealloc(){
@@ -359,6 +442,7 @@ void Map::begin(){
   dockPointsIdx = 0;  
   CONSOLE.print("sizeof Point=");
   CONSOLE.println(sizeof(Point));  
+  //load();
 }
 
 void Map::calcCRC(){   
@@ -393,6 +477,7 @@ void Map::dump(){
   CONSOLE.print("free pts: ");
   CONSOLE.println(freePoints.numPoints);  
   checkMemoryErrors();
+  //save();
 }
 
 void Map::checkMemoryErrors(){
@@ -407,7 +492,71 @@ void Map::checkMemoryErrors(){
     CONSOLE.print(" *********************");
   } 
 }
+
+
+bool Map::load(){
+  CONSOLE.print("map load... ");
+  if (!SD.exists("map.bin")) {
+    CONSOLE.println("no map file!");
+    return false;
+  }
+  mapFile = SD.open("map.bin", FILE_READ);
+  if (!mapFile){        
+    CONSOLE.println("ERROR opening file for reading");
+    return false;
+  }
+  uint32_t marker = mapFile.read() | (mapFile.read() << 8) | (mapFile.read() << 16) | (mapFile.read() << 24);
+  if (marker != 0x00001000){
+    CONSOLE.println("ERROR: invalid marker");
+    return false;
+  }
+  bool res = true;
+  if (res){
+    res &= perimeterPoints.read(mapFile);
+    res &= exclusions.read(mapFile);    
+    res &= dockPoints.read(mapFile);
+    res &= mowPoints.read(mapFile);        
+  }      
+  if (res){
+    CONSOLE.println("ok");
+  } else {
+    CONSOLE.println("ERROR loading map");
+  }
+  mapFile.close();  
+  return true;
+}
  
+ 
+bool Map::save(){
+  CONSOLE.print("map save... ");
+  mapFile = SD.open("map.bin", FILE_WRITE);
+  if (!mapFile){        
+    CONSOLE.println("ERROR opening file for writing");
+    return false;
+  }
+  bool res = true;
+  uint32_t marker = 0x00001000;
+  res &= (mapFile.write(marker & 0xFF) == 1);
+  res &= (mapFile.write((marker >> 8) && 0xFF) == 1);
+  res &= (mapFile.write((marker >> 16) && 0xFF) == 1);
+  res &= (mapFile.write((marker >> 24) && 0xFF) == 1);  
+  
+  if (res){
+    res &= perimeterPoints.write(mapFile);
+    res &= exclusions.write(mapFile);    
+    res &= dockPoints.write(mapFile);
+    res &= mowPoints.write(mapFile);        
+  }      
+  if (res){
+    CONSOLE.println("ok");
+  } else {
+    CONSOLE.println("ERROR saving map");
+  }
+  mapFile.close();
+  return res;    
+}
+
+
  
 // set point
 bool Map::setPoint(int idx, float x, float y){  
@@ -432,9 +581,11 @@ bool Map::setPoint(int idx, float x, float y){
       return false;
     }
   }
-  points.alloc(idx+1);
-  points.points[idx].setXY(x, y);      
-  return true;
+  if (points.alloc(idx+1)){
+    points.points[idx].setXY(x, y);      
+    return true;
+  }
+  return false;
 }
 
 
@@ -446,28 +597,31 @@ bool Map::setWayCount(WayType type, int count){
   }  
   switch (type){
     case WAY_PERIMETER:            
-      perimeterPoints.alloc(count);
-      for (int i=0; i < count; i++){
-        perimeterPoints.points[i].assign( points.points[i] );
+      if (perimeterPoints.alloc(count)){
+        for (int i=0; i < count; i++){
+          perimeterPoints.points[i].assign( points.points[i] );
+        }
       }
       break;
     case WAY_EXCLUSION:      
       exclusionPointsCount = count;                  
       break;
     case WAY_DOCK:    
-      dockPoints.alloc(count);      
-      for (int i=0; i < count; i++){
-        dockPoints.points[i].assign( points.points[perimeterPoints.numPoints + exclusionPointsCount + i] );
+      if (dockPoints.alloc(count)){
+        for (int i=0; i < count; i++){
+          dockPoints.points[i].assign( points.points[perimeterPoints.numPoints + exclusionPointsCount + i] );
+        }
       }
       break;
     case WAY_MOW:          
-      mowPoints.alloc(count);
-      for (int i=0; i < count; i++){
-        mowPoints.points[i].assign( points.points[perimeterPoints.numPoints + exclusionPointsCount + dockPoints.numPoints + i] );
-      }
-      if (exclusionPointsCount == 0){
-        points.dealloc();
-        dump();
+      if (mowPoints.alloc(count)){
+        for (int i=0; i < count; i++){
+          mowPoints.points[i].assign( points.points[perimeterPoints.numPoints + exclusionPointsCount + dockPoints.numPoints + i] );
+        }
+        if (exclusionPointsCount == 0){
+          points.dealloc();
+          dump();
+        }
       }
       break;    
     case WAY_FREE:      
@@ -493,8 +647,8 @@ bool Map::setExclusionLength(int idx, int len){
   CONSOLE.print("=");
   CONSOLE.println(len);*/
     
-  exclusions.alloc(idx+1);
-  exclusions.polygons[idx].alloc(len);
+  if (!exclusions.alloc(idx+1)) return false;
+  if (!exclusions.polygons[idx].alloc(len)) return false;
   
   
   int ptIdx = 0;  
@@ -636,6 +790,7 @@ void Map::setIsDocked(bool flag){
 }
 
 bool Map::startDocking(float stateX, float stateY){
+  CONSOLE.println("Map::startDocking");
   if ((memoryCorruptions != 0) || (memoryAllocErrors != 0)){
     CONSOLE.println("ERROR startDocking: memory errors");
     return false; 
@@ -651,13 +806,20 @@ bool Map::startDocking(float stateX, float stateY){
     dst.assign(dockPoints.points[0]);        
     //findPathFinderSafeStartPoint(src, dst);      
     wayMode = WAY_FREE;              
-    if (findPath(src, dst)){
+    if (findPath(src, dst)){      
       return true;
-    } else return false;
-  } else return false; 
+    } else {
+      CONSOLE.println("ERROR: no path");
+      return false;
+    }
+  } else {
+    CONSOLE.println("ERROR: no points");
+    return false; 
+  }
 }
 
 bool Map::startMowing(float stateX, float stateY){  
+  CONSOLE.println("Map::startMowing");
   //stressTest();
   //testIntegerCalcs();
   //return false;
@@ -683,11 +845,20 @@ bool Map::startMowing(float stateX, float stateY){
     if (findObstacleSafeMowPoint()){
       dst.assign(mowPoints.points[mowPointsIdx]);      
       //findPathFinderSafeStartPoint(src, dst);      
-      if (findPath(src, dst)){
+      if (findPath(src, dst)){        
         return true;
-      } else return false;      
-    } else return false;
-  } else return false; 
+      } else {
+        CONSOLE.println("ERROR: no path");
+        return false;      
+      }
+    } else {
+      CONSOLE.println("ERROR: no safe start point");
+      return false;
+    }
+  } else {
+    CONSOLE.println("ERROR: no points");
+    return false; 
+  }
 }
 
 
@@ -696,7 +867,7 @@ void Map::clearObstacles(){
 }
 
 // add dynamic octagon obstacle in front of robot on line going from robot to target point
-void Map::addObstacle(float stateX, float stateY){    
+bool Map::addObstacle(float stateX, float stateY){    
   float d1 = 0.2;   // distance from center to nearest octagon edges
   float d2 = 3*d1;  // distance from center to farest octagon edges
   
@@ -711,11 +882,11 @@ void Map::addObstacle(float stateX, float stateY){
   CONSOLE.println(y);
   if (obstacles.numPolygons > 50){
     CONSOLE.println("error: too many obstacles");
-    return;
+    return false;
   }
   int idx = obstacles.numPolygons;
-  obstacles.alloc(idx+1);
-  obstacles.polygons[idx].alloc(8);
+  if (!obstacles.alloc(idx+1)) return false;
+  if (!obstacles.polygons[idx].alloc(8)) return false;
   
   obstacles.polygons[idx].points[0].setXY(x-d2, y-d1);
   obstacles.polygons[idx].points[1].setXY(x-d1, y-d2);
@@ -725,6 +896,7 @@ void Map::addObstacle(float stateX, float stateY){
   obstacles.polygons[idx].points[5].setXY(x+d1, y+d2);
   obstacles.polygons[idx].points[6].setXY(x-d1, y+d2);
   obstacles.polygons[idx].points[7].setXY(x-d2, y+d1);         
+  return true;
 }
 
 
@@ -1173,14 +1345,14 @@ float Map::polygonArea(Polygon &poly){
   
 // offset polygon points by distance
 // https://stackoverflow.com/questions/54033808/how-to-offset-polygon-edges
-void Map::polygonOffset(Polygon &srcPoly, Polygon &dstPoly, float dist){    
+bool Map::polygonOffset(Polygon &srcPoly, Polygon &dstPoly, float dist){    
   bool orient = (polygonArea(srcPoly) >= 0);
   //console.log('orient',orient);
   //var orient2 = ClipperLib.Clipper.Orientation(poly);
   //if (orient != orient2){
   //  console.log('polygonOffset bogus!');   
   //}        
-  dstPoly.alloc(srcPoly.numPoints);
+  if (!dstPoly.alloc(srcPoly.numPoints)) return false;
   Point p1;
   Point p2;
   Point p3;  
@@ -1199,6 +1371,7 @@ void Map::polygonOffset(Polygon &srcPoly, Polygon &dstPoly, float dist){
     if (!orient) angle+=PI;    
     dstPoly.points[idx1].setXY( p1.x() + dist * cos(angle), p1.y() + dist * sin(angle) );     
   }  
+  return true;
 }
 
       
@@ -1282,22 +1455,22 @@ bool Map::findPath(Point &src, Point &dst){
     
     // create path-finder obstacles    
     int idx = 0;
-    pathFinderObstacles.alloc(1 + exclusions.numPolygons + obstacles.numPolygons);        
+    if (!pathFinderObstacles.alloc(1 + exclusions.numPolygons + obstacles.numPolygons)) return false;
     
     if (freeMemory () < 5000){
       CONSOLE.println("OUT OF MEMORY");
       return false;
     }
     
-    polygonOffset(perimeterPoints, pathFinderObstacles.polygons[idx], 0.02);      
+    if (!polygonOffset(perimeterPoints, pathFinderObstacles.polygons[idx], 0.02)) return false;
     idx++;
     
     for (int i=0; i < exclusions.numPolygons; i++){
-      polygonOffset(exclusions.polygons[i], pathFinderObstacles.polygons[idx], -0.02);
+      if (!polygonOffset(exclusions.polygons[i], pathFinderObstacles.polygons[idx], -0.02)) return false;
       idx++;
     }      
     for (int i=0; i < obstacles.numPolygons; i++){
-      polygonOffset(obstacles.polygons[i], pathFinderObstacles.polygons[idx], -0.02);
+      if (!polygonOffset(obstacles.polygons[i], pathFinderObstacles.polygons[idx], -0.02)) return false;
       idx++;
     }  
     
@@ -1311,7 +1484,7 @@ bool Map::findPath(Point &src, Point &dst){
     //pathFinderObstacles.dump();
     
     // create nodes
-    pathFinderNodes.alloc(exclusions.numPoints() + obstacles.numPoints() + perimeterPoints.numPoints + 2);        
+    if (!pathFinderNodes.alloc(exclusions.numPoints() + obstacles.numPoints() + perimeterPoints.numPoints + 2)) return false;
     for (int i=0; i < pathFinderNodes.numNodes; i++){
       pathFinderNodes.nodes[i].init();
     }
@@ -1448,7 +1621,7 @@ bool Map::findPath(Point &src, Point &dst){
         nodeCount++;
         curr = curr->parent;        
       }      
-      freePoints.alloc(nodeCount);      
+      if (!freePoints.alloc(nodeCount)) return false;
       curr = currentNode;
       int idx = nodeCount-1;
       while(curr) {                                
@@ -1462,14 +1635,14 @@ bool Map::findPath(Point &src, Point &dst){
       }            
     } else {
       // No result was found
-      CONSOLE.println("no path");      
+      CONSOLE.println("pathfinder: no path");      
       return false;
       //freePoints.alloc(2);
       //freePoints.points[0].assign(src);    
       //freePoints.points[1].assign(dst);        
     }       
   } else {
-    freePoints.alloc(2);
+    if (!freePoints.alloc(2)) return false;
     freePoints.points[0].assign(src);    
     freePoints.points[1].assign(dst);        
   }    

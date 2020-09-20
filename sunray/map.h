@@ -8,6 +8,7 @@
 #define SUNRAY_MAP_H
 
 #include <Arduino.h>
+#include <SD.h>
 
 
 // waypoint type
@@ -28,6 +29,8 @@ class Point
     void setXY(float ax, float ay); // meter
     void assign(Point &fromPoint); 
     long crc();
+    bool read(File &file);
+    bool write(File &file);
 };
 
 
@@ -40,10 +43,12 @@ class Polygon
     Polygon(short aNumPoints);
     ~Polygon();
     void init();
-    void alloc(short aNumPoints);
+    bool alloc(short aNumPoints);
     void dealloc();
     void dump();
     long crc();
+    bool read(File &file);
+    bool write(File &file);
 };
 
 class PolygonList // owns polygons!
@@ -55,11 +60,13 @@ class PolygonList // owns polygons!
      PolygonList(short aNumPolygons);
      ~PolygonList();
      void init();
-     void alloc(short aNumPolygons);
+     bool alloc(short aNumPolygons);
      void dealloc();
      void dump();
      int numPoints();
      long crc();
+     bool read(File &file);
+     bool write(File &file);
 };
 
 class Node   // nodes just hold references to points and other nodes
@@ -88,7 +95,7 @@ class NodeList  // owns nodes!
     NodeList(short aNumNodes);
     ~NodeList();
     void init();
-    void alloc(short aNumNodes);
+    bool alloc(short aNumNodes);
     void dealloc();    
 };
 
@@ -138,6 +145,7 @@ class Map
     PolygonList obstacles;     
     PolygonList pathFinderObstacles;
     NodeList pathFinderNodes;
+    File mapFile;
            
     bool shouldDock;  // start docking?
     bool shouldMow;  // start mowing?       
@@ -172,9 +180,11 @@ class Map
     void setIsDocked(bool flag);
     bool startDocking(float stateX, float stateY);
     bool startMowing(float stateX, float stateY);
-    void addObstacle(float stateX, float stateY);
+    bool addObstacle(float stateX, float stateY);
     void clearObstacles();
     void dump();    
+    bool load();
+    bool save();
     void stressTest();
     void calcCRC();
   private:
@@ -194,7 +204,7 @@ class Map
     bool lineIntersects (Point &p0, Point &p1, Point &p2, Point &p3);        
     bool linePolygonIntersection( Point &src, Point &dst, Polygon &poly);
     float polygonArea(Polygon &poly);
-    void polygonOffset(Polygon &srcPoly, Polygon &dstPoly, float dist);
+    bool polygonOffset(Polygon &srcPoly, Polygon &dstPoly, float dist);
     int findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, int startIdx);
     bool pointIsInsidePolygon( Polygon &polygon, Point &pt);
     void findPathFinderSafeStartPoint(Point &src, Point &dst);
