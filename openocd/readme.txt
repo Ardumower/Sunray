@@ -131,8 +131,11 @@ d) How to flash bootloader using JLink and JLink-Commander
 target: Adafruit Grand Central M4 (SAMD51P20A, 1024KB Flash, 256KB RAM)
 interface: Segger JLink
 
-1. Start JLink-Command and enter:
+1. Start JLink-Commander (JLink.exe) and enter:
 
+si 1 
+speed 4000 
+device ATSAMD51P20A
 r
 h
 erase
