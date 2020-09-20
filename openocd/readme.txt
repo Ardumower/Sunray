@@ -1,6 +1,6 @@
 
-How to hardware-debug using Raspberry PI4 and OpenOCD and gdb
-------------------------------------------------------------------------
+a) How to hardware-debug using Raspberry PI4 and OpenOCD and gdb
+-----------------------------------------------------------------
 
 target: Adafruit Grand Central M4 (SAMD51P20A, 1024KB Flash, 256KB RAM)
 interface: Raspberry PI4
@@ -81,15 +81,46 @@ interface: Raspberry PI4
      monitor reset halt
      
 
-7. Using alternative hardware debuggers (JLink):
+b) How to hardware-debug using JLink and gdb
+---------------------------------------------
 
-7.1. Run JLinkGDBServer:
-  "D:\Program Files (x86)\SEGGER\JLink\JLinkGDBServer.exe" -device ATSAMD51P20A -if swd -speed 4000 -port 3333arm-none-eabi-gdb
+target: Adafruit Grand Central M4 (SAMD51P20A, 1024KB Flash, 256KB RAM)
+interface: Segger JLink
 
-7.2. Connect with GDB:
+1. Run JLinkGDBServer:
+  "D:\Program Files (x86)\SEGGER\JLink\JLinkGDBServer.exe" -device ATSAMD51P20A -if swd -speed 4000 -port 3333
+
+2. Connect with GDB:
   C:\Users\alex\AppData\Local\Arduino15\packages\adafruit\tools\arm-none-eabi-gcc\9-2019q4\bin>arm-none-eabi-gdb -ex="target remote localhost:3333" c:\users\alex\AppData\local\temp\arduino_build_408598\sunray.ino.elf
     
-7.3. Flash with GDB:
+3. Flash with GDB:
   C:\Users\alex\AppData\Local\Arduino15\packages\adafruit\tools\arm-none-eabi-gcc\9-2019q4\bin>arm-none-eabi-gdb -ex="target remote localhost:3333" c:\users\alex\AppData\local\temp\arduino_build_408598\sunray.ino.elf -ex="load"
+    
+    
+c) How to flash bootloader
+--------------------------
+target: Adafruit Grand Central M4 (SAMD51P20A, 1024KB Flash, 256KB RAM)
+interface: Segger JLink
+
+1. Install openocd (for Windows: install WinUSB driver using UsbDriverTool)
+
+2. Download bootloader (.bin) file:
+https://github.com/adafruit/uf2-samdx1/releases
+
+3. Create an OpenOCD file 'openocd.cfg' with the following contents:
+
+source [find interface/jlink.cfg]
+transport select swd
+set CHIPNAME at91samd51p20a
+source [find target/atsame5x.cfg]
+init
+reset
+halt
+atsame5 bootloader 0
+reset
+program bootloader-grandcentral_m4-v3.10.0.bin verify reset
+shutdown
+
+3. Run 'sudo openocd'
     
     
