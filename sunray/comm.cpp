@@ -594,6 +594,9 @@ void outputConsole(){
     CONSOLE.print (stateOp);
     CONSOLE.print (" freem=");
     CONSOLE.print (freeMemory ());
+    uint32_t *spReg = (uint32_t*)__get_MSP();   // stack pointer
+    CONSOLE.print (" sp=");
+    CONSOLE.print (*spReg, HEX);
     CONSOLE.print(" volt=");
     CONSOLE.print(battery.batteryVoltage);
     CONSOLE.print(" chg=");

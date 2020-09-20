@@ -39,9 +39,9 @@ void SDSerial::beginSD(){
   while (true){
     if (SD.begin(SDCARD_SS_PIN)) break;    
     CONSOLE.println("no SD card found");          
-    delay(500);
+    //delay(300);
     counter++;
-    if (counter > 3){
+    if (counter > 2){
       return;
     }
   }

@@ -14,33 +14,36 @@
 // Adafruit Grand Central M4: flash size 1024 kb (0x100000 bytes), flash page size 512 bytes
 #define FLASH_ADDRESS (0x100000 - 512) 
 //#define FLASH_ADDRESS  0x3FF80
-#define SP_COUNT 128
+#define SP_COUNT 32
 uint32_t *spReg;
 uint32_t *wdg_pointer_to_page_in_flash = (uint32_t*)FLASH_ADDRESS;
-
+  
 
 
 // https://github.com/cmaglie/FlashStorage/tree/master/src
 void WatchdogSAMD::clearFlashStackDump(){
-  CONSOLE.println("deleting flash stack dump...");  
+  CONSOLE.println("erasing flash stack dump...");  
   uint32_t *write_pointer_to_page_in_flash = (uint32_t*)FLASH_ADDRESS;
   // erase flash page
   NVMCTRL->ADDR.reg = ((uint32_t)write_pointer_to_page_in_flash);
   NVMCTRL->CTRLB.reg = NVMCTRL_CTRLB_CMDEX_KEY | NVMCTRL_CTRLB_CMD_EB;
   while (!NVMCTRL->INTFLAG.bit.DONE) { }  
-  for (int i = 0; i < SP_COUNT; i++) {        
+  /*for (int i = 0; i < SP_COUNT; i++) {        
     *write_pointer_to_page_in_flash = 0xFFFFFFFF;        
     write_pointer_to_page_in_flash++;            
   }  
   //write page buffer to flash:    
   NVMCTRL->CTRLB.reg = NVMCTRL_CTRLB_CMDEX_KEY | NVMCTRL_CTRLB_CMD_WP;
-  while (NVMCTRL->INTFLAG.bit.DONE == 0) { }  
+  while (NVMCTRL->INTFLAG.bit.DONE == 0) { }  */
 }
 
 
 bool WatchdogSAMD::readFlashStackDump(){  
-  CONSOLE.println("reading flash stack dump from last watchdog reset...");
-  uint32_t *read_pointer_to_page_in_flash = (uint32_t*)FLASH_ADDRESS;    
+  CONSOLE.print("reading flash stack dump from last watchdog reset... sp=");
+  uint32_t *read_pointer_to_page_in_flash = (uint32_t*)FLASH_ADDRESS;      
+  uint32_t sp = *read_pointer_to_page_in_flash; // first address is stack pointer value at watchdog time
+  read_pointer_to_page_in_flash++;            
+  CONSOLE.println(sp, HEX);
   bool stackEmpty = true;
   for (int i = 0; i < SP_COUNT; i++) {        
     uint32_t sp = *read_pointer_to_page_in_flash;
@@ -205,14 +208,15 @@ void WatchdogSAMD::disable() {
 
 void WDT_Handler(void) {
   // ISR for watchdog early warning, DO NOT RENAME!
-  //WDT->CLEAR.reg = WDT_CLEAR_CLEAR_KEY;
-  
-  // erase flash page
-  NVMCTRL->ADDR.reg = ((uint32_t)wdg_pointer_to_page_in_flash);
-  NVMCTRL->CTRLB.reg = NVMCTRL_CTRLB_CMDEX_KEY | NVMCTRL_CTRLB_CMD_EB;
-  while (!NVMCTRL->INTFLAG.bit.DONE) { }
-    
-  spReg = (uint32_t*)__get_MSP();  //copy 15 top values of stack to flash:
+  //WDT->CLEAR.reg = WDT_CLEAR_CLEAR_KEY;  
+      
+  // Typically, the stack begins at the end of SRAM, and will grow from higher to lower address values when 
+  // data is stored in it. The stack pointer always points to the top of the stack.
+  spReg = (uint32_t*)__get_MSP();  
+  wdg_pointer_to_page_in_flash = (uint32_t*)FLASH_ADDRESS;
+  *wdg_pointer_to_page_in_flash = (uint32_t)spReg;  // at first copy stack pointer address value to flash 
+  wdg_pointer_to_page_in_flash++;        
+  //copy 15 top values of stack to flash:
   for (int i = 0; i < SP_COUNT; i++) {        
     *wdg_pointer_to_page_in_flash = *spReg;        
     wdg_pointer_to_page_in_flash++;        
