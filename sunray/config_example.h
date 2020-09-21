@@ -79,33 +79,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define ENABLE_SD_LOG  1                 // enable SD card logging? (uncomment to activate)
 
 
-// --------- serial monitor output (CONSOLE) ------------------------
-// which Arduino Due USB port do you want to your for serial monitor output (CONSOLE)?
-// Arduino Due native USB port  => choose SerialUSB
-// Arduino Due programming port => choose Serial
-#if defined(_SAM3XA_)
-  #define CONSOLE SerialUSB   // Arduino Due: do not change (used for Due native USB serial console)
-#else
-  #define CONSOLE Serial      // Adafruit Grand Central M4 
-#endif
-
-// ------- serial ports and baudrates---------------------------------
-#define CONSOLE_BAUDRATE    115200    // baudrate used for console
-//#define CONSOLE_BAUDRATE    921600  // baudrate used for console
-#define BLE_BAUDRATE    115200        // baudrate used for BLE
-#define GPS_BAUDRATE  115200          // baudrate for GPS RTK module
-#define WIFI_BAUDRATE 115200          // baudrate for WIFI module
-
-#if defined(_SAM3XA_)                 // Arduino Due
-  #define WIFI Serial1
-  #define BLE Serial2
-  #define GPS Serial3
-  //#define GPS Serial                // only use this for .ubx logs (sendgps.py)
-#else                                 // Adafruit Grand Central M4 
-  #define WIFI Serial2                
-  #define BLE Serial3
-  #define GPS Serial4
-#endif
 
 // NOTE: if you experience GPS checksum errors, try to increase UART FIFO size:
 // 1. Arduino IDE->File->Preferences->Click on 'preferences.txt' at the bottom
@@ -293,6 +266,38 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define RCMODEL_ENABLE true
 #define RCMODEL_ENABLE false
 
+
+// --------- serial monitor output (CONSOLE) ------------------------
+// which Arduino Due USB port do you want to your for serial monitor output (CONSOLE)?
+// Arduino Due native USB port  => choose SerialUSB
+// Arduino Due programming port => choose Serial
+#if defined(_SAM3XA_)
+  #define BOARD "Arduino Due"
+  #define CONSOLE SerialUSB   // Arduino Due: do not change (used for Due native USB serial console)
+#else
+  #define BOARD "Adafruit Grand Central M4"
+  #define CONSOLE Serial      // Adafruit Grand Central M4 
+#endif
+
+// ------- serial ports and baudrates---------------------------------
+#define CONSOLE_BAUDRATE    115200    // baudrate used for console
+//#define CONSOLE_BAUDRATE    921600  // baudrate used for console
+#define BLE_BAUDRATE    115200        // baudrate used for BLE
+#define GPS_BAUDRATE  115200          // baudrate for GPS RTK module
+#define WIFI_BAUDRATE 115200          // baudrate for WIFI module
+
+#if defined(_SAM3XA_)                 // Arduino Due
+  #define WIFI Serial1
+  #define BLE Serial2
+  #define GPS Serial3
+  //#define GPS Serial                // only use this for .ubx logs (sendgps.py)
+#else                                 // Adafruit Grand Central M4 
+  #define WIFI Serial2                
+  #define BLE Serial3
+  #define GPS Serial4
+#endif
+
+
 // ------- I2C addresses -----------------------------
 #define DS1307_ADDRESS B1101000
 #define AT24C32_ADDRESS B1010000
@@ -386,6 +391,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #endif
 
 #ifndef SDCARD_SS_PIN
-#define SDCARD_SS_PIN 4
+  #define SDCARD_SS_PIN 4
 #endif
 

@@ -473,6 +473,9 @@ void start(){
   logResetCause();
   
   CONSOLE.println(VER);          
+  CONSOLE.print("compiled for: ");
+  CONSOLE.println(BOARD);
+  
   battery.begin();      
   
   bleConfig.run();   
