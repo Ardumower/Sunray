@@ -75,9 +75,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // (you can find out the location of the compiled .elf file while compiling with verbose compilation switched on 
 //  via 'File->Preferences->Full output during compile')
 // detailed steps here:  https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#SD_card_logging
-//#define ENABLE_SD      1                 // enable SD card services (save, load, logging)? (uncomment to activate)
+//#define ENABLE_SD      1                 // enable SD card services (resuming, logging)? (uncomment to activate)
 //#define ENABLE_SD_LOG  1                 // enable SD card logging? (uncomment to activate)
-
+//#define ENABLE_SD_RESUME  1              // enable SD card map load/resume on reset? (uncomment to activate)
 
 
 // NOTE: if you experience GPS checksum errors, try to increase UART FIFO size:
@@ -391,6 +391,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #endif
 
 #ifndef SDCARD_SS_PIN
-  #define SDCARD_SS_PIN 4
+  #if defined(_SAM3XA_)              // Arduino Due
+    #define SDCARD_SS_PIN pinUserSwitch1
+  #else
+    #define SDCARD_SS_PIN 4
+  #endif
 #endif
 

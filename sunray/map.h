@@ -133,8 +133,7 @@ class Map
     int mowPointsIdx;    // next mowing point in mowing point polygon
     int dockPointsIdx;   // next dock point in docking point polygon
     int freePointsIdx;   // next free point in free point polygon
-    int percentCompleted; 
-    int exclusionPointsCount;        
+    int percentCompleted;
     
     Polygon points;
     Polygon perimeterPoints;
@@ -146,11 +145,12 @@ class Map
     PolygonList pathFinderObstacles;
     NodeList pathFinderNodes;
     File mapFile;
+    int exclusionPointsCount;        
            
     bool shouldDock;  // start docking?
     bool shouldMow;  // start mowing?       
     
-    long crc;  // map data CRC
+    long mapCRC;  // map data CRC
         
     void begin();    
     void run();    
@@ -182,12 +182,14 @@ class Map
     bool startMowing(float stateX, float stateY);
     bool addObstacle(float stateX, float stateY);
     void clearObstacles();
+    void clearMap();
     void dump();    
     bool load();
     bool save();
     void stressTest();
-    void calcCRC();
+    long calcMapCRC();
   private:
+    void finishedUploadingMap();
     void checkMemoryErrors();
     bool findObstacleSafeMowPoint();
     bool nextMowPoint(bool sim);

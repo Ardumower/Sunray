@@ -66,18 +66,23 @@ bool Point::read(File &file){
     CONSOLE.println("ERROR reading point: invalid marker");
     return false;
   }
-  px = file.read() | (file.read() << 8);
-  py = file.read() | (file.read() << 8);
-  return true;
+  bool res = true;
+  res &= (file.read((uint8_t*)&px, sizeof(px)) != 0);
+  res &= (file.read((uint8_t*)&py, sizeof(py)) != 0);
+  if (!res) {
+    CONSOLE.println("ERROR reading point");
+  }
+  return res;
 }
 
 bool Point::write(File &file){
   bool res = true;
-  res &= (file.write(0xAA) == 1);
-  res &= (file.write(px & 0xFF) == 1);
-  res &= (file.write( (px >> 8) & 0xFF) == 1);
-  res &= (file.write(py & 0xFF) == 1);
-  res &= (file.write( (py >> 8) & 0xFF) == 1);
+  res &= (file.write(0xAA) != 0);
+  res &= (file.write((uint8_t*)&px, sizeof(px)) != 0);
+  res &= (file.write((uint8_t*)&py, sizeof(py)) != 0);
+  if (!res) {
+    CONSOLE.println("ERROR writing point");
+  }
   return res;
 }
 
@@ -162,16 +167,25 @@ bool Polygon::read(File &file){
     CONSOLE.println("ERROR reading polygon: invalid marker");
     return false;
   }
-  int num = file.read() | (file.read() << 8);    
+  short num = 0;
+  file.read((uint8_t*)&num, sizeof(num));
+  //CONSOLE.print("reading points:");
+  //CONSOLE.println(num);
   if (!alloc(num)) return false;
-  for (int i=0; i < num; i++){    
+  for (short i=0; i < num; i++){    
     if (!points[i].read(file)) return false;
   }
   return true;
 }
 
 bool Polygon::write(File &file){
-  file.write(0xBB);  
+  if (file.write(0xBB) == 0) return false;  
+  if (file.write((uint8_t*)&numPoints, sizeof(numPoints)) == 0) {
+    CONSOLE.println("ERROR writing polygon");
+    return false; 
+  }
+  //CONSOLE.print("writing points:");
+  //CONSOLE.println(numPoints);
   for (int i=0; i < numPoints; i++){    
     if (!points[i].write(file)) return false;
   }
@@ -268,16 +282,28 @@ bool PolygonList::read(File &file){
     CONSOLE.println("ERROR reading polygon list: invalid marker");
     return false;
   }
-  int num = file.read() | (file.read() << 8);    
+  short num = 0;
+  file.read((uint8_t*)&num, sizeof(num)); 
+  //CONSOLE.print("reading polygon list:");
+  //CONSOLE.println(num);
   if (!alloc(num)) return false;
-  for (int i=0; i < num; i++){    
+  for (short i=0; i < num; i++){    
     if (!polygons[i].read(file)) return false;
   }
   return true;
 }
 
 bool PolygonList::write(File &file){
-  file.write(0xCC);  
+  if (file.write(0xCC) == 0) {
+    CONSOLE.println("ERROR writing polygon list marker");
+    return false;  
+  } 
+  if (file.write((uint8_t*)&numPolygons, sizeof(numPolygons)) == 0) {
+    CONSOLE.println("ERROR writing polygon list");
+    return false; 
+  }
+  //CONSOLE.print("writing polygon list:");
+  //CONSOLE.println(numPolygons);
   for (int i=0; i < numPolygons; i++){    
     if (!polygons[i].write(file)) return false;
   }
@@ -439,21 +465,24 @@ void Map::begin(){
   useIMU = true;
   mowPointsIdx = 0;
   freePointsIdx = 0;
-  dockPointsIdx = 0;  
+  dockPointsIdx = 0;
+  mapCRC = 0;  
   CONSOLE.print("sizeof Point=");
   CONSOLE.println(sizeof(Point));  
-  //load();
+  load();
+  dump();
 }
 
-void Map::calcCRC(){   
-   crc = perimeterPoints.crc() + exclusions.crc() + dockPoints.crc() + mowPoints.crc();       
+long Map::calcMapCRC(){   
+  long crc = perimeterPoints.crc() + exclusions.crc() + dockPoints.crc() + mowPoints.crc();       
+  //CONSOLE.print("computed map crc=");  
+  //CONSOLE.println(crc);  
+  return crc;
 }
 
 void Map::dump(){ 
-  calcCRC();
-  CONSOLE.print("map dump ");  
-  CONSOLE.print("crc=");  
-  CONSOLE.println(crc);  
+  CONSOLE.print("map dump - mapCRC=");
+  CONSOLE.println(mapCRC);
   CONSOLE.print("points: ");
   points.dump();
   CONSOLE.print("perimeter pts: ");
@@ -470,15 +499,25 @@ void Map::dump(){
   CONSOLE.print("mow pts: ");  
   CONSOLE.println(mowPoints.numPoints);  
   //mowPoints.dump();
-  CONSOLE.print("first mow point:");
-  CONSOLE.print(mowPoints.points[0].x());
-  CONSOLE.print(",");
-  CONSOLE.println(mowPoints.points[0].y());
+  if (mowPoints.numPoints > 0){
+    CONSOLE.print("first mow point:");
+    CONSOLE.print(mowPoints.points[0].x());
+    CONSOLE.print(",");
+    CONSOLE.println(mowPoints.points[0].y());
+  }
   CONSOLE.print("free pts: ");
   CONSOLE.println(freePoints.numPoints);  
+  CONSOLE.print("mowPointsIdx=");
+  CONSOLE.print(mowPointsIdx);
+  CONSOLE.print(" dockPointsIdx=");
+  CONSOLE.print(dockPointsIdx);
+  CONSOLE.print(" freePointsIdx=");
+  CONSOLE.print(freePointsIdx);
+  CONSOLE.print(" wayMode=");
+  CONSOLE.println(wayMode);
   checkMemoryErrors();
-  //save();
 }
+
 
 void Map::checkMemoryErrors(){
   if (memoryCorruptions != 0){
@@ -495,6 +534,8 @@ void Map::checkMemoryErrors(){
 
 
 bool Map::load(){
+  bool res = true;
+#if defined(ENABLE_SD_RESUME)  
   CONSOLE.print("map load... ");
   if (!SD.exists("map.bin")) {
     CONSOLE.println("no map file!");
@@ -505,42 +546,53 @@ bool Map::load(){
     CONSOLE.println("ERROR opening file for reading");
     return false;
   }
-  uint32_t marker = mapFile.read() | (mapFile.read() << 8) | (mapFile.read() << 16) | (mapFile.read() << 24);
+  uint32_t marker = 0;
+  mapFile.read((uint8_t*)&marker, sizeof(marker));
   if (marker != 0x00001000){
-    CONSOLE.println("ERROR: invalid marker");
+    CONSOLE.print("ERROR: invalid marker: ");
+    CONSOLE.println(marker, HEX);
     return false;
   }
-  bool res = true;
-  if (res){
-    res &= perimeterPoints.read(mapFile);
-    res &= exclusions.read(mapFile);    
-    res &= dockPoints.read(mapFile);
-    res &= mowPoints.read(mapFile);        
-  }      
+  res &= (mapFile.read((uint8_t*)&mapCRC, sizeof(mapCRC)) != 0); 
+  res &= (mapFile.read((uint8_t*)&exclusionPointsCount, sizeof(exclusionPointsCount)) != 0);     
+  res &= perimeterPoints.read(mapFile);
+  res &= exclusions.read(mapFile);    
+  res &= dockPoints.read(mapFile);
+  res &= mowPoints.read(mapFile);        
+  
+  mapFile.close();  
+  long expectedCRC = calcMapCRC();
+  if (mapCRC != expectedCRC){
+    CONSOLE.print("ERROR: invalid map CRC:");
+    CONSOLE.print(mapCRC);
+    CONSOLE.print(" expected:");
+    CONSOLE.println(expectedCRC);
+    res = false;
+  }
   if (res){
     CONSOLE.println("ok");
   } else {
     CONSOLE.println("ERROR loading map");
+    clearMap(); 
   }
-  mapFile.close();  
-  return true;
+#endif
+  return res;
 }
- 
- 
+
+
 bool Map::save(){
+  bool res = true;
+#if defined(ENABLE_SD_RESUME)  
   CONSOLE.print("map save... ");
-  mapFile = SD.open("map.bin", FILE_WRITE);
+  mapFile = SD.open("map.bin", O_WRITE | O_CREAT);
   if (!mapFile){        
     CONSOLE.println("ERROR opening file for writing");
     return false;
   }
-  bool res = true;
   uint32_t marker = 0x00001000;
-  res &= (mapFile.write(marker & 0xFF) == 1);
-  res &= (mapFile.write((marker >> 8) && 0xFF) == 1);
-  res &= (mapFile.write((marker >> 16) && 0xFF) == 1);
-  res &= (mapFile.write((marker >> 24) && 0xFF) == 1);  
-  
+  res &= (mapFile.write((uint8_t*)&marker, sizeof(marker)) != 0);
+  res &= (mapFile.write((uint8_t*)&mapCRC, sizeof(mapCRC)) != 0);
+  res &= (mapFile.write((uint8_t*)&exclusionPointsCount, sizeof(exclusionPointsCount)) != 0);
   if (res){
     res &= perimeterPoints.write(mapFile);
     res &= exclusions.write(mapFile);    
@@ -552,10 +604,34 @@ bool Map::save(){
   } else {
     CONSOLE.println("ERROR saving map");
   }
+  mapFile.flush();
   mapFile.close();
+#endif
   return res;    
 }
 
+
+
+void Map::finishedUploadingMap(){
+  CONSOLE.println("finishedUploadingMap");
+  mapCRC = calcMapCRC();
+  dump();
+  save();
+}
+ 
+   
+void Map::clearMap(){
+  CONSOLE.println("clearMap");
+  points.dealloc();    
+  perimeterPoints.dealloc();    
+  exclusions.dealloc();
+  dockPoints.dealloc();      
+  mowPoints.dealloc();    
+  freePoints.dealloc();
+  obstacles.dealloc();
+  pathFinderObstacles.dealloc();
+  pathFinderNodes.dealloc();
+}
 
  
 // set point
@@ -565,15 +641,7 @@ bool Map::setPoint(int idx, float x, float y){
     return false; 
   }  
   if (idx == 0){   
-    points.dealloc();    
-    perimeterPoints.dealloc();    
-    exclusions.dealloc();
-    dockPoints.dealloc();      
-    mowPoints.dealloc();    
-    freePoints.dealloc();
-    obstacles.dealloc();
-    pathFinderObstacles.dealloc();
-    pathFinderNodes.dealloc();
+    clearMap();
   }    
   if (idx % 100 == 0){
     if (freeMemory () < 20000){
@@ -620,7 +688,7 @@ bool Map::setWayCount(WayType type, int count){
         }
         if (exclusionPointsCount == 0){
           points.dealloc();
-          dump();
+          finishedUploadingMap();
         }
       }
       break;    
@@ -666,7 +734,7 @@ bool Map::setExclusionLength(int idx, int len){
   CONSOLE.println();
   if (ptIdx == exclusionPointsCount){
     points.dealloc();
-    dump();
+    finishedUploadingMap();
   }
   
   //CONSOLE.print("exclusion ");
@@ -863,6 +931,7 @@ bool Map::startMowing(float stateX, float stateY){
 
 
 void Map::clearObstacles(){  
+  CONSOLE.println("clearObstacles");
   obstacles.dealloc();  
 }
 
@@ -1382,8 +1451,11 @@ float Map::calcHeuristic(Point &pos0, Point &pos1) {
   
   
 int Map::findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, int startIdx) {
-  //var x = node.pos.X;
-  //var y = node.pos.Y;   
+  //CONSOLE.print("start=");
+  //CONSOLE.print((*node.point).x());
+  //CONSOLE.print(",");
+  //CONSOLE.println((*node.point).y());
+   
   for (int idx = startIdx+1; idx < nodes.numNodes; idx++){
     if (nodes.nodes[idx].opened) continue;
     if (nodes.nodes[idx].closed) continue;                
@@ -1393,23 +1465,36 @@ int Map::findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, i
     //if (this.distance(pt, node.pos) > 10) continue;
     bool safe = true;            
     Point sectPt;
+    //CONSOLE.print("----check new path with all polygons---dest=");
+    //CONSOLE.print((*pt).x());
+    //CONSOLE.print(",");
+    //CONSOLE.println((*pt).y());  
+  
     // check new path with all obstacle polygons (perimeter, exclusions, obstacles)     
     for (int idx3 = 0; idx3 < obstacles.numPolygons; idx3++){             
        bool isPeri = (idx3 == 0);  // if first index, it's perimeter, otherwise exclusions                           
        if (isPeri){ // we check with the perimeter?         
+         //CONSOLE.println("we check with perimeter");
          bool insidePeri = pointIsInsidePolygon(obstacles.polygons[0], *node.point);
          if (!insidePeri) { // start point outside perimeter?                                                                                      
+             //CONSOLE.println("start point oustide perimeter");
              if (linePolygonIntersectPoint( *node.point, *pt, obstacles.polygons[0], sectPt)){
                float dist = distance(*node.point, sectPt);          
+               //CONSOLE.print("dist=");
+               //CONSOLE.println(dist);
                if (dist > 1){ safe = false; break; } // entering perimeter with long distance is not safe                             
                continue;           
              } else { safe = false; break; }                                          
          }
        } else {
+         //CONSOLE.println("we check with exclusion");
          bool insideObstacle = pointIsInsidePolygon(obstacles.polygons[idx3], *node.point);
          if (insideObstacle) { // start point inside obstacle?                                                                         
+             //CONSOLE.println("start point inside exclusion");          
              if (linePolygonIntersectPoint( *node.point, *pt, obstacles.polygons[idx3], sectPt)){
                float dist = distance(*node.point, sectPt);          
+               //CONSOLE.print("dist=");
+               //CONSOLE.println(dist);
                if (dist > 1){ safe = false; break; } // exiting obstacle with long distance is not safe                             
                continue;           
              } else { safe = false; break; }                                          
@@ -1420,6 +1505,8 @@ int Map::findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, i
          break;
        }             
     }
+    //CONSOLE.print("----check done---safe=");
+    //CONSOLE.println(safe);
     if (safe) {          
       //pt.visited = true;
       //var anode = {pos: pt, parent: node, f:0, g:0, h:0};          

@@ -38,12 +38,7 @@ void SDSerial::beginSD(){
     if (!SD.exists(logFileName)) {
       CONSOLE.print("logfile: ");
       CONSOLE.println(logFileName);    
-      logFile = SD.open(logFileName, FILE_WRITE);
-      if (logFile){        
-        sdStarted = true;         
-      } else {
-        CONSOLE.println("ERROR opening file for writing");
-      }
+      sdStarted = true;
       break; 
       //SD.remove(UPDATE_FILE);
       //updateFile.close();
@@ -59,9 +54,15 @@ size_t SDSerial::write(uint8_t data){
     packetBuffer[packetIdx] = char(data);
     packetIdx++;
     if (packetIdx == 99){
-      packetBuffer[packetIdx] = '\0';      
-      logFile.write(packetBuffer);              
-      logFile.flush();
+      packetBuffer[packetIdx] = '\0';            
+      logFile = SD.open(logFileName, FILE_WRITE);
+      if (logFile){        
+        logFile.write(packetBuffer);              
+        logFile.flush();
+        logFile.close();            
+      } else {
+        CONSOLE.println("ERROR opening file for writing");
+      }
       packetIdx = 0;            
     }
     sdActive = false;

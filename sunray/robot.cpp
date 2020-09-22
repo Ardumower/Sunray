@@ -38,6 +38,7 @@ const signed char orientationMatrix[9] = {
   0, 0, 1
 };
 
+File stateFile;
 MPU9250_DMP imu;
 Motor motor;
 Battery battery;
@@ -109,6 +110,7 @@ float statTempMax = -9999;
 float statMowMaxDgpsAge = 0; // seconds
 float statMowDistanceTraveled = 0; // meter
 
+long stateCRC = 0;
 
 float lastPosN = 0;
 float lastPosE = 0;
@@ -122,6 +124,7 @@ unsigned long lastComputeTime = 0;
 unsigned long nextImuTime = 0;
 unsigned long nextTempTime = 0;
 unsigned long imuDataTimeout = 0;
+unsigned long nextSaveTime = 0;
 bool imuFound = false;
 float lastIMUYaw = 0; 
 
@@ -154,6 +157,118 @@ int freeMemory() {
 void resetMotionMeasurement(){
   linearMotionStartTime = millis();  
   //stateGroundSpeed = 1.0;
+}
+
+void dumpState(){
+  CONSOLE.print("dumpState: ");
+  CONSOLE.print("mowPointsIdx=");
+  CONSOLE.print(maps.mowPointsIdx);
+  CONSOLE.print(" dockPointsIdx=");
+  CONSOLE.print(maps.freePointsIdx);
+  CONSOLE.print(" freePointsIdx=");
+  CONSOLE.print(maps.freePointsIdx);
+  CONSOLE.print(" wayMode=");
+  CONSOLE.print(maps.wayMode);
+  CONSOLE.print(" stateOp=");
+  CONSOLE.print(stateOp);
+  CONSOLE.print(" sonar.enabled=");
+  CONSOLE.print(sonar.enabled);
+  CONSOLE.print(" fixTimeout=");
+  CONSOLE.print(fixTimeout);
+  CONSOLE.print(" absolutePosSource=");
+  CONSOLE.print(absolutePosSource);
+  CONSOLE.print(" lon=");
+  CONSOLE.print(absolutePosSourceLon);
+  CONSOLE.print(" lat=");
+  CONSOLE.println(absolutePosSourceLat);
+}
+
+long calcStateCRC(){
+ return (stateOp *10 + maps.mowPointsIdx + maps.dockPointsIdx + maps.freePointsIdx + ((byte)maps.wayMode));
+}
+
+bool loadState(){
+#if defined(ENABLE_SD_RESUME)
+  CONSOLE.println("resuming is activated");
+  CONSOLE.print("state load... ");
+  if (!SD.exists("state.bin")) {
+    CONSOLE.println("no state file!");
+    return false;
+  }
+  stateFile = SD.open("state.bin", FILE_READ);
+  if (!stateFile){        
+    CONSOLE.println("ERROR opening file for reading");
+    return false;
+  }
+  uint32_t marker = 0;
+  stateFile.read((uint8_t*)&marker, sizeof(marker));
+  if (marker != 0x10001000){
+    CONSOLE.print("ERROR: invalid marker: ");
+    CONSOLE.println(marker, HEX);
+    return false;
+  }
+  bool res = true;
+  res &= (stateFile.read((uint8_t*)&maps.mowPointsIdx, sizeof(maps.mowPointsIdx)) != 0);
+  res &= (stateFile.read((uint8_t*)&maps.dockPointsIdx, sizeof(maps.dockPointsIdx)) != 0);
+  res &= (stateFile.read((uint8_t*)&maps.freePointsIdx, sizeof(maps.freePointsIdx)) != 0);
+  res &= (stateFile.read((uint8_t*)&maps.wayMode, sizeof(maps.wayMode)) != 0);
+  res &= (stateFile.read((uint8_t*)&stateOp, sizeof(stateOp)) != 0);
+  res &= (stateFile.read((uint8_t*)&sonar.enabled, sizeof(sonar.enabled)) != 0);
+  res &= (stateFile.read((uint8_t*)&fixTimeout, sizeof(fixTimeout)) != 0);
+  res &= (stateFile.read((uint8_t*)&setSpeed, sizeof(setSpeed)) != 0);
+  res &= (stateFile.read((uint8_t*)&absolutePosSource, sizeof(absolutePosSource)) != 0);
+  res &= (stateFile.read((uint8_t*)&absolutePosSourceLon, sizeof(absolutePosSourceLon)) != 0);
+  res &= (stateFile.read((uint8_t*)&absolutePosSourceLat, sizeof(absolutePosSourceLat)) != 0); 
+  stateFile.close();  
+  CONSOLE.println("ok");
+  stateCRC = calcStateCRC();
+  setOperation(stateOp, true, true);
+#endif
+  return true;
+}
+
+
+
+
+bool saveState(){   
+  bool res = true;
+#if defined(ENABLE_SD_RESUME)
+  long crc = calcStateCRC();
+  //CONSOLE.print("stateCRC=");
+  //CONSOLE.print(stateCRC);
+  //CONSOLE.print(" crc=");
+  //CONSOLE.println(crc);
+  if (crc == stateCRC) return true;
+  stateCRC = crc;
+  dumpState();
+  CONSOLE.print("save state... ");
+  stateFile = SD.open("state.bin",  O_WRITE | O_CREAT);
+  if (!stateFile){        
+    CONSOLE.println("ERROR opening file for writing");
+    return false;
+  }
+  uint32_t marker = 0x10001000;
+  res &= (stateFile.write((uint8_t*)&marker, sizeof(marker)) != 0); 
+  res &= (stateFile.write((uint8_t*)&maps.mowPointsIdx, sizeof(maps.mowPointsIdx)) != 0);
+  res &= (stateFile.write((uint8_t*)&maps.dockPointsIdx, sizeof(maps.dockPointsIdx)) != 0);
+  res &= (stateFile.write((uint8_t*)&maps.freePointsIdx, sizeof(maps.freePointsIdx)) != 0);
+  res &= (stateFile.write((uint8_t*)&maps.wayMode, sizeof(maps.wayMode)) != 0);
+  res &= (stateFile.write((uint8_t*)&stateOp, sizeof(stateOp)) != 0);
+  res &= (stateFile.write((uint8_t*)&sonar.enabled, sizeof(sonar.enabled)) != 0);
+  res &= (stateFile.write((uint8_t*)&fixTimeout, sizeof(fixTimeout)) != 0);
+  res &= (stateFile.write((uint8_t*)&setSpeed, sizeof(setSpeed)) != 0);
+  res &= (stateFile.write((uint8_t*)&absolutePosSource, sizeof(absolutePosSource)) != 0);
+  res &= (stateFile.write((uint8_t*)&absolutePosSourceLon, sizeof(absolutePosSourceLon)) != 0);
+  res &= (stateFile.write((uint8_t*)&absolutePosSourceLat, sizeof(absolutePosSourceLat)) != 0);
+  if (res){
+    CONSOLE.println("ok");
+  } else {
+    CONSOLE.println("ERROR saving state");
+  }
+  stateFile.flush();
+  stateFile.close();
+#endif
+  return res; 
 }
 
 
@@ -522,7 +637,8 @@ void start(){
   
   buzzer.sound(SND_READY);  
   battery.resetIdle();        
-  
+  loadState();
+  dumpState();
 }
 
 
@@ -890,7 +1006,7 @@ void trackLine(){
    
   if (targetReached){
     if (maps.wayMode == WAY_MOW){
-      maps.clearObstacles();
+      maps.clearObstacles(); // clear obstacles if target reached
     }
     bool straight = maps.nextPointIsStraight();
     if (!maps.nextPoint(false)){
@@ -925,6 +1041,12 @@ void run(){
   sonar.run();
   maps.run();  
   rcmodel.run();
+
+  // state saving
+  if (millis() >= nextSaveTime){  
+    nextSaveTime = millis() + 5000;
+    saveState();
+  }
   
   // temp
   if (millis() > nextTempTime){
@@ -1064,15 +1186,18 @@ void run(){
 void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator){  
   if ((stateOp == op) && (!allowOverride)) return;  
   CONSOLE.print("setOperation op=");
-  CONSOLE.println(op);
+  CONSOLE.print(op);
   bool error = false;
   switch (op){
     case OP_IDLE:
+      CONSOLE.println(" OP_IDLE");
       dockingInitiatedByOperator = true;
       motor.setLinearAngularSpeed(0,0);
       motor.setMowState(false);
       break;
     case OP_DOCK:
+      CONSOLE.println(" OP_DOCK");
+      if (initiatedbyOperator) maps.clearObstacles();
       dockingInitiatedByOperator = initiatedbyOperator;      
       motor.setLinearAngularSpeed(0,0);
       motor.setMowState(false);                
@@ -1092,11 +1217,12 @@ void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator
       if (error){
         stateSensor = SENS_MAP_NO_ROUTE;
         op = OP_ERROR;
-        maps.clearObstacles();
         motor.setMowState(false);
       }
       break;
     case OP_MOW:      
+      CONSOLE.println(" OP_MOW");      
+      if (initiatedbyOperator) maps.clearObstacles();
       motor.setLinearAngularSpeed(0,0);
       if (maps.startMowing(stateX, stateY)){
         if (maps.nextPoint(true)) {
@@ -1114,20 +1240,24 @@ void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator
       if (error){
         stateSensor = SENS_MAP_NO_ROUTE;
         op = OP_ERROR;
-        maps.clearObstacles();
         motor.setMowState(false);
       }
       break;
     case OP_CHARGE:
+      CONSOLE.println(" OP_CHARGE");
       motor.setLinearAngularSpeed(0,0, false);
       motor.setMowState(false);     
       break;
     case OP_ERROR:            
+      CONSOLE.println(" OP_ERROR"); 
       motor.setLinearAngularSpeed(0,0);
       motor.setMowState(false);      
       break;
   }
   stateOp = op;  
+  saveState();
 }
+
+
 
 
