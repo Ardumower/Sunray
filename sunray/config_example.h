@@ -73,18 +73,12 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // all serial console output can be logged to a (FAT32 formatted) SD card
 // NOTE: for full log file inspections, we will need your sunray.ino.elf binary 
 // (you can find out the location of the compiled .elf file while compiling with verbose compilation switched on 
-//  via 'File->Preferences->Full output during compile')
-// detailed steps here:  https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#SD_card_logging
+//  via 'File->Preferences->Full output during compile') - detailed steps here:  
+// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#SD_card_module
+// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#SD_card_logging
 //#define ENABLE_SD      1                 // enable SD card services (resuming, logging)? (uncomment to activate)
 //#define ENABLE_SD_LOG  1                 // enable SD card logging? (uncomment to activate)
 //#define ENABLE_SD_RESUME  1              // enable SD card map load/resume on reset? (uncomment to activate)
-
-
-// NOTE: if you experience GPS checksum errors, try to increase UART FIFO size:
-// 1. Arduino IDE->File->Preferences->Click on 'preferences.txt' at the bottom
-// 2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h'
-//    (for Adafruit Grand Central M4: 'packages\adafruit\hardware\samd\xxxxx\cores\arduino\RingBuffer.h')
-// change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 1024
 
 
 // ------ odometry -----------------------------------
@@ -210,6 +204,12 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 
 // ------ GPS ------------------------------------------
+// NOTE: if you experience GPS checksum errors, try to increase UART FIFO size:
+// 1. Arduino IDE->File->Preferences->Click on 'preferences.txt' at the bottom
+// 2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h'
+//    (for Adafruit Grand Central M4: 'packages\adafruit\hardware\samd\xxxxx\cores\arduino\RingBuffer.h')
+// change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 1024
+
 //#define REQUIRE_VALID_GPS  true       // mower will pause if invalid GPS signal (invalid gps) during mowing
 #define REQUIRE_VALID_GPS  false    // mower will ignore invalid GPS signal (invalid gps) during mowing
 
