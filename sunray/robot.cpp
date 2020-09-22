@@ -173,6 +173,8 @@ void dumpState(){
   CONSOLE.print(maps.wayMode);
   CONSOLE.print(" stateOp=");
   CONSOLE.print(stateOp);
+  CONSOLE.print(" stateSensor=");
+  CONSOLE.print(stateSensor);
   CONSOLE.print(" sonar.enabled=");
   CONSOLE.print(sonar.enabled);
   CONSOLE.print(" fixTimeout=");
@@ -204,7 +206,7 @@ bool loadState(){
   }
   uint32_t marker = 0;
   stateFile.read((uint8_t*)&marker, sizeof(marker));
-  if (marker != 0x10001001){
+  if (marker != 0x10001002){
     CONSOLE.print("ERROR: invalid marker: ");
     CONSOLE.println(marker, HEX);
     return false;
@@ -224,6 +226,7 @@ bool loadState(){
   res &= (stateFile.read((uint8_t*)&maps.freePointsIdx, sizeof(maps.freePointsIdx)) != 0);
   res &= (stateFile.read((uint8_t*)&maps.wayMode, sizeof(maps.wayMode)) != 0);
   res &= (stateFile.read((uint8_t*)&stateOp, sizeof(stateOp)) != 0);
+  res &= (stateFile.read((uint8_t*)&stateSensor, sizeof(stateSensor)) != 0);
   res &= (stateFile.read((uint8_t*)&sonar.enabled, sizeof(sonar.enabled)) != 0);
   res &= (stateFile.read((uint8_t*)&fixTimeout, sizeof(fixTimeout)) != 0);
   res &= (stateFile.read((uint8_t*)&setSpeed, sizeof(setSpeed)) != 0);
@@ -258,7 +261,7 @@ bool saveState(){
     CONSOLE.println("ERROR opening file for writing");
     return false;
   }
-  uint32_t marker = 0x10001001;
+  uint32_t marker = 0x10001002;
   res &= (stateFile.write((uint8_t*)&marker, sizeof(marker)) != 0); 
   res &= (stateFile.write((uint8_t*)&maps.mapCRC, sizeof(maps.mapCRC)) != 0); 
   res &= (stateFile.write((uint8_t*)&maps.mowPointsIdx, sizeof(maps.mowPointsIdx)) != 0);
@@ -266,6 +269,7 @@ bool saveState(){
   res &= (stateFile.write((uint8_t*)&maps.freePointsIdx, sizeof(maps.freePointsIdx)) != 0);
   res &= (stateFile.write((uint8_t*)&maps.wayMode, sizeof(maps.wayMode)) != 0);
   res &= (stateFile.write((uint8_t*)&stateOp, sizeof(stateOp)) != 0);
+  res &= (stateFile.write((uint8_t*)&stateSensor, sizeof(stateSensor)) != 0);
   res &= (stateFile.write((uint8_t*)&sonar.enabled, sizeof(sonar.enabled)) != 0);
   res &= (stateFile.write((uint8_t*)&fixTimeout, sizeof(fixTimeout)) != 0);
   res &= (stateFile.write((uint8_t*)&setSpeed, sizeof(setSpeed)) != 0);
