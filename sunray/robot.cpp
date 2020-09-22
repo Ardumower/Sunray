@@ -254,8 +254,6 @@ bool loadState(){
 }
 
 
-
-
 bool saveState(){   
   bool res = true;
 #if defined(ENABLE_SD_RESUME)
@@ -314,18 +312,20 @@ void sensorTest(){
     if (millis() > nextMeasureTime){
       nextMeasureTime = millis() + 1000;      
       if (SONAR_ENABLE){
-        CONSOLE.print("sonar (left,center,right): ");
+        CONSOLE.print("sonar (enabled,left,center,right,triggered): ");
+        CONSOLE.print(sonar.enabled);
+        CONSOLE.print("\t");
         CONSOLE.print(sonar.distanceLeft);
         CONSOLE.print("\t");
         CONSOLE.print(sonar.distanceCenter);
         CONSOLE.print("\t");
         CONSOLE.print(sonar.distanceRight);
-        CONSOLE.print(" triggered: ");
+        CONSOLE.print("\t");
         CONSOLE.print(((int)sonar.obstacle()));
         CONSOLE.print("\t");
       }
       if (TOF_ENABLE){   
-        CONSOLE.print("ToF: ");
+        CONSOLE.print("ToF (dist): ");
         int v = tof.readRangeContinuousMillimeters();        
         if (!tof.timeoutOccurred()) {     
           CONSOLE.print(v/10);
@@ -333,7 +333,7 @@ void sensorTest(){
         CONSOLE.print("\t");
       }    
       if (BUMPER_ENABLE){
-        CONSOLE.print("bumper triggered: ");
+        CONSOLE.print("bumper (triggered): ");
         CONSOLE.print(((int)bumper.obstacle()));
         CONSOLE.print("\t");
        
