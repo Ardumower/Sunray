@@ -326,6 +326,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define pinMotorMowEnable 28       // EN mower motor enable      (if using MOSFET/L298N, keep unconnected)
 #define pinMotorMowRpm A11
     
+#define pinFreeWheel 8             // front/rear free wheel sensor    
 #define pinBumperLeft 39           // bumper pins
 #define pinBumperRight 38
 
