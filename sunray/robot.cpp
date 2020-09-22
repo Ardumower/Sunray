@@ -110,7 +110,7 @@ float statTempMax = -9999;
 float statMowMaxDgpsAge = 0; // seconds
 float statMowDistanceTraveled = 0; // meter
 
-long stateCRC = 0;
+double stateCRC = 0;
 
 float lastPosN = 0;
 float lastPosE = 0;
@@ -161,6 +161,12 @@ void resetMotionMeasurement(){
 
 void dumpState(){
   CONSOLE.print("dumpState: ");
+  CONSOLE.print(" X=");
+  CONSOLE.print(stateX);
+  CONSOLE.print(" Y=");
+  CONSOLE.print(stateY);
+  CONSOLE.print(" delta=");
+  CONSOLE.print(stateDelta);
   CONSOLE.print(" mapCRC=");
   CONSOLE.print(maps.mapCRC);
   CONSOLE.print(" mowPointsIdx=");
@@ -171,9 +177,9 @@ void dumpState(){
   CONSOLE.print(maps.freePointsIdx);
   CONSOLE.print(" wayMode=");
   CONSOLE.print(maps.wayMode);
-  CONSOLE.print(" stateOp=");
+  CONSOLE.print(" op=");
   CONSOLE.print(stateOp);
-  CONSOLE.print(" stateSensor=");
+  CONSOLE.print(" sensor=");
   CONSOLE.print(stateSensor);
   CONSOLE.print(" sonar.enabled=");
   CONSOLE.print(sonar.enabled);
@@ -187,8 +193,10 @@ void dumpState(){
   CONSOLE.println(absolutePosSourceLat);
 }
 
-long calcStateCRC(){
- return (stateOp *10 + maps.mowPointsIdx + maps.dockPointsIdx + maps.freePointsIdx + ((byte)maps.wayMode));
+double calcStateCRC(){
+ return (stateOp *10 + maps.mowPointsIdx + maps.dockPointsIdx + maps.freePointsIdx + ((byte)maps.wayMode) 
+   + sonar.enabled + fixTimeout 
+   + ((byte)absolutePosSource) + absolutePosSourceLon + absolutePosSourceLat);
 }
 
 bool loadState(){
@@ -206,7 +214,7 @@ bool loadState(){
   }
   uint32_t marker = 0;
   stateFile.read((uint8_t*)&marker, sizeof(marker));
-  if (marker != 0x10001002){
+  if (marker != 0x10001003){
     CONSOLE.print("ERROR: invalid marker: ");
     CONSOLE.println(marker, HEX);
     return false;
@@ -221,6 +229,9 @@ bool loadState(){
     return false;
   }
   bool res = true;
+  res &= (stateFile.read((uint8_t*)&stateX, sizeof(stateX)) != 0);
+  res &= (stateFile.read((uint8_t*)&stateY, sizeof(stateY)) != 0);
+  res &= (stateFile.read((uint8_t*)&stateDelta, sizeof(stateDelta)) != 0);
   res &= (stateFile.read((uint8_t*)&maps.mowPointsIdx, sizeof(maps.mowPointsIdx)) != 0);
   res &= (stateFile.read((uint8_t*)&maps.dockPointsIdx, sizeof(maps.dockPointsIdx)) != 0);
   res &= (stateFile.read((uint8_t*)&maps.freePointsIdx, sizeof(maps.freePointsIdx)) != 0);
@@ -236,6 +247,7 @@ bool loadState(){
   stateFile.close();  
   CONSOLE.println("ok");
   stateCRC = calcStateCRC();
+  dumpState();
   setOperation(stateOp, true, true);
 #endif
   return true;
@@ -247,7 +259,7 @@ bool loadState(){
 bool saveState(){   
   bool res = true;
 #if defined(ENABLE_SD_RESUME)
-  long crc = calcStateCRC();
+  double crc = calcStateCRC();
   //CONSOLE.print("stateCRC=");
   //CONSOLE.print(stateCRC);
   //CONSOLE.print(" crc=");
@@ -261,9 +273,13 @@ bool saveState(){
     CONSOLE.println("ERROR opening file for writing");
     return false;
   }
-  uint32_t marker = 0x10001002;
+  uint32_t marker = 0x10001003;
   res &= (stateFile.write((uint8_t*)&marker, sizeof(marker)) != 0); 
   res &= (stateFile.write((uint8_t*)&maps.mapCRC, sizeof(maps.mapCRC)) != 0); 
+
+  res &= (stateFile.write((uint8_t*)&stateX, sizeof(stateX)) != 0);
+  res &= (stateFile.write((uint8_t*)&stateY, sizeof(stateY)) != 0);
+  res &= (stateFile.write((uint8_t*)&stateDelta, sizeof(stateDelta)) != 0);
   res &= (stateFile.write((uint8_t*)&maps.mowPointsIdx, sizeof(maps.mowPointsIdx)) != 0);
   res &= (stateFile.write((uint8_t*)&maps.dockPointsIdx, sizeof(maps.dockPointsIdx)) != 0);
   res &= (stateFile.write((uint8_t*)&maps.freePointsIdx, sizeof(maps.freePointsIdx)) != 0);
@@ -654,7 +670,6 @@ void start(){
   buzzer.sound(SND_READY);  
   battery.resetIdle();        
   loadState();
-  dumpState();
 }
 
 
