@@ -867,7 +867,7 @@ void detectObstacle(){
     }    
   }   
   
-  if ( (millis() > linearMotionStartTime + 2000) && (bumper.obstacle()) ){  
+  if ( (millis() > linearMotionStartTime + 5000) && (bumper.obstacle()) ){  
     CONSOLE.println("bumper obstacle!");    
     triggerObstacle();    
     return;
