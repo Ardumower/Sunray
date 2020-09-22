@@ -161,7 +161,9 @@ void resetMotionMeasurement(){
 
 void dumpState(){
   CONSOLE.print("dumpState: ");
-  CONSOLE.print("mowPointsIdx=");
+  CONSOLE.print(" mapCRC=");
+  CONSOLE.print(maps.mapCRC);
+  CONSOLE.print(" mowPointsIdx=");
   CONSOLE.print(maps.mowPointsIdx);
   CONSOLE.print(" dockPointsIdx=");
   CONSOLE.print(maps.freePointsIdx);
@@ -202,9 +204,18 @@ bool loadState(){
   }
   uint32_t marker = 0;
   stateFile.read((uint8_t*)&marker, sizeof(marker));
-  if (marker != 0x10001000){
+  if (marker != 0x10001001){
     CONSOLE.print("ERROR: invalid marker: ");
     CONSOLE.println(marker, HEX);
+    return false;
+  }
+  long crc = 0;
+  stateFile.read((uint8_t*)&crc, sizeof(crc));
+  if (crc != maps.mapCRC){
+    CONSOLE.print("ERROR: non-matching map CRC:");
+    CONSOLE.print(crc);
+    CONSOLE.print(" expected: ");
+    CONSOLE.println(maps.mapCRC);
     return false;
   }
   bool res = true;
@@ -247,8 +258,9 @@ bool saveState(){
     CONSOLE.println("ERROR opening file for writing");
     return false;
   }
-  uint32_t marker = 0x10001000;
+  uint32_t marker = 0x10001001;
   res &= (stateFile.write((uint8_t*)&marker, sizeof(marker)) != 0); 
+  res &= (stateFile.write((uint8_t*)&maps.mapCRC, sizeof(maps.mapCRC)) != 0); 
   res &= (stateFile.write((uint8_t*)&maps.mowPointsIdx, sizeof(maps.mowPointsIdx)) != 0);
   res &= (stateFile.write((uint8_t*)&maps.dockPointsIdx, sizeof(maps.dockPointsIdx)) != 0);
   res &= (stateFile.write((uint8_t*)&maps.freePointsIdx, sizeof(maps.freePointsIdx)) != 0);
