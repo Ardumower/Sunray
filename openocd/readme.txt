@@ -139,7 +139,6 @@ J-Link> device ATSAMD51P20A
 J-Link> r
 J-Link> h
 J-Link> erase
-J-Link> w2 0x41004000, 0xA51A
 J-Link> loadbin bootloader-grandcentral_m4-v3.6.0.bin, 0x0
 J-Link> verifybin bootloader-grandcentral_m4-v3.6.0.bin, 0x0
 J-Link> r
