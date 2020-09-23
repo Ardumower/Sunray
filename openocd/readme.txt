@@ -133,18 +133,40 @@ interface: Segger JLink
 
 1. Start JLink-Commander (JLink.exe) and enter:
 
-si 1 
-speed 4000 
-device ATSAMD51P20A
-r
-h
-erase
-w2 0x41004000, 0xA51A
-loadbin bootloader-grandcentral_m4-v3.6.0.bin, 0x0
-verifybin bootloader-grandcentral_m4-v3.6.0.bin, 0x0
-r
-qc    
+J-Link> si 1 
+J-Link> speed 4000 
+J-Link> device ATSAMD51P20A
+J-Link> r
+J-Link> h
+J-Link> erase
+J-Link> w2 0x41004000, 0xA51A
+J-Link> loadbin bootloader-grandcentral_m4-v3.6.0.bin, 0x0
+J-Link> verifybin bootloader-grandcentral_m4-v3.6.0.bin, 0x0
+J-Link> r
+J-Link> qc    
     
+
+e) How to read fuse bits using JLink and JLink-Commander
+----------------------------------------------------------
+target: Adafruit Grand Central M4 (SAMD51P20A, 1024KB Flash, 256KB RAM)
+interface: Segger JLink
+
+1. Start JLink-Commander (JLink.exe) and enter:
+
+J-Link> si 1 
+J-Link> speed 4000 
+J-Link> device ATSAMD51P20A
+J-Link> mem8 0x00804000,0x2c
+
+it will return the fuse data as follows:
+00804000 = 39 92 9A F6 80 FF EC AE FF FF FF FF FF FF FF FF
+00804010 = 10 40 80 00 FF FF FF FF FF FF FF FF FF FF FF FF
+00804020 = FF FF FF FF FF FF FF FF FF FF FF FF
+
+the BOOTPROT bits (bootloader protection) are located at 0x00804013 and should be all zero:
+J-Link> mem8 0x00804013,1
+
+00804013 = 00
 
 
     
