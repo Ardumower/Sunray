@@ -162,10 +162,13 @@ it will return the fuse data as follows:
 00804010 = 10 40 80 00 FF FF FF FF FF FF FF FF FF FF FF FF
 00804020 = FF FF FF FF FF FF FF FF FF FF FF FF
 
-the BOOTPROT bits (bootloader protection) are located at 0x00804013 and should be all zero:
+the BOOTPROT bits (bootloader protection) are located at 0x00804013:
 J-Link> mem8 0x00804013,1
-
 00804013 = 00
+
+writing 0xF to it sets BOOTPROT size to zero (according to SAM5x datasheet):
+J-Link> w1 0x00804013,0xF
+
 
 
     
