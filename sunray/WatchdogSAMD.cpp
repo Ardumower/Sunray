@@ -11,6 +11,9 @@
 #include <sam.h>
 
 
+//#define ENABLE_STACK_SAVING 1
+
+
 // Adafruit Grand Central M4: flash size 1024 kb (0x100000 bytes), flash page size 512 bytes
 #define FLASH_ADDRESS (0x100000 - 512) 
 //#define FLASH_ADDRESS  0x3FF80
@@ -72,7 +75,9 @@ void WatchdogSAMD::logFlashStackDump(){
 
 int WatchdogSAMD::enable(int maxPeriodMS, bool isForSleep) { 
 
-  logFlashStackDump();
+  #ifdef ENABLE_STACK_SAVING
+    logFlashStackDump();
+  #endif
   
   // Enable the watchdog with a period up to the specified max period in
   // milliseconds.
@@ -208,6 +213,8 @@ void WatchdogSAMD::disable() {
 
 void WDT_Handler(void) {
   // ISR for watchdog early warning, DO NOT RENAME!
+  
+#ifdef ENABLE_STACK_SAVING
   //WDT->CLEAR.reg = WDT_CLEAR_CLEAR_KEY;  
       
   // Typically, the stack begins at the end of SRAM, and will grow from higher to lower address values when 
@@ -230,6 +237,7 @@ void WDT_Handler(void) {
   //while (WDT->SYNCBUSY.reg)
   //  ;
   //WDT->INTFLAG.bit.EW = 1; // Clear interrupt flag
+#endif  
   
   WDT->CLEAR.reg = 0xFF; // value different than WDT_CLEAR_CLEAR_KEY causes reset
   while(true);  
