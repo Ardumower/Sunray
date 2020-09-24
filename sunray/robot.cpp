@@ -154,10 +154,15 @@ int freeMemory() {
 }
 
 // reset motion measurement
-void resetMotionMeasurement(){
+void resetLinearMotionMeasurement(){
   linearMotionStartTime = millis();  
   //stateGroundSpeed = 1.0;
 }
+
+void resetGPSMotionMeasurement(){
+  nextGPSMotionCheckTime = millis() + GPS_MOTION_DETECTION_TIMEOUT * 1000;     
+}
+
 
 void dumpState(){
   CONSOLE.print("dumpState: ");
@@ -879,7 +884,7 @@ void detectObstacle(){
   }  
   // check if GPS motion (obstacle detection)  
   if (millis() > nextGPSMotionCheckTime){        
-    nextGPSMotionCheckTime = millis() + GPS_MOTION_DETECTION_TIMEOUT * 1000;
+    resetGPSMotionMeasurement();
     float dX = lastGPSMotionX - stateX;
     float dY = lastGPSMotionY - stateY;
     float delta = sqrt( sq(dX) + sq(dY) );    
@@ -911,6 +916,7 @@ void trackLine(){
   targetDelta = scalePIangles(targetDelta, stateDelta);
   float diffDelta = distancePI(stateDelta, targetDelta);                         
   float lateralError = distanceLineInfinite(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
+  float distToPath = distanceLine(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
   float targetDist = maps.distanceToTargetPoint(stateX, stateY);
   
   float lastTargetDist = maps.distanceToLastTargetPoint(stateX, stateY);  
@@ -925,7 +931,7 @@ void trackLine(){
   }   
   
   if (KIDNAP_DETECT){
-    if (fabs(lateralError) > 1.0){ // actually, this should not happen (except something strange is going on...)
+    if (fabs(distToPath) > 1.0){ // actually, this should not happen (except something strange is going on...)
       CONSOLE.println("kidnapped!");
       stateSensor = SENS_KIDNAPPED;
       setOperation(OP_ERROR);
@@ -952,7 +958,7 @@ void trackLine(){
         else rotateRight = true;
     }        
     if (rotateLeft) angular *= -1;            
-    resetMotionMeasurement();
+    resetLinearMotionMeasurement();
     if (fabs(diffDelta)/PI*180.0 < 90){
       rotateLeft = false;  // reset rotate direction
       rotateRight = false;
@@ -1017,7 +1023,7 @@ void trackLine(){
         }
       }
     } else {
-      resetMotionMeasurement();
+      resetLinearMotionMeasurement();
     }  
   } else {
     // no gps solution
@@ -1111,7 +1117,7 @@ void run(){
           CONSOLE.println();                
           lastIMUYaw = 0;          
           imu.resetFifo();
-          resetMotionMeasurement();
+          resetLinearMotionMeasurement();
           imuDataTimeout = millis() + 10000;
         }
       }       
@@ -1235,8 +1241,8 @@ void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator
       if (maps.startDocking(stateX, stateY)){       
         if (maps.nextPoint(true)) {
           maps.repeatLastMowingPoint();
-          nextGPSMotionCheckTime = millis() + 30000;
-          resetMotionMeasurement();                
+          resetGPSMotionMeasurement;
+          resetLinearMotionMeasurement();                
           maps.setLastTargetPoint(stateX, stateY);        
           stateSensor = SENS_NONE;                  
         } else {
@@ -1257,8 +1263,8 @@ void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator
       motor.setLinearAngularSpeed(0,0);
       if (maps.startMowing(stateX, stateY)){
         if (maps.nextPoint(true)) {
-          nextGPSMotionCheckTime = millis() + 30000;
-          resetMotionMeasurement();                
+          resetGPSMotionMeasurement();
+          resetLinearMotionMeasurement();                
           maps.setLastTargetPoint(stateX, stateY);        
           stateSensor = SENS_NONE;
           motor.setMowState(true);                
