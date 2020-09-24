@@ -27,6 +27,7 @@ float scalePI(float v);
 float scale180(float v);
 float distancePI(float x, float w);
 float distance180(float x, float w);
+float distanceLineInfinite(float px, float py, float x1, float y1, float x2, float y2);
 float distanceLine(float px, float py, float x1, float y1, float x2, float y2);
 float fusionPI(float w, float a, float b);
 float scalePIangles(float setAngle, float currAngle);

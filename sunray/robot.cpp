@@ -910,7 +910,7 @@ void trackLine(){
   if (maps.trackReverse) targetDelta = scalePI(targetDelta + PI);
   targetDelta = scalePIangles(targetDelta, stateDelta);
   float diffDelta = distancePI(stateDelta, targetDelta);                         
-  float lateralError = distanceLine(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
+  float lateralError = distanceLineInfinite(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
   float targetDist = maps.distanceToTargetPoint(stateX, stateY);
   
   float lastTargetDist = maps.distanceToLastTargetPoint(stateX, stateY);  

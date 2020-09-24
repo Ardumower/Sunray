@@ -299,6 +299,14 @@ void cmdHangTest(){
   }
 }
 
+// kidnap test (kidnap detection should trigger)
+void cmdKidnap(){
+  String s = F("K");
+  cmdAnswer(s);  
+  CONSOLE.println("kidnapping robot - kidnap detection should trigger");
+  stateX = 0;  
+  stateY = 0;
+}
 
 // request summary
 void cmdSummary(){
@@ -455,6 +463,7 @@ void processCmd(bool checkCrc){
   if (cmd[3] == 'E') cmdMotorTest();  
   if (cmd[3] == 'O') cmdObstacle();  
   if (cmd[3] == 'F') cmdSensorTest();  
+  if (cmd[3] == 'K') cmdKidnap();   // for developers
   if (cmd[3] == 'Z') cmdStressTest();   // for developers
   if (cmd[3] == 'Y') cmdHangTest();   // for developers
 }
