@@ -345,6 +345,8 @@ void cmdSummary(){
   }
   s += ",";
   s += gps.numSVdgps;  
+  s += ",";
+  s += maps.mapCRC;
   cmdAnswer(s);  
 }
 
