@@ -196,6 +196,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define CURRENT_FACTOR 1.0   // (bridged INA169, max. 5A)
 
 #define GO_HOME_VOLTAGE   21.5  // start going to dock below this voltage
+// The battery will charge if both battery voltage is below that value and charging current is above that value.
 #define BAT_FULL_VOLTAGE  28.7  // start mowing again at this voltage
 #define BAT_FULL_CURRENT  0.2   // start mowing again below this charging current (amps)
 
