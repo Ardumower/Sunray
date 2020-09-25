@@ -211,8 +211,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //    (for Adafruit Grand Central M4: 'packages\adafruit\hardware\samd\xxxxx\cores\arduino\RingBuffer.h')
 // change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 1024
 
-//#define REQUIRE_VALID_GPS  true       // mower will pause if invalid GPS signal (invalid gps) during mowing
-#define REQUIRE_VALID_GPS  false    // mower will ignore invalid GPS signal (invalid gps) during mowing
+//#define REQUIRE_VALID_GPS  true       // mower will pause if no float and no fix GPS solution during mowing
+#define REQUIRE_VALID_GPS  false    // mower will continue to mow if no float or no fix solution
 
 #define GPS_SPEED_DETECTION true  // will detect obstacles via GPS feedback (no speed)
 //#define GPS_SPEED_DETECTION false
@@ -237,7 +237,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define OSTACLE_AVOIDANCE true   // try to find a way around obstacle
 //#define OSTACLE_AVOIDANCE false  // stop robot on obstacle
 
-// detect robot being kidnapped?
+// detect robot being kidnapped? robot will go into error if distance to tracked path is greater than 1m
 //#define KIDNAP_DETECT true
 #define KIDNAP_DETECT false
 
