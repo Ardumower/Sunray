@@ -308,6 +308,29 @@ void cmdKidnap(){
   stateY = 0;
 }
 
+// toggle GPS solution (invalid,float,fix) for testing
+void cmdToggleGPSSolution(){
+  String s = F("G");
+  cmdAnswer(s);  
+  CONSOLE.println("toggle GPS solution");
+  switch (gps.solution){
+    case UBLOX::SOL_INVALID:  
+      gps.solution = UBLOX::SOL_FLOAT;
+      lastFixTime = millis();
+      stateGroundSpeed = 0.1;
+      break;
+    case UBLOX::SOL_FLOAT:  
+      gps.solution = UBLOX::SOL_FIXED;
+      lastFixTime = millis() + 1000 * 60 * 600;
+      stateGroundSpeed = 0.1;
+      break;
+    case UBLOX::SOL_FIXED:  
+      gps.solution = UBLOX::SOL_INVALID;
+      break;
+  }
+}
+
+
 // request summary
 void cmdSummary(){
   String s = F("S,");
@@ -465,6 +488,7 @@ void processCmd(bool checkCrc){
   if (cmd[3] == 'E') cmdMotorTest();  
   if (cmd[3] == 'O') cmdObstacle();  
   if (cmd[3] == 'F') cmdSensorTest();  
+  if (cmd[3] == 'G') cmdToggleGPSSolution();   // for developers
   if (cmd[3] == 'K') cmdKidnap();   // for developers
   if (cmd[3] == 'Z') cmdStressTest();   // for developers
   if (cmd[3] == 'Y') cmdHangTest();   // for developers

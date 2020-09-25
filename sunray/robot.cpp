@@ -1242,6 +1242,7 @@ void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator
         if (maps.nextPoint(true)) {
           maps.repeatLastMowingPoint();
           resetGPSMotionMeasurement;
+          lastFixTime = millis();
           resetLinearMotionMeasurement();                
           maps.setLastTargetPoint(stateX, stateY);        
           stateSensor = SENS_NONE;                  
@@ -1264,6 +1265,7 @@ void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator
       if (maps.startMowing(stateX, stateY)){
         if (maps.nextPoint(true)) {
           resetGPSMotionMeasurement();
+          lastFixTime = millis();
           resetLinearMotionMeasurement();                
           maps.setLastTargetPoint(stateX, stateY);        
           stateSensor = SENS_NONE;
