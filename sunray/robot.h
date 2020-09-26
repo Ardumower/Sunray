@@ -19,11 +19,11 @@
 #include "sonar.h"
 #include "VL53L0X.h"
 #include "map.h"   
-#include "ublox.h"
-#include "WiFiEsp.h"
+#include "src/ublox/ublox.h"
+#include "src/esp/WiFiEsp.h"
 
 
-#define VER "Ardumower Sunray,1.0.141"
+#define VER "Ardumower Sunray,1.0.142"
 
 enum OperationType {
       OP_IDLE,      

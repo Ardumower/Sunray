@@ -8,9 +8,9 @@
 #include "config.h"
 #include <Arduino.h>
 #if defined(_SAM3XA_)
-  #include "DueTimer.h"
+  #include "src/due/DueTimer.h"
 #else
-  #include "Adafruit_ZeroTimer.h"    // __SAMD51__
+  #include "src/agcm4/Adafruit_ZeroTimer.h"    // __SAMD51__
 #endif
 
 

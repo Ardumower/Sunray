@@ -44,7 +44,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #ifdef __cplusplus
   #include "udpserial.h"
   #include "sdserial.h"
-  #include "adafruit_grand_central.h"
+  #include "src/agcm4/adafruit_grand_central.h"
 #endif
 
 

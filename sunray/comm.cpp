@@ -1,8 +1,8 @@
 #include "comm.h"
 #include "config.h"
 #include "robot.h"
-#include "reset.h"
-#include "WiFiEsp.h"
+#include "src/agcm4/reset.h"
+#include "src/esp/WiFiEsp.h"
 
 unsigned long nextInfoTime = 0;
 

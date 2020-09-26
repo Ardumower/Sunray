@@ -4,8 +4,8 @@
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
 #include "udpserial.h"
-#include "WiFiEsp.h"
-#include "WiFiEspUdp.h"
+#include "src/esp/WiFiEsp.h"
+#include "src/esp/WiFiEspUdp.h"
 
 
 #if defined(_SAM3XA_)                 // Arduino Due
