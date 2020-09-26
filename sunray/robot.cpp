@@ -24,8 +24,8 @@
 #include "config.h"
 #include "helper.h"
 #include "pid.h"
-#include "src/agcm4/reset.h"
-#include "src/agcm4/cpu.h"
+#include "reset.h"
+#include "cpu.h"
 #include "i2c.h"
 
 
