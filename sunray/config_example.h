@@ -264,6 +264,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // activate support for model R/C control?
 // use PCB pin 'mow' for R/C model control speed and PCB pin 'steering' for R/C model control steering, 
 // also connect 5v and GND and activate model R/C control via PCB P20 start button for 3 sec.
+// more details: https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#R.2FC_model
 //#define RCMODEL_ENABLE true
 #define RCMODEL_ENABLE false
 
