@@ -16,6 +16,7 @@ typedef enum MotorSelect MotorSelect;
 
 class Motor {
   public:
+    float robotPitch;  // robot pitch (rad)
     float wheelBaseCm;  // wheel-to-wheel diameter
     int wheelDiameter;   // wheel diameter (mm)
     int ticksPerRevolution; // ticks per revolution
@@ -43,6 +44,8 @@ class Motor {
     float motorRightSenseLP; // right  motor current (amps, low-pass)
     float motorMowSenseLP;  // mower motor current (amps, low-pass)       
     float motorsSenseLP; // all motors current (amps, low-pass)
+    float motorLeftSenseLPNorm; 
+    float motorRightSenseLPNorm; 
     void begin();
     void run();      
     void test();
@@ -55,6 +58,8 @@ class Motor {
     float motorRightRpmSet;    
     float motorLeftRpmCurr;
     float motorRightRpmCurr;
+    float motorLeftRpmLast;
+    float motorRightRpmLast;
     bool motorMowForwardSet; 
     float motorMowPWMSet; 
     float motorMowPWMCurr; 

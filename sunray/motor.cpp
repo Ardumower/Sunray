@@ -81,6 +81,7 @@ void Motor::begin() {
   motorRightPID.Ki       = motorLeftPID.Ki;
   motorRightPID.Kd       = motorLeftPID.Kd;		 
 
+  robotPitch = 0;
   motorLeftSwapDir = false;
   motorRightSwapDir = false;
   motorError = false;
@@ -125,6 +126,8 @@ void Motor::begin() {
   motorMowPWMCurrLP = 0;
   motorLeftRpmCurr=0;
   motorRightRpmCurr=0;
+  motorLeftRpmLast = 0;
+  motorRightRpmLast = 0;
   setLinearAngularSpeedTimeoutActive = false;  
   setLinearAngularSpeedTimeout = 0;
 }
@@ -329,8 +332,10 @@ void Motor::run() {
     if (motorRightTicksZero > 2) motorRightRpmCurr = 0;
   } else motorRightTicksZero = 0;
 
-  
+  // speed controller
   control();    
+  motorLeftRpmLast = motorLeftRpmCurr;
+  motorRightRpmLast = motorRightRpmCurr;
 }  
 
 
@@ -387,14 +392,34 @@ void Motor::sense(){
   motorRightSense = ((float)ADC2voltage(analogRead(pinMotorRightSense))) *scale;
   motorLeftSense = ((float)ADC2voltage(analogRead(pinMotorLeftSense))) *scale;
   motorMowSense = ((float)ADC2voltage(analogRead(pinMotorMowSense))) *scale  *2;	      
-  motorRightSenseLP = 0.995 * motorRightSenseLP + 0.005 * motorRightSense;
-  motorLeftSenseLP = 0.995 * motorLeftSenseLP + 0.005 * motorLeftSense;
-  motorMowSenseLP = 0.995 * motorMowSenseLP + 0.005 * motorMowSense; 
+  float lp = 0.995; // 0.9
+  motorRightSenseLP = lp * motorRightSenseLP + (1.0-lp) * motorRightSense;
+  motorLeftSenseLP = lp * motorLeftSenseLP + (1.0-lp) * motorLeftSense;
+  motorMowSenseLP = lp * motorMowSenseLP + (1.0-lp) * motorMowSense; 
   motorsSenseLP = motorRightSenseLP + motorLeftSenseLP + motorMowSenseLP;
-  motorRightPWMCurrLP = 0.995 * motorRightPWMCurrLP + 0.005 * ((float)motorRightPWMCurr);
-  motorLeftPWMCurrLP = 0.995 * motorLeftPWMCurrLP + 0.005 * ((float)motorLeftPWMCurr);
-  motorMowPWMCurrLP = 0.995 * motorMowPWMCurrLP + 0.005 * ((float)motorMowPWMCurr); 
+  motorRightPWMCurrLP = lp * motorRightPWMCurrLP + (1.0-lp) * ((float)motorRightPWMCurr);
+  motorLeftPWMCurrLP = lp * motorLeftPWMCurrLP + (1.0-lp) * ((float)motorLeftPWMCurr);
+  motorMowPWMCurrLP = lp * motorMowPWMCurrLP + (1.0-lp) * ((float)motorMowPWMCurr); 
  
+  // compute normalized current (normalized to 1g gravity)
+  //float leftAcc = (motorLeftRpmCurr - motorLeftRpmLast) / deltaControlTimeSec;
+  //float rightAcc = (motorRightRpmCurr - motorRightRpmLast) / deltaControlTimeSec;
+  float cosPitch = cos(robotPitch); 
+	float pitchfactor;
+  float robotMass = 1.0;
+	// left wheel friction
+	if (  ((motorLeftPWMCurr >= 0) && (robotPitch <= 0)) || ((motorLeftPWMCurr < 0) && (robotPitch >= 0)) )
+		pitchfactor = cosPitch; // decrease by angle
+	else 
+		pitchfactor = 2.0-cosPitch;  // increase by angle
+	motorLeftSenseLPNorm = abs(motorLeftSenseLP) * robotMass * pitchfactor;  
+	// right wheel friction
+	if (  ((motorRightPWMCurr >= 0) && (robotPitch <= 0)) || ((motorRightPWMCurr < 0) && (robotPitch >= 0)) )
+		pitchfactor = cosPitch;  // decrease by angle
+	else 
+		pitchfactor = 2.0-cosPitch; // increase by angle
+  motorRightSenseLPNorm = abs(motorRightSenseLP) * robotMass * pitchfactor; 
+
   motorLeftOverload = (motorLeftSenseLP > MOTOR_OVERLOAD_CURRENT);
   motorRightOverload = (motorRightSenseLP > MOTOR_OVERLOAD_CURRENT);
   motorMowOverload = (motorMowSenseLP > MOW_OVERLOAD_CURRENT);

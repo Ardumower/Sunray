@@ -467,9 +467,12 @@ bool startIMU(bool forceIMU){
       return false;
     }
     watchdogReset();     
-  }            
+  }     
+  //imu.setAccelFSR(2);
+	       
   imu.dmpBegin(DMP_FEATURE_6X_LP_QUAT  // Enable 6-axis quat
                |  DMP_FEATURE_GYRO_CAL // Use gyro calibration
+             //  | DMP_FEATURE_SEND_RAW_ACCEL
               , 5); // Set DMP FIFO rate to 5 Hz
   // DMP_FEATURE_LP_QUAT can also be used. It uses the 
   // accelerometer in low-power mode to estimate quat's.
@@ -522,6 +525,11 @@ void readIMU(){
       // quaternion values -- to estimate roll, pitch, and yaw
       //  toEulerianAngle(imu.calcQuat(imu.qw), imu.calcQuat(imu.qx), imu.calcQuat(imu.qy), imu.calcQuat(imu.qz), imu.roll, imu.pitch, imu.yaw);
       imu.computeEulerAngles(false);      
+      //CONSOLE.print(imu.ax);
+      //CONSOLE.print(",");
+      //CONSOLE.print(imu.ay);
+      //CONSOLE.print(",");
+      //CONSOLE.println(imu.az);
       #ifdef ENABLE_TILT_DETECTION
         rollChange += (imu.roll-stateRoll);
         pitchChange += (imu.pitch-statePitch);               
@@ -549,6 +557,7 @@ void readIMU(){
           setOperation(OP_ERROR);
         }           
       #endif
+      motor.robotPitch = scalePI(imu.pitch);
       imu.yaw = scalePI(imu.yaw);
       lastIMUYaw = scalePI(lastIMUYaw);
       lastIMUYaw = scalePIangles(lastIMUYaw, imu.yaw);
