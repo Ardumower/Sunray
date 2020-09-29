@@ -158,7 +158,11 @@ void UBLOX::begin()
   }
 }
 
-
+void UBLOX::reboot(){
+  CONSOLE.println("rebooting GPS receiver...");
+  //configGPS.hardReset();
+  configGPS.GNSSRestart();
+}
 
 void UBLOX::parse(int b)
 {

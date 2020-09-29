@@ -213,6 +213,20 @@ void SFE_UBLOX_GPS::hardReset()
   sendCommand(&packetCfg, 0); // don't expect ACK
 }
 
+void SFE_UBLOX_GPS::GNSSRestart()
+{
+  // Issue hard reset
+  packetCfg.cls = UBX_CLASS_CFG;
+  packetCfg.id = UBX_CFG_RST;
+  packetCfg.len = 4;
+  packetCfg.startingSpot = 0;
+  payloadCfg[0] = 0x00;       // warm start
+  payloadCfg[1] = 0x00;       // warm start
+  payloadCfg[2] = 0x02;       // 0x02=software reset (GNSS only)
+  payloadCfg[3] = 0;          // reserved
+  sendCommand(&packetCfg, 0); // don't expect ACK
+}
+
 //Changes the serial baud rate of the Ublox module, can't return success/fail 'cause ACK from modem
 //is lost due to baud rate change
 void SFE_UBLOX_GPS::setSerialRate(uint32_t baudrate, uint8_t uartPort, uint16_t maxWait)
@@ -457,7 +471,7 @@ void SFE_UBLOX_GPS::process(uint8_t incoming, ubxPacket *incomingUBX, uint8_t re
 {
   if ((currentSentence == NONE) || (currentSentence == NMEA))
   {
-    if (incoming == 0xB5) //UBX binary frames start with 0xB5, aka µ
+    if (incoming == 0xB5) //UBX binary frames start with 0xB5, aka ï¿½
     {
       //This is the start of a binary sentence. Reset flags.
       //We still don't know the response class
@@ -488,7 +502,7 @@ void SFE_UBLOX_GPS::process(uint8_t incoming, ubxPacket *incomingUBX, uint8_t re
   if (currentSentence == UBX)
   {
     //Decide what type of response this is
-    if ((ubxFrameCounter == 0) && (incoming != 0xB5))      //ISO 'µ'
+    if ((ubxFrameCounter == 0) && (incoming != 0xB5))      //ISO 'ï¿½'
       currentSentence = NONE;                              //Something went wrong. Reset.
     else if ((ubxFrameCounter == 1) && (incoming != 0x62)) //ASCII 'b'
       currentSentence = NONE;                              //Something went wrong. Reset.
@@ -1083,7 +1097,7 @@ sfe_ublox_status_e SFE_UBLOX_GPS::sendI2cCommand(ubxPacket *outgoingUBX, uint16_
 
   //Write header bytes
   _i2cPort->beginTransmission((uint8_t)_gpsI2Caddress); //There is no register to write to, we just begin writing data bytes
-  _i2cPort->write(UBX_SYNCH_1);                         //µ - oh ublox, you're funny. I will call you micro-blox from now on.
+  _i2cPort->write(UBX_SYNCH_1);                         //ï¿½ - oh ublox, you're funny. I will call you micro-blox from now on.
   _i2cPort->write(UBX_SYNCH_2);                         //b
   _i2cPort->write(outgoingUBX->cls);
   _i2cPort->write(outgoingUBX->id);
@@ -1136,7 +1150,7 @@ sfe_ublox_status_e SFE_UBLOX_GPS::sendI2cCommand(ubxPacket *outgoingUBX, uint16_
 void SFE_UBLOX_GPS::sendSerialCommand(ubxPacket *outgoingUBX)
 {
   //Write header bytes
-  _serialPort->write(UBX_SYNCH_1); //µ - oh ublox, you're funny. I will call you micro-blox from now on.
+  _serialPort->write(UBX_SYNCH_1); //ï¿½ - oh ublox, you're funny. I will call you micro-blox from now on.
   _serialPort->write(UBX_SYNCH_2); //b
   _serialPort->write(outgoingUBX->cls);
   _serialPort->write(outgoingUBX->id);

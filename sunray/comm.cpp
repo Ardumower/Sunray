@@ -290,13 +290,21 @@ void cmdStressTest(){
 }
 
 // perform hang test (watchdog should trigger)
-void cmdHangTest(){
+void cmdTriggerWatchdog(){
   String s = F("Y");
   cmdAnswer(s);  
-  CONSOLE.println("hang test - watchdog should trigger");
+  CONSOLE.println("hang test - watchdog should trigger and perform a reset");
   while (true){
     // do nothing, just hang    
   }
+}
+
+// perform hang test (watchdog should trigger)
+void cmdGNSSReboot(){
+  String s = F("Y2");
+  cmdAnswer(s);  
+  CONSOLE.println("GNNS reboot");
+  gps.reboot();
 }
 
 // kidnap test (kidnap detection should trigger)
@@ -491,7 +499,13 @@ void processCmd(bool checkCrc){
   if (cmd[3] == 'G') cmdToggleGPSSolution();   // for developers
   if (cmd[3] == 'K') cmdKidnap();   // for developers
   if (cmd[3] == 'Z') cmdStressTest();   // for developers
-  if (cmd[3] == 'Y') cmdHangTest();   // for developers
+  if (cmd[3] == 'Y') {
+    if (cmd.length() <= 4){
+      cmdTriggerWatchdog();   // for developers
+    } else {
+      if (cmd[4] == '2') cmdGNSSReboot();   // for developers
+    }
+  }
 }
 
 // process console input
