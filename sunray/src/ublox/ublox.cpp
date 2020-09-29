@@ -109,13 +109,13 @@ bool UBLOX::configure(){
   // minimum condition when the receiver should try a navigation solution
   // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#RTK_float-to-fix_recovery_and_false-fix_issues
   if (GPS_CONFIG_FILTER){
-    setValueSuccess &= configGPS.addCfgValset8(0x201100a4, 10); // CFG-NAVSPG-INFIL_MINELEV
-    setValueSuccess &= configGPS.addCfgValset8(0x201100aa, 10); // CFG-NAVSPG-INFIL_NCNOTHRS
-    setValueSuccess &= configGPS.addCfgValset8(0x201100ab, 30); // CFG-NAVSPG-INFIL_CNOTHRS     
+    setValueSuccess &= configGPS.addCfgValset8(0x201100a4, 10); // CFG-NAVSPG-INFIL_MINELEV  (Min SV elevation)
+    setValueSuccess &= configGPS.addCfgValset8(0x201100aa, 10); // CFG-NAVSPG-INFIL_NCNOTHRS (C/N0 Threshold #SVs)
+    setValueSuccess &= configGPS.addCfgValset8(0x201100ab, 30); // CFG-NAVSPG-INFIL_CNOTHRS  (dbHz)
   } else {
-    setValueSuccess &= configGPS.addCfgValset8(0x201100a4, 10); // CFG-NAVSPG-INFIL_MINELEV
-    setValueSuccess &= configGPS.addCfgValset8(0x201100aa, 0);  // CFG-NAVSPG-INFIL_NCNOTHRS
-    setValueSuccess &= configGPS.addCfgValset8(0x201100ab, 0);  // CFG-NAVSPG-INFIL_CNOTHRS     
+    setValueSuccess &= configGPS.addCfgValset8(0x201100a4, 10); // CFG-NAVSPG-INFIL_MINELEV  (Min SV elevation)
+    setValueSuccess &= configGPS.addCfgValset8(0x201100aa, 0);  // CFG-NAVSPG-INFIL_NCNOTHRS (C/N0 Threshold #SVs)
+    setValueSuccess &= configGPS.addCfgValset8(0x201100ab, 0);  // CFG-NAVSPG-INFIL_CNOTHRS  (dbHz)   
   }
   // ----  gps rates ----------------------------------
   setValueSuccess &= configGPS.addCfgValset16(0x30210001, 200); // CFG-RATE-MEAS       
