@@ -35,7 +35,9 @@ class Battery {
     bool chargingHasCompleted();
     bool underVoltage();
     void resetIdle();
-  protected:           
+    void switchOff();
+  protected:       
+    bool switchOffByOperator;    
     unsigned long timeMinutes;
 		bool chargerConnectedState;
     bool switchOffAllowedUndervoltage;

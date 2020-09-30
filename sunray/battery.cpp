@@ -62,6 +62,7 @@ void Battery::begin()
   batFullVoltage = BAT_FULL_VOLTAGE;  //28.7  voltage when battery is fully charged (we charge to only 90% to increase battery life time)
   enableChargingTimeout = 60 * 30; // if battery is full, wait this time before enabling charging again (seconds)
   batteryVoltage = 0;
+  switchOffByOperator = false;
   switchOffAllowedUndervoltage = BAT_SWITCH_OFF_UNDERVOLTAGE;
   switchOffAllowedIdle = BAT_SWITCH_OFF_IDLE;
 
@@ -106,6 +107,10 @@ void Battery::resetIdle(){
   switchOffTime = millis() + batSwitchOffIfIdle * 1000;    
 }
 
+void Battery::switchOff(){
+  CONSOLE.println("switching-off battery by operator...");
+  switchOffByOperator = true;
+}
 
 void Battery::run(){  
   chargingVoltage = ((float)ADC2voltage(analogRead(pinChargeVoltage))) * batteryFactor;  
@@ -135,12 +140,12 @@ void Battery::run(){
     if (underVoltage()) {
       DEBUGLN(F("SWITCHING OFF (undervoltage)"));              
       buzzer.sound(SND_OVERCURRENT, true);
-      if (switchOffAllowedUndervoltage) digitalWrite(pinBatterySwitch, LOW);    
-    } else if (millis() >= switchOffTime) {
+      if (switchOffAllowedUndervoltage)  digitalWrite(pinBatterySwitch, LOW);     
+    } else if ((millis() >= switchOffTime) || (switchOffByOperator)) {
       DEBUGLN(F("SWITCHING OFF (idle timeout)"));              
       buzzer.sound(SND_OVERCURRENT, true);
-      if (switchOffAllowedIdle) digitalWrite(pinBatterySwitch, LOW);    
-    } else digitalWrite(pinBatterySwitch, HIGH);              
+      if ((switchOffAllowedIdle) || (switchOffByOperator)) digitalWrite(pinBatterySwitch, LOW);
+    } else  digitalWrite(pinBatterySwitch, HIGH);              
     	      
 		if (millis() >= nextPrintTime){
 			nextPrintTime = millis() + 60000;  	   	   	

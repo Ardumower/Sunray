@@ -307,6 +307,14 @@ void cmdGNSSReboot(){
   gps.reboot();
 }
 
+// switch-off robot
+void cmdSwitchOffRobot(){
+  String s = F("Y3");
+  cmdAnswer(s);  
+  setOperation(OP_IDLE);
+  battery.switchOff();
+}
+
 // kidnap test (kidnap detection should trigger)
 void cmdKidnap(){
   String s = F("K");
@@ -495,7 +503,7 @@ void processCmd(bool checkCrc){
   if (cmd[3] == 'L') cmdClearStats();
   if (cmd[3] == 'E') cmdMotorTest();  
   if (cmd[3] == 'O') cmdObstacle();  
-  if (cmd[3] == 'F') cmdSensorTest();  
+  if (cmd[3] == 'F') cmdSensorTest(); 
   if (cmd[3] == 'G') cmdToggleGPSSolution();   // for developers
   if (cmd[3] == 'K') cmdKidnap();   // for developers
   if (cmd[3] == 'Z') cmdStressTest();   // for developers
@@ -504,6 +512,7 @@ void processCmd(bool checkCrc){
       cmdTriggerWatchdog();   // for developers
     } else {
       if (cmd[4] == '2') cmdGNSSReboot();   // for developers
+      if (cmd[4] == '3') cmdSwitchOffRobot();   // for developers
     }
   }
 }
