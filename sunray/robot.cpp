@@ -949,8 +949,8 @@ void trackLine(){
    }
   }
           
-  // allow rotations only near last or next waypoint
-  if ((targetDist < 0.5) || (lastTargetDist < 0.5)) {
+  // allow rotations only near last or next waypoint or if too far away from path
+  if ( (targetDist < 0.5) || (lastTargetDist < 0.5) ||  (fabs(distToPath) > 0.5) ) {
     if (SMOOTH_CURVES)
       angleToTargetFits = (fabs(diffDelta)/PI*180.0 < 120);          
     else     
