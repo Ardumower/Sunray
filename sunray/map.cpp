@@ -1475,14 +1475,15 @@ int Map::findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, i
        bool isPeri = (idx3 == 0);  // if first index, it's perimeter, otherwise exclusions                           
        if (isPeri){ // we check with the perimeter?         
          //CONSOLE.println("we check with perimeter");
-         bool insidePeri = pointIsInsidePolygon(obstacles.polygons[0], *node.point);
+         bool insidePeri = pointIsInsidePolygon(obstacles.polygons[idx3], *node.point);
          if (!insidePeri) { // start point outside perimeter?                                                                                      
              //CONSOLE.println("start point oustide perimeter");
-             if (linePolygonIntersectPoint( *node.point, *pt, obstacles.polygons[0], sectPt)){
+             if (linePolygonIntersectPoint( *node.point, *pt, obstacles.polygons[idx3], sectPt)){
                float dist = distance(*node.point, sectPt);          
                //CONSOLE.print("dist=");
                //CONSOLE.println(dist);
                if (dist > 1){ safe = false; break; } // entering perimeter with long distance is not safe                             
+               if (linePolygonIntersectionCount( *node.point, *pt, obstacles.polygons[idx3]) != 1){ safe = false; break; }
                continue;           
              } else { safe = false; break; }                                          
          }
