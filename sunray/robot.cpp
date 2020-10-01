@@ -1181,9 +1181,9 @@ void run(){
           }
         } else {          
           // line tracking
+          trackLine();
           detectSensorMalfunction();
-          detectObstacle();
-          trackLine();       
+          detectObstacle();       
         }        
         battery.resetIdle();
         if (battery.underVoltage()){
