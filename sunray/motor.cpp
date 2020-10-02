@@ -130,6 +130,7 @@ void Motor::begin() {
   motorRightRpmLast = 0;
   setLinearAngularSpeedTimeoutActive = false;  
   setLinearAngularSpeedTimeout = 0;
+  motorMowSpinUpTime = 0;
 }
 
 
@@ -211,6 +212,7 @@ void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRam
 void Motor::setMowState(bool switchOn){
   if (switchOn){
     if (abs(motorMowPWMSet) > 0) return; // mowing motor already switch ON
+    motorMowSpinUpTime = millis();
     if (toggleMowDir){
       // toggle mowing motor direction each mow motor start
       motorMowForwardSet = !motorMowForwardSet;

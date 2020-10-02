@@ -115,7 +115,6 @@ double stateCRC = 0;
 float lastPosN = 0;
 float lastPosE = 0;
 
-
 unsigned long linearMotionStartTime = 0;
 unsigned long driveReverseStopTime = 0;
 unsigned long nextControlTime = 0;
@@ -823,7 +822,7 @@ void triggerObstacle(){
   } else { 
     stateSensor = SENS_OBSTACLE;
     setOperation(OP_ERROR);
-    buzzer.sound(SND_STUCK, true);        
+    buzzer.sound(SND_ERROR, true);        
   }
 }
 
@@ -835,7 +834,7 @@ void detectSensorMalfunction(){
       CONSOLE.println("odometry error!");    
       stateSensor = SENS_ODOMETRY_ERROR;
       setOperation(OP_ERROR);
-      buzzer.sound(SND_STUCK, true); 
+      buzzer.sound(SND_ERROR, true); 
       return;      
     }
   }
@@ -844,7 +843,7 @@ void detectSensorMalfunction(){
       CONSOLE.println("overload!");    
       stateSensor = SENS_OVERLOAD;
       setOperation(OP_ERROR);
-      buzzer.sound(SND_STUCK, true);        
+      buzzer.sound(SND_ERROR, true);        
       return;
     }  
   }
@@ -854,7 +853,7 @@ void detectSensorMalfunction(){
       CONSOLE.println("motor error!");
       stateSensor = SENS_MOTOR_ERROR;
       setOperation(OP_ERROR);
-      buzzer.sound(SND_STUCK, true);       
+      buzzer.sound(SND_ERROR, true);       
       return;       
     }  
   }
@@ -946,7 +945,7 @@ void trackLine(){
       CONSOLE.println("kidnapped!");
       stateSensor = SENS_KIDNAPPED;
       setOperation(OP_ERROR);
-      buzzer.sound(SND_STUCK, true);        
+      buzzer.sound(SND_ERROR, true);        
       return;
    }
   }
@@ -1049,6 +1048,14 @@ void trackLine(){
     }
   }
    
+  if (mow)  {  // wait until mowing motor is running
+    if (millis() < motor.motorMowSpinUpTime + 5000){
+      if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
+      linear = 0;
+      angular = 0;   
+    }
+  }
+
   motor.setLinearAngularSpeed(linear, angular);      
   motor.setMowState(mow);
    

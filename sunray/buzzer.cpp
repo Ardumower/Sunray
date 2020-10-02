@@ -43,6 +43,10 @@ void Buzzer::sound(SoundSelect idx, bool async){
   }
 }
 
+bool Buzzer::isPlaying(){
+  return (nextToneTime != 0);
+}
+
 void Buzzer::run(){  
   if (nextToneTime == 0) return;
   unsigned long m = millis();
@@ -71,14 +75,14 @@ void Buzzer::run(){
         case 4:         	 nextToneTime = 0;       break;
       }
       break;
-    case SND_STUCK:
+    case SND_WARNING:
       switch (toneIdx){
-        case 0: tone(4200); nextToneTime = m + 50;  break;
-        case 1: noTone();  nextToneTime = m + 200; break;
-        case 2: tone(4200); nextToneTime = m + 50;  break;
-        case 3: noTone();  nextToneTime = m + 200; break;
-				case 4: tone(4200); nextToneTime = m + 50;  break;
-				case 5: noTone();  nextToneTime = m + 200; break;
+        case 0: tone(4200); nextToneTime = m + 200;  break;
+        case 1: noTone();  nextToneTime = m + 2000; break;
+        case 2: tone(4200); nextToneTime = m + 200;  break;
+        case 3: noTone();  nextToneTime = m + 2000; break;
+				case 4: tone(4200); nextToneTime = m + 200;  break;
+				case 5: noTone();  nextToneTime = m + 2000; break;
         case 6:            nextToneTime = 0;       break;
       }
       break;			
@@ -91,7 +95,7 @@ void Buzzer::run(){
         case 4:         	 nextToneTime = 0;       break;
       }
       break;
-    case SND_PERIMETER_TIMEOUT:
+    case SND_ERROR:
       switch (toneIdx){
         case 0: tone(4200); nextToneTime = m + 500; break;
         case 1: noTone();  nextToneTime = m + 200; break;

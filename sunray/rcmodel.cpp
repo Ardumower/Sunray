@@ -51,12 +51,12 @@ void RCModel::run(){
     if (buttontimer == 30)    {                                        // 3sec. erreicht
       RC_Mode = !RC_Mode;                                                   // R/C-Mode toggle
       if (RC_Mode)  {                                                       // R/C-Mode ist aktiv
-        buzzer.sound(SND_STUCK, true);                                      // 3x Piep für R/C aktiv        
+        buzzer.sound(SND_ERROR, true);                                      // 3x Piep für R/C aktiv        
         attachInterrupt(digitalPinToInterrupt(pinRemoteMow), get_lin_PPM, CHANGE);// Interrupt aktivieren
         attachInterrupt(digitalPinToInterrupt(pinRemoteSteer), get_ang_PPM, CHANGE);// Interrupt aktivieren 
       }
       if (!RC_Mode) {                                                       // R/C-Mode inaktiv
-        buzzer.sound(SND_PERIMETER_TIMEOUT, true);                          // 2x Piiiiiiiep für R/C aus
+        buzzer.sound(SND_WARNING, true);                          // 2x Piiiiiiiep für R/C aus
         motor.setLinearAngularSpeed(0, 0);                                 
         detachInterrupt(digitalPinToInterrupt(pinRemoteMow));             // Interrupt deaktivieren
         detachInterrupt(digitalPinToInterrupt(pinRemoteSteer));             // Interrupt deaktivieren
