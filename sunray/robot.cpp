@@ -234,6 +234,7 @@ bool loadState(){
     return false;
   }
   bool res = true;
+  OperationType savedOp;
   res &= (stateFile.read((uint8_t*)&stateX, sizeof(stateX)) != 0);
   res &= (stateFile.read((uint8_t*)&stateY, sizeof(stateY)) != 0);
   res &= (stateFile.read((uint8_t*)&stateDelta, sizeof(stateDelta)) != 0);
@@ -241,7 +242,7 @@ bool loadState(){
   res &= (stateFile.read((uint8_t*)&maps.dockPointsIdx, sizeof(maps.dockPointsIdx)) != 0);
   res &= (stateFile.read((uint8_t*)&maps.freePointsIdx, sizeof(maps.freePointsIdx)) != 0);
   res &= (stateFile.read((uint8_t*)&maps.wayMode, sizeof(maps.wayMode)) != 0);
-  res &= (stateFile.read((uint8_t*)&stateOp, sizeof(stateOp)) != 0);
+  res &= (stateFile.read((uint8_t*)&savedOp, sizeof(savedOp)) != 0);
   res &= (stateFile.read((uint8_t*)&stateSensor, sizeof(stateSensor)) != 0);
   res &= (stateFile.read((uint8_t*)&sonar.enabled, sizeof(sonar.enabled)) != 0);
   res &= (stateFile.read((uint8_t*)&fixTimeout, sizeof(fixTimeout)) != 0);
@@ -253,7 +254,8 @@ bool loadState(){
   CONSOLE.println("ok");
   stateCRC = calcStateCRC();
   dumpState();
-  setOperation(stateOp, true, true);
+  //stateOp = savedOp;
+  //setOperation(stateOp, true, true);
 #endif
   return true;
 }
@@ -1115,6 +1117,7 @@ void run(){
     nextImuTime = millis() + 150;        
     //imu.resetFifo();    
     if (imuIsCalibrating) {
+      motor.stopImmediately(true);   
       if (millis() > nextImuCalibrationSecond){
         nextImuCalibrationSecond = millis() + 1000;  
         imuCalibrationSeconds++;
