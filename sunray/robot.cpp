@@ -1038,13 +1038,15 @@ void trackLine(){
   } else {
     // no gps solution
     if (REQUIRE_VALID_GPS){
-      //CONSOLE.println("no gps solution!");
-      stateSensor = SENS_GPS_INVALID;
-      //setOperation(OP_ERROR);
-      //buzzer.sound(SND_STUCK, true);          
-      linear = 0;
-      angular = 0;      
-      mow = false; 
+      if (!maps.isUndocking()) { 
+        //CONSOLE.println("no gps solution!");
+        stateSensor = SENS_GPS_INVALID;
+        //setOperation(OP_ERROR);
+        //buzzer.sound(SND_STUCK, true);          
+        linear = 0;
+        angular = 0;      
+        mow = false;
+      } 
     }
   }
    
