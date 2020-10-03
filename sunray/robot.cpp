@@ -968,7 +968,6 @@ void trackLine(){
         else rotateRight = true;
     }        
     if (rotateLeft) angular *= -1;            
-    resetLinearMotionMeasurement();
     if (fabs(diffDelta)/PI*180.0 < 90){
       rotateLeft = false;  // reset rotate direction
       rotateRight = false;
@@ -1032,8 +1031,6 @@ void trackLine(){
           return;
         }
       }
-    } else {
-      resetLinearMotionMeasurement();
     }  
   } else {
     // no gps solution
@@ -1056,6 +1053,10 @@ void trackLine(){
       linear = 0;
       angular = 0;   
     }
+  }
+
+  if (abs(linear) < 0.01){
+    resetLinearMotionMeasurement();
   }
 
   motor.setLinearAngularSpeed(linear, angular);      
@@ -1138,7 +1139,6 @@ void run(){
           CONSOLE.println();                
           lastIMUYaw = 0;          
           imu.resetFifo();
-          resetLinearMotionMeasurement();
           imuDataTimeout = millis() + 10000;
         }
       }       
@@ -1263,8 +1263,7 @@ void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator
         if (maps.nextPoint(true)) {
           maps.repeatLastMowingPoint();
           resetGPSMotionMeasurement;
-          lastFixTime = millis();
-          resetLinearMotionMeasurement();                
+          lastFixTime = millis();                
           maps.setLastTargetPoint(stateX, stateY);        
           stateSensor = SENS_NONE;                  
         } else {
@@ -1286,8 +1285,7 @@ void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator
       if (maps.startMowing(stateX, stateY)){
         if (maps.nextPoint(true)) {
           resetGPSMotionMeasurement();
-          lastFixTime = millis();
-          resetLinearMotionMeasurement();                
+          lastFixTime = millis();                
           maps.setLastTargetPoint(stateX, stateY);        
           stateSensor = SENS_NONE;
           motor.setMowState(true);                
