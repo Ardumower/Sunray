@@ -991,7 +991,7 @@ bool Map::findObstacleSafeMowPoint(){
       }
     }
     if (safe) return true;    
-    if (mowPointsIdx >= mowPoints.numPoints){
+    if (mowPointsIdx >= mowPoints.numPoints-1){
       CONSOLE.println("findObstacleSafeMowPoint error: no more mowing points reachable due to obstacles");
       return false;
     } 
@@ -999,6 +999,9 @@ bool Map::findObstacleSafeMowPoint(){
   }
 }
 
+bool Map::mowingCompleted(){
+  return (mowPointsIdx >= mowPoints.numPoints-1);
+} 
 
 // find start point for path finder on line from src to dst
 // that is insider perimeter and outside exclusions

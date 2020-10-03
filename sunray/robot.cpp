@@ -1189,7 +1189,9 @@ void run(){
             motor.stopImmediately(false);
             driveReverseStopTime = 0;
             maps.addObstacle(stateX, stateY);
-            setOperation(stateOp, true);    // continue current operation
+            if (!maps.findObstacleSafeMowPoint()){
+              setOperation(OP_DOCK, true); // dock if no more (valid) mowing points
+            } else setOperation(stateOp, true);    // continue current operation
           }
         } else {          
           // line tracking
