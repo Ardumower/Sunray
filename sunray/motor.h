@@ -83,7 +83,7 @@ class Motor {
     void speedPWM ( MotorSelect motor, int speedPWM );
     void setMC33926(int pinDir, int pinPWM, int speed);
     void control();    
-    void checkFault();
+    bool checkFault();
     void sense();
     void dumpOdoTicks(int seconds);
     

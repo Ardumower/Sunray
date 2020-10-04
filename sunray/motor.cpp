@@ -254,22 +254,37 @@ void Motor::run() {
     }
   }
     
-  checkFault();
   sense();        
   
-  if (resetMotorFault) {    
+  if ((!resetMotorFault) && (checkFault())) {
+    stopImmediately(true);
+    resetMotorFault = true;
+    nextResetMotorFaultTime = millis() + 1000;
+  }
+
+  if (nextResetMotorFaultTime != 0){
     if (millis() > nextResetMotorFaultTime){
-      nextResetMotorFaultTime = millis() + 1000;
-      resetFault();
-      resetMotorFaultCounter++;        
-      if (resetMotorFaultCounter > 10){ // too many successive motor faults
-        //stopImmediately();
-        CONSOLE.println("ERROR: motor recovery failed");
-        motorError = true;
-      }      
+      if (resetMotorFault){
+        nextResetMotorFaultTime = millis() + 5000;
+        CONSOLE.print("resetMotorFaultCounter ");
+        CONSOLE.println(resetMotorFaultCounter);
+        resetMotorFaultCounter++;        
+        resetFault();
+        resetMotorFault = false;  
+        if (resetMotorFaultCounter > 10){ // too many successive motor faults
+          //stopImmediately();
+          CONSOLE.println("ERROR: motor recovery failed");
+          motorError = true;
+        }
+      } else {
+        resetMotorFaultCounter = 0;
+        nextResetMotorFaultTime = 0;
+      }        
     }
-  } else {    
-     if  (   ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (abs(motorLeftRpmCurr) < 0.001))    
+  }
+
+  if (nextResetMotorFaultTime == 0) {    
+    if  (   ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (abs(motorLeftRpmCurr) < 0.001))    
         ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (abs(motorRightRpmCurr) < 0.001))  )
     {               
       if (!odometryError){
@@ -342,8 +357,6 @@ void Motor::run() {
 
 
 void Motor::resetFault() {
-  resetMotorFault = false;  
-  resetMotorFaultCounter = 0;  
   if (digitalRead(pinMotorLeftFault) == LOW) {
     digitalWrite(pinMotorEnable, LOW);
     digitalWrite(pinMotorEnable, HIGH);
@@ -363,26 +376,21 @@ void Motor::resetFault() {
 
 
 // check motor faults
-void Motor::checkFault() {
-  if (resetMotorFault) return;
+bool Motor::checkFault() {
+  bool fault = false;
   if (digitalRead(pinMotorLeftFault) == LOW) {
     CONSOLE.println("Error: motor left fault");
-    stopImmediately(true);
-    resetMotorFault = true;        
-    nextResetMotorFaultTime = millis() + 1000;
+    fault = true;
   }
   if  (digitalRead(pinMotorRightFault) == LOW) {
     CONSOLE.println("Error: motor right fault"); 
-    stopImmediately(true);
-    resetMotorFault = true;        
-    nextResetMotorFaultTime = millis() + 1000;
+    fault = true;
   }
   if (digitalRead(pinMotorMowFault) == LOW) {
     CONSOLE.println("Error: motor mow fault");
-    stopImmediately(true);
-    resetMotorFault = true;            
-    nextResetMotorFaultTime = millis() + 1000;
+    fault = true;
   }
+  return fault;
 }
   
 
@@ -426,15 +434,17 @@ void Motor::sense(){
   motorRightOverload = (motorRightSenseLP > MOTOR_OVERLOAD_CURRENT);
   motorMowOverload = (motorMowSenseLP > MOW_OVERLOAD_CURRENT);
   if (motorLeftOverload || motorRightOverload || motorMowOverload){
-    motorOverloadDuration += 20;    
-    CONSOLE.print("ERROR motor overload duration=");
-    CONSOLE.print(motorOverloadDuration);
-    CONSOLE.print("  current=");
-    CONSOLE.print(motorLeftSenseLP);
-    CONSOLE.print(",");
-    CONSOLE.print(motorRightSenseLP);
-    CONSOLE.print(",");
-    CONSOLE.println(motorMowSenseLP); 
+    if (motorOverloadDuration == 0){
+      CONSOLE.print("ERROR motor overload duration=");
+      CONSOLE.print(motorOverloadDuration);
+      CONSOLE.print("  current=");
+      CONSOLE.print(motorLeftSenseLP);
+      CONSOLE.print(",");
+      CONSOLE.print(motorRightSenseLP);
+      CONSOLE.print(",");
+      CONSOLE.println(motorMowSenseLP);
+    }
+    motorOverloadDuration += 20;     
   } else {
     motorOverloadDuration = 0;
   }  
