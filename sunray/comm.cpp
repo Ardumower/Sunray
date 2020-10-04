@@ -331,16 +331,22 @@ void cmdToggleGPSSolution(){
   CONSOLE.println("toggle GPS solution");
   switch (gps.solution){
     case UBLOX::SOL_INVALID:  
+      gps.solutionAvail = true;
       gps.solution = UBLOX::SOL_FLOAT;
+      gps.relPosN = stateY - 2.0;  // simulate pos. solution jump
+      gps.relPosE = stateX - 2.0;
       lastFixTime = millis();
       stateGroundSpeed = 0.1;
       break;
     case UBLOX::SOL_FLOAT:  
+      gps.solutionAvail = true;
       gps.solution = UBLOX::SOL_FIXED;
-      lastFixTime = millis() + 1000 * 60 * 600;
       stateGroundSpeed = 0.1;
+      gps.relPosN = stateY + 2.0;  // simulate undo pos. solution jump
+      gps.relPosE = stateX + 2.0;
       break;
     case UBLOX::SOL_FIXED:  
+      gps.solutionAvail = true;
       gps.solution = UBLOX::SOL_INVALID;
       break;
   }
@@ -432,6 +438,8 @@ void cmdStats(){
   s += freeMemory();
   s += ",";
   s += getResetCause();
+  s += ",";
+  s += statGPSJumps;
   cmdAnswer(s);  
 }
 
@@ -455,6 +463,7 @@ void cmdClearStats(){
   gps.dgpsChecksumErrorCounter = 0;
   statMaxControlCycleTime = 0;
   statMowObstacles = 0;
+  statGPSJumps = 0;
   cmdAnswer(s);  
 }
 
@@ -625,6 +634,7 @@ void processWifi()
 
 // output summary on console
 void outputConsole(){
+  //return;
   if (millis() > nextInfoTime){        
     bool started = (nextInfoTime == 0);
     nextInfoTime = millis() + 5000;                   

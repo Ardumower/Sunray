@@ -23,7 +23,7 @@
 #include "src/esp/WiFiEsp.h"
 
 
-#define VER "Ardumower Sunray,1.0.153"
+#define VER "Ardumower Sunray,1.0.154"
 
 enum OperationType {
       OP_IDLE,      
@@ -73,6 +73,7 @@ extern unsigned long statMowFloatToFixRecoveries ; // counter
 extern unsigned long statMowInvalidRecoveries ; // counter
 extern unsigned long statImuRecoveries ; // counter
 extern unsigned long statMowObstacles ; // counter
+extern unsigned long statGPSJumps ; // counter
 extern float statMowMaxDgpsAge ; // seconds
 extern float statMowDistanceTraveled ; // meter
 extern float statTempMin;
@@ -104,7 +105,7 @@ extern UBLOX gps;
 int freeMemory();
 void start();
 void run();
-void setOperation(OperationType op, bool allowOverride = false, bool initiatedbyOperator = false);
+void setOperation(OperationType op, bool allowRepeat = false, bool initiatedbyOperator = false);
 void triggerObstacle();
 void sensorTest();
 

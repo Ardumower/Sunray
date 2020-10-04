@@ -104,7 +104,8 @@ unsigned long statMowDurationFix = 0; // seconds
 unsigned long statMowFloatToFixRecoveries = 0; // counter
 unsigned long statMowInvalidRecoveries = 0; // counter
 unsigned long statImuRecoveries = 0; // counter
-unsigned long statMowObstacles ; // counter
+unsigned long statMowObstacles = 0 ; // counter
+unsigned long statGPSJumps = 0; // counter
 float statTempMin = 9999; 
 float statTempMax = -9999; 
 float statMowMaxDgpsAge = 0; // seconds
@@ -137,6 +138,7 @@ int status = WL_IDLE_STATUS;     // the Wifi radio's status
 float dockSignal = 0;
 float dockAngularSpeed = 0.1;
 bool dockingInitiatedByOperator = true;
+bool gpsJump = false;
 
 RunningMedian<unsigned int,3> tofMeasurements;
 
@@ -560,6 +562,7 @@ void readIMU(){
       #endif
       motor.robotPitch = scalePI(imu.pitch);
       imu.yaw = scalePI(imu.yaw);
+      //CONSOLE.println(imu.yaw / PI * 180.0);
       lastIMUYaw = scalePI(lastIMUYaw);
       lastIMUYaw = scalePIangles(lastIMUYaw, imu.yaw);
       stateDeltaIMU = -scalePI ( distancePI(imu.yaw, lastIMUYaw) );  
@@ -753,6 +756,12 @@ void computeRobotState(){
     //CONSOLE.println(stateGroundSpeed);
     float distGPS = sqrt( sq(posN-lastPosN)+sq(posE-lastPosE) );
     if ((distGPS > 0.3) || (resetLastPos)){
+      if (distGPS > 0.3) {
+        gpsJump = true;
+        statGPSJumps++;
+        CONSOLE.print("GPS jump: ");
+        CONSOLE.println(distGPS);
+      }
       resetLastPos = false;
       lastPosN = posN;
       lastPosE = posE;
@@ -804,6 +813,7 @@ void computeRobotState(){
     // odometry
     stateDelta = scalePI(stateDelta + deltaOdometry);  
   }
+  //CONSOLE.println(stateDelta / PI * 180.0);
   stateDeltaIMU = 0;
 }
 
@@ -1151,13 +1161,21 @@ void run(){
     
   calcStats();  
   
-  computeRobotState();  
-  
   
   if (millis() >= nextControlTime){        
     nextControlTime = millis() + 20; 
     controlLoops++;    
     
+    computeRobotState();
+
+    if (gpsJump){
+      // gps jump: restart current operation from new position
+      CONSOLE.println("restarting due to gps jump");
+      gpsJump = false;
+      motor.stopImmediately(true);
+      setOperation(stateOp, true);    // restart current operation
+    }  
+
     if (!imuIsCalibrating){     
       
       if (battery.chargerConnected() != stateChargerConnected) {    
@@ -1243,8 +1261,8 @@ void run(){
 
 
 // set new robot operation
-void setOperation(OperationType op, bool allowOverride, bool initiatedbyOperator){  
-  if ((stateOp == op) && (!allowOverride)) return;  
+void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){  
+  if ((stateOp == op) && (!allowRepeat)) return;  
   CONSOLE.print("setOperation op=");
   CONSOLE.print(op);
   bool error = false;
