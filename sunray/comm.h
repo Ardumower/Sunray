@@ -9,6 +9,7 @@
 #define COMM_H
 
 
+void processComm();
 void outputConsole();
 
 void processWifi();

@@ -5,6 +5,7 @@
 #include "src/esp/WiFiEsp.h"
 
 unsigned long nextInfoTime = 0;
+bool triggerWatchdog = false;
 
 String cmd;
 String cmdResponse;
@@ -293,10 +294,8 @@ void cmdStressTest(){
 void cmdTriggerWatchdog(){
   String s = F("Y");
   cmdAnswer(s);  
-  CONSOLE.println("hang test - watchdog should trigger and perform a reset");
-  while (true){
-    // do nothing, just hang    
-  }
+  setOperation(OP_IDLE);
+  triggerWatchdog = true;
 }
 
 // perform hang test (watchdog should trigger)
@@ -630,6 +629,17 @@ void processWifi()
   }                  
 }
 
+void processComm(){
+  processConsole();     
+  processBLE();     
+  processWifi();
+  if (triggerWatchdog) {
+    CONSOLE.println("hang test - watchdog should trigger and perform a reset");
+    while (true){
+      // do nothing, just hang    
+    }
+  }
+}
 
 
 // output summary on console

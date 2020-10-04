@@ -1250,9 +1250,7 @@ void run(){
   }
     
   // ----- read serial input (BT/console) -------------
-  processConsole();     
-  processBLE();     
-  processWifi();
+  processComm();
   outputConsole();       
   watchdogReset();     
 }
