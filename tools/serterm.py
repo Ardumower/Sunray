@@ -391,7 +391,7 @@ class Miniterm(object):
     Handle special keys from the console to show menu etc.
     """
 
-    def __init__(self, serial_instance, echo=False, eol='crlf', filters=()):
+    def __init__(self, serial_instance, echo=True, eol='crlf', filters=()):
         self.console = Console()
         self.serial = serial_instance
         self.echo = echo
@@ -401,7 +401,7 @@ class Miniterm(object):
         self.eol = eol
         self.filters = filters
         self.update_transformations()
-        self.exit_character = unichr(0x1d)  # GS/CTRL+]
+        self.exit_character = '\x03'  # CTRL+C]
         self.menu_character = unichr(0x14)  # Menu: CTRL+T
         self.alive = None
         self._reader_alive = None
@@ -1012,7 +1012,7 @@ def main(default_port=None, default_baudrate=9600, default_rts=None, default_dtr
         echo=args.echo,
         eol=args.eol.lower(),
         filters=filters)
-    miniterm.exit_character = unichr(args.exit_char)
+    miniterm.exit_character = '\x03'
     miniterm.menu_character = unichr(args.menu_char)
     miniterm.raw = args.raw
     miniterm.set_rx_encoding(args.serial_port_encoding)
