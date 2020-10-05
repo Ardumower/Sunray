@@ -388,7 +388,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DEBUG(x) CONSOLE.print(x)
 #define DEBUGLN(x) CONSOLE.println(x)
 
-#if defined(ENABLE_SD)
+#if defined(ENABLE_SD_LOG)
   #define CONSOLE sdSerial         
 #elif defined(ENABLE_UDP)
   #define CONSOLE udpSerial         
