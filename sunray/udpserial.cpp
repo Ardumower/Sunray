@@ -20,7 +20,7 @@ UdpSerial udpSerial;
 #endif
 
 unsigned int localPort = 4211;  // local port 
-IPAddress remoteIP(UDP_SERVER_PORT);
+IPAddress remoteIP(UDP_SERVER_IP);
 
 
 WiFiEspUDP Udp;
