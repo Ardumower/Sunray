@@ -140,7 +140,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 
 // ------ WIFI module (ESP8266 ESP-01 with ESP firmware 2.2.1) --------------------------------
-// WARNING: WIFI is highly experimental - not for productive use (yet)
 // NOTE: all settings (maps, absolute position source etc.) are stored in your phone - when using another
 // device for the WIFI connection (PC etc.), you will have to transfer those settings (share maps via app, 
 // re-enter absolute position source etc) !
