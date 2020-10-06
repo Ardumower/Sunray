@@ -1000,6 +1000,7 @@ void trackLine(){
         linear = min(setSpeed, 0.1); // reduce speed for float solution
       else
         linear = setSpeed;         // desired speed
+      if (sonar.nearObstacle()) linear = 0.1; // slow down near obstacles
     }      
     //angular = 3.0 * diffDelta + 3.0 * lateralError;       // correct for path errors 
     float k = STANLEY_CONTROL_K_NORMAL;

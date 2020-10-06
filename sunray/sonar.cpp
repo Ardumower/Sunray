@@ -163,6 +163,12 @@ bool Sonar::obstacle()
   return ((distanceLeft < triggerLeftBelow) || (distanceCenter < triggerCenterBelow) || (distanceRight < triggerRightBelow));  
 }
 
+bool Sonar::nearObstacle()
+{
+  if (!enabled) return false;
+  int nearZone = 30; // cm
+  return ((distanceLeft < triggerLeftBelow + nearZone) || (distanceCenter < triggerCenterBelow + nearZone) || (distanceRight < triggerRightBelow + nearZone));  
+}
 
 unsigned int Sonar::convertCm(unsigned int echoTime) {
 #if ROUNDING_ENABLED == false

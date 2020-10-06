@@ -14,19 +14,20 @@
 
 class Sonar {
     public:      
-			bool enabled;
-			int triggerLeftBelow;
-      int triggerCenterBelow;
-      int triggerRightBelow;
-			void begin();            
-      void run();
+		bool enabled;
+	    int triggerLeftBelow;
+        int triggerCenterBelow;
+        int triggerRightBelow;
+	    void begin();            
+        void run();
 	    bool obstacle();	    
-			unsigned int distanceLeft; // cm
-			unsigned int distanceRight;
-			unsigned int distanceCenter;  		
-			bool verboseOutput; 
+		bool nearObstacle();
+		unsigned int distanceLeft; // cm
+		unsigned int distanceRight;
+		unsigned int distanceCenter;  		
+		bool verboseOutput; 
     protected:                 
-			unsigned int convertCm(unsigned int echoTime);
+		unsigned int convertCm(unsigned int echoTime);
 };
 
 
