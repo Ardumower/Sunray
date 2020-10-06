@@ -28,6 +28,7 @@ class Sonar {
 		bool verboseOutput; 
     protected:                 
 		unsigned int convertCm(unsigned int echoTime);
+		unsigned long nearObstacleTimeout;
 };
 
 

@@ -154,6 +154,7 @@ void Sonar::begin()
 	//pinMan.setDebounce(pinSonarRightEcho, 100);  // reject spikes shorter than usecs on pin
 	//pinMan.setDebounce(pinSonarLeftEcho, 100);  // reject spikes shorter than usecs on pin
 	verboseOutput = false;
+  nearObstacleTimeout = 0;
 }
 
 
@@ -167,7 +168,13 @@ bool Sonar::nearObstacle()
 {
   if (!enabled) return false;
   int nearZone = 30; // cm
-  return ((distanceLeft < triggerLeftBelow + nearZone) || (distanceCenter < triggerCenterBelow + nearZone) || (distanceRight < triggerRightBelow + nearZone));  
+  if ((nearObstacleTimeout != 0) && (millis() < nearObstacleTimeout)) return true;
+  nearObstacleTimeout = 0;
+  bool res = ((distanceLeft < triggerLeftBelow + nearZone) || (distanceCenter < triggerCenterBelow + nearZone) || (distanceRight < triggerRightBelow + nearZone));  
+  if (res){
+    nearObstacleTimeout = millis() + 5000;
+  }
+  return res;
 }
 
 unsigned int Sonar::convertCm(unsigned int echoTime) {
