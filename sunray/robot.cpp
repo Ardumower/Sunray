@@ -255,8 +255,11 @@ bool loadState(){
   CONSOLE.println("ok");
   stateCRC = calcStateCRC();
   dumpState();
-  //stateOp = savedOp;
-  //setOperation(stateOp, true, true);
+  if (getResetCause() == RST_WATCHDOG){
+    CONSOLE.println("resuming operation due to watchdog trigger");
+    stateOp = savedOp;
+    setOperation(stateOp, true, true);
+  }
 #endif
   return true;
 }
