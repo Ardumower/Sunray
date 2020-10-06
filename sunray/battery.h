@@ -37,6 +37,7 @@ class Battery {
     void resetIdle();
     void switchOff();
   protected:       
+    unsigned long nextBatteryTime ;
     bool switchOffByOperator;    
     unsigned long timeMinutes;
 		bool chargerConnectedState;

@@ -33,9 +33,12 @@ void Battery::begin()
   pinMode(pinBatterySwitch, OUTPUT);    
   digitalWrite(pinBatterySwitch, HIGH);  
   
+  nextBatteryTime = 0;
   nextCheckTime = 0;
   nextEnableTime = 0;
 	timeMinutes=0;  
+  chargingVoltage = 0;
+  batteryVoltage = 0;
   chargerConnectedState = false;      
   chargingCompleted = false;
   chargingEnabled = true;
@@ -113,12 +116,21 @@ void Battery::switchOff(){
 }
 
 void Battery::run(){  
-  chargingVoltage = ((float)ADC2voltage(analogRead(pinChargeVoltage))) * batteryFactor;  
-  float w = 0.99;
-  if (batteryVoltage < 5) w = 0;
-  batteryVoltage = w * batteryVoltage + (1-w) * ((float)ADC2voltage(analogRead(pinBatteryVoltage))) * batteryFactor;  
+  if (millis() < nextBatteryTime) return;
+  nextBatteryTime = millis() + 50;
+  
+  float voltage = ((float)ADC2voltage(analogRead(pinChargeVoltage))) * batteryFactor;
+  if (abs(chargingVoltage-voltage) > 10) chargingVoltage = voltage;  
+  chargingVoltage = 0.9 * chargingVoltage + 0.1* voltage;  
+
+  voltage = ((float)ADC2voltage(analogRead(pinBatteryVoltage))) * batteryFactor;
+  if (abs(batteryVoltage-voltage) > 10) batteryVoltage = voltage;  
+  float w = 0.995;
+  if (chargerConnectedState) w = 0.9;
+  batteryVoltage = w * batteryVoltage + (1-w) * voltage;  
+
   chargingCurrent = 0.9 * chargingCurrent + 0.1 * ((float)ADC2voltage(analogRead(pinChargeCurrent))) * currentFactor;    
-		
+	
   if (!chargerConnectedState){
 	  if (chargingVoltage > 5){
       chargerConnectedState = true;		    
