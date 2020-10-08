@@ -88,6 +88,7 @@ void Motor::begin() {
   resetMotorFault = false;
   resetMotorFaultCounter = 0;
   nextResetMotorFaultTime = 0;
+  enableMowMotor = true;
   
   motorLeftOverload = false;
   motorRightOverload = false;
@@ -210,7 +211,7 @@ void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRam
 }
 
 void Motor::setMowState(bool switchOn){
-  if (switchOn){
+  if ((enableMowMotor) && (switchOn)){
     if (abs(motorMowPWMSet) > 0) return; // mowing motor already switch ON
     motorMowSpinUpTime = millis();
     if (toggleMowDir){
