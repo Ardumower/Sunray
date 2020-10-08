@@ -1479,7 +1479,7 @@ int Map::findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, i
   
     // check new path with all obstacle polygons (perimeter, exclusions, obstacles)     
     for (int idx3 = 0; idx3 < obstacles.numPolygons; idx3++){             
-       bool isPeri = (idx3 == 0);  // if first index, it's perimeter, otherwise exclusions                           
+       bool isPeri = ((perimeterPoints.numPoints > 0) && (idx3 == 0));  // if first index, it's perimeter, otherwise exclusions                           
        if (isPeri){ // we check with the perimeter?         
          //CONSOLE.println("we check with perimeter");
          bool insidePeri = pointIsInsidePolygon(obstacles.polygons[idx3], *node.point);
@@ -1544,7 +1544,7 @@ bool Map::findPath(Point &src, Point &dst){
   CONSOLE.print(",");
   CONSOLE.print(dst.y());
   CONSOLE.println(")");  
-      
+  
   if (ENABLE_PATH_FINDER){    
     CONSOLE.println("path finder is enabled");      
     
