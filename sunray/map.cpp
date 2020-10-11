@@ -940,9 +940,9 @@ void Map::clearObstacles(){
 }
 
 // add dynamic octagon obstacle in front of robot on line going from robot to target point
-bool Map::addObstacle(float stateX, float stateY){    
-  float d1 = 0.2;   // distance from center to nearest octagon edges
-  float d2 = 3*d1;  // distance from center to farest octagon edges
+bool Map::addObstacle(float stateX, float stateY){     
+  float d1 = OBSTACLE_DIAMETER / 6.0;   // distance from center to nearest octagon edges
+  float d2 = OBSTACLE_DIAMETER / 2.0;  // distance from center to farest octagon edges
   
   float angleCurr = pointsAngle(stateX, stateY, targetPoint.x(), targetPoint.y());
   float r = d2 + 0.05;

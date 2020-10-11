@@ -236,6 +236,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define OSTACLE_AVOIDANCE true   // try to find a way around obstacle
 //#define OSTACLE_AVOIDANCE false  // stop robot on obstacle
+#define OBSTACLE_DIAMETER 1.2   // choose diameter of obstacles placed in front of robot (m) for obstacle avoidance
 
 // detect robot being kidnapped? robot will go into error if distance to tracked path is greater than 1m
 //#define KIDNAP_DETECT true
