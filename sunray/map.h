@@ -183,7 +183,7 @@ class Map
     bool startMowing(float stateX, float stateY);
     bool addObstacle(float stateX, float stateY);
     bool mowingCompleted();
-    bool findObstacleSafeMowPoint();
+    bool findObstacleSafeMowPoint(Point &findPathToPoint);
     void clearObstacles();
     void clearMap();
     void dump();    

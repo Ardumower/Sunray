@@ -914,8 +914,8 @@ bool Map::startMowing(float stateX, float stateY){
       wayMode = WAY_FREE;      
       freePointsIdx = 0;    
     }        
-    if (findObstacleSafeMowPoint()){
-      dst.assign(mowPoints.points[mowPointsIdx]);      
+    if (findObstacleSafeMowPoint(dst)){
+      //dst.assign(mowPoints.points[mowPointsIdx]);      
       //findPathFinderSafeStartPoint(src, dst);      
       if (findPath(src, dst)){        
         return true;
@@ -974,7 +974,8 @@ bool Map::addObstacle(float stateX, float stateY){
 
 
 // check if mowing point is inside any obstacle, and if so, find next mowing point (outside any obstacles)
-bool Map::findObstacleSafeMowPoint(){  
+// returns: valid path start point (outside any obstacle) going to the mowing point (which can be used as input for pathfinder)
+bool Map::findObstacleSafeMowPoint(Point &findPathToPoint){  
   bool safe;  
   Point dst;  
   while (true){
@@ -990,7 +991,35 @@ bool Map::findObstacleSafeMowPoint(){
         break;
       }
     }
-    if (safe) return true;    
+    if (safe) {
+      // find valid start point on path to mowing point 
+      if (mowPointsIdx == 0) {  // first mowing point has no path
+        findPathToPoint.assign(dst);
+        return true;
+      }
+      Point src;
+      src.assign(mowPoints.points[mowPointsIdx-1]); // path source is last mowing point
+      Point sect;
+      Point minSect;
+      float minDist = 9999;      
+      for (int idx=0; idx < obstacles.numPolygons; idx++){
+        if (linePolygonIntersectPoint( dst, src, obstacles.polygons[idx], sect)) {  // find shortest section point to dst    
+          float dist = distance(sect, dst);
+          if (dist < minDist ){
+            minDist = dist;
+            minSect.assign(sect); 
+          }
+        }
+      }
+      if (minDist < 9999){ // obstacle on path, use last section point on path for path source 
+        findPathToPoint.assign(minSect);
+        return true;
+      }
+      // no obstacle on path, just use next mowing point 
+      findPathToPoint.assign(dst);
+      return true;
+    }    
+    // try next mowing point
     if (mowPointsIdx >= mowPoints.numPoints-1){
       CONSOLE.println("findObstacleSafeMowPoint error: no more mowing points reachable due to obstacles");
       return false;
@@ -1215,7 +1244,7 @@ bool Map::lineLineIntersection(Point &A, Point &B, Point &C, Point &D, Point &pt
 
     
 
-// determines if a line intersects (or touches) a polygon and returns shortest intersection point
+// determines if a line intersects (or touches) a polygon and returns shortest intersection point from src
 bool Map::linePolygonIntersectPoint( Point &src, Point &dst, Polygon &poly, Point &sect) {      
   //Poly testpoly = poly;
   //if (allowtouch) testpoly = this.polygonOffset(poly, -0.02);      
