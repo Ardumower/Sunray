@@ -47,7 +47,10 @@ void cmdControl(){
       int intValue = cmd.substring(lastCommaIdx+1, idx+1).toInt();
       float floatValue = cmd.substring(lastCommaIdx+1, idx+1).toFloat();
       if (counter == 1){                            
-          if (intValue >= 0) motor.enableMowMotor = (intValue == 1);
+          if (intValue >= 0) {
+            motor.enableMowMotor = (intValue == 1);
+            motor.setMowState( (intValue == 1) );
+          }
       } else if (counter == 2){                                      
           if (intValue >= 0) op = intValue; 
       } else if (counter == 3){                                      
