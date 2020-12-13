@@ -1,8 +1,8 @@
 // Ardumower Sunray 
 
 
-#include "rcmodel.h"
 #include "config.h"
+#include "rcmodel.h"
 #include "robot.h"
 
 
@@ -35,16 +35,20 @@ void RCModel::begin(){
   // R/C
   pinMode(pinRemoteSteer, INPUT);
   pinMode(pinRemoteMow, INPUT); 
+#ifdef RC_DEBUG
+  nextOutputTime = millis() + 1000;
+#endif
   if (RCMODEL_ENABLE){
     //attachInterrupt(digitalPinToInterrupt(pinRemoteMow), get_lin_PPM, CHANGE);// Interrupt aktivieren
     //attachInterrupt(digitalPinToInterrupt(pinRemoteSteer), get_ang_PPM, CHANGE);// Interrupt aktivieren 
   }
 } 
 
-void RCModel::run(){  
+void RCModel::run(){
+  unsigned long t = millis();
   if (!RCMODEL_ENABLE) return;
-  if (millis() < nextControlTime) return; 
-  nextControlTime = millis() + 100;                                       // save CPU resources by running at 10 Hz
+  if (t < nextControlTime) return;
+  nextControlTime = t + 100;                                       // save CPU resources by running at 10 Hz
   
   if ((digitalRead(pinButton)== LOW) && (buttontimer <= 30)) {               // Taster abfragen
     buttontimer ++;                                                       // Timer 3sec.
@@ -80,10 +84,18 @@ void RCModel::run(){
       float value_a = (ang_PPM - 1500) / 950;                                 // PPM auf Bereich +0.50 bis -0.50
       if ((value_a < 0.05) && (value_a > -0.05)) value_a = 0;                 // NullLage vergrössern         
       angularPPM = value_a;                                                   // Weitergabe an Debug
-    }         
+    }
+
+#ifdef RC_DEBUG
+    if (t >= nextOutputTime) {
+      nextOutputTime = t + 1000;
+
+      CONSOLE.print("RC: linearPPM= ");
+      CONSOLE.print(linearPPM);
+      CONSOLE.print("  angularPPM= ");
+      CONSOLE.println(angularPPM);
+    }
+#endif
     motor.setLinearAngularSpeed(linearPPM, angularPPM, false);                     // R/C Signale an Motor leiten
   }
 }
-
-
-  
