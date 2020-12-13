@@ -29,6 +29,7 @@ String BLEConfig::read(){
 }
 
 String BLEConfig::exec(String cmd){
+  CONSOLE.print("BLE: ");
   CONSOLE.print(cmd);
   BLE.print(cmd);
   return read();
@@ -36,6 +37,7 @@ String BLEConfig::exec(String cmd){
 
 void BLEConfig::run(){  
   int baud;
+  bool found = false;
   //while (true){    
     for (int i=0; i < 12; i++){
       switch(i){
@@ -61,17 +63,28 @@ void BLEConfig::run(){
       String res = exec("AT\r\n");
       if (res.indexOf("OK") != -1){
         CONSOLE.println("Bluetooth 4.0/BLE module found!");
-        if (baud == BLE_BAUDRATE){               
-          exec("AT+RESET\r\n");            
-          return;
-        } else {        
-          exec("AT+BAUD8\r\n");            
+        if (baud == BLE_BAUDRATE) {
+          found = true;
+          break;
+        } else {
+          exec("AT+BAUD8\r\n");
           BLE.begin(BLE_BAUDRATE);
-          exec("AT+RESET\r\n");            
-          return;
-        }                  
+          found = true;
+          break;
+        }
       }
-    }     
+    }
+
+    if (found) {
+#if defined(BLE_NAME)
+      exec("AT+NAME" BLE_NAME "\r\n");
+#endif
+      exec("AT+LADDR\r\n");
+      exec("AT+CHAR\r\n");
+      exec("AT+VERSION\r\n");
+      exec("AT+RESET\r\n");
+      return;
+    }
     //delay(1000);
   //}
 }
