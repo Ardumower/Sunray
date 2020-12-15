@@ -4,23 +4,24 @@
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
 
-#include "bumper.h"
-#include "config.h"
+#include "AmBumperDriver.h"
+#include "../../config.h"
 
 
-volatile bool pressed = false;
+volatile bool leftPressed = false;
+volatile bool rightPressed = false;
 
 
 void BumperLeftInterruptRoutine(){
-  pressed = (digitalRead(pinBumperLeft) == LOW);  
+  leftPressed = (digitalRead(pinBumperLeft) == LOW);  
 }
 
 void BumperRightInterruptRoutine(){
-  pressed = (digitalRead(pinBumperRight) == LOW);  
+  rightPressed = (digitalRead(pinBumperRight) == LOW);  
 }
 
 
-void Bumper::begin(){	
+void AmBumperDriver::begin(){	
   pinMode(pinBumperLeft, INPUT_PULLUP);                   
   pinMode(pinBumperRight, INPUT_PULLUP);                   
 	if (BUMPER_ENABLE){
@@ -29,10 +30,16 @@ void Bumper::begin(){
   }
 }
 
-bool Bumper::obstacle(){
-  return pressed;
+void AmBumperDriver::getTriggeredBumper(bool &leftBumper, bool &rightBumper){
+  leftBumper = leftPressed;
+  rightBumper = rightPressed;
 }
 
-void Bumper::run(){  
+bool AmBumperDriver::obstacle(){
+  return (leftPressed || rightPressed);
+}
+    
+
+void AmBumperDriver::run(){  
 }
 

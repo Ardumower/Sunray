@@ -15,10 +15,12 @@
 #include "pinman.h"
 #include "ble.h"
 #include "motor.h"
+#include "src/driver/AmMotorDriver.h"
+#include "src/driver/AmBatteryDriver.h"
+#include "src/driver/AmBumperDriver.h"
 #include "battery.h"
 #include "src/ublox/ublox.h"
 #include "buzzer.h"
-#include "bumper.h"
 #include "rcmodel.h"
 #include "map.h"
 #include "config.h"
@@ -40,13 +42,15 @@ const signed char orientationMatrix[9] = {
 
 File stateFile;
 MPU9250_DMP imu;
+AmMotorDriver motorDriver;
+AmBatteryDriver batteryDriver;
+AmBumperDriver bumper;
 Motor motor;
 Battery battery;
 PinManager pinMan;
 UBLOX gps(GPS,GPS_BAUDRATE);
 BLEConfig bleConfig;
 Buzzer buzzer;
-Bumper bumper;
 Sonar sonar;
 VL53L0X tof(VL53L0X_ADDRESS_DEFAULT);
 Map maps;
@@ -644,12 +648,14 @@ void start(){
   CONSOLE.print("compiled for: ");
   CONSOLE.println(BOARD);
   
+  batteryDriver.begin();
+  motorDriver.begin();  
   battery.begin();      
   
   bleConfig.run();   
   BLE.println(VER);  
     
-  rcmodel.begin();    
+  rcmodel.begin();  
   motor.begin();
   sonar.begin();
   bumper.begin();
@@ -1109,6 +1115,8 @@ void trackLine(){
 void run(){  
   buzzer.run();
   battery.run();
+  batteryDriver.run();
+  motorDriver.run();
   motor.run();
   sonar.run();
   maps.run();  

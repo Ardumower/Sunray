@@ -9,62 +9,10 @@
 #include "robot.h"
 #include "Arduino.h"
 
-volatile uint16_t odoTicksLeft = 0;
-volatile uint16_t odoTicksRight = 0;
-
-
-
-// odometry signal change interrupt
-
-void OdometryLeftInt(){			
-  if (digitalRead(pinOdometryLeft) == LOW) return;  
-  odoTicksLeft++;    
-}
-
-void OdometryRightInt(){			
-  if (digitalRead(pinOdometryRight) == LOW) return;
-  odoTicksRight++;  
-}
 
 
 
 void Motor::begin() {
-  // left wheel motor
-  pinMode(pinMotorEnable, OUTPUT);
-  digitalWrite(pinMotorEnable, HIGH);
-  pinMode(pinMotorLeftPWM, OUTPUT);
-  pinMode(pinMotorLeftDir, OUTPUT);
-  pinMode(pinMotorLeftSense, INPUT);
-  pinMode(pinMotorLeftFault, INPUT);
-
-  // right wheel motor
-  pinMode(pinMotorRightPWM, OUTPUT);
-  pinMode(pinMotorRightDir, OUTPUT);
-  pinMode(pinMotorRightSense, INPUT);
-  pinMode(pinMotorRightFault, INPUT);
-
-  // mower motor
-  pinMode(pinMotorMowDir, OUTPUT);
-  pinMode(pinMotorMowPWM, OUTPUT);
-  pinMode(pinMotorMowSense, INPUT);
-  //pinMode(pinMotorMowRpm, INPUT);
-  pinMode(pinMotorMowEnable, OUTPUT);
-  digitalWrite(pinMotorMowEnable, HIGH);
-  pinMode(pinMotorMowFault, INPUT);
-
-  // odometry
-  pinMode(pinOdometryLeft, INPUT_PULLUP);
-  //pinMode(pinOdometryLeft2, INPUT_PULLUP);
-  pinMode(pinOdometryRight, INPUT_PULLUP);
-  //pinMode(pinOdometryRight2, INPUT_PULLUP);
-	  
-  // enable interrupts
-  attachInterrupt(pinOdometryLeft, OdometryLeftInt, CHANGE);  
-  attachInterrupt(pinOdometryRight, OdometryRightInt, CHANGE);  
-    
-	//pinMan.setDebounce(pinOdometryLeft, 100);  // reject spikes shorter than usecs on pin
-	//pinMan.setDebounce(pinOdometryRight, 100);  // reject spikes shorter than usecs on pin	
-	
 	pwmMax = 255;
   pwmMaxMow = 255;
 
@@ -135,48 +83,15 @@ void Motor::begin() {
 }
 
 
-// MC33926 motor driver
-// Check http://forum.pololu.com/viewtopic.php?f=15&t=5272#p25031 for explanations.
-//(8-bit PWM=255, 10-bit PWM=1023)
-// IN1 PinPWM         IN2 PinDir
-// PWM                L     Forward
-// nPWM               H     Reverse
-void Motor::setMC33926(int pinDir, int pinPWM, int speed) {
-  //DEBUGLN(speed);
-  if (speed < 0) {
-    digitalWrite(pinDir, HIGH) ;
-    pinMan.analogWrite(pinPWM, 255 - ((byte)abs(speed)));
-  } else {
-    digitalWrite(pinDir, LOW) ;
-    pinMan.analogWrite(pinPWM, ((byte)speed));
-  }
-}
-
-
-void Motor::speedPWM ( MotorSelect motor, int speedPWM )
+void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
 {
-  if (motor == MOTOR_MOW) {
-    if (speedPWM > pwmMaxMow) speedPWM = pwmMaxMow;
-    else if (speedPWM < -pwmMaxMow) speedPWM = -pwmMaxMow;
-  } else {
-    if (speedPWM > pwmMax) speedPWM = pwmMax;
-    else if (speedPWM < -pwmMax) speedPWM = -pwmMax;
-  }
-  switch (motor) {
-    case MOTOR_LEFT:
-      if (motorLeftSwapDir) speedPWM *= -1;
-      setMC33926(pinMotorLeftDir, pinMotorLeftPWM, speedPWM);
-      break;
-    case MOTOR_RIGHT:
-      if (motorRightSwapDir) speedPWM *= -1;
-      setMC33926(pinMotorRightDir, pinMotorRightPWM, speedPWM);
-      break;
-    case MOTOR_MOW:        
-      //CONSOLE.print("speedPWM=");
-      //CONSOLE.println(speedPWM);
-      setMC33926(pinMotorMowDir, pinMotorMowPWM, speedPWM);
-      break;
-  }
+  pwmLeft = min(pwmMax, max(-pwmMax, pwmLeft));
+  pwmRight = min(pwmMax, max(-pwmMax, pwmRight));  
+  pwmMow = min(pwmMaxMow, max(-pwmMaxMow, pwmMow));  
+    
+  if (motorLeftSwapDir) pwmLeft *= -1;
+  if (motorRightSwapDir) pwmRight *= -1;
+  motorDriver.setMotorPwm(pwmLeft, pwmRight, pwmMow);
 }
 
 // linear: m/s
@@ -234,13 +149,11 @@ void Motor::stopImmediately(bool includeMowerMotor){
   motorLeftRpmSet = 0;      
   motorLeftPWMCurr = 0;
   motorRightPWMCurr = 0;   
-  speedPWM(MOTOR_LEFT, motorLeftPWMCurr);
-  speedPWM(MOTOR_RIGHT, motorRightPWMCurr);  
   if (includeMowerMotor) {
     motorMowPWMSet = 0;
     motorMowPWMCurr = 0;    
-    speedPWM(MOTOR_MOW, motorMowPWMCurr);  
   }
+  speedPWM(motorLeftPWMCurr, motorRightPWMCurr, motorMowPWMCurr);
 }
 
 
@@ -270,7 +183,7 @@ void Motor::run() {
         CONSOLE.print("resetMotorFaultCounter ");
         CONSOLE.println(resetMotorFaultCounter);
         resetMotorFaultCounter++;        
-        resetFault();
+        motorDriver.resetMotorFaults();
         resetMotorFault = false;  
         if (resetMotorFaultCounter > 10){ // too many successive motor faults
           //stopImmediately();
@@ -320,11 +233,11 @@ void Motor::run() {
     }
   }   
   
-  int ticksLeft = odoTicksLeft;
-  odoTicksLeft = 0;
-  int ticksRight = odoTicksRight;
-  odoTicksRight = 0;
-
+  int ticksLeft;
+  int ticksRight;
+  int ticksMow;
+  motorDriver.getMotorEncoderTicks(ticksLeft, ticksRight, ticksMow);  
+  
   if (motorLeftPWMCurr < 0) ticksLeft *= -1;
   if (motorRightPWMCurr < 0) ticksRight *= -1;
   motorLeftTicks += ticksLeft;
@@ -357,37 +270,23 @@ void Motor::run() {
 }  
 
 
-void Motor::resetFault() {
-  if (digitalRead(pinMotorLeftFault) == LOW) {
-    digitalWrite(pinMotorEnable, LOW);
-    digitalWrite(pinMotorEnable, HIGH);
-    CONSOLE.println("Reset motor left fault");
-  }
-  if  (digitalRead(pinMotorRightFault) == LOW) {
-    digitalWrite(pinMotorEnable, LOW);
-    digitalWrite(pinMotorEnable, HIGH);
-    CONSOLE.println("Reset motor right fault");
-  }
-  if (digitalRead(pinMotorMowFault) == LOW) {
-    digitalWrite(pinMotorMowEnable, LOW);
-    digitalWrite(pinMotorMowEnable, HIGH);
-    CONSOLE.println("Reset motor mow fault");
-  }
-}
-
 
 // check motor faults
 bool Motor::checkFault() {
   bool fault = false;
-  if (digitalRead(pinMotorLeftFault) == LOW) {
+  bool leftFault = false;
+  bool rightFault = false;
+  bool mowFault = false;
+  motorDriver.getMotorFaults(leftFault, rightFault, mowFault);
+  if (leftFault) {
     CONSOLE.println("Error: motor left fault");
     fault = true;
   }
-  if  (digitalRead(pinMotorRightFault) == LOW) {
+  if  (rightFault) {
     CONSOLE.println("Error: motor right fault"); 
     fault = true;
   }
-  if (digitalRead(pinMotorMowFault) == LOW) {
+  if (mowFault) {
     CONSOLE.println("Error: motor mow fault");
     fault = true;
   }
@@ -399,10 +298,7 @@ bool Motor::checkFault() {
 void Motor::sense(){
   if (millis() < nextSenseTime) return;
   nextSenseTime = millis() + 20;
-  float scale       = 1.905;   // ADC voltage to amp   
-  motorRightSense = ((float)ADC2voltage(analogRead(pinMotorRightSense))) *scale;
-  motorLeftSense = ((float)ADC2voltage(analogRead(pinMotorLeftSense))) *scale;
-  motorMowSense = ((float)ADC2voltage(analogRead(pinMotorMowSense))) *scale  *2;	      
+  motorDriver.getMotorCurrent(motorLeftSense, motorRightSense, motorMowSense);
   float lp = 0.995; // 0.9
   motorRightSenseLP = lp * motorRightSenseLP + (1.0-lp) * motorRightSense;
   motorLeftSenseLP = lp * motorLeftSenseLP + (1.0-lp) * motorLeftSense;
@@ -486,9 +382,7 @@ void Motor::control(){
   
   motorMowPWMCurr = 0.99 * motorMowPWMCurr + 0.01 * motorMowPWMSet;
   
-  speedPWM(MOTOR_LEFT, motorLeftPWMCurr);
-  speedPWM(MOTOR_RIGHT, motorRightPWMCurr);  
-  speedPWM(MOTOR_MOW, motorMowPWMCurr);  
+  speedPWM(motorLeftPWMCurr, motorRightPWMCurr, motorMowPWMCurr);
 }
 
 
@@ -496,9 +390,9 @@ void Motor::dumpOdoTicks(int seconds){
   CONSOLE.print("t=");
   CONSOLE.print(seconds);
   CONSOLE.print("  ticks Left=");
-  CONSOLE.print(odoTicksLeft);  
+  CONSOLE.print(motorLeftTicks);  
   CONSOLE.print("  Right=");
-  CONSOLE.print(odoTicksRight);             
+  CONSOLE.print(motorRightTicks);             
   CONSOLE.print("  current Left=");
   CONSOLE.print(motorLeftSense);
   CONSOLE.print("  Right=");
@@ -513,14 +407,15 @@ void Motor::test(){
   odoTicksRight = 0;  
   unsigned long nextInfoTime = 0;
   int seconds = 0;
-  speedPWM(MOTOR_LEFT, 200);
-  speedPWM(MOTOR_RIGHT, 200);       
+  int pwmLeft = 200;
+  int pwmRight = 200; 
+  speedPWM(pwmLeft, pwmRight, 0);
   bool slowdown = true;
   uint16_t stopTicks = ticksPerRevolution * 10;
   while (odoTicksLeft < stopTicks || odoTicksRight < stopTicks){
     if ((slowdown) && ((odoTicksLeft + ticksPerRevolution / 2 > stopTicks)||(odoTicksRight + ticksPerRevolution / 2 > stopTicks))){  //Letzte halbe drehung verlangsamen
-      speedPWM(MOTOR_LEFT, 20);
-      speedPWM(MOTOR_RIGHT, 20);       
+      pwmLeft = pwmRight = 20;
+      speedPWM(pwmLeft, pwmRight, 0);
       slowdown = false;
     }    
     if (millis() > nextInfoTime){      
@@ -530,18 +425,20 @@ void Motor::test(){
     }    
     if(odoTicksLeft >= stopTicks)
     {
-      speedPWM(MOTOR_LEFT, 0);
+      pwmLeft = 0;
+      speedPWM(pwmLeft, pwmRight, 0);
     }  
     if(odoTicksRight >= stopTicks)
     {
-      speedPWM(MOTOR_RIGHT, 0);
+      pwmRight = 0;
+      speedPWM(pwmLeft, pwmRight, 0);
     }
     sense();
     delay(1);
     watchdogReset();     
   }
   dumpOdoTicks(seconds);
-  speedPWM(MOTOR_LEFT, 0);
-  speedPWM(MOTOR_RIGHT, 0);  
+  speedPWM(0, 0, 0);
   CONSOLE.println("motor test done - please ignore any IMU/GPS errors");
 }
+

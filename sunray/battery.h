@@ -13,8 +13,6 @@
 class Battery {
   public:
     bool batMonitor;
-	  float batteryFactor;
-    float currentFactor;
     float batGoHomeIfBelow;
     float batFullVoltage;
     float batSwitchOffIfBelow;  // switch off battery if below voltage (Volt)
@@ -26,8 +24,7 @@ class Battery {
 	  float chargingCurrent;  // amps
     bool chargingEnabled;
     bool chargingCompleted;
-	  float ADCRef;
-    void begin();            
+	  void begin();            
     void run();	  
 	  bool chargerConnected();
     void enableCharging(bool flag);   	      

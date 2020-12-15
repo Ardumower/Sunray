@@ -35,7 +35,7 @@ class Motor {
     int  pwmMax;
     int  pwmMaxMow;    
     unsigned long motorLeftTicks;
-    unsigned long motorRightTicks;    
+    unsigned long motorRightTicks;
     float linearSpeedSet; // m/s
     float angularSpeedSet; // rad/s
     float motorLeftSense; // left motor current (amps)
@@ -54,8 +54,10 @@ class Motor {
     void setLinearAngularSpeed(float linear, float angular, bool useLinearRamp = true);
     void setMowState(bool switchOn);   
     void stopImmediately(bool includeMowerMotor);
-    void resetFault();
-  protected:                 
+  protected: 
+    unsigned long odoTicksLeft;
+    unsigned long odoTicksRight;
+    unsigned long odoTicksMow;                
     float motorLeftRpmSet; // set speed
     float motorRightRpmSet;    
     float motorLeftRpmCurr;
@@ -81,8 +83,7 @@ class Motor {
     PID motorRightPID;        
     bool setLinearAngularSpeedTimeoutActive;
     unsigned long setLinearAngularSpeedTimeout;    
-    void speedPWM ( MotorSelect motor, int speedPWM );
-    void setMC33926(int pinDir, int pinPWM, int speed);
+    void speedPWM ( int pwmLeft, int pwmRight, int pwmMow );
     void control();    
     bool checkFault();
     void sense();

@@ -11,11 +11,13 @@
 
 
 #include "motor.h"
+#include "src/driver/AmMotorDriver.h"
+#include "src/driver/AmBumperDriver.h"
+#include "src/driver/AmBatteryDriver.h"
 #include "battery.h"
 #include "ble.h"
 #include "pinman.h"
 #include "buzzer.h"
-#include "bumper.h"
 #include "sonar.h"
 #include "VL53L0X.h"
 #include "map.h"   
@@ -23,7 +25,7 @@
 #include "src/esp/WiFiEsp.h"
 
 
-#define VER "Ardumower Sunray,1.0.164"
+#define VER "Ardumower Sunray,1.0.165"
 
 enum OperationType {
       OP_IDLE,      
@@ -48,7 +50,6 @@ enum Sensor {
       SENS_MAP_NO_ROUTE,
       SENS_MEM_OVERFLOW,
 };
-
 
 extern OperationType stateOp; // operation
 extern Sensor stateSensor; // last triggered sensor
@@ -91,11 +92,13 @@ extern bool wifiFound;
 
 extern "C" char* sbrk(int incr);
 
+extern AmMotorDriver motorDriver;
+extern AmBatteryDriver batteryDriver;
+extern AmBumperDriver bumper;
 extern Motor motor;
 extern Battery battery;
 extern BLEConfig bleConfig;
 extern Buzzer buzzer;
-extern Bumper bumper;
 extern Sonar sonar;
 extern VL53L0X tof;
 extern PinManager pinMan;
