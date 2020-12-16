@@ -387,6 +387,12 @@ void Motor::control(){
 
 
 void Motor::dumpOdoTicks(int seconds){
+  int ticksLeft=0;
+  int ticksRight=0;
+  int ticksMow=0;
+  motorDriver.getMotorEncoderTicks(ticksLeft, ticksRight, ticksMow);  
+  motorLeftTicks += ticksLeft;
+  motorRightTicks += ticksRight;
   CONSOLE.print("t=");
   CONSOLE.print(seconds);
   CONSOLE.print("  ticks Left=");
@@ -403,19 +409,17 @@ void Motor::dumpOdoTicks(int seconds){
 
 void Motor::test(){
   CONSOLE.println("motor test - 10 revolutions");
-  odoTicksLeft = 0;  
-  odoTicksRight = 0;  
+  motorLeftTicks = 0;  
+  motorRightTicks = 0;  
   unsigned long nextInfoTime = 0;
   int seconds = 0;
   int pwmLeft = 200;
   int pwmRight = 200; 
-  speedPWM(pwmLeft, pwmRight, 0);
   bool slowdown = true;
-  uint16_t stopTicks = ticksPerRevolution * 10;
-  while (odoTicksLeft < stopTicks || odoTicksRight < stopTicks){
-    if ((slowdown) && ((odoTicksLeft + ticksPerRevolution / 2 > stopTicks)||(odoTicksRight + ticksPerRevolution / 2 > stopTicks))){  //Letzte halbe drehung verlangsamen
+  unsigned long stopTicks = ticksPerRevolution * 10;
+  while (motorLeftTicks < stopTicks || motorRightTicks < stopTicks){
+    if ((slowdown) && ((motorLeftTicks + ticksPerRevolution  > stopTicks)||(motorRightTicks + ticksPerRevolution > stopTicks))){  //Letzte halbe drehung verlangsamen
       pwmLeft = pwmRight = 20;
-      speedPWM(pwmLeft, pwmRight, 0);
       slowdown = false;
     }    
     if (millis() > nextInfoTime){      
@@ -423,19 +427,21 @@ void Motor::test(){
       dumpOdoTicks(seconds);
       seconds++;      
     }    
-    if(odoTicksLeft >= stopTicks)
+    if(motorLeftTicks >= stopTicks)
     {
       pwmLeft = 0;
-      speedPWM(pwmLeft, pwmRight, 0);
     }  
-    if(odoTicksRight >= stopTicks)
+    if(motorRightTicks >= stopTicks)
     {
-      pwmRight = 0;
-      speedPWM(pwmLeft, pwmRight, 0);
+      pwmRight = 0;      
     }
+    speedPWM(pwmLeft, pwmRight, 0);
     sense();
-    delay(1);
+    delay(50);
     watchdogReset();     
+  #ifdef DRV_SERIAL_ROBOT
+    serialRobot.run();   
+  #endif
   }
   dumpOdoTicks(seconds);
   speedPWM(0, 0, 0);

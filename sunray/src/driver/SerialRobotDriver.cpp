@@ -53,21 +53,22 @@ void SerialRobot::motorResponse(){
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){
-      float value = cmd.substring(lastCommaIdx+1, idx+1).toFloat();
+      int intValue = cmd.substring(lastCommaIdx+1, idx+1).toInt();
+      int floatValue = cmd.substring(lastCommaIdx+1, idx+1).toFloat();      
       if (counter == 1){                            
-        motorLeftImp = value;
+        motorLeftImp = intValue;
       } else if (counter == 2){
-        motorRightImp = value;
+        motorRightImp = intValue;
       } else if (counter == 3){
-        motorMowImp = value;
+        motorMowImp = intValue;
       } else if (counter == 4){
-        chgVoltage = value;
+        chgVoltage = floatValue;
       } else if (counter == 5){
-        bumper = value;
+        bumper = intValue;
       } else if (counter == 6){
-        lift = value;
+        lift = intValue;
       } else if (counter == 7){
-        stopButton = value;
+        stopButton = intValue;
       } 
       counter++;
       lastCommaIdx = idx;

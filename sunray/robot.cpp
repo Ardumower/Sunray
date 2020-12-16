@@ -657,6 +657,9 @@ void start(){
   CONSOLE.println(BOARD);
   
   batteryDriver.begin();
+#ifdef DRV_SERIAL_ROBOT 
+  serialRobot.begin();
+#endif
   motorDriver.begin();  
   battery.begin();      
   
@@ -1121,6 +1124,9 @@ void trackLine(){
 
 // robot main loop
 void run(){  
+#ifdef DRV_SERIAL_ROBOT 
+  serialRobot.run();
+#endif
   buzzer.run();
   battery.run();
   batteryDriver.run();

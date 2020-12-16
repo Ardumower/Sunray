@@ -55,9 +55,6 @@ class Motor {
     void setMowState(bool switchOn);   
     void stopImmediately(bool includeMowerMotor);
   protected: 
-    unsigned long odoTicksLeft;
-    unsigned long odoTicksRight;
-    unsigned long odoTicksMow;                
     float motorLeftRpmSet; // set speed
     float motorRightRpmSet;    
     float motorLeftRpmCurr;
