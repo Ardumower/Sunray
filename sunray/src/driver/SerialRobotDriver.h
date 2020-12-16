@@ -16,8 +16,8 @@
 
 class SerialRobot {
   public:
-    int encoderTicksLeft;
-    int encoderTicksRight;
+    unsigned long encoderTicksLeft;
+    unsigned long encoderTicksRight;
     float batteryVoltage;
     float chargeVoltage;
     bool triggeredLeftBumper;
@@ -36,6 +36,9 @@ class SerialRobot {
 
 class SerialMotorDriver: public MotorDriver {
   public:        
+    unsigned long lastEncoderTicksLeft;
+    unsigned long lastEncoderTicksRight; 
+    bool started;       
     SerialRobot &serialRobot;
     SerialMotorDriver(SerialRobot &sr);
     void begin() override;

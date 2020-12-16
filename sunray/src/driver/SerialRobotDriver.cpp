@@ -145,6 +145,9 @@ SerialMotorDriver::SerialMotorDriver(SerialRobot &sr): serialRobot(sr){
 } 
 
 void SerialMotorDriver::begin(){
+  lastEncoderTicksLeft=0;
+  lastEncoderTicksRight=0;
+  started = true;       
 }
 
 void SerialMotorDriver::run(){
@@ -155,20 +158,31 @@ void SerialMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
 }
 
 void SerialMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &mowFault){
+  leftFault = false;
+  rightFault = false;
+  mowFault = false;
 }
 
 void SerialMotorDriver::resetMotorFaults(){
 }
 
 void SerialMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) {
-
+  leftCurrent = 1;
+  rightCurrent = 1;
+  mowCurrent = 1;
 }
 
 void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
-  leftTicks = serialRobot.encoderTicksLeft;
-  rightTicks = serialRobot.encoderTicksRight;
+  if (started){
+    started = false;
+    lastEncoderTicksLeft = serialRobot.encoderTicksLeft;
+    lastEncoderTicksRight = serialRobot.encoderTicksRight;
+  }
+  leftTicks = serialRobot.encoderTicksLeft - lastEncoderTicksLeft;
+  rightTicks = serialRobot.encoderTicksRight - lastEncoderTicksRight;
   mowTicks = 0;
-  serialRobot.encoderTicksLeft = serialRobot.encoderTicksRight = 0; // reset ticks
+  lastEncoderTicksLeft = serialRobot.encoderTicksLeft;
+  lastEncoderTicksRight = serialRobot.encoderTicksRight;
 }
 
 
@@ -184,7 +198,8 @@ void SerialBatteryDriver::run(){
 }    
 
 float SerialBatteryDriver::getBatteryVoltage(){
-  return serialRobot.batteryVoltage;
+  return 28;
+  //return serialRobot.batteryVoltage;
 }
 
 float SerialBatteryDriver::getChargeVoltage(){
@@ -215,11 +230,15 @@ void SerialBumperDriver::run(){
 }
 
 bool SerialBumperDriver::obstacle(){
+  return false;
+  //return (serialRobot.triggeredLeftBumper || serialRobot.triggeredRightBumper); 
 }
 
 void SerialBumperDriver::getTriggeredBumper(bool &leftBumper, bool &rightBumper){
-  leftBumper = serialRobot.triggeredLeftBumper;
-  rightBumper = serialRobot.triggeredRightBumper;
+  //leftBumper = serialRobot.triggeredLeftBumper;
+  //rightBumper = serialRobot.triggeredRightBumper;
+  leftBumper = false;
+  rightBumper = false;
 }  	  		    
 
 
