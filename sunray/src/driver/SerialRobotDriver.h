@@ -8,21 +8,36 @@
 #ifndef AM_SERIAL_ROBOT_H
 #define AM_SERIAL_ROBOT_H
 
-
+#include <Arduino.h>
 #include "MotorDriver.h"
 #include "BatteryDriver.h"
 #include "BumperDriver.h"
 
 
-class SerialRobotComm {
+class SerialRobot {
   public:
+    int encoderTicksLeft;
+    int encoderTicksRight;
+    float batteryVoltage;
+    float chargeVoltage;
+    bool triggeredLeftBumper;
+    bool triggeredRightBumper;
     void begin();
     void run();
+    void requestMotorPwm(int leftPwm, int rightPwm, int mowPwm);
+  protected:
+    String cmd;
+    String cmdResponse;
+    void sendRequest(String req);
+    void processComm();
+    void processResponse(bool checkCrc);
+    void motorResponse();
 };
 
 class SerialMotorDriver: public MotorDriver {
-  public:    
-    SerialMotorDriver();
+  public:        
+    SerialRobot &serialRobot;
+    SerialMotorDriver(SerialRobot &sr);
     void begin() override;
     void run() override;
     void setMotorPwm(int leftPwm, int rightPwm, int mowPwm) override;
@@ -34,6 +49,8 @@ class SerialMotorDriver: public MotorDriver {
 
 class SerialBatteryDriver : public BatteryDriver {
   public:    
+    SerialRobot &serialRobot;
+    SerialBatteryDriver(SerialRobot &sr);
     void begin() override;
     void run() override;    
     float getBatteryVoltage() override;
@@ -45,6 +62,8 @@ class SerialBatteryDriver : public BatteryDriver {
 
 class SerialBumperDriver: public BumperDriver {
   public:    
+    SerialRobot &serialRobot;
+    SerialBumperDriver(SerialRobot &sr);
     void begin() override;
     void run() override;
     bool obstacle() override;
