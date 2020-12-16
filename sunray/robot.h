@@ -14,6 +14,7 @@
 #include "src/driver/AmMotorDriver.h"
 #include "src/driver/AmBumperDriver.h"
 #include "src/driver/AmBatteryDriver.h"
+#include "src/driver/SerialRobotDriver.h"
 #include "battery.h"
 #include "ble.h"
 #include "pinman.h"
@@ -92,9 +93,17 @@ extern bool wifiFound;
 
 extern "C" char* sbrk(int incr);
 
-extern AmMotorDriver motorDriver;
-extern AmBatteryDriver batteryDriver;
-extern AmBumperDriver bumper;
+#ifdef DRV_SERIAL_ROBOT
+  extern SerialRobot serialRobot;
+  extern SerialMotorDriver motorDriver;
+  extern SerialBatteryDriver batteryDriver;
+  extern SerialBumperDriver bumper;
+#else
+  extern AmMotorDriver motorDriver;
+  extern AmBatteryDriver batteryDriver;
+  extern AmBumperDriver bumper;
+#endif
+
 extern Motor motor;
 extern Battery battery;
 extern BLEConfig bleConfig;

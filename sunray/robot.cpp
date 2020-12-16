@@ -18,6 +18,7 @@
 #include "src/driver/AmMotorDriver.h"
 #include "src/driver/AmBatteryDriver.h"
 #include "src/driver/AmBumperDriver.h"
+#include "src/driver/SerialRobotDriver.h"
 #include "battery.h"
 #include "src/ublox/ublox.h"
 #include "buzzer.h"
@@ -42,9 +43,16 @@ const signed char orientationMatrix[9] = {
 
 File stateFile;
 MPU9250_DMP imu;
-AmMotorDriver motorDriver;
-AmBatteryDriver batteryDriver;
-AmBumperDriver bumper;
+#ifdef DRV_SERIAL_ROBOT
+  SerialRobot serialRobot;
+  SerialMotorDriver motorDriver(serialRobot);
+  SerialBatteryDriver batteryDriver(serialRobot);
+  SerialBumperDriver bumper(serialRobot);
+#else
+  AmMotorDriver motorDriver;
+  AmBatteryDriver batteryDriver;
+  AmBumperDriver bumper;
+#endif
 Motor motor;
 Battery battery;
 PinManager pinMan;
