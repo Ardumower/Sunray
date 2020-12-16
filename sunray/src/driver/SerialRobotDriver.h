@@ -22,6 +22,7 @@ class SerialRobot {
     float chargeVoltage;
     bool triggeredLeftBumper;
     bool triggeredRightBumper;
+    int packetCounter;           
     void begin();
     void run();
     void requestMotorPwm(int leftPwm, int rightPwm, int mowPwm);
@@ -38,8 +39,8 @@ class SerialMotorDriver: public MotorDriver {
   public:        
     unsigned long lastEncoderTicksLeft;
     unsigned long lastEncoderTicksRight; 
-    bool started;       
     SerialRobot &serialRobot;
+    bool started;
     SerialMotorDriver(SerialRobot &sr);
     void begin() override;
     void run() override;

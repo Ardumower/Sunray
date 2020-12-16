@@ -19,6 +19,7 @@ void SerialRobot::begin(){
   batteryVoltage = 0;
   triggeredLeftBumper = false;
   triggeredRightBumper = false;
+  packetCounter = 0;
 }
 
 void SerialRobot::sendRequest(String req){
@@ -78,6 +79,7 @@ void SerialRobot::motorResponse(){
   encoderTicksRight = motorRightImp;
   chargeVoltage = chgVoltage;
   triggeredLeftBumper = (bumper != 0);
+  packetCounter++;
 }
 
 // process response
@@ -147,7 +149,7 @@ SerialMotorDriver::SerialMotorDriver(SerialRobot &sr): serialRobot(sr){
 void SerialMotorDriver::begin(){
   lastEncoderTicksLeft=0;
   lastEncoderTicksRight=0;
-  started = true;       
+  started = false;       
 }
 
 void SerialMotorDriver::run(){
@@ -173,16 +175,18 @@ void SerialMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent,
 }
 
 void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
-  if (started){
-    started = false;
-    lastEncoderTicksLeft = serialRobot.encoderTicksLeft;
-    lastEncoderTicksRight = serialRobot.encoderTicksRight;
-  }
+  if (!started){
+    if (serialRobot.packetCounter > 0){
+      started = true;
+      lastEncoderTicksLeft = serialRobot.encoderTicksLeft;
+      lastEncoderTicksRight = serialRobot.encoderTicksRight;
+    }
+  } 
   leftTicks = serialRobot.encoderTicksLeft - lastEncoderTicksLeft;
   rightTicks = serialRobot.encoderTicksRight - lastEncoderTicksRight;
-  mowTicks = 0;
   lastEncoderTicksLeft = serialRobot.encoderTicksLeft;
   lastEncoderTicksRight = serialRobot.encoderTicksRight;
+  mowTicks = 0;
 }
 
 
