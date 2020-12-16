@@ -14,9 +14,6 @@
 
 class AmBatteryDriver : public BatteryDriver {
   public:    
-	  float batteryFactor;
-    float currentFactor;
-
     void begin() override;
     void run() override;
     
@@ -30,6 +27,10 @@ class AmBatteryDriver : public BatteryDriver {
     virtual void enableCharging(bool flag) override;
     // keep system on or power-off
     virtual void keepPowerOn(bool flag) override;
+  protected:
+  	float batteryFactor;
+    float currentFactor;
+
 };
 
 
