@@ -18,21 +18,30 @@ class SerialRobot {
   public:
     unsigned long encoderTicksLeft;
     unsigned long encoderTicksRight;
+    unsigned long encoderTicksMow;
+    bool receivedEncoders;
+    bool motorFault;
     float batteryVoltage;
     float chargeVoltage;
+    float chargeCurrent;
     bool triggeredLeftBumper;
     bool triggeredRightBumper;
-    int packetCounter;           
+    bool triggeredLift;
+    bool triggeredRain;
+    bool triggeredStopButton;           
     void begin();
     void run();
     void requestMotorPwm(int leftPwm, int rightPwm, int mowPwm);
+    void requestSummary();
   protected:
     String cmd;
     String cmdResponse;
+    unsigned long nextSummaryTime;
     void sendRequest(String req);
     void processComm();
     void processResponse(bool checkCrc);
     void motorResponse();
+    void summaryResponse();
 };
 
 class SerialMotorDriver: public MotorDriver {

@@ -15,16 +15,29 @@ void SerialRobot::begin(){
   COMM.begin(115200);
   encoderTicksLeft = 0;
   encoderTicksRight = 0;
-  chargeVoltage = 0;  
+  chargeVoltage = 0;
+  chargeCurrent = 0;  
   batteryVoltage = 0;
   triggeredLeftBumper = false;
   triggeredRightBumper = false;
-  packetCounter = 0;
+  triggeredRain = false;
+  triggeredStopButton = false;
+  triggeredLift = false;
+  motorFault = false;
+  receivedEncoders = false;
+  nextSummaryTime = 0;
 }
 
 void SerialRobot::sendRequest(String req){
   req += F("\r\n");               
   COMM.print(req);
+}
+
+
+void SerialRobot::requestSummary(){
+  String req;
+  req += "AT+S";
+  sendRequest(req);
 }
 
 void SerialRobot::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
@@ -42,13 +55,6 @@ void SerialRobot::motorResponse(){
   if (cmd.length()<6) return;  
   int counter = 0;
   int lastCommaIdx = 0;
-  int motorLeftImp=0;
-  int motorRightImp=0;
-  int motorMowImp =0;
-  float chgVoltage=0;
-  int bumper=0;
-  int lift=0;
-  int stopButton=0; 
   for (int idx=0; idx < cmd.length(); idx++){
     char ch = cmd[idx];
     //Serial.print("ch=");
@@ -57,29 +63,58 @@ void SerialRobot::motorResponse(){
       int intValue = cmd.substring(lastCommaIdx+1, idx+1).toInt();
       int floatValue = cmd.substring(lastCommaIdx+1, idx+1).toFloat();      
       if (counter == 1){                            
-        motorLeftImp = intValue;
+        encoderTicksLeft = intValue;
       } else if (counter == 2){
-        motorRightImp = intValue;
+        encoderTicksRight = intValue;
       } else if (counter == 3){
-        motorMowImp = intValue;
+        encoderTicksMow = intValue;
       } else if (counter == 4){
-        chgVoltage = floatValue;
+        chargeVoltage = floatValue;
       } else if (counter == 5){
-        bumper = intValue;
+        triggeredLeftBumper = (intValue != 0);
       } else if (counter == 6){
-        lift = intValue;
+        triggeredLift = (intValue != 0);
       } else if (counter == 7){
-        stopButton = intValue;
+        triggeredStopButton = (intValue != 0);
       } 
       counter++;
       lastCommaIdx = idx;
     }    
   }
-  encoderTicksLeft = motorLeftImp;
-  encoderTicksRight = motorRightImp;
-  chargeVoltage = chgVoltage;
-  triggeredLeftBumper = (bumper != 0);
-  packetCounter++;
+  receivedEncoders=true;
+}
+
+
+void SerialRobot::summaryResponse(){
+  if (cmd.length()<6) return;  
+  int counter = 0;
+  int lastCommaIdx = 0;
+  for (int idx=0; idx < cmd.length(); idx++){
+    char ch = cmd[idx];
+    //Serial.print("ch=");
+    //Serial.println(ch);
+    if ((ch == ',') || (idx == cmd.length()-1)){
+      int intValue = cmd.substring(lastCommaIdx+1, idx+1).toInt();
+      int floatValue = cmd.substring(lastCommaIdx+1, idx+1).toFloat();      
+      if (counter == 1){                            
+        batteryVoltage = floatValue;
+      } else if (counter == 2){
+        chargeVoltage = floatValue;
+      } else if (counter == 3){
+        chargeCurrent = floatValue;
+      } else if (counter == 4){
+        triggeredLift = (intValue != 0);
+      } else if (counter == 5){
+        triggeredLeftBumper = (intValue != 0);
+      } else if (counter == 6){
+        triggeredRain = (intValue != 0);
+      } else if (counter == 7){
+        motorFault = (intValue != 0);
+      } 
+      counter++;
+      lastCommaIdx = idx;
+    }    
+  }
 }
 
 // process response
@@ -113,6 +148,7 @@ void SerialRobot::processResponse(bool checkCrc){
     }    
   }     
   if (cmd[0] == 'M') motorResponse();
+  if (cmd[0] == 'S') summaryResponse();
 }
 
 
@@ -138,6 +174,10 @@ void SerialRobot::processComm(){
 
 void SerialRobot::run(){
   processComm();
+  if (millis() > nextSummaryTime){
+    nextSummaryTime = millis() + 500;
+    requestSummary();
+  }
 }
 
 
@@ -160,7 +200,7 @@ void SerialMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
 }
 
 void SerialMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &mowFault){
-  leftFault = false;
+  leftFault = serialRobot.motorFault;
   rightFault = false;
   mowFault = false;
 }
@@ -176,7 +216,7 @@ void SerialMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent,
 
 void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
   if (!started){
-    if (serialRobot.packetCounter > 0){
+    if (serialRobot.receivedEncoders){
       started = true;
       lastEncoderTicksLeft = serialRobot.encoderTicksLeft;
       lastEncoderTicksRight = serialRobot.encoderTicksRight;
@@ -202,8 +242,7 @@ void SerialBatteryDriver::run(){
 }    
 
 float SerialBatteryDriver::getBatteryVoltage(){
-  return 28;
-  //return serialRobot.batteryVoltage;
+  return serialRobot.batteryVoltage;
 }
 
 float SerialBatteryDriver::getChargeVoltage(){
@@ -211,7 +250,7 @@ float SerialBatteryDriver::getChargeVoltage(){
 }
     
 float SerialBatteryDriver::getChargeCurrent(){
-  return 0;
+  return serialRobot.chargeCurrent;
 } 
 
 void SerialBatteryDriver::enableCharging(bool flag){
@@ -234,15 +273,12 @@ void SerialBumperDriver::run(){
 }
 
 bool SerialBumperDriver::obstacle(){
-  return false;
-  //return (serialRobot.triggeredLeftBumper || serialRobot.triggeredRightBumper); 
+  return (serialRobot.triggeredLeftBumper || serialRobot.triggeredRightBumper); 
 }
 
 void SerialBumperDriver::getTriggeredBumper(bool &leftBumper, bool &rightBumper){
-  //leftBumper = serialRobot.triggeredLeftBumper;
-  //rightBumper = serialRobot.triggeredRightBumper;
-  leftBumper = false;
-  rightBumper = false;
+  leftBumper = serialRobot.triggeredLeftBumper;
+  rightBumper = serialRobot.triggeredRightBumper;
 }  	  		    
 
 
