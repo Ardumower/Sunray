@@ -47,7 +47,10 @@ void SerialRobot::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   req += ",";
   req += rightPwm;
   req += ",";  
-  req += mowPwm;
+  if (abs(mowPwm) > 0)
+    req += "1";
+  else
+    req += "0";
   sendRequest(req);
 }
 
@@ -209,9 +212,9 @@ void SerialMotorDriver::resetMotorFaults(){
 }
 
 void SerialMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) {
-  leftCurrent = 1;
-  rightCurrent = 1;
-  mowCurrent = 1;
+  leftCurrent = 0.5;
+  rightCurrent = 0.5;
+  mowCurrent = 0.8;
 }
 
 void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
