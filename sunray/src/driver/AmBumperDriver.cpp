@@ -24,10 +24,8 @@ void BumperRightInterruptRoutine(){
 void AmBumperDriver::begin(){	
   pinMode(pinBumperLeft, INPUT_PULLUP);                   
   pinMode(pinBumperRight, INPUT_PULLUP);                   
-	if (BUMPER_ENABLE){
-    attachInterrupt(pinBumperLeft, BumperLeftInterruptRoutine, CHANGE);
-	  attachInterrupt(pinBumperRight, BumperRightInterruptRoutine, CHANGE);
-  }
+  attachInterrupt(pinBumperLeft, BumperLeftInterruptRoutine, CHANGE);
+	attachInterrupt(pinBumperRight, BumperRightInterruptRoutine, CHANGE);
 }
 
 void AmBumperDriver::getTriggeredBumper(bool &leftBumper, bool &rightBumper){

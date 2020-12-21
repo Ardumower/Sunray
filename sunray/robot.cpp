@@ -117,6 +117,10 @@ unsigned long statMowFloatToFixRecoveries = 0; // counter
 unsigned long statMowInvalidRecoveries = 0; // counter
 unsigned long statImuRecoveries = 0; // counter
 unsigned long statMowObstacles = 0 ; // counter
+unsigned long statMowBumperCounter = 0; 
+unsigned long statMowSonarCounter = 0;
+unsigned long statMowLiftCounter = 0;
+unsigned long statMowGPSMotionTimeoutCounter = 0;
 unsigned long statGPSJumps = 0; // counter
 float statTempMin = 9999; 
 float statTempMax = -9999; 
@@ -362,7 +366,10 @@ void sensorTest(){
        
       } 
       CONSOLE.println();  
-      watchdogReset();     
+      watchdogReset();
+      #ifdef DRV_SERIAL_ROBOT
+        serialRobot.run();   
+      #endif
     }
   }
   CONSOLE.println("end of sensor test - please ignore any IMU/GPS errors");
@@ -912,13 +919,17 @@ void detectObstacle(){
     }    
   }   
   
-  if ( (millis() > linearMotionStartTime + 5000) && (bumper.obstacle()) ){  
-    CONSOLE.println("bumper obstacle!");    
-    triggerObstacle();    
-    return;
+  if (BUMPER_ENABLE){
+    if ( (millis() > linearMotionStartTime + 5000) && (bumper.obstacle()) ){  
+      CONSOLE.println("bumper obstacle!");    
+      statMowBumperCounter++;
+      triggerObstacle();    
+      return;
+    }
   }
   if (sonar.obstacle() && (maps.wayMode != WAY_DOCK)){
     CONSOLE.println("sonar obstacle!");    
+    statMowSonarCounter++;
     triggerObstacle();    
     return;
   }  
@@ -931,6 +942,7 @@ void detectObstacle(){
     if (delta < 0.05){
       if (GPS_MOTION_DETECTION){
         CONSOLE.println("gps no motion => obstacle!");
+        statMowGPSMotionTimeoutCounter++;
         triggerObstacle();
         return;
       }

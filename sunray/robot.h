@@ -26,7 +26,7 @@
 #include "src/esp/WiFiEsp.h"
 
 
-#define VER "Ardumower Sunray,1.0.165"
+#define VER "Ardumower Sunray,1.0.166"
 
 enum OperationType {
       OP_IDLE,      
@@ -50,6 +50,10 @@ enum Sensor {
       SENS_ODOMETRY_ERROR,
       SENS_MAP_NO_ROUTE,
       SENS_MEM_OVERFLOW,
+      SENS_BUMPER,
+      SENS_SONAR,
+      SENS_LIFT,
+      SENS_RAIN,
 };
 
 extern OperationType stateOp; // operation
@@ -76,6 +80,10 @@ extern unsigned long statMowInvalidRecoveries ; // counter
 extern unsigned long statImuRecoveries ; // counter
 extern unsigned long statMowObstacles ; // counter
 extern unsigned long statGPSJumps ; // counter
+extern unsigned long statMowGPSMotionTimeoutCounter;
+extern unsigned long statMowBumperCounter; 
+extern unsigned long statMowSonarCounter;
+extern unsigned long statMowLiftCounter;
 extern float statMowMaxDgpsAge ; // seconds
 extern float statMowDistanceTraveled ; // meter
 extern float statTempMin;

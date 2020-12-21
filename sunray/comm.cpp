@@ -442,6 +442,12 @@ void cmdStats(){
   s += getResetCause();
   s += ",";
   s += statGPSJumps;
+  s += ",";
+  s += statMowSonarCounter;
+  s += ",";
+  s += statMowBumperCounter;
+  s += ",";
+  s += statMowGPSMotionTimeoutCounter;
   cmdAnswer(s);  
 }
 
@@ -465,6 +471,10 @@ void cmdClearStats(){
   gps.dgpsChecksumErrorCounter = 0;
   statMaxControlCycleTime = 0;
   statMowObstacles = 0;
+  statMowBumperCounter = 0; 
+  statMowSonarCounter = 0;
+  statMowLiftCounter = 0;
+  statMowGPSMotionTimeoutCounter = 0;
   statGPSJumps = 0;
   cmdAnswer(s);  
 }
