@@ -37,7 +37,7 @@ class SerialRobot {
     String cmd;
     String cmdResponse;
     unsigned long nextSummaryTime;
-    void sendRequest(String req);
+    void sendRequest(String s);
     void processComm();
     void processResponse(bool checkCrc);
     void motorResponse();

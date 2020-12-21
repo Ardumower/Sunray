@@ -28,9 +28,16 @@ void SerialRobot::begin(){
   nextSummaryTime = 0;
 }
 
-void SerialRobot::sendRequest(String req){
-  req += F("\r\n");               
-  COMM.print(req);
+void SerialRobot::sendRequest(String s){
+  byte crc = 0;
+  for (int i=0; i < s.length(); i++) crc += s[i];
+  s += F(",0x");
+  if (crc <= 0xF) s += F("0");
+  s += String(crc, HEX);  
+  s += F("\r\n");             
+  //CONSOLE.print(s);  
+  cmdResponse = s;
+  COMM.print(s);
 }
 
 
@@ -128,7 +135,7 @@ void SerialRobot::processResponse(bool checkCrc){
   int idx = cmd.lastIndexOf(',');
   if (idx < 1){
     if (checkCrc){
-      CONSOLE.println("CRC ERROR");
+      CONSOLE.println("SerialRobot: CRC ERROR");
       return;
     }
   } else {
@@ -137,7 +144,7 @@ void SerialRobot::processResponse(bool checkCrc){
     int crc = strtol(s.c_str(), NULL, 16);  
     if (expectedCrc != crc){
       if (checkCrc){
-        CONSOLE.print("CRC ERROR");
+        CONSOLE.print("SerialRobot: CRC ERROR");
         CONSOLE.print(crc,HEX);
         CONSOLE.print(",");
         CONSOLE.print(expectedCrc,HEX);
@@ -164,7 +171,7 @@ void SerialRobot::processComm(){
       ch = COMM.read();          
       if ((ch == '\r') || (ch == '\n')) {        
         //CONSOLE.println(cmd);
-        processResponse(false);              
+        processResponse(true);              
         //CONSOLE.print(cmdResponse);    
         cmd = "";
       } else if (cmd.length() < 500){
