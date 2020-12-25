@@ -11,7 +11,7 @@
 
 
 
-void SerialRobot::begin(){
+void SerialRobotDriver::begin(){
   COMM.begin(115200);
   encoderTicksLeft = 0;
   encoderTicksRight = 0;
@@ -28,7 +28,7 @@ void SerialRobot::begin(){
   nextSummaryTime = 0;
 }
 
-void SerialRobot::sendRequest(String s){
+void SerialRobotDriver::sendRequest(String s){
   byte crc = 0;
   for (int i=0; i < s.length(); i++) crc += s[i];
   s += F(",0x");
@@ -41,13 +41,13 @@ void SerialRobot::sendRequest(String s){
 }
 
 
-void SerialRobot::requestSummary(){
+void SerialRobotDriver::requestSummary(){
   String req;
   req += "AT+S";
   sendRequest(req);
 }
 
-void SerialRobot::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
+void SerialRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   String req;
   req += "AT+M,";
   req += leftPwm;
@@ -61,7 +61,7 @@ void SerialRobot::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   sendRequest(req);
 }
 
-void SerialRobot::motorResponse(){
+void SerialRobotDriver::motorResponse(){
   if (cmd.length()<6) return;  
   int counter = 0;
   int lastCommaIdx = 0;
@@ -95,7 +95,7 @@ void SerialRobot::motorResponse(){
 }
 
 
-void SerialRobot::summaryResponse(){
+void SerialRobotDriver::summaryResponse(){
   if (cmd.length()<6) return;  
   int counter = 0;
   int lastCommaIdx = 0;
@@ -128,7 +128,7 @@ void SerialRobot::summaryResponse(){
 }
 
 // process response
-void SerialRobot::processResponse(bool checkCrc){
+void SerialRobotDriver::processResponse(bool checkCrc){
   cmdResponse = "";      
   if (cmd.length() < 4) return;
   byte expectedCrc = 0;
@@ -163,7 +163,7 @@ void SerialRobot::processResponse(bool checkCrc){
 
 
 // process console input
-void SerialRobot::processComm(){
+void SerialRobotDriver::processComm(){
   char ch;      
   if (COMM.available()){
     //battery.resetIdle();  
@@ -182,7 +182,7 @@ void SerialRobot::processComm(){
 }
 
 
-void SerialRobot::run(){
+void SerialRobotDriver::run(){
   processComm();
   if (millis() > nextSummaryTime){
     nextSummaryTime = millis() + 500;
@@ -193,7 +193,7 @@ void SerialRobot::run(){
 
 // ------------------------------------------------------------------------------------
 
-SerialMotorDriver::SerialMotorDriver(SerialRobot &sr): serialRobot(sr){
+SerialMotorDriver::SerialMotorDriver(SerialRobotDriver &sr): serialRobot(sr){
 } 
 
 void SerialMotorDriver::begin(){
@@ -242,7 +242,7 @@ void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, in
 
 // ------------------------------------------------------------------------------------
 
-SerialBatteryDriver::SerialBatteryDriver(SerialRobot &sr) : serialRobot(sr){
+SerialBatteryDriver::SerialBatteryDriver(SerialRobotDriver &sr) : serialRobot(sr){
 }
 
 void SerialBatteryDriver::begin(){
@@ -272,7 +272,7 @@ void SerialBatteryDriver::keepPowerOn(bool flag){
 
 // ------------------------------------------------------------------------------------
 
-SerialBumperDriver::SerialBumperDriver(SerialRobot &sr): serialRobot(sr){
+SerialBumperDriver::SerialBumperDriver(SerialRobotDriver &sr): serialRobot(sr){
 }
 
 void SerialBumperDriver::begin(){

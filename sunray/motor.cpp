@@ -439,9 +439,7 @@ void Motor::test(){
     sense();
     delay(50);
     watchdogReset();     
-  #ifdef DRV_SERIAL_ROBOT
-    serialRobot.run();   
-  #endif
+    robotDriver.run();   
   }
   dumpOdoTicks(seconds);
   speedPWM(0, 0, 0);

@@ -15,9 +15,7 @@
 #include "pinman.h"
 #include "ble.h"
 #include "motor.h"
-#include "src/driver/AmMotorDriver.h"
-#include "src/driver/AmBatteryDriver.h"
-#include "src/driver/AmBumperDriver.h"
+#include "src/driver/AmRobotDriver.h"
 #include "src/driver/SerialRobotDriver.h"
 #include "battery.h"
 #include "src/ublox/ublox.h"
@@ -44,11 +42,12 @@ const signed char orientationMatrix[9] = {
 File stateFile;
 MPU9250_DMP imu;
 #ifdef DRV_SERIAL_ROBOT
-  SerialRobot serialRobot;
-  SerialMotorDriver motorDriver(serialRobot);
-  SerialBatteryDriver batteryDriver(serialRobot);
-  SerialBumperDriver bumper(serialRobot);
+  SerialRobotDriver robotDriver;
+  SerialMotorDriver motorDriver(robotDriver);
+  SerialBatteryDriver batteryDriver(robotDriver);
+  SerialBumperDriver bumper(robotDriver);
 #else
+  AmRobotDriver robotDriver;
   AmMotorDriver motorDriver;
   AmBatteryDriver batteryDriver;
   AmBumperDriver bumper;
@@ -367,9 +366,7 @@ void sensorTest(){
       } 
       CONSOLE.println();  
       watchdogReset();
-      #ifdef DRV_SERIAL_ROBOT
-        serialRobot.run();   
-      #endif
+      robotDriver.run();   
     }
   }
   CONSOLE.println("end of sensor test - please ignore any IMU/GPS errors");
@@ -664,9 +661,7 @@ void start(){
   CONSOLE.println(BOARD);
   
   batteryDriver.begin();
-#ifdef DRV_SERIAL_ROBOT 
-  serialRobot.begin();
-#endif
+  robotDriver.begin();
   motorDriver.begin();  
   battery.begin();      
   
@@ -1136,9 +1131,7 @@ void trackLine(){
 
 // robot main loop
 void run(){  
-#ifdef DRV_SERIAL_ROBOT 
-  serialRobot.run();
-#endif
+  robotDriver.run();
   buzzer.run();
   battery.run();
   batteryDriver.run();

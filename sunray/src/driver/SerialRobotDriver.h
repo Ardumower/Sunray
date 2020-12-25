@@ -5,8 +5,8 @@
 
 // external robot (with motor drivers, battery, bumper etc.) connected and controlled via serial line
 
-#ifndef AM_SERIAL_ROBOT_H
-#define AM_SERIAL_ROBOT_H
+#ifndef AM_SERIAL_ROBOT_DRIVER_H
+#define AM_SERIAL_ROBOT_DRIVER_H
 
 #include <Arduino.h>
 #include "MotorDriver.h"
@@ -14,7 +14,7 @@
 #include "BumperDriver.h"
 
 
-class SerialRobot {
+class SerialRobotDriver {
   public:
     unsigned long encoderTicksLeft;
     unsigned long encoderTicksRight;
@@ -48,9 +48,9 @@ class SerialMotorDriver: public MotorDriver {
   public:        
     unsigned long lastEncoderTicksLeft;
     unsigned long lastEncoderTicksRight; 
-    SerialRobot &serialRobot;
+    SerialRobotDriver &serialRobot;
     bool started;
-    SerialMotorDriver(SerialRobot &sr);
+    SerialMotorDriver(SerialRobotDriver &sr);
     void begin() override;
     void run() override;
     void setMotorPwm(int leftPwm, int rightPwm, int mowPwm) override;
@@ -62,8 +62,8 @@ class SerialMotorDriver: public MotorDriver {
 
 class SerialBatteryDriver : public BatteryDriver {
   public:    
-    SerialRobot &serialRobot;
-    SerialBatteryDriver(SerialRobot &sr);
+    SerialRobotDriver &serialRobot;
+    SerialBatteryDriver(SerialRobotDriver &sr);
     void begin() override;
     void run() override;    
     float getBatteryVoltage() override;
@@ -75,8 +75,8 @@ class SerialBatteryDriver : public BatteryDriver {
 
 class SerialBumperDriver: public BumperDriver {
   public:    
-    SerialRobot &serialRobot;
-    SerialBumperDriver(SerialRobot &sr);
+    SerialRobotDriver &serialRobot;
+    SerialBumperDriver(SerialRobotDriver &sr);
     void begin() override;
     void run() override;
     bool obstacle() override;
