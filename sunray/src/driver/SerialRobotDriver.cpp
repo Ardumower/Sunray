@@ -91,6 +91,9 @@ void SerialRobotDriver::motorResponse(){
       lastCommaIdx = idx;
     }    
   }
+  if (triggeredStopButton){
+    CONSOLE.println("STOPBUTTON");
+  }
   receivedEncoders=true;
 }
 
@@ -154,6 +157,7 @@ void SerialRobotDriver::processResponse(bool checkCrc){
     } else {
       // remove CRC
       cmd = cmd.substring(0, idx);
+      //CONSOLE.print("SerialRobot resp:");
       //CONSOLE.println(cmd);
     }    
   }     
