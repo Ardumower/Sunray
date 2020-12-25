@@ -56,5 +56,13 @@ class BumperDriver {
     virtual void getTriggeredBumper(bool &leftBumper, bool &rightBumper);  	  		    
 };
 
+class StopButtonDriver {
+  public:    
+    virtual void begin();
+    virtual void run();
+    virtual bool triggered();  	  		    
+};
+
 
 #endif
+

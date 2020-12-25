@@ -66,5 +66,12 @@ class AmBumperDriver: public BumperDriver {
 };
 
 
+class AmStopButtonDriver: public StopButtonDriver {
+  public:    
+    void begin() override;
+    void run() override;
+    bool triggered() override;  	  		    
+};
+
 
 #endif

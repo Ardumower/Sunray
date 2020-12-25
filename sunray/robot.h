@@ -52,6 +52,7 @@ enum Sensor {
       SENS_SONAR,
       SENS_LIFT,
       SENS_RAIN,
+      SENS_STOP_BUTTON,
 };
 
 extern OperationType stateOp; // operation
@@ -104,11 +105,13 @@ extern "C" char* sbrk(int incr);
   extern SerialMotorDriver motorDriver;
   extern SerialBatteryDriver batteryDriver;
   extern SerialBumperDriver bumper;
+  extern SerialStopButtonDriver stopButton;
 #else
   extern AmRobotDriver robotDriver;
   extern AmMotorDriver motorDriver;
   extern AmBatteryDriver batteryDriver;
   extern AmBumperDriver bumper;
+  extern AmStopButtonDriver stopButton;
 #endif
 
 extern Motor motor;

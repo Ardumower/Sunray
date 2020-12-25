@@ -255,3 +255,19 @@ void AmBumperDriver::run(){
 }
 
 
+// ------------------------------------------------------------------------------------
+
+
+void AmStopButtonDriver::begin(){
+}
+
+void AmStopButtonDriver::run(){
+
+}
+
+bool AmStopButtonDriver::triggered(){
+  return false; 
+}
+
+
+

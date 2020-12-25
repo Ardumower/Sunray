@@ -292,3 +292,20 @@ void SerialBumperDriver::getTriggeredBumper(bool &leftBumper, bool &rightBumper)
 }  	  		    
 
 
+// ------------------------------------------------------------------------------------
+
+
+SerialStopButtonDriver::SerialStopButtonDriver(SerialRobotDriver &sr): serialRobot(sr){
+}
+
+void SerialStopButtonDriver::begin(){
+}
+
+void SerialStopButtonDriver::run(){
+
+}
+
+bool SerialStopButtonDriver::triggered(){
+  return (serialRobot.triggeredStopButton); 
+}
+

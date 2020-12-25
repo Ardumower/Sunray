@@ -81,6 +81,14 @@ class SerialBumperDriver: public BumperDriver {
     void getTriggeredBumper(bool &leftBumper, bool &rightBumper) override;  	  		    
 };
 
+class SerialStopButtonDriver: public StopButtonDriver {
+  public:    
+    SerialRobotDriver &serialRobot;
+    SerialStopButtonDriver(SerialRobotDriver &sr);
+    void begin() override;
+    void run() override;
+    bool triggered() override;  	  		    
+};
 
 
 #endif

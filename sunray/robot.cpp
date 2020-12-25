@@ -46,11 +46,13 @@ MPU9250_DMP imu;
   SerialMotorDriver motorDriver(robotDriver);
   SerialBatteryDriver batteryDriver(robotDriver);
   SerialBumperDriver bumper(robotDriver);
+  SerialStopButtonDriver stopButton(robotDriver);
 #else
   AmRobotDriver robotDriver;
   AmMotorDriver motorDriver;
   AmBatteryDriver batteryDriver;
   AmBumperDriver bumper;
+  AmStopButtonDriver stopButton;
 #endif
 Motor motor;
 Battery battery;
@@ -664,7 +666,8 @@ void start(){
   robotDriver.begin();
   motorDriver.begin();  
   battery.begin();      
-  
+  stopButton.begin();
+
   bleConfig.run();   
   BLE.println(VER);  
     
@@ -1133,6 +1136,7 @@ void trackLine(){
 void run(){  
   robotDriver.run();
   buzzer.run();
+  stopButton.run();
   battery.run();
   batteryDriver.run();
   motorDriver.run();
@@ -1259,6 +1263,11 @@ void run(){
           if (DOCKING_STATION){
             setOperation(OP_DOCK);
           }
+        }
+        if (stopButton.triggered()){
+          CONSOLE.println("stopButton triggered!");
+          stateSensor = SENS_STOP_BUTTON;
+          setOperation(OP_IDLE);
         }
       }
       else if (stateOp == OP_CHARGE){      
