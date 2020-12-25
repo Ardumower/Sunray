@@ -9,9 +9,7 @@
 #define AM_SERIAL_ROBOT_DRIVER_H
 
 #include <Arduino.h>
-#include "MotorDriver.h"
-#include "BatteryDriver.h"
-#include "BumperDriver.h"
+#include "RobotDriver.h"
 
 
 class SerialRobotDriver {
