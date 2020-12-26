@@ -928,8 +928,10 @@ void detectObstacle(){
   if (sonar.obstacle() && (maps.wayMode != WAY_DOCK)){
     CONSOLE.println("sonar obstacle!");    
     statMowSonarCounter++;
-    triggerObstacle();    
-    return;
+    if (SONAR_TRIGGER_OBSTACLES){
+      triggerObstacle();
+      return;
+    }        
   }  
   // check if GPS motion (obstacle detection)  
   if (millis() > nextGPSMotionCheckTime){        
