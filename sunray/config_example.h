@@ -47,6 +47,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
   #include "src/agcm4/adafruit_grand_central.h"
 #endif
 
+//#define DRV_SERIAL_ROBOT  1
+#define DRV_ARDUMOWER     1   // keep this for Ardumower
+
 
 // ------- Bluetooth4.0/BLE module -----------------------------------
 // see Wiki on how to install the BLE module and configure the jumpers:
@@ -286,6 +289,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define CONSOLE_BAUDRATE    115200    // baudrate used for console
 //#define CONSOLE_BAUDRATE    921600  // baudrate used for console
 #define BLE_BAUDRATE    115200        // baudrate used for BLE
+#define BLE_NAME      "Ardumower"     // name for BLE module
 #define GPS_BAUDRATE  115200          // baudrate for GPS RTK module
 #define WIFI_BAUDRATE 115200          // baudrate for WIFI module
 
