@@ -24,7 +24,10 @@ class RCModel {
       int buttontimer ;                                          
       bool RC_Mode ; 
       unsigned long nextControlTime ;
-
+    private:
+#ifdef RC_DEBUG
+        unsigned long nextOutputTime;
+#endif
 };
 
 
