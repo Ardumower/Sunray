@@ -6,6 +6,7 @@
 
 // Bluetooth BLE/4.0 module (HC-08/HM-10 ZS-040)
 // https://www.marotronics.de/HM-10-Bluetooth-BLE-BT-40-CC2541-CC2540-fuer-Arduino-iOS-Android-Low-Energy
+// docs:  http://denethor.wlu.ca/arduino/MLT-BT05-AT-commands-TRANSLATED.pdf
 
 // to send/receive data from this module, use BLE characteristic write/read:  
 // UART_CHARACTERISTIC = "0000ffe1-0000-1000-8000-00805f9b34fb";
