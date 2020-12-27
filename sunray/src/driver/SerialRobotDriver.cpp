@@ -215,7 +215,10 @@ void SerialMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
 
 void SerialMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &mowFault){
   leftFault = serialRobot.motorFault;
-  rightFault = false;
+  rightFault = serialRobot.motorFault;
+  if (serialRobot.motorFault){
+    //CONSOLE.println("serialRobot: motorFault");
+  }
   mowFault = false;
 }
 
