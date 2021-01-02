@@ -367,14 +367,14 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define pinVoltageMeasurement A7   // test pin for your own voltage measurements
 #if defined(_SAM3XA_)              // Arduino Due
   #define pinOdometryLeft DAC0     // left odometry sensor
-  #define pinOdometryLeft2 DAC1    // left odometry sensor (optional two-wire)
   #define pinOdometryRight CANRX   // right odometry sensor  
-  #define pinOdometryRight2 CANTX  // right odometry sensor (optional two-wire)  
+  #define pinReservedP46 CANTX     // reserved
+  #define pinReservedP48 DAC1      // reserved
 #else                              // Adafruit Grand Central M4 
   #define pinOdometryLeft A12      // left odometry sensor
-  #define pinOdometryLeft2 A13     // left odometry sensor (optional two-wire)
   #define pinOdometryRight A14     // right odometry sensor 
-  #define pinOdometryRight2 A15    // right odometry sensor (optional two-wire)  
+  #define pinReservedP46 A15       // reserved
+  #define pinReservedP48 A13       // reserved
 #endif
 #define pinLawnFrontRecv 40        // lawn sensor front receive
 #define pinLawnFrontSend 41        // lawn sensor front sender 
@@ -384,6 +384,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define pinUserSwitch2 47          // user-defined switch 2
 #define pinUserSwitch3 48          // user-defined switch 3
 #define pinRain 44                 // rain sensor
+#define pinReservedP14 A7          // reserved
+#define pinReservedP22 A6          // reserved
+#define pinReservedP26 A10         // reserved
 
 // IMU (compass/gyro/accel): I2C  (SCL, SDA) 
 // Bluetooth: Serial2 (TX2, RX2)
