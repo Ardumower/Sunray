@@ -183,8 +183,13 @@ void AmBatteryDriver::begin(){
   // you'll get 1V per Amp.   
   //
   // Is = Vout * 1k / (Rs * RL)
-  //   a) bridged      RL=10K:  Is = 1V * 1k / (0.1*10K)  = 1A
-  //   b) non-bridged  RL=20k:  Is = 1v * 1k / (0.1*20K)  = 0.5A
+
+  // PCB1.3 (external INA module)
+  //   a) bridged      RL=10K:    Is = 1V * 1k / (0.1*10K)  = 1A
+  //   b) non-bridged  RL=20k:    Is = 1V * 1k / (0.1*20K)  = 0.5A
+  // PCB1.4 (INA soldered on main PCB)
+  //   a) bridged      RL=6.8K:   Is = 1V * 1k / (0.05*6.8K)  = 2.941A
+  //   b) non-bridged  RL=10.1k:  Is = 1V * 1k / (0.05*10.1K)  = 1.98A
   
   currentFactor = CURRENT_FACTOR;         // ADC voltage to current ampere  (0.5 for non-bridged)
 

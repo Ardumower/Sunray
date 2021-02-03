@@ -195,8 +195,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // so we are using the INA169 in non-bridged mode (max. 2.5A)
 // ( https://www.marotronics.de/INA169-Analog-DC-Current-Sensor-Breakout-60V-25A-5A-Marotronics )
 
-#define CURRENT_FACTOR 0.5     // (non-bridged INA169, max. 2.5A)
-//#define CURRENT_FACTOR 1.0   // (bridged INA169, max. 5A)
+#define CURRENT_FACTOR 0.5     // PCB1.3 (non-bridged INA169, max. 2.5A)
+//#define CURRENT_FACTOR 1.0   // PCB1.3 (bridged INA169, max. 5A)
+//#define CURRENT_FACTOR 1.98   // PCB1.4 (non-bridged INA169, max. 2.5A)
+//#define CURRENT_FACTOR 2.941  // PCB1.4 (bridged INA169, max. 5A)
 
 #define GO_HOME_VOLTAGE   21.5  // start going to dock below this voltage
 // The battery will charge if both battery voltage is below that value and charging current is above that value.
