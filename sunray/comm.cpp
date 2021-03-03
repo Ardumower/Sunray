@@ -7,6 +7,9 @@
 unsigned long nextInfoTime = 0;
 bool triggerWatchdog = false;
 
+bool simFaultyConn = false; // simulate a faulty connection?
+int simFaultConnCounter = 0;
+
 String cmd;
 String cmdResponse;
 
@@ -479,6 +482,7 @@ void cmdClearStats(){
   cmdAnswer(s);  
 }
 
+
 // process request
 void processCmd(bool checkCrc){
   cmdResponse = "";      
@@ -493,16 +497,18 @@ void processCmd(bool checkCrc){
   } else {
     for (int i=0; i < idx; i++) expectedCrc += cmd[i];  
     String s = cmd.substring(idx+1, idx+5);
-    int crc = strtol(s.c_str(), NULL, 16);  
-    if (expectedCrc != crc){
-      if (checkCrc){
-        CONSOLE.print("CRC ERROR");
-        CONSOLE.print(crc,HEX);
-        CONSOLE.print(",");
-        CONSOLE.print(expectedCrc,HEX);
-        CONSOLE.println();
-        return;  
-      }      
+    int crc = strtol(s.c_str(), NULL, 16);
+    bool crcErr = false;
+    simFaultConnCounter++;
+    if ((simFaultyConn) && (simFaultConnCounter % 10 == 0)) crcErr = true;
+    if ((expectedCrc != crc) && (checkCrc)) crcErr = true;      
+    if (crcErr) {
+      CONSOLE.print("CRC ERROR");
+      CONSOLE.print(crc,HEX);
+      CONSOLE.print(",");
+      CONSOLE.print(expectedCrc,HEX);
+      CONSOLE.println();
+      return;        
     } else {
       // remove CRC
       cmd = cmd.substring(0, idx);
@@ -724,4 +730,3 @@ void outputConsole(){
     //logCPUHealth();    
   }
 }
-
