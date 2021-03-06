@@ -83,6 +83,8 @@ void BLEConfig::run(){
       exec("AT+LADDR\r\n");
       exec("AT+CHAR\r\n");
       exec("AT+VERSION\r\n");
+      //exec("AT+PIN123456\r\n");                  
+      //exec("AT+HELP\r\n");                        
       exec("AT+RESET\r\n");
       return;
     }
