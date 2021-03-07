@@ -7,6 +7,11 @@
 unsigned long nextInfoTime = 0;
 bool triggerWatchdog = false;
 
+int encryptMode = 0; // 0=off, 1=encrypt
+int encryptPass = PASS; 
+int encryptChallenge = 0;
+int encryptKey = 0;
+
 bool simFaultyConn = false; // simulate a faulty connection?
 int simFaultConnCounter = 0;
 
@@ -276,9 +281,26 @@ void cmdPosMode(){
 }
 
 // request version
-void cmdVersion(){
+void cmdVersion(){  
+#ifdef ENABLE_PASS
+  encryptMode = 1;
+  randomSeed(analogRead(0));
+  while (true){
+    encryptChallenge = random(3, 100);
+    encryptKey = encryptPass % encryptChallenge;
+    if (encryptKey != 0) break;
+  }
+#endif
   String s = F("V,");
   s += F(VER);
+  s += F(",");  
+  s += encryptMode;
+  s += F(",");
+  s += encryptChallenge;
+  CONSOLE.print("sending encryptMode=");
+  CONSOLE.print(encryptMode);
+  CONSOLE.print(" encryptChallenge=");  
+  CONSOLE.println(encryptChallenge);
   cmdAnswer(s);
 }
 
@@ -484,9 +506,20 @@ void cmdClearStats(){
 
 
 // process request
-void processCmd(bool checkCrc){
+void processCmd(bool checkCrc, bool decrypt){
   cmdResponse = "";      
   if (cmd.length() < 4) return;
+  if (decrypt){
+    String s = cmd.substring(0,4);
+    if ( s != "AT+V"){
+      if (encryptMode == 1){
+        // decrypt        
+        for (int i=0; i < cmd.length(); i++) cmd[i] = char(byte(cmd[i]) ^ encryptKey);  
+        CONSOLE.print("decrypt:");
+        CONSOLE.println(cmd);
+      }
+    } 
+  }
   byte expectedCrc = 0;
   int idx = cmd.lastIndexOf(',');
   if (idx < 1){
@@ -553,7 +586,7 @@ void processConsole(){
       ch = CONSOLE.read();          
       if ((ch == '\r') || (ch == '\n')) {        
         CONSOLE.println(cmd);
-        processCmd(false);              
+        processCmd(false, false);              
         CONSOLE.print(cmdResponse);    
         cmd = "";
       } else if (cmd.length() < 500){
@@ -572,7 +605,7 @@ void processBLE(){
       ch = BLE.read();      
       if ((ch == '\r') || (ch == '\n')) {        
         CONSOLE.println(cmd);        
-        processCmd(true);              
+        processCmd(true, true);              
         BLE.print(cmdResponse);    
         cmd = "";
       } else if (cmd.length() < 500){
@@ -621,7 +654,7 @@ void processWifi()
           }
           CONSOLE.println(cmd);
           if (client.connected()) {
-            processCmd(true);
+            processCmd(true,true);
             client.print(
               "HTTP/1.1 200 OK\r\n"
               "Access-Control-Allow-Origin: *\r\n"              
