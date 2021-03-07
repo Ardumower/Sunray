@@ -509,6 +509,7 @@ void cmdClearStats(){
 void processCmd(bool checkCrc, bool decrypt){
   cmdResponse = "";      
   if (cmd.length() < 4) return;
+#ifdef ENABLE_PASS
   if (decrypt){
     String s = cmd.substring(0,4);
     if ( s != "AT+V"){
@@ -520,6 +521,7 @@ void processCmd(bool checkCrc, bool decrypt){
       }
     } 
   }
+#endif
   byte expectedCrc = 0;
   int idx = cmd.lastIndexOf(',');
   if (idx < 1){
