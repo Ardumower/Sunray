@@ -283,12 +283,14 @@ void cmdPosMode(){
 // request version
 void cmdVersion(){  
 #ifdef ENABLE_PASS
-  encryptMode = 1;
-  randomSeed(analogRead(0));
-  while (true){
-    encryptChallenge = random(3, 100);
-    encryptKey = encryptPass % encryptChallenge;
-    if (encryptKey != 0) break;
+  if (encryptMode == 0){
+    encryptMode = 1;
+    randomSeed(millis());
+    while (true){
+      encryptChallenge = random(3, 100);
+      encryptKey = encryptPass % encryptChallenge;
+      if (encryptKey != 0) break;
+    }
   }
 #endif
   String s = F("V,");
@@ -587,6 +589,7 @@ void processConsole(){
     while ( CONSOLE.available() ){               
       ch = CONSOLE.read();          
       if ((ch == '\r') || (ch == '\n')) {        
+        CONSOLE.print("CON:");
         CONSOLE.println(cmd);
         processCmd(false, false);              
         CONSOLE.print(cmdResponse);    
@@ -605,7 +608,8 @@ void processBLE(){
     battery.resetIdle();  
     while ( BLE.available() ){    
       ch = BLE.read();      
-      if ((ch == '\r') || (ch == '\n')) {        
+      if ((ch == '\r') || (ch == '\n')) {   
+        CONSOLE.print("BLE:");     
         CONSOLE.println(cmd);        
         processCmd(true, true);              
         BLE.print(cmdResponse);    
@@ -654,6 +658,7 @@ void processWifi()
             cmd = cmd + ch;
             gps.run();
           }
+          CONSOLE.print("WIF:");
           CONSOLE.println(cmd);
           if (client.connected()) {
             processCmd(true,true);
