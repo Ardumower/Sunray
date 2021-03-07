@@ -526,10 +526,11 @@ void readIMU(){
   //CONSOLE.println(duration);  
   if ((duration > 10) || (millis() > imuDataTimeout)) {
     if (millis() > imuDataTimeout){
-      CONSOLE.println("ERROR IMU data timeout");  
+      CONSOLE.println("ERROR IMU data timeout (check RTC battery if problem persists)");  
     } else {
       CONSOLE.print("ERROR IMU timeout: ");
-      CONSOLE.println(duration);          
+      CONSOLE.print(duration);     
+      CONSOLE.println(" (check RTC battery if problem persists)");          
     }
     stateSensor = SENS_IMU_TIMEOUT;
     motor.stopImmediately(true);    
