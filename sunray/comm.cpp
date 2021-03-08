@@ -287,9 +287,9 @@ void cmdVersion(){
     encryptMode = 1;
     randomSeed(millis());
     while (true){
-      encryptChallenge = random(3, 100);
-      encryptKey = encryptPass % encryptChallenge;
-      if (encryptKey != 0) break;
+      encryptChallenge = random(0, 200); // random number between 0..199
+      encryptKey = encryptPass % encryptChallenge;   
+      if ( (encryptKey >= 1) && (encryptKey <= 94) ) break;  // random key between 1..94
     }
   }
 #endif
@@ -517,7 +517,14 @@ void processCmd(bool checkCrc, bool decrypt){
     if ( s != "AT+V"){
       if (encryptMode == 1){
         // decrypt        
-        for (int i=0; i < cmd.length(); i++) cmd[i] = char(byte(cmd[i]) ^ encryptKey);  
+        for (int i=0; i < cmd.length(); i++) {
+          if ( (byte(cmd[i]) >= 32) && (byte(cmd[i]) <= 126) ){  // ASCII between 32..126
+            int code = byte(cmd[i]);
+            code -= encryptKey;
+            if (code <= 31) code = 126 + (code-31);
+            cmd[i] = char(code);  
+          }
+        }
         CONSOLE.print("decrypt:");
         CONSOLE.println(cmd);
       }
