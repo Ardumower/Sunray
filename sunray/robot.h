@@ -24,7 +24,7 @@
 #include "src/esp/WiFiEsp.h"
 
 
-#define VER "Ardumower Sunray,1.0.170"
+#define VER "Ardumower Sunray,1.0.171"
 
 enum OperationType {
       OP_IDLE,      
