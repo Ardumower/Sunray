@@ -127,7 +127,7 @@ void Battery::run(){
     } else if ((millis() >= switchOffTime) || (switchOffByOperator)) {
       DEBUGLN(F("SWITCHING OFF (idle timeout)"));              
       buzzer.sound(SND_OVERCURRENT, true);
-      if ((switchOffAllowedIdle) || (switchOffByOperator)) digitalWrite(pinBatterySwitch, LOW);
+      if ((switchOffAllowedIdle) || (switchOffByOperator)) batteryDriver.keepPowerOn(false);
     } else batteryDriver.keepPowerOn(true);              
     	      
 		if (millis() >= nextPrintTime){
