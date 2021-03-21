@@ -160,7 +160,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define ENABLE_SERVER true          // must be enabled for web app
 //#define ENABLE_SERVER false
 
-//#define ENABLE_UDP 1                // enable console for UDP?
+//#define ENABLE_UDP 1                // enable console for UDP? (for developers only)
 #define UDP_SERVER_IP   192,168,2,56     // remote UDP IP and port to connect to
 #define UDP_SERVER_PORT 4210
 
