@@ -164,7 +164,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define UDP_SERVER_IP   192,168,2,56     // remote UDP IP and port to connect to
 #define UDP_SERVER_PORT 4210
 
-// ------ MQTT (not working yet, highly experimental) -----------------------------
+// ------ MQTT (highly experimental - ENABLE_SERVER must be set to false for this to work :-/ ) -----------------------------
 // you can access your robot using a MQTT broker - choose a topic prefix for your robot below - available MQTT topics:
 // robot1/cmd/action    (action can be: start, stop, dock)
 // robot1/status        (current robot status as text)
