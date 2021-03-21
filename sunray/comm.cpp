@@ -714,8 +714,8 @@ void mqttReconnect() {
       // Once connected, publish an announcement...
       //mqttClient.publish("outTopic", "hello world");
       // ... and resubscribe
-      CONSOLE.println("MQTT: subscribing " MQTT_TOPIC_PREFIX "/cmd/action");
-      mqttClient.subscribe(MQTT_TOPIC_PREFIX "/cmd/action");
+      CONSOLE.println("MQTT: subscribing " MQTT_TOPIC_PREFIX "/cmd");
+      mqttClient.subscribe(MQTT_TOPIC_PREFIX "/cmd");
     } else {
       CONSOLE.print("MQTT: failed, rc=");
       CONSOLE.print(mqttClient.state());
@@ -751,9 +751,12 @@ void processWifiMqttClient()
     if (mqttClient.connected()) {
       updateStateOpText();
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%s", stateOpText.c_str());                
-      //snprintf (mqttMsg, MSG_BUFFER_SIZE, "hello world #%ld", value);          
       //CONSOLE.println("MQTT: publishing " MQTT_TOPIC_PREFIX "/status");      
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/status", mqttMsg);
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/op", mqttMsg);      
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f, %.2f", gps.relPosN, gps.relPosE);          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/pos", mqttMsg);
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%s", gpsSolText.c_str());          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/sol", mqttMsg);    
     } else {
       mqttReconnect();  
     }

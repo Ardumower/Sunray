@@ -73,6 +73,7 @@ OperationType stateOp = OP_IDLE; // operation-mode
 Sensor stateSensor = SENS_NONE; // last triggered sensor
 unsigned long controlLoops = 0;
 String stateOpText = "";  // current operation as text
+String gpsSolText = ""; // current gps solution as text
 float stateX = 0;  // position-east (m)
 float stateY = 0;  // position-north (m)
 float stateDelta = 0;  // direction (rad)
@@ -251,6 +252,12 @@ void updateStateOpText(){
       break;
     case OP_DOCK: stateOpText = "dock"; break;
     default: stateOpText = "unknown"; break;
+  }
+  switch (gps.solution){
+    case UBLOX::SOL_INVALID: gpsSolText = "invalid"; break;
+    case UBLOX::SOL_FLOAT: gpsSolText = "float"; break;
+    case UBLOX::SOL_FIXED: gpsSolText ="fixed"; break;
+    default: gpsSolText = "unknown";      
   }
 }
 
@@ -1420,7 +1427,3 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
   stateOp = op;  
   saveState();
 }
-
-
-
-

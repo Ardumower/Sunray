@@ -62,6 +62,7 @@ extern float stateX;  // position-east (m)
 extern float stateY;  // position-north (m)
 extern float stateDelta;  // direction (rad)
 extern String stateOpText;  // current operation as text
+extern String gpsSolText; // current gps solution as text
 
 extern float setSpeed; // linear speed (m/s)
 extern int fixTimeout;
