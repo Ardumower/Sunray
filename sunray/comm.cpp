@@ -25,6 +25,11 @@ unsigned long stopClientTime = 0;
 float statControlCycleTime = 0; 
 float statMaxControlCycleTime = 0; 
 
+// mqtt
+#define MSG_BUFFER_SIZE	(50)
+char mqttMsg[MSG_BUFFER_SIZE];
+unsigned long nextPublishTime = 0;
+
 
 // answer Bluetooth with CRC
 void cmdAnswer(String s){  
@@ -628,8 +633,8 @@ void processBLE(){
   }  
 }  
 
-// process WIFI input
-void processWifi()
+// process WIFI input (App server)
+void processWifiAppServer()
 {
   if (!wifiFound) return;
   if (!ENABLE_SERVER) return;
@@ -695,10 +700,73 @@ void processWifi()
   }                  
 }
 
+
+void mqttReconnect() {
+  // Loop until we're reconnected
+  if (!mqttClient.connected()) {
+    CONSOLE.println("MQTT: Attempting connection...");
+    // Create a random client ID
+    String clientId = "ESP8266Client-";
+    clientId += String(random(0xffff), HEX);
+    // Attempt to connect
+    if (mqttClient.connect(clientId.c_str())) {
+      CONSOLE.println("MQTT: connected");
+      // Once connected, publish an announcement...
+      //mqttClient.publish("outTopic", "hello world");
+      // ... and resubscribe
+      CONSOLE.println("MQTT: subscribing " MQTT_TOPIC_PREFIX "/cmd/action");
+      mqttClient.subscribe(MQTT_TOPIC_PREFIX "/cmd/action");
+    } else {
+      CONSOLE.print("MQTT: failed, rc=");
+      CONSOLE.print(mqttClient.state());
+    }
+  }
+}
+
+
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
+  CONSOLE.print("MQTT: Message arrived [");
+  CONSOLE.print(topic);
+  CONSOLE.print("] ");
+  String cmd = ""; 
+  for (int i = 0; i < length; i++) {
+    cmd += (char)payload[i];    
+  }
+  CONSOLE.println(cmd);
+  if (cmd == "dock") {
+    setOperation(OP_DOCK, false, true);
+  } else if (cmd ==  "stop") {
+    setOperation(OP_IDLE, false, true);
+  } else if (cmd == "start"){
+    setOperation(OP_MOW, false, true);
+  }
+}
+
+// process MQTT input/output (subcriber/publisher)
+void processWifiMqttClient()
+{
+  if (!ENABLE_MQTT) return; 
+  if (millis() >= nextPublishTime){
+    nextPublishTime = millis() + 10000;
+    if (mqttClient.connected()) {
+      updateStateOpText();
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%s", stateOpText.c_str());                
+      //snprintf (mqttMsg, MSG_BUFFER_SIZE, "hello world #%ld", value);          
+      //CONSOLE.println("MQTT: publishing " MQTT_TOPIC_PREFIX "/status");      
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/status", mqttMsg);
+    } else {
+      mqttReconnect();  
+    }
+  }
+  mqttClient.loop();
+}
+
+
 void processComm(){
   processConsole();     
   processBLE();     
-  processWifi();
+  processWifiAppServer();
+  processWifiMqttClient();
   if (triggerWatchdog) {
     CONSOLE.println("hang test - watchdog should trigger and perform a reset");
     while (true){

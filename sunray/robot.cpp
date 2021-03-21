@@ -9,6 +9,7 @@
 #include "robot.h"
 #include "comm.h"
 #include "src/esp/WiFiEsp.h"
+#include "PubSubClient.h"
 #include "src/mpu/SparkFunMPU9250-DMP.h"
 #include "SparkFunHTU21D.h"
 #include "RunningMedian.h"
@@ -71,6 +72,7 @@ PID pidAngle(2, 0.1, 0);  // not used
 OperationType stateOp = OP_IDLE; // operation-mode
 Sensor stateSensor = SENS_NONE; // last triggered sensor
 unsigned long controlLoops = 0;
+String stateOpText = "";  // current operation as text
 float stateX = 0;  // position-east (m)
 float stateY = 0;  // position-north (m)
 float stateDelta = 0;  // direction (rad)
@@ -150,6 +152,8 @@ char ssid[] = WIFI_SSID;      // your network SSID (name)
 char pass[] = WIFI_PASS;        // your network password
 WiFiEspServer server(80);
 WiFiEspClient client = NULL;
+WiFiEspClient espClient;
+PubSubClient mqttClient(espClient);
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
 float dockSignal = 0;
@@ -214,6 +218,40 @@ void dumpState(){
   CONSOLE.print(absolutePosSourceLon);
   CONSOLE.print(" lat=");
   CONSOLE.println(absolutePosSourceLat);
+}
+
+void updateStateOpText(){
+  switch (stateOp){
+    case OP_IDLE: stateOpText = "idle"; break;
+    case OP_MOW: stateOpText = "mow"; break;
+    case OP_CHARGE: stateOpText = "charge"; break;
+    case OP_ERROR: 
+      stateOpText = "error (";
+      switch (stateSensor){
+        case SENS_NONE: stateOpText += "none)"; break;
+        case SENS_BAT_UNDERVOLTAGE: stateOpText += "unvervoltage)"; break;            
+        case SENS_OBSTACLE: stateOpText += "obstacle)"; break;      
+        case SENS_GPS_FIX_TIMEOUT: stateOpText += "fix timeout)"; break;
+        case SENS_IMU_TIMEOUT: stateOpText += "imu timeout)"; break;
+        case SENS_IMU_TILT: stateOpText += "imu tilt)"; break;
+        case SENS_KIDNAPPED: stateOpText += "kidnapped)"; break;
+        case SENS_OVERLOAD: stateOpText += "overload)"; break;
+        case SENS_MOTOR_ERROR: stateOpText += "motor error)"; break;
+        case SENS_GPS_INVALID: stateOpText += "gps invalid)"; break;
+        case SENS_ODOMETRY_ERROR: stateOpText += "odo error)"; break;
+        case SENS_MAP_NO_ROUTE: stateOpText += "no map route)"; break;
+        case SENS_MEM_OVERFLOW: stateOpText += "mem overflow)"; break;
+        case SENS_BUMPER: stateOpText += "bumper)"; break;
+        case SENS_SONAR: stateOpText += "sonar)"; break;
+        case SENS_LIFT: stateOpText += "lift)"; break;
+        case SENS_RAIN: stateOpText += "rain)"; break;
+        case SENS_STOP_BUTTON: stateOpText += "stop button)"; break;
+        default: stateOpText += "unknown)"; break;
+      }
+      break;
+    case OP_DOCK: stateOpText = "dock"; break;
+    default: stateOpText = "unknown"; break;
+  }
 }
 
 double calcStateCRC(){
@@ -425,6 +463,11 @@ void startWIFI(){
     CONSOLE.println(ip);   
     if (ENABLE_SERVER){
       server.begin();
+    }
+    if (ENABLE_MQTT){
+      CONSOLE.println("MQTT: enabled");
+      mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+      mqttClient.setCallback(mqttCallback);
     }
   }    
 }

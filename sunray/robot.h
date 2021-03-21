@@ -22,9 +22,10 @@
 #include "map.h"   
 #include "src/ublox/ublox.h"
 #include "src/esp/WiFiEsp.h"
+#include "PubSubClient.h"
 
 
-#define VER "Ardumower Sunray,1.0.171"
+#define VER "Ardumower Sunray,1.0.172"
 
 enum OperationType {
       OP_IDLE,      
@@ -60,6 +61,7 @@ extern Sensor stateSensor; // last triggered sensor
 extern float stateX;  // position-east (m)
 extern float stateY;  // position-north (m)
 extern float stateDelta;  // direction (rad)
+extern String stateOpText;  // current operation as text
 
 extern float setSpeed; // linear speed (m/s)
 extern int fixTimeout;
@@ -93,6 +95,7 @@ extern float stateGroundSpeed; // m/s
 
 extern WiFiEspClient client;
 extern WiFiEspServer server;
+extern PubSubClient mqttClient;
 
 extern unsigned long controlLoops;
 extern bool imuIsCalibrating;
@@ -130,6 +133,6 @@ void run();
 void setOperation(OperationType op, bool allowRepeat = false, bool initiatedbyOperator = false);
 void triggerObstacle();
 void sensorTest();
-
+void updateStateOpText();
 
 #endif

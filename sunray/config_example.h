@@ -153,7 +153,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Bluetooth_BLE_UART_module
 
 #define START_AP  false             // should WIFI module start its own access point? 
-#define WIFI_IP   192,168,2,15      // choose IP e.g. 192.168.4.1  (comment out for dynamic IP/DHCP)
+#define WIFI_IP   192,168,2,15      // choose IP e.g. 192,168,4,1  (comment out for dynamic IP/DHCP) - NOTE: use commans instead of points
 #define WIFI_SSID "myssid"            // choose WiFi network ID
 #define WIFI_PASS "mypassword"      // choose WiFi network password
 
@@ -163,6 +163,16 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define ENABLE_UDP 1                // enable console for UDP?
 #define UDP_SERVER_IP   192,168,2,56     // remote UDP IP and port to connect to
 #define UDP_SERVER_PORT 4210
+
+// ------ MQTT (not working yet, highly experimental) -----------------------------
+// you can access your robot using a MQTT broker - choose a topic prefix for your robot below - available MQTT topics:
+// robot1/cmd/action    (action can be: start, stop, dock)
+// robot1/status        (current robot status as text)
+//#define ENABLE_MQTT  true                           // start MQTT client?  (true for yes, false for no)
+#define ENABLE_MQTT  false
+#define MQTT_TOPIC_PREFIX  "robot1"                 // the MQTT topic prefix for your robot 
+#define MQTT_SERVER  "192.168.2.47"                 // your MQTT broker IP or hostname (e.g. "broker.mqtt-dashboard.com")
+#define MQTT_PORT  1883
 
 
 // ------ ultrasonic sensor -----------------------------
