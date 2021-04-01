@@ -969,7 +969,7 @@ void detectObstacle(){
   }   
   
   if (BUMPER_ENABLE){
-    if ( (millis() > linearMotionStartTime + 5000) && (bumper.obstacle()) ){  
+    if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (bumper.obstacle()) ){  
       CONSOLE.println("bumper obstacle!");    
       statMowBumperCounter++;
       triggerObstacle();    

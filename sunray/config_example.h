@@ -202,6 +202,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // https://wiki.ardumower.de/index.php?title=Free_wheel_sensor
 // #define BUMPER_ENABLE true
 #define BUMPER_ENABLE false
+#define BUMPER_DEADTIME 5000  // linear motion dead-time (ms) after bumper is allowed to trigger
 
 
 // ----- battery charging current measurement (INA169) --------------
@@ -270,6 +271,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define ENABLE_PATH_FINDER  true     // path finder is experimental (can be slow - you may have to wait until robot actually starts)
 //#define ENABLE_PATH_FINDER  false
+#define ALLOW_ROUTE_OUTSIDE_PERI_METER 1.0   // max. distance (m) to allow routing from outside perimeter
 
 // is a docking station available?
 #define DOCKING_STATION true   // use this if docking station available and mower should dock automatically
