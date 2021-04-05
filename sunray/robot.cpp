@@ -438,7 +438,8 @@ void startWIFI(){
     CONSOLE.println("ERROR: WiFi not present");       
   } else {
     wifiFound = true;
-    CONSOLE.println("WiFi found!");       
+    CONSOLE.print("WiFi found! ESP8266 firmware: ");
+    CONSOLE.println(WiFi.firmwareVersion());       
     if (START_AP){
       CONSOLE.print("Attempting to start AP ");  
       CONSOLE.println(ssid);
