@@ -117,6 +117,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 
 // ----- gear motors --------------------------------------------------
+#define MOTOR_DRIVER_BRUSHLESS   false    // use this for classic brushed motor drivers
+//#define MOTOR_DRIVER_BRUSHLESS   true     // use this for new brushless motor drivers
+
 #define MOTOR_OVERLOAD_CURRENT 0.8    // gear motors overload current (amps)
 
 //#define USE_LINEAR_SPEED_RAMP  true      // use a speed ramp for the linear speed
