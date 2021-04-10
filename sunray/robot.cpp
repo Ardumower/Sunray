@@ -473,7 +473,7 @@ void startWIFI(){
     udpSerial.beginUDP();  
   #endif    
   if (ENABLE_SERVER){
-    server.listenOnLocalhost();
+    //server.listenOnLocalhost();
     server.begin();
   }
   if (ENABLE_MQTT){
