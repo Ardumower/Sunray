@@ -251,7 +251,7 @@ void PinManager::analogWrite(uint32_t ulPin, uint32_t ulValue) {
 		digitalWrite(ulPin, HIGH);
 
     
-#else // -------- SAMD ----------------------------------------------------------------------------
+#elif __SAMD51__ // -------- SAMD ----------------------------------------------------------------------------
   PinDescription pinDesc = g_APinDescription[ulPin];
   uint32_t attr = pinDesc.ulPinAttribute;
   // ATSAMR, for example, doesn't have a DAC
@@ -494,8 +494,8 @@ void PinManager::analogWrite(uint32_t ulPin, uint32_t ulValue) {
     digitalWrite(ulPin, HIGH);
   }
 
-//#else // ----------------------------------------------------------------------------------------
-//  ::analogWrite(ulPin, ulValue);
+#else // ----------------------------------------------------------------------------------------
+  ::analogWrite(ulPin, ulValue);
 
 #endif   // _SAM3XA_
 }

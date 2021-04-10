@@ -1,8 +1,9 @@
 #include "reset.h"
 #include "config.h"
 
-
 #if defined(__SAMD51__)
+
+
 // C:\Users\alex\AppData\Local\Arduino15\packages\arduino\tools\CMSIS-Atmel\1.2.0\CMSIS\Device\ATMEL\samd51\include\component\rstc.h
 #pragma push_macro("WDT")
 #undef WDT    // Required to be able to use '.bit.WDT'. Compiler wrongly replace struct field with WDT define
@@ -39,5 +40,13 @@ void logResetCause(){
     case RST_SOFTWARE : CONSOLE.println("software"); break;
     case RST_BACKUP: CONSOLE.println("backup"); break;
   }
+}
+
+
+// get free memory
+// https://learn.adafruit.com/memories-of-an-arduino/measuring-free-memory
+int freeMemory() {
+  char top;
+  return &top - reinterpret_cast<char*>(sbrk(0));
 }
 

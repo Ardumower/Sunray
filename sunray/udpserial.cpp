@@ -4,9 +4,13 @@
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
 #include "udpserial.h"
-#include "src/esp/WiFiEsp.h"
-#include "src/esp/WiFiEspUdp.h"
-
+#include "config.h"
+#ifdef __linux__
+  #include <BridgeUdp.h>
+#else
+  #include "src/esp/WiFiEsp.h"
+  #include "src/esp/WiFiEspUdp.h"
+#endif
 
 #if defined(_SAM3XA_)                 // Arduino Due
   #define CONSOLE SerialUSB

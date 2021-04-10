@@ -1,9 +1,9 @@
 #include "cpu.h"
 #include "config.h"
-#include <sam.h>
 
 
 #if defined(__SAMD51__)
+#include <sam.h>
 
 // MUXPOS
 #define SCALEDCOREVCC   0x18  // 1/4 Scaled Core Supply

@@ -119,10 +119,10 @@ void Buzzer::begin()
 
 void Buzzer::tone( uint16_t  freq )
 {
-#if defined(_SAM3XA_)
+#ifdef _SAM3XA_
   pinMode(pinBuzzer, OUTPUT);
   Timer1.attachInterrupt(toneHandler).setFrequency(freq).start();   
-#else      // __SAMD51__
+#elif __SAMD51__      // __SAMD51__
   //::tone(pinBuzzer, freq);    
 
   // Set up the flexible divider/compare
@@ -148,10 +148,10 @@ void Buzzer::tone( uint16_t  freq )
 
 
 void Buzzer::noTone(){
-#if defined(_SAM3XA_)
+#ifdef _SAM3XA_
   Timer1.stop();  
   digitalWrite(pinBuzzer, LOW);
-#else  // __SAMD51__
+#elif __SAMD51__  // __SAMD51__
   //::noTone(pinBuzzer);     
   zerotimer.enable(false);
   digitalWrite(pinBuzzer, LOW);

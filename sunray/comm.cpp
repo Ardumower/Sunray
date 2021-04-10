@@ -2,7 +2,12 @@
 #include "config.h"
 #include "robot.h"
 #include "reset.h"
-#include "src/esp/WiFiEsp.h"
+#ifdef __linux__
+  #include <BridgeClient.h>
+#else
+  #include "src/esp/WiFiEsp.h"
+#endif
+#include "RingBuffer.h"
 
 unsigned long nextInfoTime = 0;
 bool triggerWatchdog = false;
@@ -809,9 +814,11 @@ void outputConsole(){
     CONSOLE.print (stateOp);
     CONSOLE.print (" freem=");
     CONSOLE.print (freeMemory ());
-    uint32_t *spReg = (uint32_t*)__get_MSP();   // stack pointer
-    CONSOLE.print (" sp=");
-    CONSOLE.print (*spReg, HEX);
+    #ifndef __linux__
+      uint32_t *spReg = (uint32_t*)__get_MSP();   // stack pointer
+      CONSOLE.print (" sp=");
+      CONSOLE.print (*spReg, HEX);
+    #endif
     CONSOLE.print(" volt=");
     CONSOLE.print(battery.batteryVoltage);
     CONSOLE.print(" chg=");

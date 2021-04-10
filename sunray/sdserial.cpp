@@ -8,10 +8,13 @@
 
 
 
-#if defined(_SAM3XA_)                 // Arduino Due
+#ifdef _SAM3XA_                 // Arduino Due
   #define CONSOLE SerialUSB
-#else
+#elif __SAMD51__
   #define CONSOLE Serial
+#else
+  #include <Console.h>
+  #define CONSOLE Console
 #endif
 
 

@@ -8,7 +8,11 @@
 
 #include "robot.h"
 #include "comm.h"
-#include "src/esp/WiFiEsp.h"
+#ifdef __linux__
+  #include <BridgeClient.h>
+#else
+  #include "src/esp/WiFiEsp.h"
+#endif
 #include "PubSubClient.h"
 #include "src/mpu/SparkFunMPU9250-DMP.h"
 #include "SparkFunHTU21D.h"
@@ -155,7 +159,7 @@ WiFiEspServer server(80);
 WiFiEspClient client = NULL;
 WiFiEspClient espClient;
 PubSubClient mqttClient(espClient);
-int status = WL_IDLE_STATUS;     // the Wifi radio's status
+//int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
 float dockSignal = 0;
 float dockAngularSpeed = 0.1;
@@ -168,13 +172,6 @@ RunningMedian<unsigned int,3> tofMeasurements;
 // must be defined to override default behavior
 void watchdogSetup (void){} 
 
-
-// get free memory
-// https://learn.adafruit.com/memories-of-an-arduino/measuring-free-memory
-int freeMemory() {
-  char top;
-  return &top - reinterpret_cast<char*>(sbrk(0));
-}
 
 // reset motion measurement
 void resetLinearMotionMeasurement(){
@@ -339,7 +336,7 @@ bool saveState(){
   stateCRC = crc;
   dumpState();
   CONSOLE.print("save state... ");
-  stateFile = SD.open("state.bin",  O_WRITE | O_CREAT);
+  stateFile = SD.open("state.bin",  FILE_CREATE); // O_WRITE | O_CREAT);
   if (!stateFile){        
     CONSOLE.println("ERROR opening file for writing");
     return false;
@@ -421,6 +418,8 @@ void sensorTest(){
 
 
 void startWIFI(){
+#ifndef __linux__
+  int status = WL_IDLE_STATUS;     // the Wifi radio's status
   WIFI.begin(WIFI_BAUDRATE); 
   WIFI.print("AT\r\n");  
   delay(500);
@@ -436,48 +435,49 @@ void startWIFI(){
   WiFi.init(&WIFI);  
   if (WiFi.status() == WL_NO_SHIELD) {
     CONSOLE.println("ERROR: WiFi not present");       
+    return;
+  }   
+  wifiFound = true;
+  CONSOLE.print("WiFi found! ESP8266 firmware: ");
+  CONSOLE.println(WiFi.firmwareVersion());       
+  if (START_AP){
+    CONSOLE.print("Attempting to start AP ");  
+    CONSOLE.println(ssid);
+    // uncomment these two lines if you want to set the IP address of the AP
+    #ifdef WIFI_IP  
+      IPAddress localIp(WIFI_IP);
+      WiFi.configAP(localIp);  
+    #endif            
+    // start access point
+    status = WiFi.beginAP(ssid, 10, pass, ENC_TYPE_WPA2_PSK);         
   } else {
-    wifiFound = true;
-    CONSOLE.print("WiFi found! ESP8266 firmware: ");
-    CONSOLE.println(WiFi.firmwareVersion());       
-    if (START_AP){
-      CONSOLE.print("Attempting to start AP ");  
-      CONSOLE.println(ssid);
-      // uncomment these two lines if you want to set the IP address of the AP
+    while ( status != WL_CONNECTED) {
+      CONSOLE.print("Attempting to connect to WPA SSID: ");
+      CONSOLE.println(ssid);      
+      status = WiFi.begin(ssid, pass);
       #ifdef WIFI_IP  
         IPAddress localIp(WIFI_IP);
-        WiFi.configAP(localIp);  
-      #endif            
-      // start access point
-      status = WiFi.beginAP(ssid, 10, pass, ENC_TYPE_WPA2_PSK);         
-    } else {
-      while ( status != WL_CONNECTED) {
-        CONSOLE.print("Attempting to connect to WPA SSID: ");
-        CONSOLE.println(ssid);      
-        status = WiFi.begin(ssid, pass);
-        #ifdef WIFI_IP  
-          IPAddress localIp(WIFI_IP);
-          WiFi.config(localIp);  
-        #endif
-      }    
-    }        
-    #if defined(ENABLE_UDP)
-      udpSerial.beginUDP();  
-    #endif    
-    CONSOLE.print("You're connected with SSID=");    
-    CONSOLE.print(WiFi.SSID());
-    CONSOLE.print(" and IP=");        
-    IPAddress ip = WiFi.localIP();    
-    CONSOLE.println(ip);   
-    if (ENABLE_SERVER){
-      server.begin();
-    }
-    if (ENABLE_MQTT){
-      CONSOLE.println("MQTT: enabled");
-      mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
-      mqttClient.setCallback(mqttCallback);
-    }
-  }    
+        WiFi.config(localIp);  
+      #endif
+    }    
+  } 
+  CONSOLE.print("You're connected with SSID=");    
+  CONSOLE.print(WiFi.SSID());
+  CONSOLE.print(" and IP=");        
+  IPAddress ip = WiFi.localIP();    
+  CONSOLE.println(ip);   
+#endif         
+  #if defined(ENABLE_UDP)
+    udpSerial.beginUDP();  
+  #endif    
+  if (ENABLE_SERVER){
+    server.begin();
+  }
+  if (ENABLE_MQTT){
+    CONSOLE.println("MQTT: enabled");
+    mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+    mqttClient.setCallback(mqttCallback);
+  }  
 }
 
 

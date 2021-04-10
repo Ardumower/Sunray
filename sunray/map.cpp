@@ -584,7 +584,7 @@ bool Map::save(){
   bool res = true;
 #if defined(ENABLE_SD_RESUME)  
   CONSOLE.print("map save... ");
-  mapFile = SD.open("map.bin", O_WRITE | O_CREAT);
+  mapFile = SD.open("map.bin", FILE_CREATE); // O_WRITE | O_CREAT);
   if (!mapFile){        
     CONSOLE.println("ERROR opening file for writing");
     return false;

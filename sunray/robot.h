@@ -21,11 +21,15 @@
 #include "VL53L0X.h"
 #include "map.h"   
 #include "src/ublox/ublox.h"
-#include "src/esp/WiFiEsp.h"
+#ifdef __linux__
+  #include <BridgeClient.h>
+#else
+  #include "src/esp/WiFiEsp.h"
+#endif
 #include "PubSubClient.h"
 
 
-#define VER "Ardumower Sunray,1.0.175"
+#define VER "Ardumower Sunray,1.0.176"
 
 enum OperationType {
       OP_IDLE,      
@@ -55,6 +59,10 @@ enum Sensor {
       SENS_RAIN,
       SENS_STOP_BUTTON,
 };
+
+#ifndef __linux__
+  #define FILE_CREATE  (O_WRITE | O_CREAT)
+#endif
 
 extern OperationType stateOp; // operation
 extern Sensor stateSensor; // last triggered sensor
@@ -101,8 +109,6 @@ extern PubSubClient mqttClient;
 extern unsigned long controlLoops;
 extern bool imuIsCalibrating;
 extern bool wifiFound;
-
-extern "C" char* sbrk(int incr);
 
 #ifdef DRV_SERIAL_ROBOT
   extern SerialRobotDriver robotDriver;
