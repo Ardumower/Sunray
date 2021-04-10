@@ -50,9 +50,9 @@ void SerialRobotDriver::requestSummary(){
 void SerialRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   String req;
   req += "AT+M,";
-  req += leftPwm;
+  req +=  (-rightPwm);   // ag 
   req += ",";
-  req += rightPwm;
+  req +=  (-leftPwm);    // ag
   req += ",";  
   if (abs(mowPwm) > 0)
     req += "1";
@@ -73,9 +73,9 @@ void SerialRobotDriver::motorResponse(){
       int intValue = cmd.substring(lastCommaIdx+1, idx+1).toInt();
       int floatValue = cmd.substring(lastCommaIdx+1, idx+1).toFloat();      
       if (counter == 1){                            
-        encoderTicksLeft = intValue;
+        encoderTicksRight = intValue;  // ag
       } else if (counter == 2){
-        encoderTicksRight = intValue;
+        encoderTicksLeft = intValue;   // ag
       } else if (counter == 3){
         encoderTicksMow = intValue;
       } else if (counter == 4){

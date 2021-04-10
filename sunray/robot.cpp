@@ -418,7 +418,9 @@ void sensorTest(){
 
 
 void startWIFI(){
-#ifndef __linux__
+#ifdef __linux__
+  wifiFound = true;
+#else  
   int status = WL_IDLE_STATUS;     // the Wifi radio's status
   WIFI.begin(WIFI_BAUDRATE); 
   WIFI.print("AT\r\n");  
@@ -471,6 +473,7 @@ void startWIFI(){
     udpSerial.beginUDP();  
   #endif    
   if (ENABLE_SERVER){
+    server.listenOnLocalhost();
     server.begin();
   }
   if (ENABLE_MQTT){

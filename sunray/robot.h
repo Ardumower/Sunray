@@ -9,8 +9,8 @@
 #ifndef ROBOT_H
 #define ROBOT_H
 
-
 #include "motor.h"
+#include "config.h"
 #include "src/driver/AmRobotDriver.h"
 #include "src/driver/SerialRobotDriver.h"
 #include "battery.h"

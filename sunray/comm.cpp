@@ -655,9 +655,9 @@ void processWifiAppServer()
     }     
   }
   client = server.available();      
-  if (client != NULL) {                               // if you get a client,
-    battery.resetIdle();
+  if (&client != NULL) {                               // if you get a client,
     //CONSOLE.println("New client");             // print a message out the serial port
+    battery.resetIdle();
     buf.init();                               // initialize the circular buffer
     unsigned long timeout = millis() + 50;
     while ( (client.connected()) && (millis() < timeout) ) {              // loop while the client's connected
