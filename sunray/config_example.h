@@ -45,6 +45,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
   #include "udpserial.h"
   #include "sdserial.h"
   #include "src/agcm4/adafruit_grand_central.h"
+  #ifdef __linux__
+    #include "src/raspi/raspi.h"    
+    #include <Console.h>
+  #endif
 #endif
 
 //#define DRV_SERIAL_ROBOT  1
@@ -300,12 +304,15 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // which Arduino Due USB port do you want to your for serial monitor output (CONSOLE)?
 // Arduino Due native USB port  => choose SerialUSB
 // Arduino Due programming port => choose Serial
-#if defined(_SAM3XA_)
+#ifdef _SAM3XA_
   #define BOARD "Arduino Due"
   #define CONSOLE SerialUSB   // Arduino Due: do not change (used for Due native USB serial console)
-#else
+#elif __SAMD51__
   #define BOARD "Adafruit Grand Central M4"
   #define CONSOLE Serial      // Adafruit Grand Central M4 
+#else 
+  #define BOARD "Raspberry PI"
+  #define CONSOLE Console 
 #endif
 
 // ------- serial ports and baudrates---------------------------------
@@ -316,16 +323,21 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define GPS_BAUDRATE  115200          // baudrate for GPS RTK module
 #define WIFI_BAUDRATE 115200          // baudrate for WIFI module
 
-#if defined(_SAM3XA_)                 // Arduino Due
+#ifdef _SAM3XA_                 // Arduino Due
   #define WIFI Serial1
   #define BLE Serial2
   #define GPS Serial3
   //#define GPS Serial                // only use this for .ubx logs (sendgps.py)
-#else                                 // Adafruit Grand Central M4 
+#elif __SAMD51__                      // Adafruit Grand Central M4 
+  #define WIFI Serial2                
+  #define BLE Serial3
+  #define GPS Serial4
+#elif __linux__ 
   #define WIFI Serial2                
   #define BLE Serial3
   #define GPS Serial4
 #endif
+
 
 
 // ------- I2C addresses -----------------------------
