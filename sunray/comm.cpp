@@ -644,22 +644,20 @@ void processWifiAppServer()
   if (!wifiFound) return;
   if (!ENABLE_SERVER) return;
   // listen for incoming clients    
-  if (hasClient){
+  if (client){
     if (stopClientTime != 0) {
       if (millis() > stopClientTime){
         client.stop();
-        stopClientTime = 0;
-        hasClient = false;           
+        stopClientTime = 0;                   
       }
       return;    
     }     
   }
-  if (!hasClient){
+  if (!client){
     //CONSOLE.println("client is NULL");
     client = server.available();      
   }
   if (client) {                               // if you get a client,
-    hasClient = true;
     //CONSOLE.println("New client");             // print a message out the serial port
     battery.resetIdle();
     buf.init();                               // initialize the circular buffer
