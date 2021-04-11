@@ -699,7 +699,7 @@ void processWifiAppServer()
       gps.run();
     }    
     // give the web browser time to receive the data
-    stopClientTime = millis() + 20;
+    stopClientTime = millis() + 100;
     //delay(10);
     // close the connection
     //client.stop();
