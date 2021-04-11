@@ -105,6 +105,7 @@ extern float stateGroundSpeed; // m/s
 extern WiFiEspClient client;
 extern WiFiEspServer server;
 extern PubSubClient mqttClient;
+extern bool hasClient;
 
 extern unsigned long controlLoops;
 extern bool imuIsCalibrating;

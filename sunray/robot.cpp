@@ -156,7 +156,8 @@ bool wifiFound = false;
 char ssid[] = WIFI_SSID;      // your network SSID (name)
 char pass[] = WIFI_PASS;        // your network password
 WiFiEspServer server(80);
-WiFiEspClient client = NULL;
+bool hasClient = false;
+WiFiEspClient client;
 WiFiEspClient espClient;
 PubSubClient mqttClient(espClient);
 //int status = WL_IDLE_STATUS;     // the Wifi radio's status
