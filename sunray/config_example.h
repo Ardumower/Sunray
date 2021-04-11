@@ -119,6 +119,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // ...for the older 42mm diameter motor (white connector)  https://wiki.ardumower.de/images/d/d6/Ardumower_chassis_inside_ready.jpg
 #define TICKS_PER_REVOLUTION  1050 / 2    // odometry ticks per wheel revolution 
 
+// ...for the brushless motor 4/2021   https://wiki.ardumower.de/index.php?title=Datei:BLUnit.JPG
+// #define TICKS_PER_REVOLUTION  1194 / 2    // odometry ticks per wheel revolution
+
 
 // ----- gear motors --------------------------------------------------
 #define MOTOR_DRIVER_BRUSHLESS   false    // use this for classic brushed motor drivers
