@@ -647,6 +647,7 @@ void processWifiAppServer()
   if (client){
     if (stopClientTime != 0) {
       if (millis() > stopClientTime){
+        CONSOLE.println("app stopping client");
         client.stop();
         stopClientTime = 0;                   
       }
@@ -658,7 +659,7 @@ void processWifiAppServer()
     client = server.available();      
   }
   if (client) {                               // if you get a client,
-    //CONSOLE.println("New client");             // print a message out the serial port
+    CONSOLE.println("New client");             // print a message out the serial port
     battery.resetIdle();
     buf.init();                               // initialize the circular buffer
     unsigned long timeout = millis() + 50;
