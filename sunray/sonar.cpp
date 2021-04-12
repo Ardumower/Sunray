@@ -20,9 +20,9 @@
 
 
 
-RunningMedian<unsigned int,3> sonarLeftMeasurements;
-RunningMedian<unsigned int,3> sonarRightMeasurements;
-RunningMedian<unsigned int,3> sonarCenterMeasurements;
+RunningMedian<unsigned int,9> sonarLeftMeasurements;
+RunningMedian<unsigned int,9> sonarRightMeasurements;
+RunningMedian<unsigned int,9> sonarCenterMeasurements;
 
 volatile unsigned long startTime = 0;
 volatile unsigned long echoTime = 0;
