@@ -34,6 +34,7 @@ String BLEConfig::read(){
 
 String BLEConfig::exec(String cmd, bool doRetry){
   String res;
+  delay(500);    
   for (int retry=0; retry < 3; retry++){
     CONSOLE.print("BLE: ");
     CONSOLE.print(cmd);
@@ -91,13 +92,13 @@ void BLEConfig::run(){
       exec("AT+VERSION\r\n", true);
       //exec("AT+LADDR\r\n", true);
       //exec("AT+CHAR\r\n", true);
-#if defined(BLE_NAME)
+#if defined(BLE_NAME)      
       exec("AT+NAME" BLE_NAME "\r\n", true);
 #endif
       //exec("AT+TYPE2\r\n", true);                        
       //exec("AT+PASS111111\r\n", true);                  
       //exec("AT+HELP\r\n", true);                        
-      exec("AT+RESET\r\n", true);  // apply new settings (baud-rate etc.)
+      //exec("AT+RESET\r\n", true);  // apply new settings and reboot module
       return;
     } else {
       CONSOLE.println("error: no BLE module found!");
