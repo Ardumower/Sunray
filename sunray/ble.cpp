@@ -97,7 +97,7 @@ void BLEConfig::run(){
       //exec("AT+TYPE2\r\n", true);                        
       //exec("AT+PASS111111\r\n", true);                  
       //exec("AT+HELP\r\n", true);                        
-      //exec("AT+RESET\r\n", true);
+      exec("AT+RESET\r\n", true);  // apply new settings (baud-rate etc.)
       return;
     } else {
       CONSOLE.println("error: no BLE module found!");
