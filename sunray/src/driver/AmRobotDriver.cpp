@@ -51,10 +51,13 @@ AmMotorDriver::AmMotorDriver(){
     
 
 void AmMotorDriver::begin(){
-  if (MOTOR_DRIVER_BRUSHLESS){
+  #ifdef MOTOR_DRIVER_BRUSHLESS
+    CONSOLE.println("MOTOR_DRIVER_BRUSHLESS: yes");
     faultActive  = LOW; 
     enableActive = HIGH; 
-  }
+  #else 
+    CONSOLE.println("MOTOR_DRIVER_BRUSHLESS: no");
+  #endif
 
   // left wheel motor
   pinMode(pinMotorEnable, OUTPUT);
@@ -138,15 +141,15 @@ void AmMotorDriver::setBrushless(int pinDir, int pinPWM, int speed) {
 
     
 void AmMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
-  if (MOTOR_DRIVER_BRUSHLESS){
+  #ifdef MOTOR_DRIVER_BRUSHLESS{
     setBrushless(pinMotorLeftDir, pinMotorLeftPWM, leftPwm);
     setBrushless(pinMotorRightDir, pinMotorRightPWM, rightPwm);
     setBrushless(pinMotorMowDir, pinMotorMowPWM, mowPwm);
-  } else {
+  #else
     setMC33926(pinMotorLeftDir, pinMotorLeftPWM, leftPwm);
     setMC33926(pinMotorRightDir, pinMotorRightPWM, rightPwm);
     setMC33926(pinMotorMowDir, pinMotorMowPWM, mowPwm);
-  }
+  #endif
 }
 
 
@@ -180,15 +183,15 @@ void AmMotorDriver::resetMotorFaults(){
 void AmMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent){
     float scale       = 1.905;   // ADC voltage to amp  
     float offset      = -1.65;
-    if (MOTOR_DRIVER_BRUSHLESS){
+    #ifdef MOTOR_DRIVER_BRUSHLESS
       leftCurrent = (((float)ADC2voltage(analogRead(pinMotorRightSense))) + offset) *scale;
       rightCurrent = (((float)ADC2voltage(analogRead(pinMotorLeftSense))) + offset) *scale;
       mowCurrent = (((float)ADC2voltage(analogRead(pinMotorMowSense))) + offset) *scale; 
-    } else {
+    #else
       leftCurrent = ((float)ADC2voltage(analogRead(pinMotorRightSense))) *scale;
       rightCurrent = ((float)ADC2voltage(analogRead(pinMotorLeftSense))) *scale;
       mowCurrent = ((float)ADC2voltage(analogRead(pinMotorMowSense))) *scale  *2;	          
-    }
+    #endif
 }
 
 void AmMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
