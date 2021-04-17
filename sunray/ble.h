@@ -17,7 +17,7 @@ class BLEConfig
   public:
     void run();
     String read();
-    String exec(String cmd);
+    String exec(String cmd, bool doRetry);
   private:
     
 };

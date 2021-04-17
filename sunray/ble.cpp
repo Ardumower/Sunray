@@ -19,21 +19,32 @@
 
 
 String BLEConfig::read(){
-  String res;
-  delay(500);
-  while (BLE.available()){
-    char ch = BLE.read();
-    CONSOLE.print(ch);
-    res += ch;
+  String res;    
+  unsigned long timeout = millis() + 2000;  
+  while (millis() < timeout){
+    while (BLE.available()){
+      timeout = millis() + 200; 
+      char ch = BLE.read();
+      CONSOLE.print(ch);
+      res += ch;
+    }
   }
   return res;
 }
 
-String BLEConfig::exec(String cmd){
-  CONSOLE.print("BLE: ");
-  CONSOLE.print(cmd);
-  BLE.print(cmd);
-  return read();
+String BLEConfig::exec(String cmd, bool doRetry){
+  String res;
+  for (int retry=0; retry < 3; retry++){
+    CONSOLE.print("BLE: ");
+    CONSOLE.print(cmd);
+    BLE.print(cmd);
+    res = read();
+    if ((res != "") || (!doRetry)) break;
+    CONSOLE.print("retry ");
+    CONSOLE.print(retry+1);
+    CONSOLE.print("  ");
+  }
+  return res;
 }
 
 void BLEConfig::run(){  
@@ -61,14 +72,14 @@ void BLEConfig::run(){
       CONSOLE.println("...");
       BLE.begin(baud);    
       //BLE.flush();
-      String res = exec("AT\r\n");
+      String res = exec("AT\r\n", false);
       if (res.indexOf("OK") != -1){
         CONSOLE.println("Bluetooth 4.0/BLE module found!");
         if (baud == BLE_BAUDRATE) {
           found = true;
           break;
         } else {
-          exec("AT+BAUD8\r\n");
+          exec("AT+BAUD8\r\n", true);
           BLE.begin(BLE_BAUDRATE);
           found = true;
           break;
@@ -78,16 +89,18 @@ void BLEConfig::run(){
 
     if (found) {
 #if defined(BLE_NAME)
-      exec("AT+NAME" BLE_NAME "\r\n");
+      exec("AT+NAME" BLE_NAME "\r\n", true);
 #endif
-      exec("AT+LADDR\r\n");
-      exec("AT+CHAR\r\n");
-      exec("AT+VERSION\r\n");
-      //exec("AT+TYPE2\r\n");                        
-      //exec("AT+PASS111111\r\n");                  
-      //exec("AT+HELP\r\n");                        
-      exec("AT+RESET\r\n");
+      exec("AT+LADDR\r\n", true);
+      exec("AT+CHAR\r\n", true);
+      exec("AT+VERSION\r\n", true);
+      //exec("AT+TYPE2\r\n", true);                        
+      //exec("AT+PASS111111\r\n", true);                  
+      //exec("AT+HELP\r\n", true);                        
+      exec("AT+RESET\r\n", true);
       return;
+    } else {
+      CONSOLE.println("error: no BLE module found!");
     }
     //delay(1000);
   //}
