@@ -89,15 +89,15 @@ void BLEConfig::run(){
 
     if (found) {
       exec("AT+VERSION\r\n", true);
-      exec("AT+LADDR\r\n", true);
-      exec("AT+CHAR\r\n", true);
+      //exec("AT+LADDR\r\n", true);
+      //exec("AT+CHAR\r\n", true);
 #if defined(BLE_NAME)
       exec("AT+NAME" BLE_NAME "\r\n", true);
 #endif
       //exec("AT+TYPE2\r\n", true);                        
       //exec("AT+PASS111111\r\n", true);                  
       //exec("AT+HELP\r\n", true);                        
-      exec("AT+RESET\r\n", true);
+      //exec("AT+RESET\r\n", true);
       return;
     } else {
       CONSOLE.println("error: no BLE module found!");
