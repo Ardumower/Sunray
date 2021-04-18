@@ -1,4 +1,15 @@
 
+
+
+--------------------------------------------------------------------------------------
+
+WARNING!  DO NOT APPLY ANY CONFIG FILES TO YOUR BASE/ROVER MODULES!
+Sunray firmware will automatically configure your rover module. Only apply the
+supplied rover config files if you absolutely need to! Do not apply rover config 
+files to your base (it will configure your base as rover...). 
+
+--------------------------------------------------------------------------------------
+
 A) ublox f9p (rover) configuration files
 
 
