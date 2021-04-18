@@ -89,9 +89,10 @@ void BLEConfig::run(){
     }
 
     if (found) {
-      exec("AT+VERSION\r\n", true);
-      //exec("AT+LADDR\r\n", true);
-      //exec("AT+CHAR\r\n", true);
+      //exec("AT+RENEW\r\n", true);   // apply factory settings      
+      exec("AT+VERSION\r\n", true);   // get firmware version
+      //exec("AT+LADDR\r\n", true);   // print MAC address
+      //exec("AT+CHAR\r\n", true);    // print UUIDs
 #if defined(BLE_NAME)      
       exec("AT+NAME" BLE_NAME "\r\n", true);
 #endif
