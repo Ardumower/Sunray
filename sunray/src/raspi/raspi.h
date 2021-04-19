@@ -4,10 +4,11 @@
 #if defined(__linux__)
 
 #include <LinuxSerial.h>
+#include <BleUartServer.h>
 
 extern LinuxSerial Serial1;
 extern LinuxSerial Serial2;
-extern LinuxSerial Serial3;
+extern BleUartServer Serial3;
 extern LinuxSerial Serial4;
 
 
