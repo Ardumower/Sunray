@@ -62,7 +62,7 @@ MPU9250_DMP imu;
 Motor motor;
 Battery battery;
 PinManager pinMan;
-UBLOX gps(GPS,GPS_BAUDRATE);
+UBLOX gps;
 BLEConfig bleConfig;
 Buzzer buzzer;
 Sonar sonar;
@@ -753,7 +753,7 @@ void start(){
   CONSOLE.println("change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 1024");
   CONSOLE.println("-----------------------------------------------------");
   
-  gps.begin();   
+  gps.begin(GPS,GPS_BAUDRATE);   
   maps.begin();      
   //maps.clipperTest();
   

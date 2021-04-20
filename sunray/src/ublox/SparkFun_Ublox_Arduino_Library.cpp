@@ -110,8 +110,6 @@ boolean SFE_UBLOX_GPS::begin(Stream &serialPort)
   commType = COMM_TYPE_SERIAL;
   _serialPort = &serialPort; //Grab which port the user wants us to use
 
-  //return true;
-
   // Attempt isConnected up to 3 times if required
   boolean success = isConnected();
 
@@ -256,20 +254,6 @@ void SFE_UBLOX_GPS::hardReset()
   payloadCfg[0] = 0xff;       // cold start
   payloadCfg[1] = 0xff;       // cold start
   payloadCfg[2] = 0;          // 0=HW reset
-  payloadCfg[3] = 0;          // reserved
-  sendCommand(&packetCfg, 0); // don't expect ACK
-}
-
-void SFE_UBLOX_GPS::GNSSRestart()
-{
-  // Issue hard reset
-  packetCfg.cls = UBX_CLASS_CFG;
-  packetCfg.id = UBX_CFG_RST;
-  packetCfg.len = 4;
-  packetCfg.startingSpot = 0;
-  payloadCfg[0] = 0x00;       // warm start
-  payloadCfg[1] = 0x00;       // warm start
-  payloadCfg[2] = 0x02;       // 0x02=software reset (GNSS only)
   payloadCfg[3] = 0;          // reserved
   sendCommand(&packetCfg, 0); // don't expect ACK
 }
@@ -1400,6 +1384,26 @@ sfe_ublox_status_e SFE_UBLOX_GPS::sendI2cCommand(ubxPacket *outgoingUBX, uint16_
 //Given a packet and payload, send everything including CRC bytesA via Serial port
 void SFE_UBLOX_GPS::sendSerialCommand(ubxPacket *outgoingUBX)
 {
+  byte data[768];
+  //Write header bytes
+  data[0]=UBX_SYNCH_1; //μ - oh ublox, you're funny. I will call you micro-blox from now on.
+  data[1]=UBX_SYNCH_2; //b
+  data[2]=outgoingUBX->cls;
+  data[3]=outgoingUBX->id;
+  data[4]=outgoingUBX->len & 0xFF; //LSB
+  data[5]=outgoingUBX->len >> 8;   //MSB
+
+  //Write payload.
+  for (int i = 0; i < outgoingUBX->len; i++)
+  {
+    data[6+i]= outgoingUBX->payload[i];
+  }
+
+  //Write checksum
+  data[6+outgoingUBX->len]=outgoingUBX->checksumA;
+  data[7+outgoingUBX->len]=outgoingUBX->checksumB;
+  _serialPort->write(&data[0], outgoingUBX->len+8);
+  /*
   //Write header bytes
   _serialPort->write(UBX_SYNCH_1); //μ - oh ublox, you're funny. I will call you micro-blox from now on.
   _serialPort->write(UBX_SYNCH_2); //b
@@ -1416,7 +1420,7 @@ void SFE_UBLOX_GPS::sendSerialCommand(ubxPacket *outgoingUBX)
 
   //Write checksum
   _serialPort->write(outgoingUBX->checksumA);
-  _serialPort->write(outgoingUBX->checksumB);
+  _serialPort->write(outgoingUBX->checksumB);*/
 }
 
 //Returns true if I2C device ack's
@@ -1862,6 +1866,20 @@ boolean SFE_UBLOX_GPS::saveConfigSelective(uint32_t configMask, uint16_t maxWait
   packetCfg.payload[7] = (configMask >> 24) & 0xFF;
 
   return (sendCommand(&packetCfg, maxWait) == SFE_UBLOX_STATUS_DATA_SENT); // We are only expecting an ACK
+}
+
+void SFE_UBLOX_GPS::GNSSRestart()
+{
+  // Issue hard reset
+  packetCfg.cls = UBX_CLASS_CFG;
+  packetCfg.id = UBX_CFG_RST;
+  packetCfg.len = 4;
+  packetCfg.startingSpot = 0;
+  payloadCfg[0] = 0x00;       // warm start
+  payloadCfg[1] = 0x00;       // warm start
+  payloadCfg[2] = 0x02;       // 0x02=software reset (GNSS only)
+  payloadCfg[3] = 0;          // reserved
+  sendCommand(&packetCfg, 0); // don't expect ACK
 }
 
 //Reset module to factory defaults

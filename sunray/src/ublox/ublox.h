@@ -63,8 +63,8 @@ class UBLOX{
     unsigned long dgpsChecksumErrorCounter;
     unsigned long dgpsPacketCounter;    
     
-    UBLOX(HardwareSerial& bus,uint32_t baud);
-    void begin();
+    UBLOX();
+    void begin(HardwareSerial& bus,uint32_t baud);
     void run();
     bool configure();  
     void reboot();
