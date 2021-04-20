@@ -81,6 +81,7 @@ boolean SFE_UBLOX_GPS::begin(Stream &serialPort)
   //newCfgValset8(0x10740002, 0); //CFG-UART1OUTPROT-NMEA   (off)
   //sendCfgValset8(0x10780002, 0); // CFG-USBOUTPROT-NMEA   (off)
 
+  //return true; 
   return (isConnected());
   /*int counter = 0;
   while (true){
@@ -1188,8 +1189,8 @@ boolean SFE_UBLOX_GPS::isConnected(uint16_t maxWait)
   packetCfg.startingSpot = 0;
 
   sfe_ublox_status_e ret = sendCommand(&packetCfg, maxWait);
-  return (ret == SFE_UBLOX_STATUS_DATA_RECEIVED); // We are polling the RATE so we expect data and an ACK
-  //return ((ret == SFE_UBLOX_STATUS_DATA_RECEIVED) || ( ret == SFE_UBLOX_STATUS_DATA_SENT)); // We are polling the RATE so we expect data and an ACK
+  //return (ret == SFE_UBLOX_STATUS_DATA_RECEIVED); // We are polling the RATE so we expect data and an ACK
+  return ((ret == SFE_UBLOX_STATUS_DATA_RECEIVED) || ( ret == SFE_UBLOX_STATUS_DATA_SENT)); // We are polling the RATE so we expect data and an ACK
 }
 
 //Given a message, calc and store the two byte "8-Bit Fletcher" checksum over the entirety of the message

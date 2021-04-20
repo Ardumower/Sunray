@@ -84,13 +84,6 @@ bool UBLOX::configure(){
   setValueSuccess &= configGPS.addCfgValset8(0x20910043, 1); // CFG-MSGOUT-UBX_NAV_VELNED_UART1     (every solution)
   setValueSuccess &= configGPS.addCfgValset8(0x20910269, 5); // CFG-MSGOUT-UBX_RXM_RTCM_UART1   (every 5 solutions)
   setValueSuccess &= configGPS.addCfgValset8(0x20910346, 20); // CFG-MSGOUT-UBX_NAV_SIG_UART1   (every 20 solutions)
-  // ----- USB messages (Ardumower) -----------------  
-  setValueSuccess &= configGPS.addCfgValset8(0x20910009, 0); // CFG-MSGOUT-UBX_NAV_PVT_USB    (off)
-  setValueSuccess &= configGPS.addCfgValset8(0x20910090, 1); // CFG-MSGOUT-UBX_NAV_RELPOSNED_USB  (every solution)
-  setValueSuccess &= configGPS.addCfgValset8(0x20910036, 1); // CFG-MSGOUT-UBX_NAV_HPPOSLLH_USB   (every solution)
-  setValueSuccess &= configGPS.addCfgValset8(0x20910045, 1); // CFG-MSGOUT-UBX_NAV_VELNED_USB     (every solution)
-  setValueSuccess &= configGPS.addCfgValset8(0x2091026b, 5); // CFG-MSGOUT-UBX_RXM_RTCM_USB   (every 5 solutions)
-  setValueSuccess &= configGPS.addCfgValset8(0x20910348, 20); // CFG-MSGOUT-UBX_NAV_SIG_USB   (every 20 solutions)
   // ----- uart1 protocols (Ardumower) --------------- 
   setValueSuccess &= configGPS.addCfgValset8(0x10730001, 1); // CFG-UART1INPROT-UBX     (every solution)
   setValueSuccess &= configGPS.addCfgValset8(0x10730002, 1); // CFG-UART1INPROT-NMEA    (every solution)
@@ -98,6 +91,13 @@ bool UBLOX::configure(){
   setValueSuccess &= configGPS.addCfgValset8(0x10740001, 1); // CFG-UART1OUTPROT-UBX    (every solution)
   setValueSuccess &= configGPS.addCfgValset8(0x10740002, 0); // CFG-UART1OUTPROT-NMEA   (off)
   setValueSuccess &= configGPS.addCfgValset8(0x10740004, 0); // CFG-UART1OUTPROT-RTCM3X (off) 
+  // ----- USB messages (Ardumower) -----------------  
+  setValueSuccess &= configGPS.addCfgValset8(0x20910009, 0); // CFG-MSGOUT-UBX_NAV_PVT_USB    (off)
+  setValueSuccess &= configGPS.addCfgValset8(0x20910090, 1); // CFG-MSGOUT-UBX_NAV_RELPOSNED_USB  (every solution)
+  setValueSuccess &= configGPS.addCfgValset8(0x20910036, 1); // CFG-MSGOUT-UBX_NAV_HPPOSLLH_USB   (every solution)
+  setValueSuccess &= configGPS.addCfgValset8(0x20910045, 1); // CFG-MSGOUT-UBX_NAV_VELNED_USB     (every solution)
+  setValueSuccess &= configGPS.addCfgValset8(0x2091026b, 5); // CFG-MSGOUT-UBX_RXM_RTCM_USB   (every 5 solutions)
+  setValueSuccess &= configGPS.addCfgValset8(0x20910348, 20); // CFG-MSGOUT-UBX_NAV_SIG_USB   (every 20 solutions)
   // ----- USB protocols (Ardumower) ----------------- 
   setValueSuccess &= configGPS.addCfgValset8(0x10770001, 1); // CFG-USBINPROT-UBX     (every solution)
   setValueSuccess &= configGPS.addCfgValset8(0x10770002, 1); // CFG-USBINPROT-NMEA    (every solution)
