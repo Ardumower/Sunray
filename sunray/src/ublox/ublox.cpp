@@ -133,7 +133,7 @@ bool UBLOX::configure(){
   }
   // ----  gps rates ----------------------------------
   setValueSuccess &= configGPS.addCfgValset16(0x30210001, 200); // CFG-RATE-MEAS       (measurement period 200 ms)  
-  setValueSuccess &= configGPS.sendCfgValset16(0x30210002, 1,   5000); //CFG-RATE-NAV  (navigation rate cycles 1)  
+  setValueSuccess &= configGPS.sendCfgValset16(0x30210002, 1,   2000); //CFG-RATE-NAV  (navigation rate cycles 1)  
      
   
   if (setValueSuccess == true)
