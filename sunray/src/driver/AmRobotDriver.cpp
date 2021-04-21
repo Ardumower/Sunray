@@ -55,7 +55,7 @@ void AmMotorDriver::begin(){
     // logic for brushless drivers
     CONSOLE.println("MOTOR_DRIVER_BRUSHLESS: yes");
     faultActive  = LOW; 
-    enableActive = LOW;  // HIGH 
+    enableActive = LOW; 
   #else 
     // logic for brushed drivers    
     CONSOLE.println("MOTOR_DRIVER_BRUSHLESS: no");

@@ -30,7 +30,11 @@ void Motor::begin() {
   motorRightPID.Kd       = motorLeftPID.Kd;		 
 
   robotPitch = 0;
-  motorLeftSwapDir = false;
+  #ifdef MOTOR_DRIVER_BRUSHLESS
+    motorLeftSwapDir = true;
+  #else
+    motorLeftSwapDir = false;  
+  #endif
   motorRightSwapDir = false;
   motorError = false;
   resetMotorFault = false;
