@@ -1384,6 +1384,7 @@ sfe_ublox_status_e SFE_UBLOX_GPS::sendI2cCommand(ubxPacket *outgoingUBX, uint16_
 //Given a packet and payload, send everything including CRC bytesA via Serial port
 void SFE_UBLOX_GPS::sendSerialCommand(ubxPacket *outgoingUBX)
 {
+#if defined(__linux__)
   byte data[768];
   //Write header bytes
   data[0]=UBX_SYNCH_1; //μ - oh ublox, you're funny. I will call you micro-blox from now on.
@@ -1403,7 +1404,7 @@ void SFE_UBLOX_GPS::sendSerialCommand(ubxPacket *outgoingUBX)
   data[6+outgoingUBX->len]=outgoingUBX->checksumA;
   data[7+outgoingUBX->len]=outgoingUBX->checksumB;
   _serialPort->write(&data[0], outgoingUBX->len+8);
-  /*
+#else
   //Write header bytes
   _serialPort->write(UBX_SYNCH_1); //μ - oh ublox, you're funny. I will call you micro-blox from now on.
   _serialPort->write(UBX_SYNCH_2); //b
@@ -1420,7 +1421,8 @@ void SFE_UBLOX_GPS::sendSerialCommand(ubxPacket *outgoingUBX)
 
   //Write checksum
   _serialPort->write(outgoingUBX->checksumA);
-  _serialPort->write(outgoingUBX->checksumB);*/
+  _serialPort->write(outgoingUBX->checksumB);
+#endif
 }
 
 //Returns true if I2C device ack's
