@@ -19,7 +19,7 @@ volatile bool rightPressed = false;
 
 
 bool faultActive  = LOW; 
-bool enableActive = HIGH; 
+bool enableActive = LOW; 
 
 
 void AmRobotDriver::begin(){
@@ -52,11 +52,15 @@ AmMotorDriver::AmMotorDriver(){
 
 void AmMotorDriver::begin(){
   #ifdef MOTOR_DRIVER_BRUSHLESS
+    // logic for brushless drivers
     CONSOLE.println("MOTOR_DRIVER_BRUSHLESS: yes");
     faultActive  = LOW; 
-    enableActive = HIGH; 
+    enableActive = LOW;  // HIGH 
   #else 
+    // logic for brushed drivers    
     CONSOLE.println("MOTOR_DRIVER_BRUSHLESS: no");
+    faultActive  = LOW; 
+    enableActive = HIGH; 
   #endif
 
   // left wheel motor

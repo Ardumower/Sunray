@@ -10,12 +10,12 @@
 #endif  
 
 // --- pwm frequency ---
-#if defined(MOTOR_DRIVER_BRUSHLESS)  // ---- brushless motors use 29.3 khz ----- 
+#if defined(MOTOR_DRIVER_BRUSHLESS)  // ---- brushless motors use 29300 Hz ----- 
   #if defined(__SAMD51__)
     #define TCC_CTRLA_PRESCALER TCC_CTRLA_PRESCALER_DIV16     // PWM base frequency
     #define TCC_TOP 0xFF                                      // PWM resolution
   #elif defined(_SAM3XA_)
-    #define PWM_FREQUENCY  29300   
+    #define PWM_FREQUENCY  29300  
     #define TC_FREQUENCY   29300
   #endif
 #else  // --------- brushed motors use 3900 Hz ---------------
