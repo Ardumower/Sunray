@@ -1,7 +1,10 @@
 /*   ESP32 BLE-UART bridge firmware (GATT server UART)
      
-     Arduino IDE: choose ESP32 Dev Module,  upload: PRESS EN+BOOT, release EN
-  
+     Steps to install ESP32 for Arduino IDE:
+       https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md
+
+    Arduino IDE: choose ESP32 Dev Module  (if upload does not work: PRESS EN+BOOT, release EN)
+
 wiring: 
   ESP32 RX2         ---  Ardumower PCB1.3 Bluetooth conn RX   (3.3v level)
   ESP32 TX2         ---  Ardumower PCB1.3 Bluetooth conn TX   (3.3v level)
