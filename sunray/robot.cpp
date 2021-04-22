@@ -725,7 +725,7 @@ void start(){
   stopButton.begin();
 
   bleConfig.run();   
-  BLE.println(VER);  
+  //BLE.println(VER); is this needed? can confuse BLE modules if not connected?  
     
   rcmodel.begin();  
   motor.begin();
