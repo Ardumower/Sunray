@@ -117,14 +117,16 @@ void saveEEPROM(){
 
 void uartSend(String s){  
   //if (!deviceConnected) return;
-  Serial.print("UART tx:");
+  Serial.print(millis());  
+  Serial.print(" UART tx:");
   Serial.println(s);
   Serial2.print(s);
   Serial2.print("\r\n");  
 }
 
 void bleSend(String s){  
-  Serial.print("BLE tx:");
+  Serial.print(millis());
+  Serial.print(" BLE tx:");
   Serial.println(s);
   for (int i=0; i < s.length(); i++){
     if ( ((txWritePos +1) % BLE_BUF_SZ) == txReadPos){
@@ -304,7 +306,11 @@ void setup() {
     // Create the BLE Service
     BLEService *pService = pServer->createService(SERVICE_UUID);
     // Create a BLE Characteristic
-    pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_NOTIFY | BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);                          
+    pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID, 
+         BLECharacteristic::PROPERTY_NOTIFY | 
+         BLECharacteristic::PROPERTY_READ | 
+         BLECharacteristic::PROPERTY_WRITE |
+         BLECharacteristic::PROPERTY_WRITE_NR );                          
     pCharacteristic->addDescriptor(new BLE2902());    
     pCharacteristic->setCallbacks(new MyCallbacks());    
     // Start the service    
@@ -377,7 +383,8 @@ void loop() {
     num++;
   }
   if (num != 0){
-    Serial.print("BLE rx: ");
+    Serial.print(millis());  
+    Serial.print(" BLE rx: ");
     Serial.println(s);
   }
   
@@ -399,7 +406,8 @@ void loop() {
 
   if (millis() > nextPingTime){
     nextPingTime = millis() + 2000;
-    Serial.println("ping");        
+    Serial.print(millis())
+    Serial.println(" ping");        
   }
 }
 
