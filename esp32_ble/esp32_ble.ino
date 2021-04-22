@@ -406,7 +406,7 @@ void loop() {
 
   if (millis() > nextPingTime){
     nextPingTime = millis() + 2000;
-    Serial.print(millis())
+    Serial.print(millis());
     Serial.println(" ping");        
   }
 }
