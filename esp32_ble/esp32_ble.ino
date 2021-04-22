@@ -124,7 +124,12 @@ void uartSend(String s){
   Serial2.print("\r\n");  
 }
 
+// send BLE data to BLE client (write data to FIFO)
 void bleSend(String s){  
+  if (!deviceConnected){
+    Serial.println("bleSend ignoring: not connected");
+    return;
+  }
   Serial.print(millis());
   Serial.print(" BLE tx:");
   Serial.println(s);
@@ -139,6 +144,7 @@ void bleSend(String s){
   bleNotify();
 }
 
+// notify BLE client (send next packet from FIFO)
 void bleNotify(){
   notifyData = "";
   while ((txReadPos != txWritePos) && (notifyData.length() < MTU)) {	  
@@ -157,21 +163,25 @@ void bleNotify(){
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
       deviceConnected = true;
-      Serial.println("BLE client connected");      
+      rxReadPos = rxWritePos = 0;
+      txReadPos = txWritePos = 0;
+      Serial.println("---------BLE client connected---------");      
     };
     void onDisconnect(BLEServer* pServer) {
       deviceConnected = false;
-      Serial.println("BLE client disconnected");
+      Serial.println("---------BLE client disconnected---------");
     }
 };
 
 class MyCallbacks: public BLECharacteristicCallbacks {    
     void onStatus(BLECharacteristic* pCharacteristic, Status s, uint32_t code){
-      if (s == BLECharacteristicCallbacks::Status::SUCCESS_NOTIFY){
+      if (s == BLECharacteristicCallbacks::Status::SUCCESS_NOTIFY){        
         //Serial.println("onStatus: SUCCESS_NOTIFY");            
+        // notify success => send next BLE packet...
         bleNotify();
-      }
+      } 
     }
+    // BLE data received from BLE client => save to FIFO 
     void onWrite(BLECharacteristic *pCharacteristic) {
       //Serial.print("onWrite: ");      
       String rxValue(pCharacteristic->getValue().c_str());      
@@ -234,7 +244,8 @@ void processCmd(){
     if (byte(cmd[0]) > 0) break;
     cmd.remove(0,1);
   }
-  Serial.print("UART rx:");
+  Serial.print(millis());
+  Serial.print(" UART rx:");
   Serial.println(cmd);
   /*for (int i=0; i < cmd.length(); i++){
     Serial.print(i);
@@ -353,11 +364,11 @@ void loop() {
     if (deviceConnected){
       // BLE client connected
       bleAnswerTimeout = millis() + 100;
-      bleAnswer = bleAnswer + ch;      
+      bleAnswer = bleAnswer + ch;            
     } else {
       // no BLE client connected 
       bleAnswer = "";
-      cmd = cmd + ch;
+      cmd = cmd + ch;    
     }    
   }  
 
