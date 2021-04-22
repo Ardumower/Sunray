@@ -161,11 +161,22 @@ void bleNotify(){
 }
 
 class MyServerCallbacks: public BLEServerCallbacks {
-    void onConnect(BLEServer* pServer) {
-      deviceConnected = true;
+    void onConnect(BLEServer* pServer, esp_ble_gatts_cb_param_t* param ) {      
       rxReadPos = rxWritePos = 0;
       txReadPos = txWritePos = 0;
-      Serial.println("---------BLE client connected---------");      
+      /** After connection we should change the parameters if we (don't) need fast response times.
+       *  These settings are 150ms interval, 0 latency, 450ms timout.
+       *  Timeout should be a multiple of the interval, minimum is 100ms.
+       *  I find a multiple of 3-5 * the interval works best for quick response/reconnect.
+       *  Min interval: 120 * 1.25ms = 150, Max interval: 120 * 1.25ms = 150, 0 latency, 60 * 10ms = 600ms timeout
+       */
+      uint16_t connId = pServer->getConnId();
+      uint16_t peerMTU = pServer->getPeerMTU(connId);
+      // min(1.25ms units),max(1.25ms units),latency(intervals),timeout(10ms units)
+      pServer->updateConnParams( param->connect.remote_bda, 1, 10, 0, 20); 
+      Serial.print("---------BLE client connected---------peer mtu=");
+      Serial.println(peerMTU);          
+      deviceConnected = true;        
     };
     void onDisconnect(BLEServer* pServer) {
       deviceConnected = false;
