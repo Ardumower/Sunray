@@ -34,6 +34,7 @@ send BLE test packet          AT+TEST\r\n           +TEST\r\n
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
+#include <BLECharacteristic.h>
 #include <BLE2902.h>
 
 #ifdef USE_WIFI
@@ -185,7 +186,7 @@ class MyServerCallbacks: public BLEServerCallbacks {
 };
 
 class MyCallbacks: public BLECharacteristicCallbacks {    
-    void onStatus(BLECharacteristic* pCharacteristic, Status s, uint32_t code){
+    void onStatus(BLECharacteristic* pCharacteristic, BLECharacteristicCallbacks::Status s, uint32_t code){
       if (s == BLECharacteristicCallbacks::Status::SUCCESS_NOTIFY){        
         //Serial.println("onStatus: SUCCESS_NOTIFY");            
         // notify success => send next BLE packet...
