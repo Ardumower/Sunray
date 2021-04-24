@@ -1,7 +1,11 @@
 /*   ESP32 BLE-UART bridge firmware (GATT server UART)
      
-     Steps to install ESP32 for Arduino IDE:
-       https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md
+Steps to install ESP32 for Arduino IDE:
+     1. Arduino IDE: File->Preferences:  Add to board manager URLs: ",https://dl.espressif.com/dl/package_esp32_index.json"
+     2. Choose "Tools->Board->Boards Manager"
+     3. Add board "esp32"
+     4. Choose Board "ESP32 Dev Module"
+        https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md
 
     Arduino IDE: choose ESP32 Dev Module  (if upload does not work: PRESS EN+BOOT, release EN)
 
