@@ -6,10 +6,10 @@
     Arduino IDE: choose ESP32 Dev Module  (if upload does not work: PRESS EN+BOOT, release EN)
 
 wiring: 
-  ESP32 RX2         ---  Ardumower PCB1.3 Bluetooth conn RX   (3.3v level)
-  ESP32 TX2         ---  Ardumower PCB1.3 Bluetooth conn TX   (3.3v level)
-  ESP32 GND         ---  Ardumower PCB1.3 Bluetooth conn GND
-  ESP32 5V          ---  Ardumower PCB1.3 Bluetooth conn 5V
+  ESP32 Rx2 (GPIO16) ---  Ardumower PCB1.3 Bluetooth conn RX   (3.3v level)
+  ESP32 Tx2 (GPIO17) ---  Ardumower PCB1.3 Bluetooth conn TX   (3.3v level)
+  ESP32 GND          ---  Ardumower PCB1.3 Bluetooth conn GND
+  ESP32 5V  (Vin)    ---  Ardumower PCB1.3 Bluetooth conn 5V
 
 serial protocol: 
 
@@ -23,9 +23,19 @@ send BLE test packet          AT+TEST\r\n           +TEST\r\n
 
 #include <EEPROM.h>
 
+
 #define VERSION "ESP32 firmware V0.1,Bluetooth V4.0 LE"
 #define NAME "Ardumower"
 #define MTU 20   // max. transfer bytes per BLE frame
+
+#define pinGpioRx   16  // UART2
+#define pinGpioTx   17  // UART2
+
+//#define pinGpioRx   9   // UART1
+//#define pinGpioTx   10  // UART1
+
+//#define pinGpioRx   3   // UART0
+//#define pinGpioTx   1   // UART0
 
 #ifdef USE_WIFI
   #include <WiFi.h>
@@ -285,7 +295,7 @@ void processCmd(){
 
 void setup() {  
   Serial.begin(115200);       // USB
-  Serial2.begin(115200);  // UART
+  Serial2.begin(115200, SERIAL_8N1, pinGpioRx, pinGpioTx);  // UART
 
   Serial.println(VERSION);
   if (!EEPROM.begin(1000)) {
