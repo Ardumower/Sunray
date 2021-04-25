@@ -29,7 +29,6 @@ void RCModel::begin(){
   linearPPM = 0;                                         
   ang_PPM = 0;                                            
   angularPPM = 0;                                         
-  buttontimer = 0;                                          
   RC_Mode = false; 
   nextControlTime = 0;
   // R/C
@@ -50,24 +49,23 @@ void RCModel::run(){
   if (t < nextControlTime) return;
   nextControlTime = t + 100;                                       // save CPU resources by running at 10 Hz
   
-  if ((digitalRead(pinButton)== LOW) && (buttontimer <= 30)) {               // Taster abfragen
-    buttontimer ++;                                                       // Timer 3sec.
-    if (buttontimer == 30)    {                                        // 3sec. erreicht
+  if (stateButton == 3){                                           // 3 button beeps
+      stateButton = 0;                                             // reset button state
       RC_Mode = !RC_Mode;                                                   // R/C-Mode toggle
       if (RC_Mode)  {                                                       // R/C-Mode ist aktiv
+        CONSOLE.println("button mode 3 - RC Mode ON");
         buzzer.sound(SND_ERROR, true);                                      // 3x Piep für R/C aktiv        
         attachInterrupt(digitalPinToInterrupt(pinRemoteMow), get_lin_PPM, CHANGE);// Interrupt aktivieren
         attachInterrupt(digitalPinToInterrupt(pinRemoteSteer), get_ang_PPM, CHANGE);// Interrupt aktivieren 
       }
-      if (!RC_Mode) {                                                       // R/C-Mode inaktiv
+      if (!RC_Mode) {                 
+        CONSOLE.println("button mode 3 - RC Mode OFF");                                      // R/C-Mode inaktiv
         buzzer.sound(SND_WARNING, true);                          // 2x Piiiiiiiep für R/C aus
         motor.setLinearAngularSpeed(0, 0);                                 
         detachInterrupt(digitalPinToInterrupt(pinRemoteMow));             // Interrupt deaktivieren
         detachInterrupt(digitalPinToInterrupt(pinRemoteSteer));             // Interrupt deaktivieren
-      }
-    }
+      }    
   }
-  if (digitalRead(pinButton)== HIGH) buttontimer = 0;                        // Taste los gelasseb = freigeben
   
   if (RC_Mode)    {       
     lin_PPM = 0;

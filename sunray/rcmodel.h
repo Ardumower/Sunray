@@ -21,7 +21,6 @@ class RCModel {
       float linearPPM ;                                         
       float ang_PPM ;                                            
       float angularPPM ;                                         
-      int buttontimer ;                                          
       bool RC_Mode ; 
       unsigned long nextControlTime ;
     private:

@@ -73,6 +73,9 @@ RCModel rcmodel;
 PID pidLine(0.2, 0.01, 0); // not used
 PID pidAngle(2, 0.1, 0);  // not used
 
+int stateButton = 0;  
+int stateButtonTemp = 0;
+unsigned long stateButtonTimeout = 0;
 OperationType stateOp = OP_IDLE; // operation-mode
 Sensor stateSensor = SENS_NONE; // last triggered sensor
 unsigned long controlLoops = 0;
@@ -1321,12 +1324,7 @@ void run(){
           if (DOCKING_STATION){
             setOperation(OP_DOCK);
           }
-        }
-        if (stopButton.triggered()){
-          CONSOLE.println("stopButton triggered!");
-          stateSensor = SENS_STOP_BUTTON;
-          setOperation(OP_IDLE);                     
-        }
+        }        
       }
       else if (stateOp == OP_CHARGE){      
         if (battery.chargerConnected()){
@@ -1341,37 +1339,53 @@ void run(){
           }
         } else {
           setOperation(OP_IDLE);        
-        }
-        if (stopButton.triggered()){
-          CONSOLE.println("startButton triggered!");
+        }        
+      }      
+      
+      // process button state
+      if (stateButton == 1){        
+        stateButton = 0;  // reset button state
+        if ((stateOp == OP_MOW) || (stateOp == OP_DOCK)) {
           stateSensor = SENS_STOP_BUTTON;
-          setOperation(OP_MOW);                     
-        }
-      }
-      else if (stateOp == OP_IDLE){
-        if (stopButton.triggered()){
-          CONSOLE.println("startButton triggered!");
+          setOperation(OP_IDLE);                     
+        } else {
           stateSensor = SENS_STOP_BUTTON;
-          setOperation(OP_MOW);                     
-        }
-      }
-      else if (stateOp == OP_ERROR){
-        if (stopButton.triggered()){
-          CONSOLE.println("startButton triggered!");
-          stateSensor = SENS_STOP_BUTTON;
-          setOperation(OP_MOW);                     
-        }
+          setOperation(OP_MOW);
+        }      
+      } else if (stateButton == 5){
+        stateButton = 0; // reset button state
+        stateSensor = SENS_STOP_BUTTON;
+        setOperation(OP_DOCK);
       }
       
       
-    }    
-  }
+    } // if (!imuIsCalibrating)        
+  }   // if (millis() >= nextControlTime)
     
   // ----- read serial input (BT/console) -------------
   processComm();
   outputConsole();       
-  watchdogReset();     
-}
+  watchdogReset();
+
+  // compute button state (stateButton)
+  if (stopButton.triggered()){
+    if (millis() > stateButtonTimeout){
+      stateButtonTimeout = millis() + 1000;
+      stateButtonTemp++; // next state
+      buzzer.sound(SND_READY, true);                                     
+    }
+                         
+  } else {
+    if (stateButtonTemp > 0){
+      // button released => set stateButton
+      stateButtonTimeout = 0;
+      stateButton = stateButtonTemp;
+      stateButtonTemp = 0;
+      CONSOLE.print("stateButton ");
+      CONSOLE.println(stateButton);
+    }
+  }    
+}        
 
 
 

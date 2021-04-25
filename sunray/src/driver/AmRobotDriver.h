@@ -73,7 +73,6 @@ class AmStopButtonDriver: public StopButtonDriver {
     bool triggered() override;
   protected:
     unsigned long nextControlTime;
-    unsigned long buttonTimeout;
     bool pressed;  	  		    
 };
 
