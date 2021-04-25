@@ -315,8 +315,7 @@ void AmBumperDriver::run(){
 void AmStopButtonDriver::begin(){
   nextControlTime = 0;
   buttonTimeout = 0;
-  pressed = false;
-  CONSOLE.println("--------------blub");
+  pressed = false;  
 }
 
 void AmStopButtonDriver::run(){
