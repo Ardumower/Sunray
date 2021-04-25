@@ -303,6 +303,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define RCMODEL_ENABLE true
 #define RCMODEL_ENABLE false
 
+// button control (turns on additional features via the POWER-ON button)
+#define BUTTON_CONTROL true      // additional features activated (1 beep=start/stop, 5 beeps=dock, 3 beeps=R/C mode)
+//#define BUTTON_CONTROL false     // additional features deactivated
+
 
 // --------- serial monitor output (CONSOLE) ------------------------
 // which Arduino Due USB port do you want to your for serial monitor output (CONSOLE)?

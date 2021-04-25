@@ -1368,21 +1368,23 @@ void run(){
   watchdogReset();
 
   // compute button state (stateButton)
-  if (stopButton.triggered()){
-    if (millis() > stateButtonTimeout){
-      stateButtonTimeout = millis() + 1000;
-      stateButtonTemp++; // next state
-      buzzer.sound(SND_READY, true);                                     
-    }
-                         
-  } else {
-    if (stateButtonTemp > 0){
-      // button released => set stateButton
-      stateButtonTimeout = 0;
-      stateButton = stateButtonTemp;
-      stateButtonTemp = 0;
-      CONSOLE.print("stateButton ");
-      CONSOLE.println(stateButton);
+  if (BUTTON_CONTROL){
+    if (stopButton.triggered()){
+      if (millis() > stateButtonTimeout){
+        stateButtonTimeout = millis() + 1000;
+        stateButtonTemp++; // next state
+        buzzer.sound(SND_READY, true);                                     
+      }
+                          
+    } else {
+      if (stateButtonTemp > 0){
+        // button released => set stateButton
+        stateButtonTimeout = 0;
+        stateButton = stateButtonTemp;
+        stateButtonTemp = 0;
+        CONSOLE.print("stateButton ");
+        CONSOLE.println(stateButton);
+      }
     }
   }    
 }        
