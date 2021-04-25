@@ -1347,15 +1347,15 @@ void run(){
         stateButton = 0;  // reset button state
         if ((stateOp == OP_MOW) || (stateOp == OP_DOCK)) {
           stateSensor = SENS_STOP_BUTTON;
-          setOperation(OP_IDLE);                     
+          setOperation(OP_IDLE, false, true);                     
         } else {
           stateSensor = SENS_STOP_BUTTON;
-          setOperation(OP_MOW);
+          setOperation(OP_MOW, false, true);
         }      
       } else if (stateButton == 5){
         stateButton = 0; // reset button state
         stateSensor = SENS_STOP_BUTTON;
-        setOperation(OP_DOCK);
+        setOperation(OP_DOCK, false, true);
       }
       
       
