@@ -56,21 +56,24 @@ void UBLOX::begin(HardwareSerial& bus,uint32_t baud)
 
 bool UBLOX::configure(){
   CONSOLE.print("ublox f9p: connecting - ");
-  CONSOLE.print("trying baud ");
-  CONSOLE.print(_baud);
-  CONSOLE.print("...");
   //configGPS.enableDebugging(CONSOLE, false);
-  if (configGPS.begin(*_bus) == false) {
-    CONSOLE.print("trying baud 38400...");    
+  
+  while(true){
+    CONSOLE.print("trying baud ");
+    CONSOLE.println(_baud);        
+    if (configGPS.begin(*_bus)) break;    
+    CONSOLE.println(F("ERROR: GPS receiver is not responding"));            
+    CONSOLE.println("trying baud 38400");    
     _bus->begin(38400);
-    if (configGPS.begin(*_bus) == false) {
+    if (configGPS.begin(*_bus)) {
+      configGPS.setVal32(0x40520001, _baud, VAL_LAYER_RAM);  // CFG-UART1-BAUDRATE   (Ardumower)
       _bus->begin(_baud);
-      CONSOLE.println(F("ERROR: GPS receiver is not responding"));
-      return false;         
-    } 
-    configGPS.setVal32(0x40520001, _baud, VAL_LAYER_RAM);  // CFG-UART1-BAUDRATE   (Ardumower)
-    _bus->begin(_baud);          
-  }     
+      break;                
+    }
+    _bus->begin(_baud);
+    CONSOLE.println(F("ERROR: GPS receiver is not responding"));                
+  }
+        
   CONSOLE.println("GPS receiver found!");
     
   CONSOLE.println("ublox f9p: sending GPS rover configuration...");
