@@ -304,8 +304,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define RCMODEL_ENABLE false
 
 // button control (turns on additional features via the POWER-ON button)
-#define BUTTON_CONTROL true      // additional features activated (1 beep=start/stop, 5 beeps=dock, 3 beeps=R/C mode)
-//#define BUTTON_CONTROL false     // additional features deactivated
+#define BUTTON_CONTROL true      // additional features activated (press-and-hold button for specific beep count: 
+                                 //  1 beep=start/stop, 5 beeps=dock, 3 beeps=R/C mode ON/OFF)
+//#define BUTTON_CONTROL false   // additional features deactivated
 
 
 // --------- serial monitor output (CONSOLE) ------------------------
