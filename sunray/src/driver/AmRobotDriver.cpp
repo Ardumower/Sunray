@@ -313,14 +313,32 @@ void AmBumperDriver::run(){
 
 
 void AmStopButtonDriver::begin(){
+  nextControlTime = 0;
+  buttonTimeout = 0;
+  pressed = false;
+  CONSOLE.println("--------------blub");
 }
 
 void AmStopButtonDriver::run(){
-
+  unsigned long t = millis();
+  if (t < nextControlTime) return;
+  nextControlTime = t + 100;                                       // save CPU resources by running at 10 Hz
+  
+  if (millis() > buttonTimeout){
+    if (digitalRead(pinButton)== LOW) { 
+      buttonTimeout = millis() + 5000;
+      pressed = true;             
+    } 
+    
+    if (digitalRead(pinButton)== HIGH) {
+    }
+  }
 }
 
 bool AmStopButtonDriver::triggered(){
-  return false; 
+  if (!pressed) return false;
+  pressed = false;
+  return true; 
 }
 
 

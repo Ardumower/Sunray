@@ -680,7 +680,7 @@ void start(){
   pinMan.begin();       
   // keep battery switched ON
   pinMode(pinBatterySwitch, OUTPUT);    
-  pinMode(pinDockingReflector, INPUT);
+  //pinMode(pinDockingReflector, INPUT);
   digitalWrite(pinBatterySwitch, HIGH);         
   pinMode(pinButton, INPUT_PULLUP);
   buzzer.begin();      
@@ -1325,7 +1325,7 @@ void run(){
         if (stopButton.triggered()){
           CONSOLE.println("stopButton triggered!");
           stateSensor = SENS_STOP_BUTTON;
-          setOperation(OP_IDLE);
+          setOperation(OP_IDLE);                     
         }
       }
       else if (stateOp == OP_CHARGE){      
@@ -1341,6 +1341,25 @@ void run(){
           }
         } else {
           setOperation(OP_IDLE);        
+        }
+        if (stopButton.triggered()){
+          CONSOLE.println("startButton triggered!");
+          stateSensor = SENS_STOP_BUTTON;
+          setOperation(OP_MOW);                     
+        }
+      }
+      else if (stateOp == OP_IDLE){
+        if (stopButton.triggered()){
+          CONSOLE.println("startButton triggered!");
+          stateSensor = SENS_STOP_BUTTON;
+          setOperation(OP_MOW);                     
+        }
+      }
+      else if (stateOp == OP_ERROR){
+        if (stopButton.triggered()){
+          CONSOLE.println("startButton triggered!");
+          stateSensor = SENS_STOP_BUTTON;
+          setOperation(OP_MOW);                     
         }
       }
       

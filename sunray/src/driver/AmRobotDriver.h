@@ -70,7 +70,11 @@ class AmStopButtonDriver: public StopButtonDriver {
   public:    
     void begin() override;
     void run() override;
-    bool triggered() override;  	  		    
+    bool triggered() override;
+  protected:
+    unsigned long nextControlTime;
+    unsigned long buttonTimeout;
+    bool pressed;  	  		    
 };
 
 
