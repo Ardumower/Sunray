@@ -134,6 +134,12 @@ void cmdMotorTest(){
   motor.test();  
 }
 
+void cmdMotorPlot(){
+  String s = F("Q");
+  cmdAnswer(s);
+  motor.plot();  
+}
+
 void cmdSensorTest(){
   String s = F("F");
   cmdAnswer(s);
@@ -583,6 +589,7 @@ void processCmd(bool checkCrc, bool decrypt){
   if (cmd[3] == 'T') cmdStats();
   if (cmd[3] == 'L') cmdClearStats();
   if (cmd[3] == 'E') cmdMotorTest();  
+  if (cmd[3] == 'Q') cmdMotorPlot();  
   if (cmd[3] == 'O') cmdObstacle();  
   if (cmd[3] == 'F') cmdSensorTest(); 
   if (cmd[3] == 'G') cmdToggleGPSSolution();   // for developers

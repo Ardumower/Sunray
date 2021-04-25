@@ -450,3 +450,57 @@ void Motor::test(){
   CONSOLE.println("motor test done - please ignore any IMU/GPS errors");
 }
 
+
+void Motor::plot(){
+  CONSOLE.println("motor plot - NOTE: Start Arduino IDE Tools->Serial Plotter (CTRL+SHIFT+L)");
+  motorLeftTicks = 0;  
+  motorRightTicks = 0;  
+  int pwmLeft = 0;
+  int pwmRight = 0; 
+  bool forward = true;
+  unsigned long nextPlotTime = 0;
+
+  while (true){   // run forever...
+    int ticksLeft=0;
+    int ticksRight=0;
+    int ticksMow=0;
+    motorDriver.getMotorEncoderTicks(ticksLeft, ticksRight, ticksMow);  
+    motorLeftTicks += ticksLeft;
+    motorRightTicks += ticksRight;
+
+    if (millis() > nextPlotTime){ 
+      nextPlotTime = millis() + 100;
+      CONSOLE.print(pwmLeft);
+      CONSOLE.print(",");  
+      CONSOLE.print(pwmRight);
+      CONSOLE.print(",");
+      CONSOLE.print(motorLeftTicks);    
+      CONSOLE.print(",");
+      CONSOLE.print(motorRightTicks);
+      CONSOLE.println();
+      motorLeftTicks = 0;
+      motorRightTicks = 0;      
+    }
+
+    speedPWM(pwmLeft, pwmRight, 0);
+    if (pwmLeft >= 255){
+      forward = false; 
+    }      
+    if (pwmLeft <= -255){
+      forward = true; 
+    }          
+    if (forward){
+      pwmLeft++;
+      pwmRight++;            
+    } else {
+      pwmLeft--;
+      pwmRight--;
+    }
+    //sense();
+    //delay(10);
+    watchdogReset();     
+    robotDriver.run();   
+  }
+}
+
+
