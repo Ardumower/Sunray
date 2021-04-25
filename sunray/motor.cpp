@@ -453,14 +453,16 @@ void Motor::test(){
 
 void Motor::plot(){
   CONSOLE.println("motor plot - NOTE: Start Arduino IDE Tools->Serial Plotter (CTRL+SHIFT+L)");
+  delay(5000);
   motorLeftTicks = 0;  
   motorRightTicks = 0;  
   int pwmLeft = 0;
   int pwmRight = 0; 
   bool forward = true;
   unsigned long nextPlotTime = 0;
+  unsigned long stopTime = millis() + 30 * 1000;
 
-  while (true){   // run forever...
+  while (millis() < stopTime){   // 30 seconds...
     int ticksLeft=0;
     int ticksRight=0;
     int ticksMow=0;
@@ -501,6 +503,8 @@ void Motor::plot(){
     watchdogReset();     
     robotDriver.run();   
   }
+  speedPWM(0, 0, 0);
+  CONSOLE.println("motor plot done - please ignore any IMU/GPS errors");
 }
 
 
