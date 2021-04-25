@@ -185,13 +185,14 @@ void AmMotorDriver::resetMotorFaults(){
 }
 
 void AmMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent){
-    float scale       = 1.905;   // ADC voltage to amp  
     float offset      = -1.65;
     #ifdef MOTOR_DRIVER_BRUSHLESS
+      float scale       = 7.57;   // ADC voltage to amp      
       leftCurrent = (((float)ADC2voltage(analogRead(pinMotorRightSense))) + offset) *scale;
       rightCurrent = (((float)ADC2voltage(analogRead(pinMotorLeftSense))) + offset) *scale;
       mowCurrent = (((float)ADC2voltage(analogRead(pinMotorMowSense))) + offset) *scale; 
     #else
+      float scale       = 1.905;   // ADC voltage to amp      
       leftCurrent = ((float)ADC2voltage(analogRead(pinMotorRightSense))) *scale;
       rightCurrent = ((float)ADC2voltage(analogRead(pinMotorLeftSense))) *scale;
       mowCurrent = ((float)ADC2voltage(analogRead(pinMotorMowSense))) *scale  *2;	          
