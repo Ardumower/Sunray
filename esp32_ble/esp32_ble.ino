@@ -15,6 +15,14 @@ wiring:
   ESP32 GND          ---  Ardumower PCB1.3 Bluetooth conn GND
   ESP32 5V  (Vin)    ---  Ardumower PCB1.3 Bluetooth conn 5V
 
+
+Note: ESP32 D1 Mini (china cheapo) can work as a comm/BLE chip.
+Data is reported and mower can be steered using app.
+Things to remember are:
+- need to wait few secs after mower reboots before connecting (CRC issues)
+- need to close/reopen app if the phone disconnects (CRC issues)
+
+
 serial protocol: 
 
 ---COMMANDS---                                      ---ANSWER---
