@@ -258,8 +258,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // configure ublox f9p with optimal settings (will be stored in f9p RAM only)
 // NOTE: due to a PCB1.3 bug GPS_RX pin is not working and you have to fix this by a wire:
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#PCB1.3_GPS_pin_fix   (see step 2)
-#define GPS_CONFIG   true     // configure GPS receiver (recommended )
-//#define GPS_CONFIG   false  // do not configure GPS receiver
+#define GPS_CONFIG   true     // configure GPS receiver (recommended - requires GPS wire fix above!)
+//#define GPS_CONFIG   false  // do not configure GPS receiver (no GPS wire fix required)
 
 #define GPS_CONFIG_FILTER   true     // use signal strength filter? (recommended to get rid of 'FIX jumps')
 //#define GPS_CONFIG_FILTER   false     // use this if you have difficulties to get a FIX solution
