@@ -422,18 +422,7 @@ void setup() {
   UART.begin(115200, SERIAL_8N1, pinGpioRx, pinGpioTx);  // UART
 
   CONSOLE.println(VERSION);
-  /*if (!EEPROM.begin(1000)) {
-    CONSOLE.println("Failed to initialise EEPROM");
-    CONSOLE.println("Restarting...");
-    delay(1000);
-    ESP.restart();
-  }*/
-  //if (!loadEEPROM()){
-  //  cmdClearEEPROM();
-  //}  
 
-
-  // ---- BLE ------------------
   startBLE();
   //startWIFI();
 }
@@ -533,11 +522,6 @@ void loop() {
     } 
   }
   
-  /*if (millis() > nextEEPROMTime){        
-      nextEEPROMTime = millis() + 60000 * 10; // 10 minutes
-      saveEEPROM();    
-  } */    
-
   if (millis() > nextPingTime){
     nextPingTime = millis() + 2000;
     CONSOLE.print(millis());
