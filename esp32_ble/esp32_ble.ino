@@ -37,7 +37,7 @@ connect to wifi               AT+WIFImode,ssid,pass\r\n       +WIFI=mode,ssid,pa
 */
 
 // ---------- configuration ----------------------------------
-#define VERSION "ESP32 firmware V0.11,Bluetooth V4.0 LE"
+#define VERSION "ESP32 firmware V0.2,Bluetooth V4.0 LE"
 #define NAME "Ardumower"
 #define MTU 20   // max. transfer bytes per BLE frame
 
