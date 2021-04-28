@@ -49,6 +49,8 @@ send BLE test packet          AT+TEST\r\n           +TEST\r\n
 //#define pinGpioRx   3   // UART0
 //#define pinGpioTx   1   // UART0
 
+#define pinLED   2
+
 #ifdef USE_WIFI
   #include <WiFi.h>
 #endif
@@ -68,6 +70,9 @@ send BLE test packet          AT+TEST\r\n           +TEST\r\n
 String cmd;
 unsigned long nextInfoTime = 0;
 unsigned long nextPingTime = 0;
+unsigned long nextLEDTime = 0; 
+bool ledStateNew = false;
+bool ledStateCurr = false;
 
 // ---- BLE ---------------------------
 BLEServer *pServer = NULL;
@@ -306,6 +311,7 @@ void processCmd(){
 
 
 void setup() {  
+  pinMode(pinLED, OUTPUT);
   Serial.begin(115200);       // USB
   Serial2.begin(115200, SERIAL_8N1, pinGpioRx, pinGpioTx);  // UART
 
@@ -370,6 +376,7 @@ void loop() {
   // -------- BLE -----------------------------  
   // disconnecting
   if (!deviceConnected && oldDeviceConnected) {
+    // advertising
     //delay(500); // give the bluetooth stack the chance to get things ready
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(SERVICE_UUID);
@@ -416,6 +423,21 @@ void loop() {
       }
     }
   }
+
+  // LED
+  if (!deviceConnected){
+    if (millis() > nextLEDTime){
+      nextLEDTime = millis() + 500;
+      ledStateNew = !ledStateCurr;      
+    }
+  } else {    
+    ledStateNew = true;    
+  }
+  if (ledStateCurr != ledStateNew){
+    ledStateCurr = ledStateNew;
+    digitalWrite(pinLED, ledStateCurr);
+  }
+
 
   // BLE->UART bridge
   int num = 0;
