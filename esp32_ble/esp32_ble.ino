@@ -41,6 +41,8 @@ connect to wifi               AT+WIFImode,ssid,pass\r\n       +WIFI=mode,ssid,pa
 #define NAME "Ardumower"
 #define MTU 20   // max. transfer bytes per BLE frame
 
+String ssid = "";  // WiFi SSID      (leave empty to not use WiFi)
+String pass = "";  // WiFi password  (leave empty to not use WiFi)
 // -----------------------------------------------------------
 
 #define pinGpioRx   16  // UART2
@@ -99,8 +101,6 @@ byte txBuf[BLE_BUF_SZ];
 String notifyData;
 
 // ----- wifi --------------------------
-String ssid = "";
-String pass = "";      
 WiFiServer server(80);
 WiFiClient client;
 unsigned long stopClientTime = 0;
