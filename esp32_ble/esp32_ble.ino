@@ -2,14 +2,15 @@
      1. BLE UART bridge (GATT server UART)
      2. WiFi UART bridge (HTTP server UART)
 
+
 Steps to install ESP32 for Arduino IDE:
      1. Arduino IDE: File->Preferences:  Add to board manager URLs: ",https://dl.espressif.com/dl/package_esp32_index.json"
      2. Choose "Tools->Board->Boards Manager"
      3. Add board "esp32"
-     4. Choose Board "ESP32 Dev Module"
-        https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md
+     4. Choose Board "ESP32 Dev Module"  (if upload does not work: PRESS EN+BOOT, release EN  on your ESP32)
+     5. Choose Partition Scheme "Huge APP"  (otherwise you may get 'memory space errors' in the Arduino IDE)   
+    (also see: https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md )
 
-    Arduino IDE: choose ESP32 Dev Module  (if upload does not work: PRESS EN+BOOT, release EN)
 
 wiring (also see wiring image in Github folder): 
   ESP32 Rx2 (GPIO16) ---  Ardumower PCB1.3 Bluetooth conn RX   (3.3v level)
