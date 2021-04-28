@@ -258,7 +258,7 @@ void startWIFI(){
 void httpServerStopClient(){
   if (stopClientTime != 0){
     if (millis() < stopClientTime) return;
-    CONSOLE.println("stopping client");
+    CONSOLE.println("stopping HTTP client");
     client.stop();
     stopClientTime = 0;                   
   }  
@@ -268,7 +268,7 @@ void httpServer(){
   client = server.available();   // listen for incoming clients
   if (!client) return;
 
-  CONSOLE.println("New Client.");           // print a message out the serial port
+  CONSOLE.println("new HTTP client");           // print a message out the serial port
   String currentLine = "";                // make a String to hold incoming data from the client
   while (client.connected()) {            // loop while the client's connected
     if (client.available()) {             // if there's bytes to read from the client,
@@ -358,6 +358,7 @@ void cmdWifi(String mode, String assid, String apass){
     String s = F("+WIFI=");   
     s += mode + "," + ssid + "," + pass;
     uartSend(s);  
+    wifiStatus = WL_IDLE_STATUS;
     startWIFI();
   } else {
     String s = F("ERROR");     
