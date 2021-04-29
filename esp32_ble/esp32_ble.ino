@@ -40,10 +40,19 @@ connect to wifi               AT+WIFImode,ssid,pass\r\n       +WIFI=mode,ssid,pa
 // ---------- configuration ----------------------------------
 #define VERSION "ESP32 firmware V0.2,Bluetooth V4.0 LE"
 #define NAME "Ardumower"
-#define MTU 20   // max. transfer bytes per BLE frame
+#define BLE_MTU 20   // max. transfer bytes per BLE frame
 
+#define BLE_MIN_INTERVAL 1    // connection parameters (tuned for high speed/high power consumption)
+#define BLE_MAX_INTERVAL 10
+#define BLE_LATENCY      0
+#define BLE_TIMEOUT      20  
+      
 String ssid = "";  // WiFi SSID      (leave empty to not use WiFi)
 String pass = "";  // WiFi password  (leave empty to not use WiFi)
+
+#define WIFI_TIMEOUT_FIRST_RESPONSE  200   // for fast WIFI - if your WIFI is slow, choose: 800     
+#define WIFI_TIMEOUT_RESPONSE        50    // for fast WIFI - if your WIFI is slow, choose: 400
+
 // -----------------------------------------------------------
 
 #define pinGpioRx   16  // UART2
@@ -143,7 +152,7 @@ void bleSend(String s){
 // notify BLE client (send next packet from FIFO)
 void bleNotify(){
   notifyData = "";
-  while ((txReadPos != txWritePos) && (notifyData.length() < MTU)) {	  
+  while ((txReadPos != txWritePos) && (notifyData.length() < BLE_MTU)) {	  
     char ch = txBuf[txReadPos];
     notifyData += ch;
     txReadPos = (txReadPos + 1) % BLE_BUF_SZ;	    
@@ -169,7 +178,7 @@ class MyServerCallbacks: public BLEServerCallbacks {
       uint16_t connId = pServer->getConnId();
       uint16_t peerMTU = pServer->getPeerMTU(connId);
       // min(1.25ms units),max(1.25ms units),latency(intervals),timeout(10ms units)
-      pServer->updateConnParams( param->connect.remote_bda, 1, 10, 0, 20); 
+      pServer->updateConnParams( param->connect.remote_bda, BLE_MIN_INTERVAL, BLE_MAX_INTERVAL, BLE_LATENCY, BLE_TIMEOUT); // 1, 10, 0, 20 
       CONSOLE.print("---------BLE client connected---------peer mtu=");
       CONSOLE.println(peerMTU);          
       bleConnected = true;        
@@ -293,12 +302,12 @@ void httpServer(){
           CONSOLE.println(cmd);
           String cmdResponse;
           UART.print(cmd);
-          timeout = millis() + 200;
+          timeout = millis() + WIFI_TIMEOUT_FIRST_RESPONSE; // fast 200 (slow: 800)
           while ( millis() < timeout){
             if (UART.available()){
               char ch = UART.read();
               cmdResponse += ch;
-              timeout = millis() + 50;
+              timeout = millis() + WIFI_TIMEOUT_RESPONSE;  // fast 50 (slow: 400)
             }
             delay(1);
           }
@@ -475,7 +484,7 @@ void loop() {
   if (bleConnected){
     if (bleAnswer.length() > 0){
       // BLE client connected
-      if ((bleAnswer.endsWith("\n")) || (bleAnswer.endsWith("\r")) || (millis() > bleAnswerTimeout) || (bleAnswer.length() >= MTU)) {
+      if ((bleAnswer.endsWith("\n")) || (bleAnswer.endsWith("\r")) || (millis() > bleAnswerTimeout) || (bleAnswer.length() >= BLE_MTU)) {
         bleSend(bleAnswer);
         bleAnswer = "";
       }
