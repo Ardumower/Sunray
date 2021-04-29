@@ -2,10 +2,10 @@
 
 #if defined(__linux__)
 
-LinuxSerial Serial1("/dev/ttyUSB0"); // serial robot
-LinuxSerial Serial2("/dev/null"); // WIFI
-BleUartServer Serial3; // BLE 
-LinuxSerial Serial4("/dev/ttyACM0"); // GPS
+LinuxSerial SerialROBOT(SERIAL_ROBOT_PATH); // serial robot
+LinuxSerial SerialWIFI(SERIAL_WIFI_PATH); // WIFI
+BleUartServer SerialBLE; // BLE 
+LinuxSerial SerialGPS(SERIAL_GPS_PATH); // GPS
 
 
 

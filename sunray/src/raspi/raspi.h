@@ -6,10 +6,10 @@
 #include <LinuxSerial.h>
 #include <BleUartServer.h>
 
-extern LinuxSerial Serial1;
-extern LinuxSerial Serial2;
-extern BleUartServer Serial3;
-extern LinuxSerial Serial4;
+extern LinuxSerial SerialROBOT;
+extern LinuxSerial SerialWIFI;
+extern BleUartServer SerialBLE;
+extern LinuxSerial SerialGPS;
 
 
 #endif  // __linux__

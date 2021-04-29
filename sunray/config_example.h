@@ -320,7 +320,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #elif __SAMD51__
   #define BOARD "Adafruit Grand Central M4"
   #define CONSOLE Serial      // Adafruit Grand Central M4 
-#else 
+#elif __linux__ 
   #define BOARD "Raspberry PI"
   #define CONSOLE Console 
 #endif
@@ -335,17 +335,23 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #ifdef _SAM3XA_                 // Arduino Due
   #define WIFI Serial1
+  #define ROBOT Serial1
   #define BLE Serial2
   #define GPS Serial3
   //#define GPS Serial                // only use this for .ubx logs (sendgps.py)
 #elif __SAMD51__                      // Adafruit Grand Central M4 
-  #define WIFI Serial2                
+  #define WIFI Serial2 
+  #define ROBOT Serial2               
   #define BLE Serial3
   #define GPS Serial4
 #elif __linux__ 
-  #define WIFI Serial2                
-  #define BLE Serial3
-  #define GPS Serial4
+  #define WIFI SerialWIFI                
+  #define SERIAL_WIFI_PATH "/dev/null"  
+  #define BLE SerialBLE
+  #define GPS SerialGPS
+  #define SERIAL_GPS_PATH "/dev/ttyACM0"  
+  #define ROBOT SerialROBOT
+  #define SERIAL_ROBOT_PATH "/dev/ttyUSB0"  
 #endif
 
 

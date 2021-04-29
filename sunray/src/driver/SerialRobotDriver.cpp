@@ -7,7 +7,7 @@
 #include "SerialRobotDriver.h"
 #include "../../config.h"
 
-#define COMM  Serial1
+#define COMM  ROBOT
 
 
 
