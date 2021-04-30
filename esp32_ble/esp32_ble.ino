@@ -42,7 +42,7 @@ connect to wifi               AT+WIFImode,ssid,pass\r\n       +WIFI=mode,ssid,pa
 #define NAME "Ardumower"
 #define BLE_MTU 20   // max. transfer bytes per BLE frame
 
-#define BLE_MIN_INTERVAL 1    // connection parameters (tuned for high speed/high power consumption)
+#define BLE_MIN_INTERVAL 1    // connection parameters (tuned for high speed/high power consumption - see: https://support.ambiq.com/hc/en-us/articles/115002907792-Managing-BLE-Connection-Parameters)
 #define BLE_MAX_INTERVAL 10
 #define BLE_LATENCY      0
 #define BLE_TIMEOUT      20  
