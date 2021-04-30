@@ -38,7 +38,7 @@ connect to wifi               AT+WIFImode,ssid,pass\r\n       +WIFI=mode,ssid,pa
 */
 
 // ---------- configuration ----------------------------------
-#define VERSION "ESP32 firmware V0.2,Bluetooth V4.0 LE"
+#define VERSION "ESP32 firmware V0.2.1,Bluetooth V4.0 LE"
 #define NAME "Ardumower"
 #define BLE_MTU 20   // max. transfer bytes per BLE frame
 
@@ -50,8 +50,8 @@ connect to wifi               AT+WIFImode,ssid,pass\r\n       +WIFI=mode,ssid,pa
 String ssid = "";  // WiFi SSID      (leave empty to not use WiFi)
 String pass = "";  // WiFi password  (leave empty to not use WiFi)
 
-#define WIFI_TIMEOUT_FIRST_RESPONSE  200   // for fast WIFI - if your WIFI is slow, choose: 800     
-#define WIFI_TIMEOUT_RESPONSE        50    // for fast WIFI - if your WIFI is slow, choose: 400
+#define WIFI_TIMEOUT_FIRST_RESPONSE  200   // fast response times, for more reliable choose: 800     
+#define WIFI_TIMEOUT_RESPONSE        50    // fast response times, for more reliable choose: 400
 
 // -----------------------------------------------------------
 
@@ -75,6 +75,10 @@ String pass = "";  // WiFi password  (leave empty to not use WiFi)
 #include <BLEUtils.h>
 #include <BLECharacteristic.h>
 #include <BLE2902.h>
+#include <ESPmDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
+
 
 String cmd;
 unsigned long nextInfoTime = 0;
@@ -114,7 +118,6 @@ String notifyData;
 WiFiServer server(80);
 WiFiClient client;
 unsigned long stopClientTime = 0;
-int wifiStatus = WL_IDLE_STATUS;     // the Wifi radio's status    
   
 // ------------------------------- UART -----------------------------------------------------
 
@@ -248,12 +251,18 @@ void startBLE(){
 
 void startWIFI(){
   if ((ssid == "") || (pass == "")) return;
-  if ( wifiStatus != WL_CONNECTED) {    
+  if ((WiFi.status() != WL_CONNECTED) || (WiFi.localIP().toString() == "0.0.0.0")) {    
     CONSOLE.print("Attempting to connect to WPA SSID: ");
-    CONSOLE.println(ssid);      
-    wifiStatus = WiFi.begin(ssid.c_str(), pass.c_str());        
-    delay(2000);      
-    if (wifiStatus == WL_CONNECTED){
+    CONSOLE.println(ssid);
+
+    WiFi.begin(ssid.c_str(), pass.c_str());        
+    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+      CONSOLE.println("Connection Failed!");
+      delay(1000);
+      return;
+    };
+    
+    if (WiFi.status() == WL_CONNECTED){
       CONSOLE.print("You're connected with SSID=");    
       CONSOLE.print(WiFi.SSID());
       CONSOLE.print(" and IP=");        
@@ -261,6 +270,24 @@ void startWIFI(){
       CONSOLE.println(ip);   
       //server.listenOnLocalhost();
       server.begin();
+     
+      ArduinoOTA.setHostname(NAME);
+      ArduinoOTA
+       .onStart([]() {
+         String type;
+         if (ArduinoOTA.getCommand() == U_FLASH)
+           type = "sketch";
+         else // U_SPIFFS
+           type = "filesystem";
+       })
+       .onEnd([]() {
+       })
+       .onProgress([](unsigned int progress, unsigned int total) {
+       })
+       .onError([](ota_error_t error) {
+       });
+
+     ArduinoOTA.begin();
     }
   }    
 }
@@ -367,8 +394,10 @@ void cmdWifi(String mode, String assid, String apass){
   if (mode == "0") {
     String s = F("+WIFI=");   
     s += mode + "," + ssid + "," + pass;
-    uartSend(s);  
-    wifiStatus = WL_IDLE_STATUS;
+    uartSend(s);
+    WiFi.disconnect();
+    WiFi.mode(WIFI_OFF);
+    WiFi.mode(WIFI_STA); 
     startWIFI();
   } else {
     String s = F("ERROR");     
@@ -543,6 +572,8 @@ void loop() {
   if (!bleConnected) httpServer();
 
   startWIFI();
+  ArduinoOTA.handle();
+
 }
 
 
