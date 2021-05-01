@@ -213,7 +213,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // https://wiki.ardumower.de/index.php?title=Free_wheel_sensor
 // #define BUMPER_ENABLE true
 #define BUMPER_ENABLE false
-#define BUMPER_DEADTIME 5000  // linear motion dead-time (ms) after bumper is allowed to trigger
+#define BUMPER_DEADTIME 1000  // linear motion dead-time (ms) after bumper is allowed to trigger
 
 
 // ----- battery charging current measurement (INA169) --------------
