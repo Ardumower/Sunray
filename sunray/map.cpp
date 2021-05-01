@@ -1151,6 +1151,7 @@ bool Map::nextDockPoint(bool sim){
       } else return false;        
     }  
   }
+  return false;
 }
 
 // get next free point  
