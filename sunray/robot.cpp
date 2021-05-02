@@ -169,6 +169,7 @@ float dockSignal = 0;
 float dockAngularSpeed = 0.1;
 bool dockingInitiatedByOperator = true;
 bool gpsJump = false;
+int motorErrorCounter = 0;
 
 RunningMedian<unsigned int,3> tofMeasurements;
 
@@ -943,12 +944,19 @@ void detectSensorMalfunction(){
   }
   if (ENABLE_FAULT_DETECTION){
     if (motor.motorError){
-      motor.motorError = false;
+      // this is the molehole situation: motor error will permanently trigger on molehole => we try obstacle avoidance (molehole avoidance strategy)
+      motor.motorError = false; // reset motor error flag
+      motorErrorCounter++; 
+      if (motorErrorCounter < 5){ 
+        triggerObstacle();     // trigger obstacle avoidance 
+        return;
+      }
+      // obstacle avoidance failed with too many motor errors (it was probably not a molehole situation)
       CONSOLE.println("motor error!");
       stateSensor = SENS_MOTOR_ERROR;
       setOperation(OP_ERROR);
       buzzer.sound(SND_ERROR, true);       
-      return;       
+      return;      
     }  
   }
 }
@@ -1167,6 +1175,7 @@ void trackLine(){
   if (targetReached){
     if (maps.wayMode == WAY_MOW){
       maps.clearObstacles(); // clear obstacles if target reached
+      motorErrorCounter = 0; // reset motor error counter if target reached
     }
     bool straight = maps.nextPointIsStraight();
     if (!maps.nextPoint(false)){
