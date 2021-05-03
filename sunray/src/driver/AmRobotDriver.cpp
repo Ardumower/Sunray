@@ -145,7 +145,7 @@ void AmMotorDriver::setBrushless(int pinDir, int pinPWM, int speed) {
 
     
 void AmMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
-  #ifdef MOTOR_DRIVER_BRUSHLESS{
+  #ifdef MOTOR_DRIVER_BRUSHLESS
     setBrushless(pinMotorLeftDir, pinMotorLeftPWM, leftPwm);
     setBrushless(pinMotorRightDir, pinMotorRightPWM, rightPwm);
     setBrushless(pinMotorMowDir, pinMotorMowPWM, mowPwm);
