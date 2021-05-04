@@ -55,14 +55,14 @@ String pass = "";  // WiFi password  (leave empty to not use WiFi)
 
 // -----------------------------------------------------------
 
-#define pinGpioRx   16  // UART2
-#define pinGpioTx   17  // UART2
+#define pinGpioRx   16    // UART2 / GPIO16 / IO16
+#define pinGpioTx   17    // UART2 / GPIO17 / IO17
 
-//#define pinGpioRx   9   // UART1
-//#define pinGpioTx   10  // UART1
+//#define pinGpioRx   9   // UART1 / GPIO9  / SD2
+//#define pinGpioTx   10  // UART1 / GPIO10 / SD3
 
-//#define pinGpioRx   3   // UART0
-//#define pinGpioTx   1   // UART0
+//#define pinGpioRx   3   // UART0 / GPIO3  / RXD0
+//#define pinGpioTx   1   // UART0 / GPIO1  / TXD0
 
 #define pinLED   2
 
