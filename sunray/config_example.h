@@ -168,8 +168,14 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define WIFI_SSID "myssid"            // choose WiFi network ID
 #define WIFI_PASS "mypassword"      // choose WiFi network password
 
-#define ENABLE_SERVER true          // must be enabled for web app
-//#define ENABLE_SERVER false
+#define ENABLE_SERVER true          // must be enabled if robot should act as server
+//#define ENABLE_SERVER false           // must be disabled if robot should act as client (requires external relay server)
+
+// a relay server allows to access the robot via the Internet (highly experimental)
+#define RELAY_USER "username"         // choose a unique user name!
+#define RELAY_MACHINE "robot1"        // choose a unique robot id
+#define RELAY_HOST "grauonline.net"   // relay server name
+#define RELAY_PORT 5000               // relay server port 
 
 //#define ENABLE_UDP 1                // enable console for UDP? (for developers only)
 #define UDP_SERVER_IP   192,168,2,56     // remote UDP IP and port to connect to

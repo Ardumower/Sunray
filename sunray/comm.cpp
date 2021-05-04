@@ -35,6 +35,10 @@ float statMaxControlCycleTime = 0;
 char mqttMsg[MSG_BUFFER_SIZE];
 unsigned long nextPublishTime = 0;
 
+// wifi client
+WiFiEspClient wifiClient;
+unsigned long nextWifiClientCheckTime = 0;
+
 
 // answer Bluetooth with CRC
 void cmdAnswer(String s){  
@@ -645,6 +649,72 @@ void processBLE(){
   }  
 }  
 
+// process WIFI input (App client)
+void processWifiAppClient(){
+  if (!wifiFound) return;
+  if (ENABLE_SERVER) return;
+  if (!wifiClient.connected() || (wifiClient.available() == 0)){
+    if (millis() > nextWifiClientCheckTime){   
+      CONSOLE.println("WIF: connecting..." RELAY_HOST);    
+      if (!wifiClient.connect(RELAY_HOST, RELAY_PORT)) {
+        CONSOLE.println("WIF: connection failed");
+        nextWifiClientCheckTime = millis() + 10000;
+        return;
+      }
+      CONSOLE.println("WIF: connected!");   
+      String s = "GET / HTTP/1.1\r\n";
+      s += "Host: " RELAY_USER "." RELAY_MACHINE "." RELAY_HOST ":";        
+      s += String(RELAY_PORT) + "\r\n";
+      s += "Content-Length: 0\r\n";
+      s += "\r\n\r\n";
+      wifiClient.print(s);
+    } else return;
+  }
+  nextWifiClientCheckTime = millis() + 10000;     
+  
+  buf.init();                               // initialize the circular buffer   
+  unsigned long timeout = millis() + 500;
+    
+  while (millis() < timeout) {              // loop while the client's connected    
+    if (wifiClient.available()) {               // if there's bytes to read from the client,        
+      char c = wifiClient.read();               // read a byte, then
+      timeout = millis() + 200;
+      buf.push(c);                          // push it to the ring buffer
+      // you got two newline characters in a row
+      // that's the end of the HTTP request, so send a response
+      if (buf.endsWith("\r\n\r\n")) {
+        cmd = "";
+        while ((wifiClient.connected()) && (wifiClient.available()) && (millis() < timeout)) {
+          char ch = wifiClient.read();
+          timeout = millis() + 200;
+          cmd = cmd + ch;
+          gps.run();
+        }
+        CONSOLE.print("WIF:");
+        CONSOLE.println(cmd);
+        if (wifiClient.connected()) {
+          processCmd(true,true);
+          String s = "HTTP/1.1 200 OK\r\n";
+            s += "Host: " RELAY_USER "." RELAY_MACHINE "." RELAY_HOST ":";        
+            s += String(RELAY_PORT) + "\r\n";
+            s += "Access-Control-Allow-Origin: *\r\n";              
+            s += "Content-Type: text/html\r\n";              
+            s += "Connection: close\r\n";  // the connection will be closed after completion of the response
+            // "Refresh: 1\r\n"        // refresh the page automatically every 20 sec                                    
+            s += "Content-length: ";
+            s += String(cmdResponse.length());
+            s += "\r\n\r\n";  
+            s += cmdResponse;                      
+            wifiClient.print(s);                                   
+        }
+        break;
+      }
+    }
+  }
+}
+
+
+
 // process WIFI input (App server)
 void processWifiAppServer()
 {
@@ -784,6 +854,7 @@ void processComm(){
   processConsole();     
   processBLE();     
   processWifiAppServer();
+  processWifiAppClient();
   processWifiMqttClient();
   if (triggerWatchdog) {
     CONSOLE.println("hang test - watchdog should trigger and perform a reset");
