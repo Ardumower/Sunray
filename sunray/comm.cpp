@@ -655,6 +655,7 @@ void processWifiRelayClient(){
   if (ENABLE_SERVER) return;
   if (!wifiClient.connected() || (wifiClient.available() == 0)){
     if (millis() > nextWifiClientCheckTime){   
+      wifiClient.stop();
       CONSOLE.println("WIF: connecting..." RELAY_HOST);    
       if (!wifiClient.connect(RELAY_HOST, RELAY_PORT)) {
         CONSOLE.println("WIF: connection failed");
