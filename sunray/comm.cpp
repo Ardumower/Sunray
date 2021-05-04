@@ -649,8 +649,8 @@ void processBLE(){
   }  
 }  
 
-// process WIFI input (App client)
-void processWifiAppClient(){
+// process WIFI input (relay client)
+void processWifiRelayClient(){
   if (!wifiFound) return;
   if (ENABLE_SERVER) return;
   if (!wifiClient.connected() || (wifiClient.available() == 0)){
@@ -854,7 +854,7 @@ void processComm(){
   processConsole();     
   processBLE();     
   processWifiAppServer();
-  processWifiAppClient();
+  processWifiRelayClient();
   processWifiMqttClient();
   if (triggerWatchdog) {
     CONSOLE.println("hang test - watchdog should trigger and perform a reset");
