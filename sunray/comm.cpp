@@ -651,6 +651,7 @@ void processBLE(){
 
 // process WIFI input (relay client)
 // a relay server allows to access the robot via the Internet by transferring data from app to robot and vice versa
+// client (app) --->  relay server  <--- client (robot)
 void processWifiRelayClient(){
   if (!wifiFound) return;
   if (!ENABLE_RELAY) return;
@@ -718,6 +719,7 @@ void processWifiRelayClient(){
 
 
 // process WIFI input (App server)
+// client (app) --->  server (robot)
 void processWifiAppServer()
 {
   if (!wifiFound) return;

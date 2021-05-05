@@ -168,10 +168,12 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define WIFI_SSID "myssid"            // choose WiFi network ID
 #define WIFI_PASS "mypassword"      // choose WiFi network password
 
+// client (app) --->  server (robot)
 #define ENABLE_SERVER true          // must be enabled if robot should act as server (recommended)
 //#define ENABLE_SERVER false           // must be disabled if robot should act as client (requires external relay server)
 
 // a relay server allows to access the robot via the Internet by transferring data from app to robot and vice versa (highly experimental)
+// client (app) --->  relay server  <--- client (robot)
 #define ENABLE_RELAY false            // must be enabled to use relay server
 #define RELAY_USER "username"         // choose a unique user name/number!
 #define RELAY_MACHINE "robot1"        // choose a unique robot id
