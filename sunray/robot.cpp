@@ -52,12 +52,14 @@ MPU9250_DMP imu;
   SerialBatteryDriver batteryDriver(robotDriver);
   SerialBumperDriver bumper(robotDriver);
   SerialStopButtonDriver stopButton(robotDriver);
+  SerialRainSensorDriver rainDriver(robotDriver);
 #else
   AmRobotDriver robotDriver;
   AmMotorDriver motorDriver;
   AmBatteryDriver batteryDriver;
   AmBumperDriver bumper;
   AmStopButtonDriver stopButton;
+  AmRainSensorDriver rainDriver;
 #endif
 Motor motor;
 Battery battery;
@@ -687,6 +689,7 @@ void start(){
   //pinMode(pinDockingReflector, INPUT);
   digitalWrite(pinBatterySwitch, HIGH);         
   pinMode(pinButton, INPUT_PULLUP);
+  pinMode(pinRain, INPUT);
   buzzer.begin();      
   CONSOLE.begin(CONSOLE_BAUDRATE);  
     
@@ -724,7 +727,8 @@ void start(){
   
   batteryDriver.begin();
   robotDriver.begin();
-  motorDriver.begin();  
+  motorDriver.begin();
+  rainDriver.begin();  
   battery.begin();      
   stopButton.begin();
 
@@ -1210,6 +1214,7 @@ void run(){
   battery.run();
   batteryDriver.run();
   motorDriver.run();
+  rainDriver.run();
   motor.run();
   sonar.run();
   maps.run();  
@@ -1331,6 +1336,12 @@ void run(){
         } 
         if (battery.shouldGoHome()){
           if (DOCKING_STATION){
+            setOperation(OP_DOCK);
+          }
+        }
+        if (rainDriver.triggered()){
+          if (DOCKING_STATION){
+            stateSensor = SENS_RAIN;
             setOperation(OP_DOCK);
           }
         }        

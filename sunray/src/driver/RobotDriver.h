@@ -63,6 +63,14 @@ class StopButtonDriver {
     virtual bool triggered() = 0;  	  		    
 };
 
+class RainSensorDriver {
+  public:    
+    virtual void begin() = 0;
+    virtual void run() = 0;
+    virtual bool triggered() = 0;  	  		    
+};
+
+
 
 #endif
 

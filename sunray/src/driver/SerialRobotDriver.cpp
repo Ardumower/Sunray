@@ -316,3 +316,20 @@ bool SerialStopButtonDriver::triggered(){
   return (serialRobot.triggeredStopButton); 
 }
 
+// ------------------------------------------------------------------------------------
+
+
+SerialRainSensorDriver::SerialRainSensorDriver(SerialRobotDriver &sr): serialRobot(sr){
+}
+
+void SerialRainSensorDriver::begin(){
+}
+
+void SerialRainSensorDriver::run(){
+
+}
+
+bool SerialRainSensorDriver::triggered(){
+  return (serialRobot.triggeredRain); 
+}
+

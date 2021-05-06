@@ -90,5 +90,14 @@ class SerialStopButtonDriver: public StopButtonDriver {
     bool triggered() override;  	  		    
 };
 
+class SerialRainSensorDriver: public RainSensorDriver {
+  public:    
+    SerialRobotDriver &serialRobot;
+    SerialRainSensorDriver(SerialRobotDriver &sr);    
+    void begin() override;
+    void run() override;
+    bool triggered() override;  
+};
+
 
 #endif

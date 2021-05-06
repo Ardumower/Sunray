@@ -208,6 +208,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define SONAR_CENTER_OBSTACLE_CM 10      // stop mowing operation below this distance (cm) 
 #define SONAR_RIGHT_OBSTACLE_CM  10      // stop mowing operation below this distance (cm) 
 
+// ------ rain sensor ----------------------------------------------------------
+//#define RAIN_ENABLE true                 // if activated, mower will dock when rain sensor triggers
+#define RAIN_ENABLE false
 
 // ------ time-of-flight distance sensor (VL53L0X) -----------------------------
 // do not use this sensor (not recommended)

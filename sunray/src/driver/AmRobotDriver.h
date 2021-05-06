@@ -76,5 +76,15 @@ class AmStopButtonDriver: public StopButtonDriver {
     bool pressed;  	  		    
 };
 
+class AmRainSensorDriver: public RainSensorDriver {
+  public:    
+    void begin() override;
+    void run() override;
+    bool triggered() override;
+  protected:
+    unsigned long nextControlTime;
+    bool isRaining;  	  		    
+};
+
 
 #endif
