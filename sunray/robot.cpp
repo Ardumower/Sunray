@@ -952,6 +952,7 @@ void detectSensorMalfunction(){
       motor.motorError = false; // reset motor error flag
       motorErrorCounter++; 
       if (motorErrorCounter < 5){ 
+        //stateSensor = SENS_MOTOR_ERROR;
         triggerObstacle();     // trigger obstacle avoidance 
         return;
       }
