@@ -1339,10 +1339,12 @@ void run(){
             setOperation(OP_DOCK);
           }
         }
-        if (rainDriver.triggered()){
-          if (DOCKING_STATION){
-            stateSensor = SENS_RAIN;
-            setOperation(OP_DOCK);
+        if (RAIN_ENABLE){
+          if (rainDriver.triggered()){
+            if (DOCKING_STATION){
+              stateSensor = SENS_RAIN;
+              setOperation(OP_DOCK);
+            }
           }
         }        
       }
