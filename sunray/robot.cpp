@@ -1132,7 +1132,7 @@ void trackLine(){
       stateSensor = SENS_GPS_FIX_TIMEOUT;
       //angular = 0.2;
     } else {
-      if (stateSensor == SENS_GPS_FIX_TIMEOUT) stateSensor = SENS_NONE; // clear fix timeout
+      //if (stateSensor == SENS_GPS_FIX_TIMEOUT) stateSensor = SENS_NONE; // clear fix timeout
     }       
   }     
   
@@ -1440,7 +1440,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
           resetGPSMotionMeasurement;
           lastFixTime = millis();                
           maps.setLastTargetPoint(stateX, stateY);        
-          stateSensor = SENS_NONE;                  
+          //stateSensor = SENS_NONE;                  
         } else {
           error = true;
           CONSOLE.println("error: no waypoints!");
@@ -1462,7 +1462,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
           resetGPSMotionMeasurement();
           lastFixTime = millis();                
           maps.setLastTargetPoint(stateX, stateY);        
-          stateSensor = SENS_NONE;
+          //stateSensor = SENS_NONE;
           motor.setMowState(true);                
         } else {
           error = true;
