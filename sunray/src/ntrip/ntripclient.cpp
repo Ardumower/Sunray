@@ -6,7 +6,7 @@
 
 void NTRIPClient::begin(){
   CONSOLE.println("Requesting SourceTable.");
-  if(reqSrcTbl(host,httpPort)){
+  if(reqSrcTbl(NTRIP_HOST,NTRIP_PORT)){
     char buffer[512];
     delay(5);
     while(available()){
@@ -25,7 +25,7 @@ void NTRIPClient::begin(){
     delay(15000);
     //ESP.restart();
   }
-  CONSOLE.println("Requesting MountPoint is OK");}
+  CONSOLE.println("Requesting MountPoint is OK");
 }
 
 
@@ -38,7 +38,7 @@ void NTRIPClient::run(){
 }
 
 
-bool NTRIPClient::reqSrcTbl(char* host,int &port)
+bool NTRIPClient::reqSrcTbl(char* host,int port)
 {
   if(!connect(host,port)){
       CONSOLE.print("Cannot connect to ");
@@ -69,7 +69,7 @@ bool NTRIPClient::reqSrcTbl(char* host,int &port)
   return true;
     
 }
-bool NTRIPClient::reqRaw(char* host,int &port,char* mntpnt,char* user,char* psw)
+bool NTRIPClient::reqRaw(char* host,int port,char* mntpnt,char* user,char* psw)
 {
     if(!connect(host,port))return false;
     String p="GET /";
@@ -118,7 +118,7 @@ bool NTRIPClient::reqRaw(char* host,int &port,char* mntpnt,char* user,char* psw)
     }
     return true;
 }
-bool NTRIPClient::reqRaw(char* host,int &port,char* mntpnt)
+bool NTRIPClient::reqRaw(char* host,int port,char* mntpnt)
 {
     return reqRaw(host,port,mntpnt,"","");
 }
