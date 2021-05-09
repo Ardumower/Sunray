@@ -368,12 +368,12 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
   #define SERIAL_WIFI_PATH "/dev/null"  
   #define BLE SerialBLE
   #define GPS SerialGPS
-  #define SERIAL_GPS_PATH "/dev/ttyACM0"  
+  #define SERIAL_GPS_PATH "/dev/serial/by-id/usb-u-blox_AG_-_www.u-blox.com_u-blox_GNSS_receiver-if00"  
   #define ROBOT SerialROBOT
-  #define SERIAL_ROBOT_PATH "/dev/ttyUSB0"  
-  #define NTRIP SerialNTRIP  
-  #define SERIAL_NTRIP_PATH "/dev/ttyUSB1"
-#endif
+  #define SERIAL_ROBOT_PATH "/dev/ttyUSB1"  
+  #define NTRIP SerialNTRIP
+  #define SERIAL_NTRIP_PATH "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_00000000-if00-port0"    
+##endif
 
 
 
