@@ -9,13 +9,16 @@
 #include <base64.h>
 
 class NTRIPClient : public WiFiClient{
-  public :
-    void begin();    
-    void run();
+  protected:
+    unsigned long reconnectTimeout;
+    void connectNTRIP();
     bool reqSrcTbl(char* host,int port);   //request MountPoints List serviced the NTRIP Caster 
     bool reqRaw(char* host,int port,char* mntpnt,char* user,char* psw);      //request RAW data from Caster 
     bool reqRaw(char* host,int port,char* mntpnt); //non user
-    int readLine(char* buffer,int size);    
+    int readLine(char* buffer,int size);
+  public :
+    void begin();    
+    void run();        
   
 };
 

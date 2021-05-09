@@ -1,14 +1,23 @@
 #ifdef __linux__
 
-#include "../../config.h"
+//#include "../../config.h"
+#include "config.h"
 #include "ntripclient.h"
+#include "LinuxSerial.h"
+
+LinuxSerial SerialNTRIP("/dev/ttyUSB0");
 
 
 void NTRIPClient::begin(){
-  CONSOLE.println("Requesting SourceTable.");
+  reconnectTimeout = 0;
+  SerialNTRIP.begin(115200);
+}
+
+void NTRIPClient::connectNTRIP(){
+  /*CONSOLE.println("Requesting SourceTable.");
   if(reqSrcTbl(NTRIP_HOST,NTRIP_PORT)){
     char buffer[512];
-    delay(5);
+    delay(100);
     while(available()){
       readLine(buffer,sizeof(buffer));
       CONSOLE.print(buffer); 
@@ -18,23 +27,48 @@ void NTRIPClient::begin(){
     CONSOLE.println("SourceTable request error");
   }
   CONSOLE.print("Requesting SourceTable is OK\n");
-  stop(); //Need to call "stop" function for next request.
-  
-  CONSOLE.println("Requesting MountPoint's Raw data");
+  stop(); //Need to call "stop" function for next request.  
+  */
+  CONSOLE.println("Requesting MountPoint's Raw data");  
   if(!reqRaw(NTRIP_HOST,NTRIP_PORT,NTRIP_MOUNT,NTRIP_USER,NTRIP_PASS)){
-    delay(15000);
-    //ESP.restart();
+    CONSOLE.println("Error requesting MointPoint");
+  } else {
+    CONSOLE.println("Requesting MountPoint is OK");
   }
-  CONSOLE.println("Requesting MountPoint is OK");
 }
 
 
 void NTRIPClient::run(){
-  while(available()) {
-    char ch = read();        
-    //CONSOLE.print(ch);
-    NTRIP.write(ch);  // send to GPS receiver (NTRIP port)        
+  int count = 0;
+  if (millis() > reconnectTimeout){
+    if (connected()) stop();          
+    reconnectTimeout = millis() + 10000;
+    CONSOLE.println("NTRIP disconnected - reconnecting...");
+    connectNTRIP();        
   }
+  if (!connected()) return;
+  // transfer NTRIP client data to GPS...
+  while(available()) {
+    char ch = read();  
+    SerialNTRIP.write(ch);  // send to GPS receiver (NTRIP port)
+    count++;            
+    //CONSOLE.print(ch);            
+  }
+  if (count > 0){
+    CONSOLE.print("NTRIP:");
+    CONSOLE.println(count);
+    reconnectTimeout = millis() + 10000;    
+  }
+  // transfer GPS NMEA data (GGA message) to NTRIP client... 
+  String nmea = "";
+  while (SerialNTRIP.available()){
+    char ch = SerialNTRIP.read();
+    write(ch);             // send to NTRIP client
+    nmea += ch;        
+  }
+  if (nmea != ""){
+    CONSOLE.print(nmea);        
+  }  
 }
 
 
