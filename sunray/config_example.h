@@ -184,6 +184,13 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define UDP_SERVER_IP   192,168,2,56     // remote UDP IP and port to connect to
 #define UDP_SERVER_PORT 4210
 
+// --------- NTRIP client (linux only, highly experimental) ---------------------------------
+#define NTRIP_HOST "195.227.70.119"   // sapos nrw
+#define NTRIP_PORT 2101
+#define NTRIP_MOUNT "VRS_3_4G_NW"
+#define NTRIP_USER "user"
+#define NTRIP_PASS "pass"
+
 // ------ MQTT (highly experimental - ENABLE_SERVER must be set to false for this to work :-/ ) -----------------------------
 // you can access your robot using a MQTT broker - choose a topic prefix for your robot below - available MQTT topics:
 // robot1/cmd           (cmd can be: start, stop, dock)
