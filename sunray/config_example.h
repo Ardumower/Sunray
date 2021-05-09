@@ -371,6 +371,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
   #define SERIAL_GPS_PATH "/dev/ttyACM0"  
   #define ROBOT SerialROBOT
   #define SERIAL_ROBOT_PATH "/dev/ttyUSB0"  
+  #define NTRIP SerialNTRIP  
+  #define SERIAL_NTRIP_PATH "/dev/ttyUSB1"
 #endif
 
 
