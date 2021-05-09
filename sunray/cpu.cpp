@@ -161,7 +161,6 @@ void logCPUHealth(){
   
   //analogReference(AR_DEFAULT);  // ref default
   
-  CONSOLE.println();
 }
 
 

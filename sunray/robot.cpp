@@ -1250,7 +1250,8 @@ void run(){
     CONSOLE.print("  humidity=");
     CONSOLE.print(stateHumidity,0);    
     CONSOLE.print(" ");    
-    logCPUHealth();    
+    logCPUHealth();
+    CONSOLE.println();    
   }
   
   // IMU
