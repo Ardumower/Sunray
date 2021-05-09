@@ -166,6 +166,9 @@ WiFiEspClient client;
 WiFiEspClient espClient;
 PubSubClient mqttClient(espClient);
 //int status = WL_IDLE_STATUS;     // the Wifi radio's status
+#ifdef __linux__
+  NTRIPClient ntrip;
+#endif
 
 float dockSignal = 0;
 float dockAngularSpeed = 0.1;
@@ -768,7 +771,10 @@ void start(){
   myHumidity.begin();    
   
   // initialize ESP module
-  startWIFI();  
+  startWIFI();
+  #ifdef __linux__
+    ntrip.begin();  
+  #endif
   
   watchdogEnable(10000L);   // 10 seconds  
   
@@ -1210,6 +1216,9 @@ void trackLine(){
 
 // robot main loop
 void run(){  
+  #ifdef __linux__
+    ntrip.run();
+  #endif
   robotDriver.run();
   buzzer.run();
   stopButton.run();

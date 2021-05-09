@@ -1,16 +1,13 @@
 #ifdef __linux__
 
-//#include "../../config.h"
-#include "config.h"
+#include "../../config.h"
 #include "ntripclient.h"
-#include "LinuxSerial.h"
-
-LinuxSerial SerialNTRIP("/dev/ttyUSB0");
 
 
 void NTRIPClient::begin(){
   reconnectTimeout = 0;
-  SerialNTRIP.begin(115200);
+  ggaTimeout = 0;
+  NTRIP.begin(115200);
 }
 
 void NTRIPClient::connectNTRIP(){
@@ -39,35 +36,41 @@ void NTRIPClient::connectNTRIP(){
 
 
 void NTRIPClient::run(){
-  int count = 0;
   if (millis() > reconnectTimeout){
     if (connected()) stop();          
     reconnectTimeout = millis() + 10000;
-    CONSOLE.println("NTRIP disconnected - reconnecting...");
-    connectNTRIP();        
-  }
-  if (!connected()) return;
-  // transfer NTRIP client data to GPS...
-  while(available()) {
-    char ch = read();  
-    SerialNTRIP.write(ch);  // send to GPS receiver (NTRIP port)
-    count++;            
-    //CONSOLE.print(ch);            
-  }
-  if (count > 0){
-    CONSOLE.print("NTRIP:");
-    CONSOLE.println(count);
-    reconnectTimeout = millis() + 10000;    
+    if (millis() < ggaTimeout){
+      CONSOLE.println("NTRIP disconnected - reconnecting...");
+      connectNTRIP();
+    } else {
+      CONSOLE.println("NTRIP disconnected - waiting for GPS GGA message...");
+    }
+  }          
+  if (connected()) {
+    // transfer NTRIP client data to GPS...
+    int count = 0;    
+    while(available()) {
+      char ch = read();  
+      NTRIP.write(ch);  // send to GPS receiver (NTRIP port)
+      count++;            
+      //CONSOLE.print(ch);            
+    }
+    if (count > 0){
+      CONSOLE.print("NTRIP:");
+      CONSOLE.println(count);
+      reconnectTimeout = millis() + 10000;    
+    }
   }
   // transfer GPS NMEA data (GGA message) to NTRIP client... 
   String nmea = "";
-  while (SerialNTRIP.available()){
-    char ch = SerialNTRIP.read();
-    write(ch);             // send to NTRIP client
+  while (NTRIP.available()){
+    char ch = NTRIP.read();
+    if (connected()) write(ch);             // send to NTRIP client
     nmea += ch;        
   }
-  if (nmea != ""){
-    CONSOLE.print(nmea);        
+  if (nmea != ""){    
+    CONSOLE.print(nmea);
+    ggaTimeout = millis() + 30000;            
   }  
 }
 

@@ -23,6 +23,7 @@
 #include "src/ublox/ublox.h"
 #ifdef __linux__
   #include <BridgeClient.h>
+  #include "src/ntrip/ntripclient.h"
 #else
   #include "src/esp/WiFiEsp.h"
 #endif
