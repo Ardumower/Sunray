@@ -488,7 +488,7 @@ void loop() {
   // connecting
   if (bleConnected && !oldBleConnected) {
     // do stuff here on connecting
-    bleConnected = bleConnected;
+    oldBleConnected = bleConnected;
   }
 
   // USB receive
