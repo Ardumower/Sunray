@@ -50,8 +50,8 @@ connect to wifi               AT+WIFImode,ssid,pass\r\n       +WIFI=mode,ssid,pa
 String ssid = "";  // WiFi SSID      (leave empty to not use WiFi)
 String pass = "";  // WiFi password  (leave empty to not use WiFi)
 
-#define WIFI_TIMEOUT_FIRST_RESPONSE  200   // fast response times, for more reliable choose: 800     
-#define WIFI_TIMEOUT_RESPONSE        50    // fast response times, for more reliable choose: 400
+#define WIFI_TIMEOUT_FIRST_RESPONSE  500   // fast response times, for more reliable choose: 800     
+#define WIFI_TIMEOUT_RESPONSE        100    // fast response times, for more reliable choose: 400
 
 // -----------------------------------------------------------
 
@@ -318,23 +318,25 @@ void httpServer(){
         if (currentLine.length() == 0) {
           // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
           // and a content-type so the client knows what's coming, then a blank line:            
-          unsigned long timeout = millis() + 50;        
+          unsigned long timeout = millis() + WIFI_TIMEOUT_FIRST_RESPONSE;        
           String cmd = "";
-          while ((client.connected()) && (client.available()) && (millis() < timeout)) {
-            char ch = client.read();
-            timeout = millis() + 50;
-            cmd = cmd + ch;            
+          while ((client.connected()) && (millis() < timeout)) {
+            if (client.available()) {
+              char ch = client.read();
+              timeout = millis() + WIFI_TIMEOUT_RESPONSE;
+              cmd = cmd + ch;
+            }            
           }  
           CONSOLE.print("HTTP rx:");          
           CONSOLE.println(cmd);
           String cmdResponse;
           UART.print(cmd);
-          timeout = millis() + WIFI_TIMEOUT_FIRST_RESPONSE; // fast 200 (slow: 800)
+          timeout = millis() + WIFI_TIMEOUT_FIRST_RESPONSE; 
           while ( millis() < timeout){
             if (UART.available()){
               char ch = UART.read();
               cmdResponse += ch;
-              timeout = millis() + WIFI_TIMEOUT_RESPONSE;  // fast 50 (slow: 400)
+              timeout = millis() + WIFI_TIMEOUT_RESPONSE;  
             }
             delay(1);
           }
