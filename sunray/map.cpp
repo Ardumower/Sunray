@@ -46,11 +46,6 @@ Point::Point(float ax, float ay){
   py = ay * 100;
 }
 
-void Point::assign(Point &fromPoint){
-  px = fromPoint.px;
-  py = fromPoint.py;
-}
-
 void Point::setXY(float ax, float ay){
   px = ax * 100;
   py = ay * 100;
@@ -667,7 +662,7 @@ bool Map::setWayCount(WayType type, int count){
     case WAY_PERIMETER:            
       if (perimeterPoints.alloc(count)){
         for (int i=0; i < count; i++){
-          perimeterPoints.points[i].assign( points.points[i] );
+          perimeterPoints.points[i] = points.points[i];
         }
       }
       break;
@@ -677,14 +672,14 @@ bool Map::setWayCount(WayType type, int count){
     case WAY_DOCK:    
       if (dockPoints.alloc(count)){
         for (int i=0; i < count; i++){
-          dockPoints.points[i].assign( points.points[perimeterPoints.numPoints + exclusionPointsCount + i] );
+          dockPoints.points[i] = points.points[perimeterPoints.numPoints + exclusionPointsCount + i];
         }
       }
       break;
     case WAY_MOW:          
       if (mowPoints.alloc(count)){
         for (int i=0; i < count; i++){
-          mowPoints.points[i].assign( points.points[perimeterPoints.numPoints + exclusionPointsCount + dockPoints.numPoints + i] );
+          mowPoints.points[i] = points.points[perimeterPoints.numPoints + exclusionPointsCount + dockPoints.numPoints + i];
         }
         if (exclusionPointsCount == 0){
           points.dealloc();
@@ -724,7 +719,7 @@ bool Map::setExclusionLength(int idx, int len){
     ptIdx += exclusions.polygons[i].numPoints;    
   }    
   for (int j=0; j < len; j++){
-    exclusions.polygons[idx].points[j].assign( points.points[perimeterPoints.numPoints + ptIdx] );        
+    exclusions.polygons[idx].points[j] = points.points[perimeterPoints.numPoints + ptIdx];        
     ptIdx ++;
   }
   CONSOLE.print("ptIdx=");
@@ -776,17 +771,17 @@ void Map::run(){
   switch (wayMode){
     case WAY_DOCK:      
       if (dockPointsIdx < dockPoints.numPoints){
-        targetPoint.assign( dockPoints.points[dockPointsIdx] );
+        targetPoint = dockPoints.points[dockPointsIdx];
       }
       break;
     case WAY_MOW:
       if (mowPointsIdx < mowPoints.numPoints){
-        targetPoint.assign( mowPoints.points[mowPointsIdx] );
+        targetPoint = mowPoints.points[mowPointsIdx];
       }
       break;
     case WAY_FREE:      
       if (freePointsIdx < freePoints.numPoints){
-        targetPoint.assign(freePoints.points[freePointsIdx]);
+        targetPoint = freePoints.points[freePointsIdx];
       }
       break;
   } 
@@ -812,7 +807,7 @@ bool Map::nextPointIsStraight(){
   if (wayMode != WAY_MOW) return false;
   if (mowPointsIdx+1 >= mowPoints.numPoints) return false;     
   Point nextPt;
-  nextPt.assign(mowPoints.points[mowPointsIdx+1]);  
+  nextPt = mowPoints.points[mowPointsIdx+1];  
   float angleCurr = pointsAngle(lastTargetPoint.x(), lastTargetPoint.y(), targetPoint.x(), targetPoint.y());
   float angleNext = pointsAngle(targetPoint.x(), targetPoint.y(), nextPt.x(), nextPt.y());
   angleNext = scalePIangles(angleNext, angleCurr);                    
@@ -827,8 +822,8 @@ void Map::setRobotStatePosToDockingPos(float &x, float &y, float &delta){
   if (dockPoints.numPoints < 2) return;
   Point dockFinalPt;
   Point dockPrevPt;
-  dockFinalPt.assign(dockPoints.points[ dockPoints.numPoints-1]);  
-  dockPrevPt.assign(dockPoints.points[ dockPoints.numPoints-2]);
+  dockFinalPt = dockPoints.points[ dockPoints.numPoints-1];  
+  dockPrevPt = dockPoints.points[ dockPoints.numPoints-2];
   x = dockFinalPt.x();
   y = dockFinalPt.y();
   delta = pointsAngle(dockPrevPt.x(), dockPrevPt.y(), dockFinalPt.x(), dockFinalPt.y());  
@@ -875,7 +870,7 @@ bool Map::startDocking(float stateX, float stateY){
     Point src;
     Point dst;
     src.setXY(stateX, stateY);    
-    dst.assign(dockPoints.points[0]);        
+    dst = dockPoints.points[0];        
     //findPathFinderSafeStartPoint(src, dst);      
     wayMode = WAY_FREE;              
     if (findPath(src, dst)){      
@@ -909,13 +904,13 @@ bool Map::startMowing(float stateX, float stateY){
     Point dst;
     src.setXY(stateX, stateY);
     if (wayMode == WAY_DOCK){
-      src.assign(dockPoints.points[0]);
+      src = dockPoints.points[0];
     } else {
       wayMode = WAY_FREE;      
       freePointsIdx = 0;    
     }        
     if (findObstacleSafeMowPoint(dst)){
-      //dst.assign(mowPoints.points[mowPointsIdx]);      
+      //dst = mowPoints.points[mowPointsIdx];      
       //findPathFinderSafeStartPoint(src, dst);      
       if (findPath(src, dst)){        
         return true;
@@ -980,7 +975,7 @@ bool Map::findObstacleSafeMowPoint(Point &findPathToPoint){
   Point dst;  
   while (true){
     safe = true;  
-    dst.assign(mowPoints.points[mowPointsIdx]);
+    dst = mowPoints.points[mowPointsIdx];
     CONSOLE.print("findObstacleSafeMowPoint checking ");    
     CONSOLE.print(dst.x());
     CONSOLE.print(",");
@@ -994,11 +989,11 @@ bool Map::findObstacleSafeMowPoint(Point &findPathToPoint){
     if (safe) {
       // find valid start point on path to mowing point 
       if (mowPointsIdx == 0) {  // first mowing point has no path
-        findPathToPoint.assign(dst);
+        findPathToPoint = dst;
         return true;
       }
       Point src;
-      src.assign(mowPoints.points[mowPointsIdx-1]); // path source is last mowing point
+      src = mowPoints.points[mowPointsIdx-1]; // path source is last mowing point
       Point sect;
       Point minSect;
       float minDist = 9999;      
@@ -1007,16 +1002,16 @@ bool Map::findObstacleSafeMowPoint(Point &findPathToPoint){
           float dist = distance(sect, dst);
           if (dist < minDist ){
             minDist = dist;
-            minSect.assign(sect); 
+            minSect = sect; 
           }
         }
       }
       if (minDist < 9999){ // obstacle on path, use last section point on path for path source 
-        findPathToPoint.assign(minSect);
+        findPathToPoint = minSect;
         return true;
       }
       // no obstacle on path, just use next mowing point 
-      findPathToPoint.assign(dst);
+      findPathToPoint = dst;
       return true;
     }    
     // try next mowing point
@@ -1047,7 +1042,7 @@ void Map::findPathFinderSafeStartPoint(Point &src, Point &dst){
   Point sect;
   if (!pointIsInsidePolygon( perimeterPoints, src)){
     if (linePolygonIntersectPoint( src, dst, perimeterPoints, sect)){
-      src.assign(sect);
+      src = sect;
       CONSOLE.println("found safe point inside perimeter");
       return;
     }    
@@ -1057,7 +1052,7 @@ void Map::findPathFinderSafeStartPoint(Point &src, Point &dst){
       if (linePolygonIntersectionCount(src, dst, exclusions.polygons[i]) == 1){
         // source point is not reachable      
         if (linePolygonIntersectPoint( src, dst, exclusions.polygons[i], sect)){    
-          src.assign(sect);
+          src = sect;
           CONSOLE.println("found safe point outside exclusion");
           return;
         }
@@ -1093,7 +1088,7 @@ bool Map::nextMowPoint(bool sim){
   if (shouldMow){
     if (mowPointsIdx+1 < mowPoints.numPoints){
       // next mowing point       
-      if (!sim) lastTargetPoint.assign(targetPoint);
+      if (!sim) lastTargetPoint = targetPoint;
       if (!sim) mowPointsIdx++;
       //if (!sim) targetPointIdx++;      
       return true;
@@ -1104,7 +1099,7 @@ bool Map::nextMowPoint(bool sim){
     }         
   } else if ((shouldDock) && (dockPoints.numPoints > 0)) {      
       // go docking
-      if (!sim) lastTargetPoint.assign(targetPoint);
+      if (!sim) lastTargetPoint = targetPoint;
       if (!sim) freePointsIdx = 0; 
       if (!sim) wayMode = WAY_FREE;      
       return true;    
@@ -1116,7 +1111,7 @@ bool Map::nextDockPoint(bool sim){
   if (shouldDock){
     // should dock  
     if (dockPointsIdx+1 < dockPoints.numPoints){
-      if (!sim) lastTargetPoint.assign(targetPoint);
+      if (!sim) lastTargetPoint = targetPoint;
       if (!sim) dockPointsIdx++;              
       if (!sim) trackReverse = false;              
       if (!sim) trackSlow = true;
@@ -1131,7 +1126,7 @@ bool Map::nextDockPoint(bool sim){
   } else if (shouldMow){
     // should undock
     if (dockPointsIdx > 0){
-      if (!sim) lastTargetPoint.assign(targetPoint);
+      if (!sim) lastTargetPoint = targetPoint;
       if (!sim) dockPointsIdx--;              
       if (!sim) trackReverse = true;              
       if (!sim) trackSlow = true;      
@@ -1139,7 +1134,7 @@ bool Map::nextDockPoint(bool sim){
     } else {
       // finished undocking
       if ((shouldMow) && (mowPoints.numPoints > 0 )){
-        if (!sim) lastTargetPoint.assign(targetPoint);
+        if (!sim) lastTargetPoint = targetPoint;
         //if (!sim) targetPointIdx = freeStartIdx;
         if (!sim) wayMode = WAY_FREE;      
         if (!sim) trackReverse = false;              
@@ -1158,19 +1153,19 @@ bool Map::nextDockPoint(bool sim){
 bool Map::nextFreePoint(bool sim){
   // free points
   if (freePointsIdx+1 < freePoints.numPoints){
-    if (!sim) lastTargetPoint.assign(targetPoint);
+    if (!sim) lastTargetPoint = targetPoint;
     if (!sim) freePointsIdx++;                  
     return true;
   } else {
     // finished free points
     if ((shouldMow) && (mowPoints.numPoints > 0 )){
       // start mowing
-      if (!sim) lastTargetPoint.assign(targetPoint);      
+      if (!sim) lastTargetPoint = targetPoint;      
       if (!sim) wayMode = WAY_MOW;
       return true;  
     } else if ((shouldDock) && (dockPoints.numPoints > 0)){      
       // start docking
-      if (!sim) lastTargetPoint.assign(targetPoint);
+      if (!sim) lastTargetPoint = targetPoint;
       if (!sim) dockPointsIdx = 0;      
       if (!sim) wayMode = WAY_DOCK;      
       return true;
@@ -1211,11 +1206,11 @@ bool Map::isPointInBoundingBox(Point &pt, Point &A, Point &B){
 bool Map::lineLineIntersection(Point &A, Point &B, Point &C, Point &D, Point &pt)  { 
   //console.log('lineLineIntersection', A,B,C,D);
   if ((distance(A, C) < 0.02) || (distance(A, D) < 0.02)) { 
-    pt.assign(A);   
+    pt = A;   
     return true;
   } 
   if ((distance(B, C) < 0.02) || (distance(B, D) < 0.02)){
-    pt.assign(B);
+    pt = B;
     return true;
   }   
   // Line AB represented as a1x + b1y = c1 
@@ -1238,7 +1233,7 @@ bool Map::lineLineIntersection(Point &A, Point &B, Point &C, Point &D, Point &pt
       cp.setXY(x, y);    
       if (!isPointInBoundingBox(cp, A, B)) return false; // not in bounding box of 1st line
       if (!isPointInBoundingBox(cp, C, D)) return false; // not in bounding box of 2nd line
-      pt.assign(cp);
+      pt = cp;
       return true;
   } 
 } 
@@ -1263,8 +1258,8 @@ bool Map::linePolygonIntersectPoint( Point &src, Point &dst, Polygon &poly, Poin
   //CONSOLE.print(dst.y());
   //CONSOLE.println(")");
   for (int i = 0; i < poly.numPoints; i++) {      
-    p1.assign( poly.points[i] );
-    p2.assign( poly.points[ (i+1) % poly.numPoints] );                
+    p1 = poly.points[i];
+    p2 = poly.points[ (i+1) % poly.numPoints];                
     //CONSOLE.print("(");
     //CONSOLE.print(p1.x());
     //CONSOLE.print(",");
@@ -1286,7 +1281,7 @@ bool Map::linePolygonIntersectPoint( Point &src, Point &dst, Polygon &poly, Poin
         //CONSOLE.println(dist);
         if (dist < minDist){
           minDist = dist;
-          sect.assign(cp);
+          sect = cp;
         }        
       }
     } // else CONSOLE.println();    
@@ -1315,8 +1310,8 @@ bool Map::pointIsInsidePolygon( Polygon &polygon, Point &pt)
   int x = pt.px;
   int y = pt.py;
   for (i = 0, j = nvert-1; i < nvert; j = i++) {
-    pti.assign(polygon.points[i]);
-    ptj.assign(polygon.points[j]);    
+    pti = polygon.points[i];
+    ptj = polygon.points[j];    
     
     #ifdef FLOAT_CALC    
     if ( ((pti.y()>pt.y()) != (ptj.y()>pt.y())) &&
@@ -1401,8 +1396,8 @@ int Map::linePolygonIntersectionCount(Point &src, Point &dst, Polygon &poly){
   Point p2;
   int count = 0;
   for (int i = 0; i < poly.numPoints; i++) {      
-    p1.assign( poly.points[i] );
-    p2.assign( poly.points[ (i+1) % poly.numPoints] );             
+    p1 = poly.points[i];
+    p2 = poly.points[ (i+1) % poly.numPoints];             
     if (lineIntersects(p1, p2, src, dst)) {        
       count++;
     }  
@@ -1418,8 +1413,8 @@ bool Map::linePolygonIntersection( Point &src, Point &dst, Polygon &poly) {
   Point p1;
   Point p2;
   for (int i = 0; i < poly.numPoints; i++) {      
-    p1.assign( poly.points[i] );
-    p2.assign( poly.points[ (i+1) % poly.numPoints] );             
+    p1 = poly.points[i];
+    p2 = poly.points[ (i+1) % poly.numPoints];             
     if (lineIntersects(p1, p2, src, dst)) {        
       return true;
     }
@@ -1438,8 +1433,8 @@ float Map::polygonArea(Polygon &poly){
   Point v0;
   Point v1;
   for (i = 0, l = poly.numPoints; i < l; i++) {
-    v0.assign( poly.points[i] );
-    v1.assign( poly.points[i == l - 1 ? 0 : i + 1] );
+    v0 = poly.points[i];
+    v1 = poly.points[i == l - 1 ? 0 : i + 1];
     a += v0.x() * v1.y();
     a -= v1.x() * v0.y();
   }
@@ -1467,9 +1462,9 @@ bool Map::polygonOffset(Polygon &srcPoly, Polygon &dstPoly, float dist){
     if (idx2 < 0) idx2 = srcPoly.numPoints-1;
     int idx3 = idx1+1;
     if (idx3 > srcPoly.numPoints-1) idx3 = 0;      
-    p2.assign(srcPoly.points[idx2]); // previous           
-    p1.assign(srcPoly.points[idx1]); // center
-    p3.assign(srcPoly.points[idx3]); // next                 
+    p2 = srcPoly.points[idx2]; // previous           
+    p1 = srcPoly.points[idx1]; // center
+    p3 = srcPoly.points[idx3]; // next                 
     float a3 = atan2(p3.y() - p1.y(), p3.x() - p1.x());            
     float a2 = atan2(p2.y() - p1.y(), p2.x() - p1.x());      
     float angle = a2 + (a3-a2)/2;      
@@ -1750,7 +1745,7 @@ bool Map::findPath(Point &src, Point &dst){
       curr = currentNode;
       int idx = nodeCount-1;
       while(curr) {                                
-        freePoints.points[idx].assign( *curr->point );
+        freePoints.points[idx] = *curr->point;
         CONSOLE.print("node pt=");
         CONSOLE.print(curr->point->x());
         CONSOLE.print(",");
@@ -1763,13 +1758,13 @@ bool Map::findPath(Point &src, Point &dst){
       CONSOLE.println("pathfinder: no path");      
       return false;
       //freePoints.alloc(2);
-      //freePoints.points[0].assign(src);    
-      //freePoints.points[1].assign(dst);        
+      //freePoints.points[0] = src;    
+      //freePoints.points[1] = dst;        
     }       
   } else {
     if (!freePoints.alloc(2)) return false;
-    freePoints.points[0].assign(src);    
-    freePoints.points[1].assign(dst);        
+    freePoints.points[0] = src;    
+    freePoints.points[1] = dst;        
   }    
   freePointsIdx=0;  
  
