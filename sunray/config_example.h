@@ -263,6 +263,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //    (for Adafruit Grand Central M4: 'packages\adafruit\hardware\samd\xxxxx\cores\arduino\RingBuffer.h')
 // change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 1024
 
+//#define GPS_SKYTRAQ  1               // comment for ublox gps, uncomment for skytraq gps 
+
 //#define REQUIRE_VALID_GPS  true       // mower will pause if no float and no fix GPS solution during mowing
 #define REQUIRE_VALID_GPS  false    // mower will continue to mow if no float or no fix solution
 

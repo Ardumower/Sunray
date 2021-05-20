@@ -21,6 +21,7 @@
 #include "VL53L0X.h"
 #include "map.h"   
 #include "src/ublox/ublox.h"
+#include "src/skytraq/skytraq.h"
 #ifdef __linux__
   #include <BridgeClient.h>
   #include "src/ntrip/ntripclient.h"
@@ -30,7 +31,7 @@
 #include "PubSubClient.h"
 
 
-#define VER "Ardumower Sunray,1.0.185"
+#define VER "Ardumower Sunray,1.0.186"
 
 enum OperationType {
       OP_IDLE,      
@@ -137,7 +138,11 @@ extern Sonar sonar;
 extern VL53L0X tof;
 extern PinManager pinMan;
 extern Map maps;
-extern UBLOX gps;
+#ifdef GPS_SKYTRAQ
+  extern SKYTRAQ gps;
+#else
+  extern UBLOX gps;
+#endif
 
 int freeMemory();
 void start();

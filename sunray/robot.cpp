@@ -24,6 +24,7 @@
 #include "src/driver/SerialRobotDriver.h"
 #include "battery.h"
 #include "src/ublox/ublox.h"
+#include "src/skytraq/skytraq.h"
 #include "buzzer.h"
 #include "rcmodel.h"
 #include "map.h"
@@ -64,7 +65,11 @@ MPU9250_DMP imu;
 Motor motor;
 Battery battery;
 PinManager pinMan;
-UBLOX gps;
+#ifdef GPS_SKYTRAQ
+  SKYTRAQ gps;
+#else 
+  UBLOX gps;
+#endif 
 BLEConfig bleConfig;
 Buzzer buzzer;
 Sonar sonar;
