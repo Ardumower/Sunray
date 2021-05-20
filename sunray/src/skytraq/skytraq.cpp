@@ -49,6 +49,7 @@ void SKYTRAQ::begin(HardwareSerial& bus,uint32_t baud)
 
 
 bool SKYTRAQ::configure(){  
+  CONSOLE.println("using skytraq gps..."); 
 }
 
 void SKYTRAQ::reboot(){
