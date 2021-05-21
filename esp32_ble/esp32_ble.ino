@@ -38,7 +38,7 @@ connect to wifi               AT+WIFImode,ssid,pass\r\n       +WIFI=mode,ssid,pa
 */
 
 // ---------- configuration ----------------------------------
-#define VERSION "ESP32 firmware V0.2.2,Bluetooth V4.0 LE"
+#define VERSION "ESP32 firmware V0.2.3,Bluetooth V4.0 LE"
 #define NAME "Ardumower"
 #define BLE_MTU 20   // max. transfer bytes per BLE frame
 
@@ -483,12 +483,13 @@ void loop() {
     pAdvertising->setMinPreferred(0x12);
     BLEDevice::startAdvertising(); 
     CONSOLE.println("start advertising");
-    oldBleConnected = bleConnected;
+    oldBleConnected = false;
   }
   // connecting
   if (bleConnected && !oldBleConnected) {
     // do stuff here on connecting
-    oldBleConnected = bleConnected;
+    oldBleConnected = true;
+    CONSOLE.println("BLE connected");
   }
 
   // USB receive
