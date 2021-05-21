@@ -13,16 +13,10 @@
 
 #include "Arduino.h"			
 #include "SkyTraqNmeaParser.h"
-
+#include "../../gps.h"
 
 class SKYTRAQ : public SkyTraqNotifyFun{
   public:
-    enum SolType {
-      SOL_INVALID,
-      SOL_FLOAT,
-      SOL_FIXED      
-    };    
-    
     typedef enum {
         GOT_NONE,
         GOT_SYNC1,

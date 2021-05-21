@@ -23,6 +23,7 @@
 #include "src/driver/AmRobotDriver.h"
 #include "src/driver/SerialRobotDriver.h"
 #include "battery.h"
+#include "gps.h"
 #include "src/ublox/ublox.h"
 #include "src/skytraq/skytraq.h"
 #include "buzzer.h"
@@ -122,7 +123,7 @@ float lastGPSMotionX = 0;
 float lastGPSMotionY = 0;
 unsigned long nextGPSMotionCheckTime = 0;
 
-UBLOX::SolType lastSolution = UBLOX::SOL_INVALID;    
+SolType lastSolution = SOL_INVALID;    
 unsigned long nextStatTime = 0;
 unsigned long nextToFTime = 0;
 unsigned long statIdleDuration = 0; // seconds
@@ -266,9 +267,9 @@ void updateStateOpText(){
     default: stateOpText = "unknown"; break;
   }
   switch (gps.solution){
-    case UBLOX::SOL_INVALID: gpsSolText = "invalid"; break;
-    case UBLOX::SOL_FLOAT: gpsSolText = "float"; break;
-    case UBLOX::SOL_FIXED: gpsSolText ="fixed"; break;
+    case SOL_INVALID: gpsSolText = "invalid"; break;
+    case SOL_FLOAT: gpsSolText = "float"; break;
+    case SOL_FIXED: gpsSolText ="fixed"; break;
     default: gpsSolText = "unknown";      
   }
 }
@@ -801,12 +802,12 @@ void calcStats(){
         break;
       case OP_MOW:      
         statMowDuration++;
-        if (gps.solution == UBLOX::SOL_FIXED) statMowDurationFix++;
-          else if (gps.solution == UBLOX::SOL_FLOAT) statMowDurationFloat++;   
-          else if (gps.solution == UBLOX::SOL_INVALID) statMowDurationInvalid++;
+        if (gps.solution == SOL_FIXED) statMowDurationFix++;
+          else if (gps.solution == SOL_FLOAT) statMowDurationFloat++;   
+          else if (gps.solution == SOL_INVALID) statMowDurationInvalid++;
         if (gps.solution != lastSolution){      
-          if ((lastSolution == UBLOX::SOL_FLOAT) && (gps.solution == UBLOX::SOL_FIXED)) statMowFloatToFixRecoveries++;
-          if (lastSolution == UBLOX::SOL_INVALID) statMowInvalidRecoveries++;
+          if ((lastSolution == SOL_FLOAT) && (gps.solution == SOL_FIXED)) statMowFloatToFixRecoveries++;
+          if (lastSolution == SOL_INVALID) statMowInvalidRecoveries++;
           lastSolution = gps.solution;
         } 
         statMowMaxDgpsAge = max(statMowMaxDgpsAge, (millis() - gps.dgpsAge)/1000.0);        
@@ -849,7 +850,7 @@ void computeRobotState(){
   }
   
   if ((gps.solutionAvail) 
-      && ((gps.solution == UBLOX::SOL_FIXED) || (gps.solution == UBLOX::SOL_FLOAT))  )
+      && ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT))  )
   {
     gps.solutionAvail = false;        
     stateGroundSpeed = 0.9 * stateGroundSpeed + 0.1 * gps.groundSpeed;    
@@ -871,8 +872,8 @@ void computeRobotState(){
         if (motor.linearSpeedSet < 0) stateDeltaGPS = scalePI(stateDeltaGPS + PI); // consider if driving reverse
         //stateDeltaGPS = scalePI(2*PI-gps.heading+PI/2);
         float diffDelta = distancePI(stateDelta, stateDeltaGPS);                 
-        if (    (gps.solution == UBLOX::SOL_FIXED)
-             || ((gps.solution == UBLOX::SOL_FLOAT) && (maps.useGPSfloatForDeltaEstimation)) )
+        if (    (gps.solution == SOL_FIXED)
+             || ((gps.solution == SOL_FLOAT) && (maps.useGPSfloatForDeltaEstimation)) )
         {   // allows planner to use float solution?         
           if (fabs(diffDelta/PI*180) > 45){ // IMU-based heading too far away => use GPS heading
             stateDelta = stateDeltaGPS;
@@ -887,7 +888,7 @@ void computeRobotState(){
       lastPosN = posN;
       lastPosE = posE;
     } 
-    if (gps.solution == UBLOX::SOL_FIXED) {
+    if (gps.solution == SOL_FIXED) {
       // fix
       lastFixTime = millis();
       stateX = posE;
@@ -1111,7 +1112,7 @@ void trackLine(){
       linear = 0.1; // reduce speed when approaching/leaving waypoints          
     } 
     else {
-      if (gps.solution == UBLOX::SOL_FLOAT)        
+      if (gps.solution == SOL_FLOAT)        
         linear = min(setSpeed, 0.1); // reduce speed for float solution
       else
         linear = setSpeed;         // desired speed
@@ -1147,7 +1148,7 @@ void trackLine(){
     }       
   }     
   
-  if ((gps.solution == UBLOX::SOL_FIXED) || (gps.solution == UBLOX::SOL_FLOAT)){        
+  if ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT)){        
     if (linear > 0.06) {
       if ((millis() > linearMotionStartTime + 5000) && (stateGroundSpeed < 0.03)){
         // if in linear motion and not enough ground speed => obstacle

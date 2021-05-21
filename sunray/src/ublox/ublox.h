@@ -20,15 +20,10 @@
 #define UBLOX_h
 
 #include "Arduino.h"				
+#include "../../gps.h"
 
 class UBLOX{
-  public:
-    enum SolType {
-      SOL_INVALID,
-      SOL_FLOAT,
-      SOL_FIXED      
-    };    
-    
+  public:    
     typedef enum {
         GOT_NONE,
         GOT_SYNC1,

@@ -464,7 +464,7 @@ void UBLOX::dispatchMessage() {
               relPosN = ((float)this->unpack_int32(8))/100.0;
               relPosE = ((float)this->unpack_int32(12))/100.0;
               relPosD = ((float)this->unpack_int32(16))/100.0;              
-              solution = (UBLOX::SolType)((this->unpack_int32(60) >> 3) & 3);              
+              solution = (SolType)((this->unpack_int32(60) >> 3) & 3);              
               solutionAvail = true;
               if (verbose){
                 CONSOLE.print("UBX-NAV-RELPOSNED ");

@@ -8,6 +8,8 @@
 #include "../../config.h"
 
 
+//#define GPS_DUMP 1
+
 SKYTRAQ::SKYTRAQ()
 {
   debug = false;
@@ -50,6 +52,7 @@ void SKYTRAQ::begin(HardwareSerial& bus,uint32_t baud)
 
 bool SKYTRAQ::configure(){  
   CONSOLE.println("using skytraq gps..."); 
+  return true;
 }
 
 void SKYTRAQ::reboot(){
@@ -196,7 +199,8 @@ long SKYTRAQ::unpack(int offset, int size) {
 /* parse the skytraq data */
 void SKYTRAQ::run()
 {
-	// read a byte from the serial port	  
+	//CONSOLE.println("SKYTRAQ::run");
+  // read a byte from the serial port	  
   if (!_bus->available()) return;
   while (_bus->available()) {		
     byte data = _bus->read();        		
@@ -324,7 +328,7 @@ bool SKYTRAQ::processNmea(U32 f, const char* buf, ParsingType type)
     case SkyTraqNmeaParser::UpdateEnuVelocity:
       CONSOLE.print("E-Velocity:");
       CONSOLE.print(gnss.GetEVelocity());
-      CONSOLE.print("   N-Velocityy:");
+      CONSOLE.print("   N-Velocity:");
       CONSOLE.print(gnss.GetNVelocity());
       CONSOLE.print("   U-Velocity:");
       CONSOLE.println(gnss.GetUVelocity());
@@ -332,11 +336,12 @@ bool SKYTRAQ::processNmea(U32 f, const char* buf, ParsingType type)
     case SkyTraqNmeaParser::UpdateRtkAge:
       CONSOLE.print("RTK Age:");
       CONSOLE.println(gnss.GetRtkAge());
-      dgpsAge = millis() + gnss.GetRtkAge() * 1000;
+      dgpsAge = millis() - gnss.GetRtkAge() * 1000;
       break;
     case SkyTraqNmeaParser::UpdateRtkRatio:
       CONSOLE.print("RTK Ratio:");
       CONSOLE.println(gnss.GetRtkRatio());
+      numSVdgps = ((float)gnss.GetRtkRatio()) * 100.0 * numSV;  
      break;
     case SkyTraqNmeaParser::UpdateEnuProjection:
       CONSOLE.print("E-Projection:");
