@@ -1,5 +1,3 @@
-blabla
-
 # Sunray
 
 ## Description
