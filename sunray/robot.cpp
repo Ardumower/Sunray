@@ -762,12 +762,12 @@ void start(){
   CONSOLE.print("SERIAL_BUFFER_SIZE=");
   CONSOLE.print(SERIAL_BUFFER_SIZE);
   CONSOLE.println(" (increase if you experience GPS checksum errors)");
-  CONSOLE.println("-----------------------------------------------------");
-  CONSOLE.println("NOTE: if you experience GPS checksum errors, try to increase UART FIFO size:");
-  CONSOLE.println("1. Arduino IDE->File->Preferences->Click on 'preferences.txt' at the bottom");
-  CONSOLE.println("2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h");
-  CONSOLE.println("   for Grand Central M4 'packages/adafruit/hardware/samd/xxxxx/cores/arduino/RingBuffer.h");  
-  CONSOLE.println("change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 1024");
+  //CONSOLE.println("-----------------------------------------------------");
+  //CONSOLE.println("NOTE: if you experience GPS checksum errors, try to increase UART FIFO size:");
+  //CONSOLE.println("1. Arduino IDE->File->Preferences->Click on 'preferences.txt' at the bottom");
+  //CONSOLE.println("2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h");
+  //CONSOLE.println("   for Grand Central M4 'packages/adafruit/hardware/samd/xxxxx/cores/arduino/RingBuffer.h");  
+  //CONSOLE.println("change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 1024");
   CONSOLE.println("-----------------------------------------------------");
   
   gps.begin(GPS,GPS_BAUDRATE);   

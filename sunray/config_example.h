@@ -482,3 +482,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
     #define SDCARD_SS_PIN 4
   #endif
 #endif
+
+// the following will be used by Arduino library RingBuffer.h - to verify this Arduino library file:
+// 1. Arduino IDE->File->Preferences->Click on 'preferences.txt' at the bottom
+// 2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h
+  
+#define SERIAL_BUFFER_SIZE 1024
+
