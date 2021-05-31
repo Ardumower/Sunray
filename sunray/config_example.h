@@ -61,10 +61,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define ENABLE_PASS   1        // comment out to disable password authentication
 #define PASS          123456   // choose password for WiFi/BLE communication
 
-// ------- RTK GPS module -----------------------------------
-// see Wiki on how to install the GPS module and configure the jumpers:
-// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Bluetooth_BLE_UART_module
-
 // -------- IMU sensor  ----------------------------------------------
 // choose one MPU IMU (make sure to connect AD0 on the MPU board to 3.3v)
 // verify in CONSOLE that your IMU was found (you will hear 8 buzzer beeps for automatic calibration at start)
@@ -257,6 +253,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 
 // ------ GPS ------------------------------------------
+// ------- RTK GPS module -----------------------------------
+// see Wiki on how to install the GPS module and configure the jumpers:
+// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Bluetooth_BLE_UART_module
+//
 // NOTE: if you experience GPS checksum errors, try to increase UART FIFO size:
 // 1. Arduino IDE->File->Preferences->Click on 'preferences.txt' at the bottom
 // 2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h'
@@ -278,8 +278,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // configure ublox f9p with optimal settings (will be stored in f9p RAM only)
 // NOTE: due to a PCB1.3 bug GPS_RX pin is not working and you have to fix this by a wire:
-// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#PCB1.3_GPS_pin_fix   (see step 2)
-#define GPS_CONFIG   true     // configure GPS receiver (recommended - requires GPS wire fix above!)
+// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#PCB1.3_GPS_pin_fix_and_wire_fix   (see 'GPS wire fix')
+#define GPS_CONFIG   true     // configure GPS receiver (recommended - requires GPS wire fix above! otherwise firmware will stuck at boot!)
 //#define GPS_CONFIG   false  // do not configure GPS receiver (no GPS wire fix required)
 
 #define GPS_CONFIG_FILTER   true     // use signal strength filter? (recommended to get rid of 'FIX jumps')
