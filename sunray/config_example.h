@@ -3,7 +3,12 @@
 // Licensed GPLv3 for open source use
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
-/* see Wiki for installation details:
+/* 
+WARNING: all software and hardware components are designed and optimized as a whole, if you try to 
+replace or exclude some hardware component not as designed, you risk to damage your hardware with 
+the software.
+
+   see Wiki for installation details:
    http://wiki.ardumower.de/index.php?title=Ardumower_Sunray
 
    requirements:
