@@ -6,7 +6,7 @@ An alternative Firmware (experimental) for Ardumower PCB 1.3, Adafruit Grand Cen
 The robot mower uses RTK to localize itself (without a perimeter wire)
 
 ## Warning
-WARNING: all software and hardware components are designed and optimized as a whole, if you try to replace or exclude some hardware component not as designed, you risk to damage your hardware with the software
+All software and hardware, software and motor components are designed and optimized as a whole, if you try to replace or exclude some component not as designed, you risk to damage your hardware with the software
 
 ## Wiki
 http://wiki.ardumower.de/index.php?title=Ardumower_Sunray
