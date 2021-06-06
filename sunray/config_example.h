@@ -148,9 +148,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define MOW_TOGGLE_DIR       true
 //#define MOW_TOGGLE_DIR       false
 
-// should the motor overload detection be enabled?
-//#define ENABLE_OVERLOAD_DETECTION  true
-#define ENABLE_OVERLOAD_DETECTION  false
+// should the error on motor overload detection be enabled?
+//#define ENABLE_OVERLOAD_DETECTION  true    // robot will stop on overload
+#define ENABLE_OVERLOAD_DETECTION  false    // robot will slow down on overload
 
 // should the motor fault (error) detection be enabled? 
 #define ENABLE_FAULT_DETECTION  true
