@@ -12,7 +12,7 @@
    http://wiki.ardumower.de/index.php?title=Ardumower_Sunray
 
    requirements:
-   + Ardumower chassis and Ardumower motors   
+   + Ardumower chassis and Ardumower kit mowing and gear motors   
    + Ardumower PCB 1.3 
    +   Adafruit Grand Central M4 (highly recommended) or Arduino Due 
    +   Ardumower BLE UART module (HM-10/CC2540/CC2541)
