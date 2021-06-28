@@ -3,6 +3,13 @@
 // Licensed GPLv3 for open source use
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
+// MC33926 brushed driver: Why using 3900 Hz PWM frequency?
+// At 3900 Hz, our MC33926 motor drivers give linear motor current results for all speeds (PWM/odometry values)
+// http://wiki.ardumower.de/images/f/f9/Pwm_3khz.png
+// At 490 Hz or 20 kHz, the reported values are not so good:
+// http://wiki.ardumower.de/images/e/e0/Pwm_490hz.png
+// http://wiki.ardumower.de/images/8/84/Pwm_20khz.png
+
 #include "pinman.h"
 #include "config.h"
 #ifdef __SAMD51__
@@ -21,13 +28,14 @@
 #else  // --------- brushed motors use 3900 Hz ---------------
   #if defined(__SAMD51__)
     #define TCC_CTRLA_PRESCALER TCC_CTRLA_PRESCALER_DIV256     // PWM base frequency
-    #define TCC_TOP 0xFF                                       // PWM resolution
+    #define TCC_TOP 0x80                                       // PWM resolution
   #elif defined(_SAM3XA_)
     #define PWM_FREQUENCY  3900  
     #define TC_FREQUENCY   3900
   #endif
 
 #endif
+
 
 static uint8_t PWMEnabled = 0;
 static uint8_t pinEnabled[PINS_COUNT];
