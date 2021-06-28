@@ -27,8 +27,8 @@
   #endif
 #else  // --------- brushed motors use 3900 Hz ---------------
   #if defined(__SAMD51__)
-    #define TCC_CTRLA_PRESCALER TCC_CTRLA_PRESCALER_DIV256     // PWM base frequency
-    #define TCC_TOP 0x80                                       // PWM resolution
+    #define TCC_CTRLA_PRESCALER TCC_CTRLA_PRESCALER_DIV64     // PWM base frequency
+    #define TCC_TOP 0xFF                                       // PWM resolution
   #elif defined(_SAM3XA_)
     #define PWM_FREQUENCY  3900  
     #define TC_FREQUENCY   3900
