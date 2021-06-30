@@ -27,7 +27,6 @@ class Point
     float y();  // meter
     void init();
     void setXY(float ax, float ay); // meter
-    void assign(Point &fromPoint); 
     long crc();
     bool read(File &file);
     bool write(File &file);
