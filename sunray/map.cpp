@@ -22,28 +22,19 @@ Point *CHECK_POINT = (Point*)0x12345678;  // just some arbitray address for corr
 unsigned long memoryCorruptions = 0;        
 unsigned long memoryAllocErrors = 0;
 
-
-Point::Point(){
-  init();
-}
-
-void Point::init(){
-  px = 0;
-  py = 0;
-}
-
-float Point::x(){
+float Point::x() const {
   return ((float)px) / 100.0;
 }
 
-float Point::y(){
+float Point::y() const {
   return ((float)py) / 100.0;
 }
 
 
-Point::Point(float ax, float ay){
-  px = ax * 100;
-  py = ay * 100;
+Point::Point(float ax, float ay)
+  : px(ax * 100)
+  , py(ay * 100)
+{
 }
 
 void Point::assign(Point &fromPoint){
@@ -56,7 +47,7 @@ void Point::setXY(float ax, float ay){
   py = ay * 100;
 }
 
-long Point::crc(){
+long Point::crc() const{
   return (px + py);  
 }
 
@@ -88,19 +79,9 @@ bool Point::write(File &file){
 
 
 // -----------------------------------
-Polygon::Polygon(){  
-  init();
-}
 
-
-Polygon::Polygon(short aNumPoints){ 
-  init();
+Polygon::Polygon(short aNumPoints) { 
   alloc(aNumPoints);  
-}
-
-void Polygon::init(){  
-  numPoints = 0;  
-  points = NULL;
 }
 
 Polygon::~Polygon(){
@@ -114,12 +95,12 @@ bool Polygon::alloc(short aNumPoints){
     return false;
   }
   Point* newPoints = new Point[aNumPoints+CHECK_CORRUPT];    
-  if (newPoints == NULL) {
+  if (newPoints == nullptr) {
     CONSOLE.println("ERROR Polygon::alloc out of memory");
     memoryAllocErrors++;
     return false;
   }
-  if (points != NULL){
+  if (points != nullptr){
     memcpy(newPoints, points, sizeof(Point)* min(numPoints,aNumPoints) );        
     if (points[numPoints].px != CHECK_ID) memoryCorruptions++;
     if (points[numPoints].py != CHECK_ID) memoryCorruptions++;
@@ -133,15 +114,15 @@ bool Polygon::alloc(short aNumPoints){
 }
 
 void Polygon::dealloc(){
-  if (points == NULL) return;  
+  if (points == nullptr) return;  
   if (points[numPoints].px != CHECK_ID) memoryCorruptions++;
   if (points[numPoints].py != CHECK_ID) memoryCorruptions++;
   delete[] points;  
-  points = NULL;
+  points = nullptr;
   numPoints = 0;  
 }
 
-void Polygon::dump(){
+void Polygon::dump() const {
   for (int i=0; i < numPoints; i++){
     CONSOLE.print("(");
     CONSOLE.print(points[i].x());
@@ -153,7 +134,7 @@ void Polygon::dump(){
   CONSOLE.println();
 }
 
-long Polygon::crc(){
+long Polygon::crc() const {
   long crc = 0;
   for (int i=0; i < numPoints; i++){
     crc += points[i].crc();
@@ -193,19 +174,9 @@ bool Polygon::write(File &file){
 }
 
 // -----------------------------------
-
-PolygonList::PolygonList(){
-  init();
-}
   
 PolygonList::PolygonList(short aNumPolygons){
-  init();
   alloc(aNumPolygons);  
-}
-
-void PolygonList::init(){
-  numPolygons = 0;
-  polygons = NULL;  
 }
 
 PolygonList::~PolygonList(){
@@ -219,12 +190,12 @@ bool PolygonList::alloc(short aNumPolygons){
     return false;
   }
   Polygon* newPolygons = new Polygon[aNumPolygons+CHECK_CORRUPT];  
-  if (newPolygons == NULL){
+  if (newPolygons == nullptr){
     CONSOLE.println("ERROR PolygonList::alloc out of memory");
     memoryAllocErrors++;
     return false;
   }
-  if (polygons != NULL){
+  if (polygons != nullptr){
     memcpy(newPolygons, polygons, sizeof(Polygon)* min(numPolygons, aNumPolygons));        
     if (aNumPolygons < numPolygons){
       for (int i=aNumPolygons; i < numPolygons; i++){
@@ -241,17 +212,17 @@ bool PolygonList::alloc(short aNumPolygons){
 }
 
 void PolygonList::dealloc(){
-  if (polygons == NULL) return;
+  if (polygons == nullptr) return;
   for (int i=0; i < numPolygons; i++){
     polygons[i].dealloc();        
   }  
   if (polygons[numPolygons].points != CHECK_POINT) memoryCorruptions++;
   delete[] polygons;
-  polygons = NULL;
+  polygons = nullptr;
   numPolygons = 0;  
 }
 
-int PolygonList::numPoints(){
+int PolygonList::numPoints() const {
   int num = 0;
   for (int i=0; i < numPolygons; i++){
      num += polygons[i].numPoints;
@@ -259,7 +230,7 @@ int PolygonList::numPoints(){
   return num;
 }
 
-void PolygonList::dump(){
+void PolygonList::dump() const {
   for (int i=0; i < numPolygons; i++){
     CONSOLE.print(i);
     CONSOLE.print(":");
@@ -268,7 +239,7 @@ void PolygonList::dump(){
   CONSOLE.println();
 }
 
-long PolygonList::crc(){
+long PolygonList::crc() const {
   long crc = 0;
   for (int i=0; i < numPolygons; i++){
     crc += polygons[i].crc();
@@ -313,24 +284,20 @@ bool PolygonList::write(File &file){
 
 // -----------------------------------
 
-Node::Node(){
-  init();
+Node::Node(Point *aPoint, Node *aParentNode)
+  : point(aPoint)
+  , parent(aParentNode)
+{  
 }
 
-Node::Node(Point *aPoint, Node *aParentNode){
-  init();
-  point = aPoint;
-  parent = aParentNode;  
-};
-
 void Node::init(){
+  point = nullptr;
+  parent = nullptr;
+  opened = false;
+  closed = false;
   g = 0;
   h = 0;  
   f = 0;
-  opened = false;
-  closed = false;
-  point = NULL;
-  parent = NULL;
 }
 
 void Node::dealloc(){
@@ -338,20 +305,9 @@ void Node::dealloc(){
 
 
 // -----------------------------------
-
-
-NodeList::NodeList(){
-  init();
-}
   
 NodeList::NodeList(short aNumNodes){
-  init();
   alloc(aNumNodes);  
-}
-
-void NodeList::init(){
-  numNodes = 0;
-  nodes = NULL;  
 }
 
 NodeList::~NodeList(){
@@ -365,12 +321,12 @@ bool NodeList::alloc(short aNumNodes){
     return false;
   }
   Node* newNodes = new Node[aNumNodes+CHECK_CORRUPT];  
-  if (newNodes == NULL){
+  if (newNodes == nullptr){
     CONSOLE.println("ERROR NodeList::alloc");
     memoryAllocErrors++;
     return false;
   }
-  if (nodes != NULL){
+  if (nodes != nullptr){
     memcpy(newNodes, nodes, sizeof(Node)* min(numNodes, aNumNodes));        
     if (aNumNodes < numNodes){
       for (int i=aNumNodes; i < numNodes; i++){
@@ -387,13 +343,13 @@ bool NodeList::alloc(short aNumNodes){
 }
 
 void NodeList::dealloc(){
-  if (nodes == NULL) return;
+  if (nodes == nullptr) return;
   for (int i=0; i < numNodes; i++){
     nodes[i].dealloc();        
   }  
   if (nodes[numNodes].point != CHECK_POINT) memoryCorruptions++;
   delete[] nodes;
-  nodes = NULL;
+  nodes = nullptr;
   numNodes = 0;  
 }
 
@@ -1291,7 +1247,7 @@ bool Map::linePolygonIntersectPoint( Point &src, Point &dst, Polygon &poly, Poin
       }
     } // else CONSOLE.println();    
     //if (this.doIntersect(p1, p2, src, dst)) return true;
-    //if (this.lineLineIntersection(p1, p2, src, dst) != null) return true;      
+    //if (this.lineLineIntersection(p1, p2, src, dst) != nullptr) return true;      
   }     
   return (minDist < 9999);  
 }
@@ -1424,7 +1380,7 @@ bool Map::linePolygonIntersection( Point &src, Point &dst, Polygon &poly) {
       return true;
     }
     //if (this.doIntersect(p1, p2, src, dst)) return true;
-    //if (this.lineLineIntersection(p1, p2, src, dst) != null) return true;      
+    //if (this.lineLineIntersection(p1, p2, src, dst) != nullptr) return true;      
   }       
   return false;
 }
@@ -1652,7 +1608,7 @@ bool Map::findPath(Point &src, Point &dst){
     //CONSOLE.println(sizeof(visitedPoints));
     
     int timeout = 1000;    
-    Node *currentNode = NULL;
+    Node *currentNode = nullptr;
     
     CONSOLE.print ("freem=");
     CONSOLE.println (freeMemory ());
@@ -1739,7 +1695,7 @@ bool Map::findPath(Point &src, Point &dst){
     CONSOLE.print("finish nodes=");
     CONSOLE.println(pathFinderNodes.numNodes);
       
-    if ((currentNode != NULL) && (distance(*currentNode->point, *end->point) < 0.02)) {
+    if ((currentNode != nullptr) && (distance(*currentNode->point, *end->point) < 0.02)) {
       Node *curr = currentNode;
       int nodeCount = 0;
       while(curr) {                

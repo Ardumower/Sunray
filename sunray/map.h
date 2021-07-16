@@ -19,16 +19,15 @@ typedef enum WayType WayType;
 class Point
 {
   public:
-    short px; // cm
-    short py; // cm       
-    Point();
+    short px = 0; // cm
+    short py = 0; // cm       
+    Point() = default;
     Point(float ax, float ay); // meter
-    float x();  // meter
-    float y();  // meter
-    void init();
+    float x() const;  // meter
+    float y() const;  // meter
     void setXY(float ax, float ay); // meter
     void assign(Point &fromPoint); 
-    long crc();
+    long crc() const;
     bool read(File &file);
     bool write(File &file);
 };
@@ -37,16 +36,15 @@ class Point
 class Polygon
 {
   public:
-    Point *points;    
-    short numPoints;    
-    Polygon();
+    Point *points = nullptr;    
+    short numPoints = 0;    
+    Polygon() = default;
     Polygon(short aNumPoints);
     ~Polygon();
-    void init();
     bool alloc(short aNumPoints);
     void dealloc();
-    void dump();
-    long crc();
+    void dump() const;
+    long crc() const;
     bool read(File &file);
     bool write(File &file);
 };
@@ -54,17 +52,16 @@ class Polygon
 class PolygonList // owns polygons!
 {
    public:
-     Polygon *polygons;    
-     short numPolygons;     
-     PolygonList();
+     Polygon *polygons = nullptr;    
+     short numPolygons = 0;     
+     PolygonList() = default;
      PolygonList(short aNumPolygons);
      ~PolygonList();
-     void init();
      bool alloc(short aNumPolygons);
      void dealloc();
-     void dump();
-     int numPoints();
-     long crc();
+     void dump() const;
+     int numPoints() const;
+     long crc() const;
      bool read(File &file);
      bool write(File &file);
 };
@@ -72,14 +69,14 @@ class PolygonList // owns polygons!
 class Node   // nodes just hold references to points and other nodes
 {
   public:
-    Point *point;
-    Node *parent;
-    bool opened;
-    bool closed;
-    float g;
-    float h;
-    float f;
-    Node();
+    Point *point = nullptr;
+    Node *parent = nullptr;
+    bool opened = false;
+    bool closed = false;
+    float g = 0;
+    float h = 0;
+    float f = 0;
+    Node() = default;
     Node(Point *aPoint, Node *aParentNode);
     void init();
     void dealloc();
@@ -89,12 +86,11 @@ class Node   // nodes just hold references to points and other nodes
 class NodeList  // owns nodes!
 {
   public:
-    Node *nodes;    
-    short numNodes;     
-    NodeList();
+    Node *nodes = nullptr;    
+    short numNodes = 0;     
+    NodeList() = default;
     NodeList(short aNumNodes);
     ~NodeList();
-    void init();
     bool alloc(short aNumNodes);
     void dealloc();    
 };
