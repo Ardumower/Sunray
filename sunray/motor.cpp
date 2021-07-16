@@ -296,6 +296,48 @@ bool Motor::checkFault() {
   }
   return fault;
 }
+
+// mowmotor for control high grass
+void Robot::motorMowControl() {
+//bber60
+  if (millis() < nextTimeMotorMowControl) return;
+  nextTimeMotorMowControl = millis() + 100;
+  if (motorMowForceOff) motorMowEnable = false;
+  //Auto adjust the motor speed according to cutting power (The goal is On high grass the motor rotate faster)
+  //A runningmedian process is used to check each seconde the power value of mow motor
+  //if power is low the speed is reduce to have a longer mowing duration and less noise.
+  if (motorMowEnable) {
+    motorMowPowerMedian.add(motorMowPower);
+    if (motorMowPowerMedian.getCount() > 10) { //check each 1 secondes
+      int prevcoeff =  motorMowPwmCoeff;
+      motorMowPwmCoeff = int((100 * motorMowPowerMedian.getAverage(4)) / (0.5 * motorMowPowerMax));
+      if (motorMowPwmCoeff < prevcoeff) {
+        //filter on speed reduce to keep the mow speed high for longuer duration
+        motorMowPwmCoeff = int((0.1) * motorMowPwmCoeff + (0.9) * prevcoeff);// use only 10% of the new value
+      }
+      if ((statusCurr == WIRE_MOWING) || (statusCurr == SPIRALE_MOWING)) motorMowPwmCoeff = 100;
+      if (motorMowPwmCoeff > 100) motorMowPwmCoeff = 100;
+      if (motorMowEnable) {
+        motorMowSpeedPWMSet = motorMowSpeedMinPwm + ((double)(motorMowSpeedMaxPwm - motorMowSpeedMinPwm)) * (((double)motorMowPwmCoeff) / 100.0);
+      }
+      if (motorMowSpeedPWMSet < motorMowSpeedMinPwm) motorMowSpeedPWMSet = motorMowSpeedMinPwm;
+      if (motorMowSpeedPWMSet > motorMowSpeedMaxPwm) motorMowSpeedPWMSet = motorMowSpeedMaxPwm;
+      //max speed on wire and spirale
+      motorMowPowerMedian.clear();
+    }
+  }
+  else
+  {
+    motorMowSpeedPWMSet = 0;
+  }
+  if (stateCurr == STATE_ERROR) {
+    setMotorMowPWM(0, false); //stop immediatly on error (tilt etc....)
+  }
+  else
+  {
+    setMotorMowPWM(motorMowSpeedPWMSet, true);
+  }
+}
   
 
 // measure motor currents
