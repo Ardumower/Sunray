@@ -276,6 +276,7 @@ void Motor::run() {
 
 
 // check motor faults
+// NOTE: motor drivers will indicate 'fault' signal if motor current or temperature is too high for a certain time (normally a few seconds)
 bool Motor::checkFault() {
   bool fault = false;
   bool leftFault = false;
@@ -331,6 +332,8 @@ void Motor::sense(){
 		pitchfactor = 2.0-cosPitch; // increase by angle
   motorRightSenseLPNorm = abs(motorRightSenseLP) * robotMass * pitchfactor; 
 
+  // NOTE: motor drivers will indicate 'fault' signal if motor current or temperature is too high for a certain time (normally a few seconds)
+  // However, the following overload detection will detect situations the fault signal cannot detect: slightly higher current for a longer time 
   motorLeftOverload = (motorLeftSenseLP > MOTOR_OVERLOAD_CURRENT);
   motorRightOverload = (motorRightSenseLP > MOTOR_OVERLOAD_CURRENT);
   motorMowOverload = (motorMowSenseLP > MOW_OVERLOAD_CURRENT);
