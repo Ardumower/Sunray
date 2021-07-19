@@ -142,8 +142,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 
 // ----- mowing motor -------------------------------------------------
-// NOTE: motor drivers will indicate 'fault' signal if motor current (e.g. due to a stall) or temperature is too high for a certain time
-// (normally a few seconds) and the mower will try again and set a virtual obstacle after too many tries
+// NOTE: motor drivers will indicate 'fault' signal if motor current (e.g. due to a stall on a molehole) or temperature is too high for a 
+// certain time (normally a few seconds) and the mower will try again and set a virtual obstacle after too many tries
 // On the other hand, the overload detection will detect situations the fault signal cannot detect: slightly higher current for a longer time 
 
 #define MOW_OVERLOAD_CURRENT 2.0    // mowing motor overload current (amps)
