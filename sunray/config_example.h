@@ -256,7 +256,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define BAT_FULL_VOLTAGE  28.7  // start mowing again at this voltage
 #define BAT_FULL_CURRENT  0.2   // start mowing again below this charging current (amps)
 
-// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Automatic_battery_switch_off
+// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Automatic_robot_switch_off
 #define BAT_SWITCH_OFF_IDLE  false         // switch off if idle (JP8 must be set to autom.)
 #define BAT_SWITCH_OFF_UNDERVOLTAGE  true  // switch off if undervoltage (JP8 must be set to autom.)
 
