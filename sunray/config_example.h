@@ -142,10 +142,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 
 // ----- mowing motor -------------------------------------------------
-// NOTE: motor drivers will indicate 'fault' signal if motor current (e.g. due to a stall on a molehole) or temperature is too high for a 
-// certain time (normally a few seconds) and the mower will try again and set a virtual obstacle after too many tries
-// On the other hand, the overload detection will detect situations the fault signal cannot detect: slightly higher current for a longer time 
-
 #define MOW_OVERLOAD_CURRENT 2.0    // mowing motor overload current (amps)
 
 // should the direction of mowing motor toggle each start? (yes: true, no: false)
@@ -256,7 +252,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define BAT_FULL_VOLTAGE  28.7  // start mowing again at this voltage
 #define BAT_FULL_CURRENT  0.2   // start mowing again below this charging current (amps)
 
-// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Automatic_robot_switch_off
+// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Automatic_battery_switch_off
 #define BAT_SWITCH_OFF_IDLE  false         // switch off if idle (JP8 must be set to autom.)
 #define BAT_SWITCH_OFF_UNDERVOLTAGE  true  // switch off if undervoltage (JP8 must be set to autom.)
 
@@ -339,6 +335,21 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
                                  //  1 beep=start/stop, 5 beeps=dock, 3 beeps=R/C mode ON/OFF)
 //#define BUTTON_CONTROL false   // additional features deactivated
 
+// activate dynamic mowMotorRPM
+// RPM of the mow motor will be adjust over the actual current of the mow motor
+#define ENABLE_DYNAMIC_MOWMOTOR true // set true to activate, set false to deaktivate
+#define DYNAMIC_MOWMOTOR_ALGORITHM 2 // 1 - linear; 2 - root-Function; 3 - square-Function
+#define MIN_MOW_RPM 170
+#define MAX_MOW_RPM 255   // maximum value is 255
+
+// activate dynamic mower speed
+// speed will be adjusted over the mowMotor current
+#define ENABLE_DYNAMIC_MOWER_SPEED true
+#define SPEED_ACCELERATION 0.005
+#define SPEED_FACTOR_MAX 1.2
+#define SPEED_FACTOR_MIN 0.5
+#define USE_MOWMOTOR_CURRENT_AVERAGE true
+#define MOWMOTOR_CURRENT_FACTOR 0.25
 
 // --------- serial monitor output (CONSOLE) ------------------------
 // which Arduino Due USB port do you want to your for serial monitor output (CONSOLE)?
@@ -497,4 +508,3 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // 2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h
   
 #define SERIAL_BUFFER_SIZE 1024
-
