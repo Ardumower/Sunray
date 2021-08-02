@@ -25,7 +25,7 @@ void Motor::begin() {
   #endif
   
   pwmSpeedOffset = 1.0;
-  mowMotorCurrentAverage = MOWMOTOR_CURRENT_FACTOR;
+  mowMotorCurrentAverage = MOWMOTOR_CURRENT_FACTOR * MOW_OVERLOAD_CURRENT;
   currentFactor = MOWMOTOR_CURRENT_FACTOR;
 
   //ticksPerRevolution = 1060/2;
@@ -123,7 +123,8 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
         pwmVariableMow = (int)((MAX_MOW_RPM - MIN_MOW_RPM) * (motorMowSenseLP / MOW_OVERLOAD_CURRENT));
         break;
     }
-    
+
+    if (motorMowSenseLP > MOW_OVERLOAD_CURRENT) pwmVariableMow = 0; // failure detection if mower is stuck.
     pwmMow = MIN_MOW_RPM + pwmVariableMow;
 
     CONSOLE.print("setpwmMow: ");
@@ -145,7 +146,7 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
     {
       float pwmAverageMow = (MAX_MOW_RPM - MIN_MOW_RPM) / 2 + MIN_MOW_RPM;
 
-      if ((pwmAverageMow - (MAX_MOW_RPM - MIN_MOW_RPM) / 4) < pwmMow || pwmMow > (pwmAverageMow + (pwmMaxMow - MIN_MOW_RPM) / 4))
+      if ((pwmAverageMow - (MAX_MOW_RPM - MIN_MOW_RPM) / 10) < pwmMow || pwmMow > (pwmAverageMow + (pwmMaxMow - MIN_MOW_RPM) / 10))
       {
         mowMotorCurrentAverage = (( mowMotorCurrentAverage * 10000) + (motorMowSenseLP)) / (10000 + 1);
         currentFactor = mowMotorCurrentAverage / MOW_OVERLOAD_CURRENT;
