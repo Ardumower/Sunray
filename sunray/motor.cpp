@@ -125,6 +125,7 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
     }
 
     if (motorMowSenseLP > MOW_OVERLOAD_CURRENT) pwmVariableMow = 0; // failure detection if mower is stuck.
+
     pwmMow = MIN_MOW_RPM + pwmVariableMow;
 
     CONSOLE.print("setpwmMow: ");

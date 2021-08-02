@@ -145,6 +145,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // NOTE: motor drivers will indicate 'fault' signal if motor current (e.g. due to a stall on a molehole) or temperature is too high for a 
 // certain time (normally a few seconds) and the mower will try again and set a virtual obstacle after too many tries
 // On the other hand, the overload detection will detect situations the fault signal cannot detect: slightly higher current for a longer time 
+
 #define MOW_OVERLOAD_CURRENT 2.0    // mowing motor overload current (amps)
 
 // should the direction of mowing motor toggle each start? (yes: true, no: false)
@@ -255,7 +256,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define BAT_FULL_VOLTAGE  28.7  // start mowing again at this voltage
 #define BAT_FULL_CURRENT  0.2   // start mowing again below this charging current (amps)
 
-// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Automatic_robot_switch_off
+// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Automatic_battery_switch_off
 #define BAT_SWITCH_OFF_IDLE  false         // switch off if idle (JP8 must be set to autom.)
 #define BAT_SWITCH_OFF_UNDERVOLTAGE  true  // switch off if undervoltage (JP8 must be set to autom.)
 
@@ -339,6 +340,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define BUTTON_CONTROL false   // additional features deactivated
 
 // activate dynamic mowMotorRPM
+
 // RPM of the mow motor will be adjust over the actual current of the mow motor. If the motor needs more current the PWM will be higher.
 // it can be used 3 different functions for the calculation of the PWM depended´nt on the mowMotor current. The root-Function is recommended
 #define ENABLE_DYNAMIC_MOWMOTOR true // set true to activate, set false to deaktivate
@@ -353,6 +355,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // The mowing average will be calculate over 10000 loops and start at MOWMOTOR_CURRENT_FACTOR.
 #define ENABLE_DYNAMIC_MOWER_SPEED true
 #define SPEED_ACCELERATION 0.005 // Speed factor will be changed with every programm loop 
+
 #define SPEED_FACTOR_MAX 1.2
 #define SPEED_FACTOR_MIN 0.5
 #define USE_MOWMOTOR_CURRENT_AVERAGE true
