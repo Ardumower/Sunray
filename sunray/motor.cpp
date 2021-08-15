@@ -73,6 +73,8 @@ void Motor::begin() {
   angularSpeedSet = 0;
   motorLeftRpmSet = 0;
   motorRightRpmSet = 0;
+  motorLeftRpmSetLast = 0;
+  motorRightRpmSetLast = 0;
   motorMowPWMSet = 0;
   motorMowForwardSet = true;
   toggleMowDir = MOW_TOGGLE_DIR;
@@ -125,9 +127,15 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
     }
 
     if (motorMowSenseLP > MOW_OVERLOAD_CURRENT) pwmVariableMow = 0; // failure detection if mower is stuck.
-
-    pwmMow = MIN_MOW_RPM + pwmVariableMow;
-
+    if (pwmMow < 0) // check motor direction
+    {
+      pwmMow = (MIN_MOW_RPM + pwmVariableMow) * - 1;
+    }
+    else
+    {
+      pwmMow = MIN_MOW_RPM + pwmVariableMow;
+    }
+    
     CONSOLE.print("setpwmMow: ");
     CONSOLE.print(pwmMow);
     CONSOLE.print(" motorMowSenseLP: "); 
@@ -147,7 +155,7 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
     {
       float pwmAverageMow = (MAX_MOW_RPM - MIN_MOW_RPM) / 2 + MIN_MOW_RPM;
 
-      if ((pwmAverageMow - (MAX_MOW_RPM - MIN_MOW_RPM) / 10) < pwmMow || pwmMow > (pwmAverageMow + (pwmMaxMow - MIN_MOW_RPM) / 10))
+      if ((pwmAverageMow - (MAX_MOW_RPM - MIN_MOW_RPM) / 10) < abs(pwmMow) || abs(pwmMow) > (pwmAverageMow + (pwmMaxMow - MIN_MOW_RPM) / 10))
       {
         mowMotorCurrentAverage = (( mowMotorCurrentAverage * 10000) + (motorMowSenseLP)) / (10000 + 1);
         currentFactor = mowMotorCurrentAverage / MOW_OVERLOAD_CURRENT;
@@ -220,12 +228,14 @@ void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRam
    // RPM = V / (2*PI*r) * 60
    motorRightRpmSet =  rspeed / (PI*(((float)wheelDiameter)/1000.0)) * 60.0;   
    motorLeftRpmSet = lspeed / (PI*(((float)wheelDiameter)/1000.0)) * 60.0;   
-   /*CONSOLE.print("setLinearAngularSpeed ");
+   CONSOLE.print("setLinearAngularSpeed ");
    CONSOLE.print(linear);
    CONSOLE.print(",");
-   CONSOLE.print(rspeed);
+   CONSOLE.print(angular); 
    CONSOLE.print(",");
-   CONSOLE.println(motorRightRpmSet);   */
+   CONSOLE.print(lspeed);
+   CONSOLE.print(",");
+   CONSOLE.println(rspeed);
 }
 
 void Motor::setMowState(bool switchOn){
@@ -453,22 +463,25 @@ void Motor::sense(){
 
 void Motor::control(){  
   
-  //########################  Set SpeedOffset to if curve is detected ############################
+  //########################  Set SpeedOffset if curve or manual driving is detected ############################
   
   float tempPwmSpeedOffset = pwmSpeedOffset;
 
-  if (pwmSpeedCurveDetection)
+  float tempMotorLeftRpmSet;
+  float tempMotorRightRpmSet;
+
+  if (pwmSpeedCurveDetection || motorLeftRpmSet == motorLeftRpmSetLast || motorRightRpmSet == motorRightRpmSetLast)
   {
     tempPwmSpeedOffset = 1;
   }
 
-  motorLeftRpmSet = motorLeftRpmSet * tempPwmSpeedOffset; // set RPM speed with corrected dynamic speed
-  motorRightRpmSet = motorRightRpmSet * tempPwmSpeedOffset; // set RPM speed with corrected dynamic speed
+  tempMotorLeftRpmSet = motorLeftRpmSet * tempPwmSpeedOffset; // set RPM speed with corrected dynamic speed
+  tempMotorRightRpmSet = motorRightRpmSet * tempPwmSpeedOffset; // set RPM speed with corrected dynamic speed
 
   //########################  Calculate PWM for left driving motor ############################
 
   motorLeftPID.x = motorLeftRpmCurr;
-  motorLeftPID.w  = motorLeftRpmSet;
+  motorLeftPID.w  = tempMotorLeftRpmSet;
   motorLeftPID.y_min = -pwmMax;
   motorLeftPID.y_max = pwmMax;
   motorLeftPID.max_output = pwmMax;
@@ -480,7 +493,7 @@ void Motor::control(){
   //########################  Calculate PWM for right driving motor ############################
   
   motorRightPID.x = motorRightRpmCurr;
-  motorRightPID.w = motorRightRpmSet;
+  motorRightPID.w = tempMotorRightRpmSet;
   motorRightPID.y_min = -pwmMax;
   motorRightPID.y_max = pwmMax;
   motorRightPID.max_output = pwmMax;
@@ -495,9 +508,9 @@ void Motor::control(){
   //########################  Print Motor Parameter to LOG ############################
   
   CONSOLE.print("rpm set=");
-  CONSOLE.print(motorLeftRpmSet);
+  CONSOLE.print(tempMotorLeftRpmSet);
   CONSOLE.print(",");
-  CONSOLE.print(motorRightRpmSet);
+  CONSOLE.print(tempMotorRightRpmSet);
   CONSOLE.print("   curr=");
   CONSOLE.print(motorLeftRpmCurr);
   CONSOLE.print(",");

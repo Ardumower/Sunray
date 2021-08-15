@@ -61,7 +61,7 @@ class Motor {
     void stopImmediately(bool includeMowerMotor);
   protected: 
     float motorLeftRpmSet; // set speed
-    float motorRightRpmSet;    
+    float motorRightRpmSet;   
     float motorLeftRpmCurr;
     float motorRightRpmCurr;
     float motorLeftRpmLast;
