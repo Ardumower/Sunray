@@ -73,8 +73,6 @@ void Motor::begin() {
   angularSpeedSet = 0;
   motorLeftRpmSet = 0;
   motorRightRpmSet = 0;
-  motorLeftRpmSetLast = 0;
-  motorRightRpmSetLast = 0;
   motorMowPWMSet = 0;
   motorMowForwardSet = true;
   toggleMowDir = MOW_TOGGLE_DIR;
@@ -470,7 +468,7 @@ void Motor::control(){
   float tempMotorLeftRpmSet;
   float tempMotorRightRpmSet;
 
-  if (pwmSpeedCurveDetection || motorLeftRpmSet == motorLeftRpmSetLast || motorRightRpmSet == motorRightRpmSetLast)
+  if (pwmSpeedCurveDetection)
   {
     tempPwmSpeedOffset = 1;
   }
