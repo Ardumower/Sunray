@@ -122,6 +122,7 @@ float pitchChange = 0;
 float lastGPSMotionX = 0;
 float lastGPSMotionY = 0;
 unsigned long nextGPSMotionCheckTime = 0;
+unsigned long retryOperationTime = 0;
 
 SolType lastSolution = SOL_INVALID;    
 unsigned long nextStatTime = 0;
@@ -1296,13 +1297,22 @@ void run(){
     
     computeRobotState();
 
-    if (gpsJump){
-      // gps jump: restart current operation from new position
-      CONSOLE.println("restarting due to gps jump");
+    if (gpsJump) {
+      // gps jump: restart current operation from new position (restart path planning)
+      CONSOLE.println("restarting operation (gps jump)");
       gpsJump = false;
       motor.stopImmediately(true);
       setOperation(stateOp, true);    // restart current operation
-    }  
+    }
+    if (retryOperationTime != 0) {
+      if (millis() > retryOperationTime){
+        // restart current operation from new position (restart path planning)
+        CONSOLE.println("restarting operation (retryOperationTime)");
+        retryOperationTime = 0;
+        motor.stopImmediately(true);
+        setOperation(stateOp, true);    // restart current operation
+      }
+    }
 
     if (!imuIsCalibrating){     
       
@@ -1327,24 +1337,27 @@ void run(){
       
       
       if ((stateOp == OP_MOW) ||  (stateOp == OP_DOCK)) {              
-        if (driveReverseStopTime > 0){
-          // obstacle avoidance
-          motor.setLinearAngularSpeed(-0.1,0);
-          if (millis() > driveReverseStopTime){
-            CONSOLE.println("driveReverseStopTime");
-            motor.stopImmediately(false);
-            driveReverseStopTime = 0;
-            maps.addObstacle(stateX, stateY);
-            Point pt;
-            if (!maps.findObstacleSafeMowPoint(pt)){
-              setOperation(OP_DOCK, true); // dock if no more (valid) mowing points
-            } else setOperation(stateOp, true);    // continue current operation
+        
+        if (retryOperationTime == 0){ // if path planning was successful 
+          if (driveReverseStopTime > 0){
+            // obstacle avoidance
+            motor.setLinearAngularSpeed(-0.1,0);
+            if (millis() > driveReverseStopTime){
+              CONSOLE.println("driveReverseStopTime");
+              motor.stopImmediately(false);
+              driveReverseStopTime = 0;
+              maps.addObstacle(stateX, stateY);
+              Point pt;
+              if (!maps.findObstacleSafeMowPoint(pt)){
+                setOperation(OP_DOCK, true); // dock if no more (valid) mowing points
+              } else setOperation(stateOp, true);    // continue current operation
+            }
+          } else {          
+            // line tracking
+            trackLine();
+            detectSensorMalfunction();
+            detectObstacle();       
           }
-        } else {          
-          // line tracking
-          trackLine();
-          detectSensorMalfunction();
-          detectObstacle();       
         }        
         battery.resetIdle();
         if (battery.underVoltage()){
@@ -1438,6 +1451,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
   CONSOLE.print("setOperation op=");
   CONSOLE.print(op);
   bool error = false;
+  retryOperationTime = 0;
   switch (op){
     case OP_IDLE:
       CONSOLE.println(" OP_IDLE");
@@ -1466,7 +1480,8 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       } else error = true;
       if (error){
         stateSensor = SENS_MAP_NO_ROUTE;
-        op = OP_ERROR;
+        //op = OP_ERROR;
+        retryOperationTime = millis() + 10000;        
         motor.setMowState(false);
       }
       break;
@@ -1489,7 +1504,8 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       } else error = true;
       if (error){
         stateSensor = SENS_MAP_NO_ROUTE;
-        op = OP_ERROR;
+        //op = OP_ERROR;
+        retryOperationTime = millis() + 10000;
         motor.setMowState(false);
       }
       break;
