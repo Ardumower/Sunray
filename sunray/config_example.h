@@ -88,7 +88,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#SD_card_module
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#SD_card_logging
 //#define ENABLE_SD      1                 // enable SD card services (resuming, logging)? (uncomment to activate)
-//#define ENABLE_SD_LOG  1                 // enable SD card logging? (uncomment to activate) - WARNING: may slow down system!
+//#define ENABLE_SD_LOG  1                 // enable SD card logging? uncomment to activate (not recommended - WARNING: may slow down system!)
 //#define ENABLE_SD_RESUME  1              // enable SD card map load/resume on reset? (uncomment to activate)
 
 
