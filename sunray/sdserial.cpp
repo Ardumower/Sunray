@@ -39,6 +39,7 @@ void SDSerial::begin(unsigned long baud){
 void SDSerial::beginSD(){  
 
   int nextSession = SD_LOG_NUM_START;
+  // find free log entry...
   for (int i=SD_LOG_NUM_START; i <= SD_LOG_NUM_STOP; i++){
     logFileName = "log";
     logFileName += i;
