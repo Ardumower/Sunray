@@ -122,6 +122,7 @@ float pitchChange = 0;
 float lastGPSMotionX = 0;
 float lastGPSMotionY = 0;
 unsigned long nextGPSMotionCheckTime = 0;
+bool lastMapRoutingFailed = false;
 unsigned long retryOperationTime = 0;
 
 SolType lastSolution = SOL_INVALID;    
@@ -1461,7 +1462,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       break;
     case OP_DOCK:
       CONSOLE.println(" OP_DOCK");
-      if (initiatedbyOperator) maps.clearObstacles();
+      if ((initiatedbyOperator) || (lastMapRoutingFailed))  maps.clearObstacles();
       dockingInitiatedByOperator = initiatedbyOperator;      
       motor.setLinearAngularSpeed(0,0);
       motor.setMowState(false);                
@@ -1487,7 +1488,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       break;
     case OP_MOW:      
       CONSOLE.println(" OP_MOW");      
-      if (initiatedbyOperator) maps.clearObstacles();
+      if ((initiatedbyOperator) || (lastMapRoutingFailed)) maps.clearObstacles();
       motor.setLinearAngularSpeed(0,0);
       if (maps.startMowing(stateX, stateY)){
         if (maps.nextPoint(true)) {
@@ -1520,6 +1521,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       motor.setMowState(false);      
       break;
   }
+  lastMapRoutingFailed = (retryOperationTime != 0);
   stateOp = op;  
   saveState();
 }
