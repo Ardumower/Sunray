@@ -196,7 +196,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define NTRIP_USER "user"
 #define NTRIP_PASS "pass"
 
-// ------ MQTT (highly experimental - ENABLE_SERVER must be set to false for this to work :-/ ) -----------------------------
+// ------ MQTT (for ESP8266 only, highly experimental - ENABLE_SERVER must be set to false for this to work :-/ ) -----------------------------
 // you can access your robot using a MQTT broker - choose a topic prefix for your robot below - available MQTT topics:
 // robot1/cmd           (cmd can be: start, stop, dock)
 // robot1/op            (current robot operation as text)
