@@ -1524,17 +1524,18 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
   }
 
   if (routingFailed){
-    // map routing failed (e.g. due to invalid GPS etc.), try another map routing after 10 seconds
+    // map routing failed (e.g. due to invalid GPS etc.), try another map routing after some seconds
     lastMapRoutingFailed = true;
     mapRoutingFailedCounter++;    
     if (mapRoutingFailedCounter > 60){
       op = OP_ERROR;  // too many map routing tries after 10 minutes
       retryOperationTime = 0;
     } else {
-      retryOperationTime = millis() + 10000;
+      retryOperationTime = millis() + 10000; // try another map routing after 10 seconds
       if (mapRoutingFailedCounter == 30){
         // try GPS reboot after 5 minutes
         gps.reboot();
+        retryOperationTime = millis() + 30000; // wait 30 secs after reboot, then try another map routing
       }     
     }
   } else { 
