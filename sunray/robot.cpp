@@ -123,6 +123,7 @@ float lastGPSMotionX = 0;
 float lastGPSMotionY = 0;
 unsigned long nextGPSMotionCheckTime = 0;
 bool lastMapRoutingFailed = false;
+int mapRoutingFailedCounter = 0;
 unsigned long retryOperationTime = 0;
 
 SolType lastSolution = SOL_INVALID;    
@@ -1452,7 +1453,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
   CONSOLE.print("setOperation op=");
   CONSOLE.print(op);
   bool error = false;
-  retryOperationTime = 0;
+  bool routingFailed = false;  
   switch (op){
     case OP_IDLE:
       CONSOLE.println(" OP_IDLE");
@@ -1482,7 +1483,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       if (error){
         stateSensor = SENS_MAP_NO_ROUTE;
         //op = OP_ERROR;
-        retryOperationTime = millis() + 10000;        
+        routingFailed = true;        
         motor.setMowState(false);
       }
       break;
@@ -1506,7 +1507,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       if (error){
         stateSensor = SENS_MAP_NO_ROUTE;
         //op = OP_ERROR;
-        retryOperationTime = millis() + 10000;
+        routingFailed = true;
         motor.setMowState(false);
       }
       break;
@@ -1521,7 +1522,24 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       motor.setMowState(false);      
       break;
   }
-  lastMapRoutingFailed = (retryOperationTime != 0);
+
+  if (routingFailed){
+    // map routing failed (e.g. due to invalid GPS etc.), try another map routing after 10 seconds
+    lastMapRoutingFailed = true;
+    mapRoutingFailedCounter++;    
+    if (mapRoutingFailedCounter == 30){
+      // try GPS reboot after 5 minutes
+      gps.reboot();
+    } else if (mapRoutingFailedCounter > 60){
+      op = OP_ERROR;  // too many map routing tries after 10 minutes
+    } else {
+      retryOperationTime = millis() + 10000;
+    }
+  } else { 
+    lastMapRoutingFailed = false;
+    mapRoutingFailedCounter = 0;
+    retryOperationTime = 0;
+  }  
   stateOp = op;  
   saveState();
 }
