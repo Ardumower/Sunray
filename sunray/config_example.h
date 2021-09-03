@@ -101,6 +101,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // driving the same distance on the ground (without connected GPS): 
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Odometry_test
 // https://forum.ardumower.de/threads/andere-r%C3%A4der-wie-config-h-%C3%A4ndern.23865/post-41732
+#define FREEWHEEL_IS_AT_BACKSIDE   true   // default Ardumower: true   (change to false, if your freewheel is at frontside) - this is used for obstacle avoidance
 #define WHEEL_BASE_CM         36         // wheel-to-wheel distance (cm)        
 #define WHEEL_DIAMETER        250        // wheel diameter (mm)                 
 
@@ -296,6 +297,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 
 // ------ experimental options -------------------------
+
+#define OBSTACLE_DETECTION_ROTATION true // detect robot rotation stuck (requires IMU) 
 
 #define OSTACLE_AVOIDANCE true   // try to find a way around obstacle
 //#define OSTACLE_AVOIDANCE false  // stop robot on obstacle

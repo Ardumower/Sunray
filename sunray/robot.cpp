@@ -155,7 +155,9 @@ float lastPosN = 0;
 float lastPosE = 0;
 
 unsigned long linearMotionStartTime = 0;
+unsigned long angularMotionStartTime = 0;
 unsigned long driveReverseStopTime = 0;
+unsigned long driveForwardStopTime = 0;
 unsigned long nextControlTime = 0;
 unsigned long lastComputeTime = 0;
 
@@ -184,6 +186,10 @@ float dockAngularSpeed = 0.1;
 bool dockingInitiatedByOperator = true;
 bool gpsJump = false;
 int motorErrorCounter = 0;
+float trackerDiffDelta = 0;
+float stateDeltaLast = 0;
+float stateDeltaSpeed = 0;
+float stateDeltaSpeedLP = 0;
 
 RunningMedian<unsigned int,3> tofMeasurements;
 
@@ -192,10 +198,15 @@ RunningMedian<unsigned int,3> tofMeasurements;
 void watchdogSetup (void){} 
 
 
-// reset motion measurement
+// reset linear motion measurement
 void resetLinearMotionMeasurement(){
   linearMotionStartTime = millis();  
   //stateGroundSpeed = 1.0;
+}
+
+// reset angular motion measurement
+void resetAngularMotionMeasurement(){
+  angularMotionStartTime = millis();
 }
 
 void resetGPSMotionMeasurement(){
@@ -919,15 +930,27 @@ void computeRobotState(){
   }
   //CONSOLE.println(stateDelta / PI * 180.0);
   stateDeltaIMU = 0;
+
+  // compute yaw rotation speed (delta speed)
+  stateDeltaSpeed = (stateDelta - stateDeltaLast) / 0.02;  // 20ms
+  stateDeltaSpeedLP = stateDeltaSpeedLP * 0.95 + fabs(stateDeltaSpeed) * 0.05;     
+  stateDeltaLast = stateDelta;
+  //CONSOLE.println(stateDeltaSpeedLP/PI*180.0);   
 }
 
 
 // should robot move?
 bool robotShouldMove(){
-  return ( (fabs(motor.linearSpeedSet) > 0.001) ||  (fabs(motor.angularSpeedSet) > 0.001) );
+  return ( (fabs(motor.linearSpeedSet) > 0.001) ||  (fabs(motor.angularSpeedSet) < 0.001) );
+}
+
+// should robot rotate?
+bool robotShouldRotate(){
+  return ( (fabs(motor.linearSpeedSet) < 0.001) &&  (fabs(motor.angularSpeedSet) > 0.001) );
 }
 
 
+// drive reverse if robot cannot move forward
 void triggerObstacle(){
   CONSOLE.println("triggerObstacle");    
   statMowObstacles++;    
@@ -1039,6 +1062,39 @@ void detectObstacle(){
   }    
 }
 
+// stuck rotate avoidance (drive forward if robot cannot rotate)
+void triggerObstacleRotation(){
+  CONSOLE.println("triggerObstacleRotation");    
+  statMowObstacles++;   
+  if ((OSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){    
+    if (FREEWHEEL_IS_AT_BACKSIDE){    
+      driveForwardStopTime = millis() + 2000;      
+    } else {
+      driveReverseStopTime = millis() + 3000;
+    }
+  } else { 
+    stateSensor = SENS_OBSTACLE;
+    setOperation(OP_ERROR);
+    buzzer.sound(SND_ERROR, true);        
+  }
+}
+
+// stuck rotate detection (e.g. robot cannot due to an obstacle outside of robot rotation point)
+// returns true, if stuck detected, otherwise false
+bool detectObstacleRotation(){  
+  if (!robotShouldRotate()) {
+    return false;
+  }  
+  if (!OBSTACLE_DETECTION_ROTATION) return false; 
+  if (!imuFound) return false;          
+  if (millis() > angularMotionStartTime + 3000) {    
+    if (fabs(stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s
+      triggerObstacleRotation();
+      return true;      
+    } else return false;
+  }
+  return false;
+}
 
 // control robot velocity (linear,angular) to track line to next waypoint (target)
 // uses a stanley controller for line tracking
@@ -1053,7 +1109,7 @@ void trackLine(){
   float targetDelta = pointsAngle(stateX, stateY, target.x(), target.y());      
   if (maps.trackReverse) targetDelta = scalePI(targetDelta + PI);
   targetDelta = scalePIangles(targetDelta, stateDelta);
-  float diffDelta = distancePI(stateDelta, targetDelta);                         
+  trackerDiffDelta = distancePI(stateDelta, targetDelta);                         
   float lateralError = distanceLineInfinite(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
   float distToPath = distanceLine(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
   float targetDist = maps.distanceToTargetPoint(stateX, stateY);
@@ -1082,28 +1138,28 @@ void trackLine(){
   // allow rotations only near last or next waypoint or if too far away from path
   if ( (targetDist < 0.5) || (lastTargetDist < 0.5) ||  (fabs(distToPath) > 0.5) ) {
     if (SMOOTH_CURVES)
-      angleToTargetFits = (fabs(diffDelta)/PI*180.0 < 120);          
+      angleToTargetFits = (fabs(trackerDiffDelta)/PI*180.0 < 120);          
     else     
-      angleToTargetFits = (fabs(diffDelta)/PI*180.0 < 20);   
+      angleToTargetFits = (fabs(trackerDiffDelta)/PI*180.0 < 20);   
   } else angleToTargetFits = true;
 
                
   if (!angleToTargetFits){
     // angular control (if angle to far away, rotate to next waypoint)
     linear = 0;
-    angular = 0.5;               
+    angular = 29.0 / 180.0 * PI; //  29 degree/s (0.5 rad/s);               
     if ((!rotateLeft) && (!rotateRight)){ // decide for one rotation direction (and keep it)
-      if (diffDelta < 0) rotateLeft = true;
+      if (trackerDiffDelta < 0) rotateLeft = true;
         else rotateRight = true;
     }        
     if (rotateLeft) angular *= -1;            
-    if (fabs(diffDelta)/PI*180.0 < 90){
+    if (fabs(trackerDiffDelta)/PI*180.0 < 90){
       rotateLeft = false;  // reset rotate direction
       rotateRight = false;
-    }
+    }    
   } 
   else {
-    // line control (stanley)
+    // line control (stanley)    
     bool straight = maps.nextPointIsStraight();
     if (maps.trackSlow) {
       // planner forces slow tracking (e.g. docking etc)
@@ -1121,10 +1177,10 @@ void trackLine(){
         linear = setSpeed;         // desired speed
       if (sonar.nearObstacle()) linear = 0.1; // slow down near obstacles
     }      
-    //angular = 3.0 * diffDelta + 3.0 * lateralError;       // correct for path errors 
+    //angular = 3.0 * trackerDiffDelta + 3.0 * lateralError;       // correct for path errors 
     float k = STANLEY_CONTROL_K_NORMAL;
     if (maps.trackSlow) k = STANLEY_CONTROL_K_SLOW;   
-    angular = diffDelta + atan2(k * lateralError, (0.001 + fabs(motor.linearSpeedSet)));       // correct for path errors           
+    angular = trackerDiffDelta + atan2(k * lateralError, (0.001 + fabs(motor.linearSpeedSet)));       // correct for path errors           
     /*pidLine.w = 0;              
     pidLine.x = lateralError;
     pidLine.max_output = PI;
@@ -1187,11 +1243,13 @@ void trackLine(){
 
   if (abs(linear) < 0.01){
     resetLinearMotionMeasurement();
+  } else {
+    resetAngularMotionMeasurement();
   }
 
   motor.setLinearAngularSpeed(linear, angular);      
   motor.setMowState(mow);
-   
+
   if (targetReached){
     if (maps.wayMode == WAY_MOW){
       maps.clearObstacles(); // clear obstacles if target reached
@@ -1343,7 +1401,8 @@ void run(){
         if (retryOperationTime == 0){ // if path planning was successful 
           if (driveReverseStopTime > 0){
             // obstacle avoidance
-            motor.setLinearAngularSpeed(-0.1,0);
+            motor.setLinearAngularSpeed(-0.1,0);            
+            resetAngularMotionMeasurement();
             if (millis() > driveReverseStopTime){
               CONSOLE.println("driveReverseStopTime");
               motor.stopImmediately(false);
@@ -1353,12 +1412,28 @@ void run(){
               if (!maps.findObstacleSafeMowPoint(pt)){
                 setOperation(OP_DOCK, true); // dock if no more (valid) mowing points
               } else setOperation(stateOp, true);    // continue current operation
-            }
+            }            
+          } else if (driveForwardStopTime > 0){
+            // rotate stuck avoidance
+            motor.setLinearAngularSpeed(0.1,0);            
+            resetAngularMotionMeasurement();
+            if (millis() > driveForwardStopTime){
+              CONSOLE.println("driveForwardStopTime");
+              motor.stopImmediately(false);
+              driveForwardStopTime = 0;
+              /*maps.addObstacle(stateX, stateY);
+              Point pt;
+              if (!maps.findObstacleSafeMowPoint(pt)){
+                setOperation(OP_DOCK, true); // dock if no more (valid) mowing points
+              } else*/ setOperation(stateOp, true);    // continue current operation              
+            }            
           } else {          
             // line tracking
             trackLine();
             detectSensorMalfunction();
-            detectObstacle();       
+            if (!detectObstacleRotation()){
+              detectObstacle();
+            }                   
           }
         }        
         battery.resetIdle();
