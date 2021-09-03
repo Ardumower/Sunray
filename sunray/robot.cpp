@@ -209,7 +209,7 @@ void resetAngularMotionMeasurement(){
   angularMotionStartTime = millis();
 }
 
-void resetGPSMotionMeasurement(){
+void setGPSMotionCheckTime(){
   nextGPSMotionCheckTime = millis() + GPS_MOTION_DETECTION_TIMEOUT * 1000;     
 }
 
@@ -940,8 +940,8 @@ void computeRobotState(){
 
 
 // should robot move?
-bool robotShouldMoveOrRotate(){
-  return ( (fabs(motor.linearSpeedSet) > 0.001) ||  (fabs(motor.angularSpeedSet) > 0.001) );
+bool robotShouldMove(){
+  return ( fabs(motor.linearSpeedSet) > 0.001 );
 }
 
 // should robot rotate?
@@ -1007,7 +1007,7 @@ void detectSensorMalfunction(){
 
 // detect obstacle (bumper, sonar, ToF) 
 void detectObstacle(){  
-  if (!robotShouldMoveOrRotate()) return;  
+  if (!robotShouldMove()) return;  
   if (TOF_ENABLE){
     if (millis() >= nextToFTime){
       nextToFTime = millis() + 200;
@@ -1045,7 +1045,7 @@ void detectObstacle(){
   }  
   // check if GPS motion (obstacle detection)  
   if (millis() > nextGPSMotionCheckTime){        
-    resetGPSMotionMeasurement();
+    setGPSMotionCheckTime();
     float dX = lastGPSMotionX - stateX;
     float dY = lastGPSMotionY - stateY;
     float delta = sqrt( sq(dX) + sq(dY) );    
@@ -1241,13 +1241,6 @@ void trackLine(){
     }
   }
 
-  if (abs(linear) < 0.01){
-    resetLinearMotionMeasurement();
-  }
-  if (abs(angular) < 0.001){
-    resetAngularMotionMeasurement();
-  }
-
   motor.setLinearAngularSpeed(linear, angular);      
   motor.setMowState(mow);
 
@@ -1357,6 +1350,12 @@ void run(){
     controlLoops++;    
     
     computeRobotState();
+    if (!robotShouldMove()){
+      resetLinearMotionMeasurement();
+    }
+    if (!robotShouldRotate()){
+      resetAngularMotionMeasurement();
+    }
 
     if (gpsJump) {
       // gps jump: restart current operation from new position (restart path planning)
@@ -1403,7 +1402,6 @@ void run(){
           if (driveReverseStopTime > 0){
             // obstacle avoidance
             motor.setLinearAngularSpeed(-0.1,0);            
-            resetAngularMotionMeasurement();
             if (millis() > driveReverseStopTime){
               CONSOLE.println("driveReverseStopTime");
               motor.stopImmediately(false);
@@ -1417,7 +1415,6 @@ void run(){
           } else if (driveForwardStopTime > 0){
             // rotate stuck avoidance
             motor.setLinearAngularSpeed(0.1,0);            
-            resetAngularMotionMeasurement();
             if (millis() > driveForwardStopTime){
               CONSOLE.println("driveForwardStopTime");
               motor.stopImmediately(false);
@@ -1435,7 +1432,7 @@ void run(){
             if (!detectObstacleRotation()){
               detectObstacle();
             }                   
-          }
+          }        
         }        
         battery.resetIdle();
         if (battery.underVoltage()){
@@ -1546,7 +1543,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       if (maps.startDocking(stateX, stateY)){       
         if (maps.nextPoint(true)) {
           maps.repeatLastMowingPoint();
-          resetGPSMotionMeasurement;
+          setGPSMotionCheckTime();
           lastFixTime = millis();                
           maps.setLastTargetPoint(stateX, stateY);        
           //stateSensor = SENS_NONE;                  
@@ -1569,7 +1566,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       motor.setLinearAngularSpeed(0,0);
       if (maps.startMowing(stateX, stateY)){
         if (maps.nextPoint(true)) {
-          resetGPSMotionMeasurement();
+          setGPSMotionCheckTime();
           lastFixTime = millis();                
           maps.setLastTargetPoint(stateX, stateY);        
           //stateSensor = SENS_NONE;
