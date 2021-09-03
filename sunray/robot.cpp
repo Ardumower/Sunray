@@ -940,8 +940,8 @@ void computeRobotState(){
 
 
 // should robot move?
-bool robotShouldMove(){
-  return ( (fabs(motor.linearSpeedSet) > 0.001) ||  (fabs(motor.angularSpeedSet) < 0.001) );
+bool robotShouldMoveOrRotate(){
+  return ( (fabs(motor.linearSpeedSet) > 0.001) ||  (fabs(motor.angularSpeedSet) > 0.001) );
 }
 
 // should robot rotate?
@@ -1007,7 +1007,7 @@ void detectSensorMalfunction(){
 
 // detect obstacle (bumper, sonar, ToF) 
 void detectObstacle(){  
-  if (!robotShouldMove()) return;  
+  if (!robotShouldMoveOrRotate()) return;  
   if (TOF_ENABLE){
     if (millis() >= nextToFTime){
       nextToFTime = millis() + 200;
@@ -1243,7 +1243,8 @@ void trackLine(){
 
   if (abs(linear) < 0.01){
     resetLinearMotionMeasurement();
-  } else {
+  }
+  if (abs(angular) < 0.001){
     resetAngularMotionMeasurement();
   }
 
