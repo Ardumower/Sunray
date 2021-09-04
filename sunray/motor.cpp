@@ -134,10 +134,10 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
       pwmMow = MIN_MOW_RPM + pwmVariableMow;
     }
     
-    CONSOLE.print("setpwmMow: ");
-    CONSOLE.print(pwmMow);
-    CONSOLE.print(" motorMowSenseLP: "); 
-    CONSOLE.println(motorMowSenseLP);
+//    CONSOLE.print("setpwmMow: ");
+//    CONSOLE.print(pwmMow);
+//    CONSOLE.print(" motorMowSenseLP: "); 
+//    CONSOLE.println(motorMowSenseLP);
   }
 
   //########################  Correct Motor Direction ############################
@@ -157,14 +157,14 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
       {
         mowMotorCurrentAverage = (( mowMotorCurrentAverage * 10000) + (motorMowSenseLP)) / (10000 + 1);
         currentFactor = mowMotorCurrentAverage / MOW_OVERLOAD_CURRENT;
-        CONSOLE.print("ADJUST CURRENT FACTOR ");
+//        CONSOLE.print("ADJUST CURRENT FACTOR ");
       }
     }
 
-    CONSOLE.print("mowMotorCurrentAverage: ");
-    CONSOLE.print(mowMotorCurrentAverage);
-    CONSOLE.print(" currentFactor: ");
-    CONSOLE.println(currentFactor);
+//    CONSOLE.print("mowMotorCurrentAverage: ");
+//    CONSOLE.print(mowMotorCurrentAverage);
+//    CONSOLE.print(" currentFactor: ");
+//    CONSOLE.println(currentFactor);
 
     if (motorMowSenseLP > currentFactor * MOW_OVERLOAD_CURRENT * 0.9) pwmSpeedOffset -= SPEED_ACCELERATION * 2;
     if (motorMowSenseLP < currentFactor * MOW_OVERLOAD_CURRENT * 1.1) pwmSpeedOffset += SPEED_ACCELERATION;
@@ -178,15 +178,15 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
     if (abs(pwmLeft - pwmRight) > (abs(pwmLeft + pwmRight) / 8))
     { 
       pwmSpeedCurveDetection = true;
-      CONSOLE.println("at curves, speed will not be adjusted");
+//      CONSOLE.println("at curves, speed will not be adjusted");
     }
     
-    CONSOLE.print("pwmLeftMotor: ");
-    CONSOLE.print(pwmLeft);
-    CONSOLE.print(" pwmRightMotor: ");
-    CONSOLE.print(pwmRight);
-    CONSOLE.print(" setpwmSpeedOffset: ");
-    CONSOLE.println(pwmSpeedOffset);
+//    CONSOLE.print("pwmLeftMotor: ");
+//    CONSOLE.print(pwmLeft);
+//    CONSOLE.print(" pwmRightMotor: ");
+//    CONSOLE.print(pwmRight);
+//    CONSOLE.print(" setpwmSpeedOffset: ");
+//    CONSOLE.println(pwmSpeedOffset);
  
     //########################  set modified pwm value ############################
     
@@ -226,14 +226,14 @@ void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRam
    // RPM = V / (2*PI*r) * 60
    motorRightRpmSet =  rspeed / (PI*(((float)wheelDiameter)/1000.0)) * 60.0;   
    motorLeftRpmSet = lspeed / (PI*(((float)wheelDiameter)/1000.0)) * 60.0;   
-   CONSOLE.print("setLinearAngularSpeed ");
-   CONSOLE.print(linear);
-   CONSOLE.print(",");
-   CONSOLE.print(angular); 
-   CONSOLE.print(",");
-   CONSOLE.print(lspeed);
-   CONSOLE.print(",");
-   CONSOLE.println(rspeed);
+//   CONSOLE.print("setLinearAngularSpeed ");
+//   CONSOLE.print(linear);
+//   CONSOLE.print(",");
+//   CONSOLE.print(angular); 
+//   CONSOLE.print(",");
+//   CONSOLE.print(lspeed);
+//   CONSOLE.print(",");
+//   CONSOLE.println(rspeed);
 }
 
 void Motor::setMowState(bool switchOn){
@@ -251,7 +251,9 @@ void Motor::setMowState(bool switchOn){
   } else {
     motorMowPWMSet = 0;  
     motorMowPWMCurr = 0;
-  }  
+  }
+
+   pwmSpeedOffset = 1.0; // reset Mow SpeedOffset
 }
 
 void Motor::stopImmediately(bool includeMowerMotor){
@@ -291,8 +293,8 @@ void Motor::run() {
     if (millis() > nextResetMotorFaultTime){
       if (resetMotorFault){
         nextResetMotorFaultTime = millis() + 5000;
-        CONSOLE.print("resetMotorFaultCounter ");
-        CONSOLE.println(resetMotorFaultCounter);
+//        CONSOLE.print("resetMotorFaultCounter ");
+//        CONSOLE.println(resetMotorFaultCounter);
         resetMotorFaultCounter++;        
         motorDriver.resetMotorFaults();
         resetMotorFault = false;  
@@ -505,17 +507,17 @@ void Motor::control(){
 
   //########################  Print Motor Parameter to LOG ############################
   
-  CONSOLE.print("rpm set=");
-  CONSOLE.print(tempMotorLeftRpmSet);
-  CONSOLE.print(",");
-  CONSOLE.print(tempMotorRightRpmSet);
-  CONSOLE.print("   curr=");
-  CONSOLE.print(motorLeftRpmCurr);
-  CONSOLE.print(",");
-  CONSOLE.print(motorRightRpmCurr);
-  CONSOLE.print(",");
-  CONSOLE.print("   PwmOffset=");
-  CONSOLE.println(tempPwmSpeedOffset);
+//  CONSOLE.print("rpm set=");
+//  CONSOLE.print(tempMotorLeftRpmSet);
+//  CONSOLE.print(",");
+//  CONSOLE.print(tempMotorRightRpmSet);
+//  CONSOLE.print("   curr=");
+//  CONSOLE.print(motorLeftRpmCurr);
+//  CONSOLE.print(",");
+//  CONSOLE.print(motorRightRpmCurr);
+//  CONSOLE.print(",");
+//  CONSOLE.print("   PwmOffset=");
+//  CONSOLE.println(tempPwmSpeedOffset);
 
   //########################  Calculate PWM for mowing motor ############################
   
