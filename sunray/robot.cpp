@@ -1227,8 +1227,8 @@ void trackLine(){
   }
 
   if (KIDNAP_DETECT){
-    float allowedPathTolerance = 0.5;     
-    if (fabs(linear) <= 0.1) allowedPathTolerance = 0.2;
+    float allowedPathTolerance = 1.0;     
+    if ( maps.isUndocking() ) allowedPathTolerance = 0.2;
     if (fabs(distToPath) > allowedPathTolerance){ // actually, this should not happen (except on false GPS fixes or robot being kidnapped...)
       linear = 0;
       angular = 0;        
