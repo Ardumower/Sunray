@@ -1404,7 +1404,11 @@ void run(){
       if (battery.chargerConnected()){
         if ((stateOp == OP_IDLE) || (stateOp == OP_CHARGE)){
           maps.setIsDocked(true);               
-          //maps.setRobotStatePosToDockingPos(stateX, stateY, stateDelta);                       
+          //maps.setRobotStatePosToDockingPos(stateX, stateY, stateDelta);
+          // get robot yaw orientation from map 
+          float tempX;
+          float tempY;
+          maps.setRobotStatePosToDockingPos(tempX, tempY, stateDelta);                       
         }
         battery.resetIdle();        
       } else {
