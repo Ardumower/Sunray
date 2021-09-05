@@ -1227,7 +1227,9 @@ void trackLine(){
   }
 
   if (KIDNAP_DETECT){
-    if (fabs(distToPath) > 0.2){ // actually, this should not happen (except on false GPS fixes or robot being kidnapped...)
+    float allowedPathTolerance = 0.5;     
+    if (fabs(linear) <= 0.1) allowedPathTolerance = 0.2;
+    if (fabs(distToPath) > allowedPathTolerance){ // actually, this should not happen (except on false GPS fixes or robot being kidnapped...)
       linear = 0;
       angular = 0;        
       mow = false;
