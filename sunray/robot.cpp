@@ -212,7 +212,7 @@ void resetAngularMotionMeasurement(){
   angularMotionStartTime = millis();
 }
 
-void setGPSMotionCheckTime(){
+void updateGPSMotionCheckTime(){
   nextGPSMotionCheckTime = millis() + GPS_MOTION_DETECTION_TIMEOUT * 1000;     
 }
 
@@ -1048,7 +1048,7 @@ void detectObstacle(){
   }  
   // check if GPS motion (obstacle detection)  
   if (millis() > nextGPSMotionCheckTime){        
-    setGPSMotionCheckTime();
+    updateGPSMotionCheckTime();
     float dX = lastGPSMotionX - stateX;
     float dY = lastGPSMotionY - stateY;
     float delta = sqrt( sq(dX) + sq(dY) );    
@@ -1370,6 +1370,7 @@ void run(){
     computeRobotState();
     if (!robotShouldMove()){
       resetLinearMotionMeasurement();
+      updateGPSMotionCheckTime();  
     }
     if (!robotShouldRotate()){
       resetAngularMotionMeasurement();
@@ -1565,7 +1566,6 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       if (maps.startDocking(stateX, stateY)){       
         if (maps.nextPoint(true)) {
           maps.repeatLastMowingPoint();
-          setGPSMotionCheckTime();
           lastFixTime = millis();                
           maps.setLastTargetPoint(stateX, stateY);        
           //stateSensor = SENS_NONE;                  
@@ -1588,7 +1588,6 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       motor.setLinearAngularSpeed(0,0);
       if (maps.startMowing(stateX, stateY)){
         if (maps.nextPoint(true)) {
-          setGPSMotionCheckTime();
           lastFixTime = millis();                
           maps.setLastTargetPoint(stateX, stateY);        
           //stateSensor = SENS_NONE;
