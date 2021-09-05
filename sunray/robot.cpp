@@ -191,6 +191,9 @@ float stateDeltaLast = 0;
 float stateDeltaSpeed = 0;
 float stateDeltaSpeedLP = 0;
 
+unsigned long recoverGpsTime = 0;
+int recoverGpsCounter = 0;
+
 RunningMedian<unsigned int,3> tofMeasurements;
 
 
@@ -1124,16 +1127,6 @@ void trackLine(){
   if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
     linear = 0.1;  
   }   
-  
-  if (KIDNAP_DETECT){
-    if (fabs(distToPath) > 1.0){ // actually, this should not happen (except something strange is going on...)
-      CONSOLE.println("kidnapped!");
-      stateSensor = SENS_KIDNAPPED;
-      setOperation(OP_ERROR);
-      buzzer.sound(SND_ERROR, true);        
-      return;
-   }
-  }
           
   // allow rotations only near last or next waypoint or if too far away from path
   if ( (targetDist < 0.5) || (lastTargetDist < 0.5) ||  (fabs(distToPath) > 0.5) ) {
@@ -1177,7 +1170,7 @@ void trackLine(){
         linear = setSpeed;         // desired speed
       if (sonar.nearObstacle()) linear = 0.1; // slow down near obstacles
     }      
-    //angular = 3.0 * trackerDiffDelta + 3.0 * lateralError;       // correct for path errors 
+    //angula                                    r = 3.0 * trackerDiffDelta + 3.0 * lateralError;       // correct for path errors 
     float k = STANLEY_CONTROL_K_NORMAL;
     if (maps.trackSlow) k = STANLEY_CONTROL_K_SLOW;   
     angular = trackerDiffDelta + atan2(k * lateralError, (0.001 + fabs(motor.linearSpeedSet)));       // correct for path errors           
@@ -1230,6 +1223,29 @@ void trackLine(){
         angular = 0;      
         mow = false;
       } 
+    }
+  }
+
+  if (KIDNAP_DETECT){
+    if (fabs(distToPath) > 0.2){ // actually, this should not happen (except on false GPS fixes or robot being kidnapped...)
+      linear = 0;
+      angular = 0;        
+      mow = false;
+      stateSensor = SENS_KIDNAPPED;
+      if (millis() > recoverGpsTime){
+        CONSOLE.println("KIDNAP_DETECT");
+        recoverGpsTime = millis() + 30000;
+        recoverGpsCounter++;
+        if (recoverGpsCounter == 3){          
+          setOperation(OP_ERROR);
+          buzzer.sound(SND_ERROR, true);        
+          return;
+        }              
+        gps.reboot();   // try to recover from false GPS fix     
+      }      
+    } else {
+      recoverGpsTime = millis() + 30000;
+      recoverGpsCounter = 0;
     }
   }
    
@@ -1357,13 +1373,13 @@ void run(){
       resetAngularMotionMeasurement();
     }
 
-    if (gpsJump) {
+    /*if (gpsJump) {
       // gps jump: restart current operation from new position (restart path planning)
       CONSOLE.println("restarting operation (gps jump)");
       gpsJump = false;
       motor.stopImmediately(true);
       setOperation(stateOp, true);    // restart current operation
-    }
+    }*/
     if (retryOperationTime != 0) {
       if (millis() > retryOperationTime){
         // restart current operation from new position (restart path planning)
@@ -1386,7 +1402,7 @@ void run(){
       if (battery.chargerConnected()){
         if ((stateOp == OP_IDLE) || (stateOp == OP_CHARGE)){
           maps.setIsDocked(true);               
-          maps.setRobotStatePosToDockingPos(stateX, stateY, stateDelta);                       
+          //maps.setRobotStatePosToDockingPos(stateX, stateY, stateDelta);                       
         }
         battery.resetIdle();        
       } else {
@@ -1607,7 +1623,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       retryOperationTime = millis() + 10000; // try another map routing after 10 seconds
       if (mapRoutingFailedCounter == 30){
         // try GPS reboot after 5 minutes
-        gps.reboot();
+        gps.reboot();  // try to recover from false GPS fix
         retryOperationTime = millis() + 30000; // wait 30 secs after reboot, then try another map routing
       }     
     }
