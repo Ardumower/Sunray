@@ -1089,9 +1089,13 @@ bool detectObstacleRotation(){
     return false;
   }  
   if (!OBSTACLE_DETECTION_ROTATION) return false; 
-  if (!imuFound) return false;          
+  if (millis() > angularMotionStartTime + 15000) { // too long rotation time (timeout), e.g. due to obstacle
+    triggerObstacleRotation();
+    return true;
+  }
+  if (!imuFound) return false;            
   if (millis() > angularMotionStartTime + 3000) {    
-    if (fabs(stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s
+    if (fabs(stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s, e.g. due to obstacle
       triggerObstacleRotation();
       return true;      
     } else return false;
