@@ -27,6 +27,7 @@ void Battery::begin()
   nextEnableTime = 0;
 	timeMinutes=0;  
   chargingVoltage = 0;
+  chargingCompletedDelay =0;
   batteryVoltage = 0;
   chargerConnectedState = false;      
   chargingCompleted = false;
@@ -155,11 +156,18 @@ void Battery::run(){
   
   if (millis() > nextEnableTime){
     nextEnableTime = millis() + 5000;  	   	   	
+    
     if (chargerConnectedState){	      
         // charger in connected state
         if (chargingEnabled){
-          //if ((timeMinutes > 180) || (chargingCurrent < batFullCurrent)) {        
-          chargingCompleted = ((chargingCurrent <= batFullCurrent) || (batteryVoltage >= batFullVoltage));
+          //if ((timeMinutes > 180) || (chargingCurrent < batFullCurrent)) {   
+          // https://github.com/Ardumower/Sunray/issues/32               
+          if (chargingCompletedDelay > 5) {  // chargingCompleted check first after 6 * 5000ms = 30sec. 
+            chargingCompleted = ((chargingCurrent <= batFullCurrent) || (batteryVoltage >= batFullVoltage)); 
+          } 
+          else {           
+            chargingCompletedDelay++;  
+          }          
           if (chargingCompleted) {
             // stop charging
             nextEnableTime = millis() + 1000 * enableChargingTimeout;   // check charging current again in 30 minutes
@@ -173,6 +181,14 @@ void Battery::run(){
               chargingStartTime = millis();  
           //}        
         }    
-    } 		
+    }
+    else { 
+      // reset to avoid direct undocking after docking   
+      chargingCompleted       = false; 
+      chargingCompletedDelay  = 0;  // reset chargingCompleteted delay counter 
+    } 
+
   }
+
+
 }
