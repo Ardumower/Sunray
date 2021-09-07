@@ -215,7 +215,7 @@ void resetAngularMotionMeasurement(){
 
 // reset overall motion timeout
 void resetOverallMotionTimeout(){
-  overallMotionTimeout = millis() + 15000;    
+  overallMotionTimeout = millis() + 18000;    
 }
 
 void updateGPSMotionCheckTime(){
