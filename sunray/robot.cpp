@@ -895,7 +895,7 @@ void computeRobotState(){
         if (motor.linearSpeedSet < 0) stateDeltaGPS = scalePI(stateDeltaGPS + PI); // consider if driving reverse
         //stateDeltaGPS = scalePI(2*PI-gps.heading+PI/2);
         float diffDelta = distancePI(stateDelta, stateDeltaGPS);                 
-        if (    (gps.solution == SOL_FIXED)
+        if (    ((gps.solution == SOL_FIXED) && (maps.useGPSfixForPosEstimation ))
              || ((gps.solution == SOL_FLOAT) && (maps.useGPSfloatForDeltaEstimation)) )
         {   // allows planner to use float solution?         
           if (fabs(diffDelta/PI*180) > 45){ // IMU-based heading too far away => use GPS heading
@@ -914,7 +914,7 @@ void computeRobotState(){
     if (gps.solution == SOL_FIXED) {
       // fix
       lastFixTime = millis();
-      if (! ((maps.isUndocking()) && (DOCK_IGNORE_GPS))) {
+      if (maps.useGPSfixForPosEstimation) {
         stateX = posE;
         stateY = posN;
       }        
