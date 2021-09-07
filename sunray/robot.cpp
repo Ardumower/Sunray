@@ -1230,7 +1230,7 @@ void trackLine(){
     if (linear > 0.06) {
       if ((millis() > linearMotionStartTime + 5000) && (stateGroundSpeed < 0.03)){
         // if in linear motion and not enough ground speed => obstacle
-        if (GPS_SPEED_DETECTION){
+        if ( (GPS_SPEED_DETECTION) && (!maps.isUndocking()) ) { 
           CONSOLE.println("gps no speed => obstacle!");
           triggerObstacle();
           return;
