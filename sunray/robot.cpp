@@ -914,8 +914,10 @@ void computeRobotState(){
     if (gps.solution == SOL_FIXED) {
       // fix
       lastFixTime = millis();
-      stateX = posE;
-      stateY = posN;        
+      if (! ((maps.isUndocking()) && (DOCK_IGNORE_GPS))) {
+        stateX = posE;
+        stateY = posN;
+      }        
     } else {
       // float
       if (maps.useGPSfloatForPosEstimation){ // allows planner to use float solution?
@@ -1208,19 +1210,22 @@ void trackLine(){
     if (maps.trackReverse) linear *= -1;   // reverse line tracking needs negative speed
     if (!SMOOTH_CURVES) angular = max(-PI/16, min(PI/16, angular)); // restrict steering angle for stanley
   }
-  if (fixTimeout != 0){
-    if (millis() > lastFixTime + fixTimeout * 1000.0){
-      // stop on fix solution timeout (fixme: optionally: turn on place if fix-timeout)
-      linear = 0;
-      angular = 0;
-      mow = false; 
-      stateSensor = SENS_GPS_FIX_TIMEOUT;
-      //angular = 0.2;
-    } else {
-      //if (stateSensor == SENS_GPS_FIX_TIMEOUT) stateSensor = SENS_NONE; // clear fix timeout
-    }       
-  }     
-  
+  // check some pre-conditions that can make linear+angular speed zero
+  if (!maps.isUndocking()){
+    if (fixTimeout != 0){
+      if (millis() > lastFixTime + fixTimeout * 1000.0){
+        // stop on fix solution timeout (fixme: optionally: turn on place if fix-timeout)
+        linear = 0;
+        angular = 0;
+        mow = false; 
+        stateSensor = SENS_GPS_FIX_TIMEOUT;
+        //angular = 0.2;
+      } else {
+        //if (stateSensor == SENS_GPS_FIX_TIMEOUT) stateSensor = SENS_NONE; // clear fix timeout
+      }       
+    }     
+  }
+
   if ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT)){        
     if (linear > 0.06) {
       if ((millis() > linearMotionStartTime + 5000) && (stateGroundSpeed < 0.03)){
@@ -1247,6 +1252,7 @@ void trackLine(){
     }
   }
 
+  // gps-jump/false fix check
   if (KIDNAP_DETECT){
     float allowedPathTolerance = 1.0;     
     if ( maps.isUndocking() ) allowedPathTolerance = 0.2;

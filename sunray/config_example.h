@@ -324,6 +324,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DOCKING_STATION true   // use this if docking station available and mower should dock automatically
 //#define DOCKING_STATION false    // mower will just stop after mowing instead of docking automatically 
 
+#define DOCK_IGNORE_GPS false     // use GPS fix in docking station and IMU for GPS float/invalid
+//#define DOCK_IGNORE_GPS true     // ignore GPS fix in docking station and use IMU-only (use this if robot gets false GPS fixes in your docking station)
+
 //#define DOCK_AUTO_START true     // robot will automatically continue mowing after docked automatically
 #define DOCK_AUTO_START false      // robot will not automatically continue mowing after docked automatically
 
