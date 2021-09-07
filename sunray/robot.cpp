@@ -1004,11 +1004,13 @@ void detectSensorMalfunction(){
     if (motor.motorError){
       // this is the molehole situation: motor error will permanently trigger on molehole => we try obstacle avoidance (molehole avoidance strategy)
       motor.motorError = false; // reset motor error flag
-      motorErrorCounter++; 
-      if (motorErrorCounter < 5){ 
-        //stateSensor = SENS_MOTOR_ERROR;
-        triggerObstacle();     // trigger obstacle avoidance 
-        return;
+      motorErrorCounter++;       
+      if (maps.wayMode != WAY_DOCK){
+        if (motorErrorCounter < 5){ 
+          //stateSensor = SENS_MOTOR_ERROR;
+          triggerObstacle();     // trigger obstacle avoidance 
+          return;
+        }
       }
       // obstacle avoidance failed with too many motor errors (it was probably not a molehole situation)
       CONSOLE.println("motor error!");
