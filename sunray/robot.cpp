@@ -156,6 +156,7 @@ float lastPosE = 0;
 
 unsigned long linearMotionStartTime = 0;
 unsigned long angularMotionStartTime = 0;
+unsigned long overallMotionTimeout = 0;
 unsigned long driveReverseStopTime = 0;
 unsigned long driveForwardStopTime = 0;
 unsigned long nextControlTime = 0;
@@ -210,6 +211,11 @@ void resetLinearMotionMeasurement(){
 // reset angular motion measurement
 void resetAngularMotionMeasurement(){
   angularMotionStartTime = millis();
+}
+
+// reset overall motion timeout
+void resetOverallMotionTimeout(){
+  overallMotionTimeout = millis() + 15000;    
 }
 
 void updateGPSMotionCheckTime(){
@@ -941,15 +947,22 @@ void computeRobotState(){
   //CONSOLE.println(stateDeltaSpeedLP/PI*180.0);   
 }
 
-
 // should robot move?
 bool robotShouldMove(){
-  return ( fabs(motor.linearSpeedSet) > 0.001 );
+  /*CONSOLE.print(motor.linearSpeedSet);
+  CONSOLE.print(",");
+  CONSOLE.println(motor.angularSpeedSet / PI * 180.0);  */
+  return ( (fabs(motor.linearSpeedSet) > 0.001) );
 }
 
 // should robot rotate?
 bool robotShouldRotate(){
   return ( (fabs(motor.linearSpeedSet) < 0.001) &&  (fabs(motor.angularSpeedSet) > 0.001) );
+}
+
+// should robot be in motion?
+bool robotShouldBeInMotion(){
+  return (robotShouldMove() || (robotShouldRotate()));
 }
 
 
@@ -1047,8 +1060,10 @@ void detectObstacle(){
     }        
   }  
   // check if GPS motion (obstacle detection)  
-  if (millis() > nextGPSMotionCheckTime){        
+  if ((millis() > nextGPSMotionCheckTime) || (millis() > overallMotionTimeout)) {        
     updateGPSMotionCheckTime();
+    resetOverallMotionTimeout(); // this resets overall motion timeout (overall motion timeout happens if e.g. 
+    // motion between anuglar-only and linar-only toggles quickly, and their specific timeouts cannot apply due to the quick toggling)
     float dX = lastGPSMotionX - stateX;
     float dY = lastGPSMotionY - stateY;
     float delta = sqrt( sq(dX) + sq(dY) );    
@@ -1378,6 +1393,9 @@ void run(){
     }
     if (!robotShouldRotate()){
       resetAngularMotionMeasurement();
+    }
+    if (!robotShouldBeInMotion()){
+      resetOverallMotionTimeout();
     }
 
     /*if (gpsJump) {
