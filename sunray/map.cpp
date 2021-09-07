@@ -463,6 +463,7 @@ void Map::begin(){
   useGPSfixForPosEstimation = true;
   useGPSfloatForPosEstimation = true;
   useGPSfloatForDeltaEstimation = true;
+  useGPSfixForDeltaEstimation = true;
   useIMU = true;
   mowPointsIdx = 0;
   freePointsIdx = 0;
@@ -845,6 +846,7 @@ void Map::setIsDocked(bool flag){
     trackReverse = true;             
     trackSlow = true;
     useGPSfixForPosEstimation = !DOCK_IGNORE_GPS;
+    useGPSfixForDeltaEstimation = !DOCK_IGNORE_GPS;    
     useGPSfloatForPosEstimation = false;  
     useGPSfloatForDeltaEstimation = false;
     useIMU = true; // false
@@ -854,6 +856,7 @@ void Map::setIsDocked(bool flag){
     trackReverse = false;             
     trackSlow = false;
     useGPSfixForPosEstimation = true;
+    useGPSfixForDeltaEstimation = true;
     useGPSfloatForPosEstimation = true;    
     useGPSfloatForDeltaEstimation = true;
     useIMU = true;
@@ -1124,6 +1127,7 @@ bool Map::nextDockPoint(bool sim){
       if (!sim) trackReverse = false;              
       if (!sim) trackSlow = true;
       if (!sim) useGPSfixForPosEstimation = !DOCK_IGNORE_GPS;
+      if (!sim) useGPSfixForDeltaEstimation = !DOCK_IGNORE_GPS;      
       if (!sim) useGPSfloatForPosEstimation = false;    
       if (!sim) useGPSfloatForDeltaEstimation = false;    
       if (!sim) useIMU = true;     // false      
@@ -1148,7 +1152,8 @@ bool Map::nextDockPoint(bool sim){
         if (!sim) wayMode = WAY_FREE;      
         if (!sim) trackReverse = false;              
         if (!sim) trackSlow = false;
-        if (!sim) useGPSfixForPosEstimation = true;
+        if (!sim) useGPSfixForPosEstimation = true;        
+        if (!sim) useGPSfixForDeltaEstimation = true;
         if (!sim) useGPSfloatForPosEstimation = true;    
         if (!sim) useGPSfloatForDeltaEstimation = true;    
         if (!sim) useIMU = true;    
