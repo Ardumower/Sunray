@@ -205,8 +205,6 @@ void watchdogSetup (void){}
 // reset linear motion measurement
 void resetLinearMotionMeasurement(){
   linearMotionStartTime = millis();  
-  lastGPSMotionX = 0;
-  lastGPSMotionY = 0;
   //stateGroundSpeed = 1.0;
 }
 
@@ -217,7 +215,7 @@ void resetAngularMotionMeasurement(){
 
 // reset overall motion timeout
 void resetOverallMotionTimeout(){
-  overallMotionTimeout = millis() + 18000;    
+  overallMotionTimeout = millis() + 18000;      
 }
 
 void updateGPSMotionCheckTime(){
@@ -1407,6 +1405,8 @@ void run(){
     }
     if (!robotShouldBeInMotion()){
       resetOverallMotionTimeout();
+      lastGPSMotionX = 0;
+      lastGPSMotionY = 0;
     }
 
     /*if (gpsJump) {
