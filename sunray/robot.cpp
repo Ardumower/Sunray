@@ -205,6 +205,8 @@ void watchdogSetup (void){}
 // reset linear motion measurement
 void resetLinearMotionMeasurement(){
   linearMotionStartTime = millis();  
+  lastGPSMotionX = 0;
+  lastGPSMotionY = 0;
   //stateGroundSpeed = 1.0;
 }
 
