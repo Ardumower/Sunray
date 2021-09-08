@@ -1214,7 +1214,7 @@ void trackLine(){
   if (!maps.isUndocking()){
     if (fixTimeout != 0){
       if (millis() > lastFixTime + fixTimeout * 1000.0){
-        // stop on fix solution timeout (fixme: optionally: turn on place if fix-timeout)
+        // stop on fix solution timeout 
         linear = 0;
         angular = 0;
         mow = false; 
@@ -1436,11 +1436,14 @@ void run(){
       if (battery.chargerConnected()){
         if ((stateOp == OP_IDLE) || (stateOp == OP_CHARGE)){
           maps.setIsDocked(true);               
-          //maps.setRobotStatePosToDockingPos(stateX, stateY, stateDelta);
+          // get robot position and yaw from map
+          // sensing charging contacts means we are in docking station - we use docking point coordinates to get rid of false fix positions in
+          // docking station
+          maps.setRobotStatePosToDockingPos(stateX, stateY, stateDelta);
           // get robot yaw orientation from map 
-          float tempX;
-          float tempY;
-          maps.setRobotStatePosToDockingPos(tempX, tempY, stateDelta);                       
+          //float tempX;
+          //float tempY;
+          //maps.setRobotStatePosToDockingPos(tempX, tempY, stateDelta);                       
         }
         battery.resetIdle();        
       } else {
