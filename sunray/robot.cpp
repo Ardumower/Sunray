@@ -1112,12 +1112,23 @@ bool detectObstacleRotation(){
     triggerObstacleRotation();
     return true;
   }
-  if (!imuFound) return false;            
-  if (millis() > angularMotionStartTime + 3000) {    
-    if (fabs(stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s, e.g. due to obstacle
-      triggerObstacleRotation();
-      return true;      
-    } else return false;
+  if (BUMPER_ENABLE){
+    if (millis() > angularMotionStartTime + 500) { // FIXME: do we actually need a deadtime here for the freewheel sensor?        
+      if (bumper.obstacle()){  
+        CONSOLE.println("bumper obstacle!");    
+        statMowBumperCounter++;
+        triggerObstacleRotation();    
+        return true;
+      }
+    }
+  }
+  if (imuFound){
+    if (millis() > angularMotionStartTime + 3000) {                  
+      if (fabs(stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s, e.g. due to obstacle
+        triggerObstacleRotation();
+        return true;      
+      }
+    }
   }
   return false;
 }
