@@ -191,6 +191,10 @@ float trackerDiffDelta = 0;
 float stateDeltaLast = 0;
 float stateDeltaSpeed = 0;
 float stateDeltaSpeedLP = 0;
+float stateDeltaSpeedIMU = 0;
+float stateDeltaSpeedWheels = 0;
+float diffIMUWheelYawSpeed = 0;
+float diffIMUWheelYawSpeedLP = 0;
 
 unsigned long recoverGpsTime = 0;
 int recoverGpsCounter = 0;
@@ -934,19 +938,33 @@ void computeRobotState(){
   
   if ((imuFound) && (maps.useIMU)) {
     // IMU available and should be used by planner
-    stateDelta = scalePI(stateDelta + stateDeltaIMU );      
+    stateDelta = scalePI(stateDelta + stateDeltaIMU );          
   } else {
     // odometry
     stateDelta = scalePI(stateDelta + deltaOdometry);  
   }
+  if (imuFound){
+    stateDeltaSpeedIMU = 0.99 * stateDeltaSpeedIMU + 0.01 * stateDeltaIMU / 0.02; // IMU yaw rotation speed (20ms timestep)
+  }
+  stateDeltaSpeedWheels = 0.99 * stateDeltaSpeedWheels + 0.01 * deltaOdometry / 0.02; // wheels yaw rotation speed (20ms timestep) 
   //CONSOLE.println(stateDelta / PI * 180.0);
   stateDeltaIMU = 0;
 
   // compute yaw rotation speed (delta speed)
-  stateDeltaSpeed = (stateDelta - stateDeltaLast) / 0.02;  // 20ms
+  stateDeltaSpeed = (stateDelta - stateDeltaLast) / 0.02;  // 20ms timestep
   stateDeltaSpeedLP = stateDeltaSpeedLP * 0.95 + fabs(stateDeltaSpeed) * 0.05;     
   stateDeltaLast = stateDelta;
-  //CONSOLE.println(stateDeltaSpeedLP/PI*180.0);   
+  //CONSOLE.println(stateDeltaSpeedLP/PI*180.0);
+
+  if (imuFound) {
+    // compute difference between IMU yaw rotation speed and wheels yaw rotation speed
+    diffIMUWheelYawSpeed = stateDeltaSpeedIMU - stateDeltaSpeedWheels;
+    diffIMUWheelYawSpeedLP = diffIMUWheelYawSpeedLP * 0.95 + fabs(diffIMUWheelYawSpeed) * 0.05;  
+    //CONSOLE.println(diffIMUWheelYawSpeedLP/PI*180.0);
+    //CONSOLE.print(stateDeltaSpeedIMU/PI*180.0);
+    //CONSOLE.print(",");
+    //CONSOLE.println(stateDeltaSpeedWheels/PI*180.0);
+  }
 }
 
 // should robot move?
@@ -1129,6 +1147,10 @@ bool detectObstacleRotation(){
         return true;      
       }
     }
+    if (diffIMUWheelYawSpeedLP > 8.0/180.0 * PI) {  // yaw speed difference between wheels and IMU more than 8 degree/s, e.g. due to obstacle
+      triggerObstacleRotation();
+      return true;            
+    }    
   }
   return false;
 }
