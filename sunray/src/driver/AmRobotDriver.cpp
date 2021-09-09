@@ -128,19 +128,12 @@ void AmMotorDriver::setMC33926(int pinDir, int pinPWM, int speed) {
 // IN1 PinPWM         IN2 PinDir
 // PWM                L     Forward
 // PWM                H     Reverse
-// verhindert dass das PWM Signal 0 wird. Der Driver braucht einen kurzen Impuls um das PWM zu erkennen.
-// Wenn der z.B. vom max. PWM Wert auf 0 bzw. das Signal auf Low geht, behält er den vorherigen Wert bei und der Motor stoppt nicht
+// minPwm verhindert, dass das PWM Signal 0 wird. Manche Driver brauchen einen kurzen Impuls, um das PWM zu erkennen.
+// Wenn der z.B. vom max. PWM Wert auf 0 bzw. das Signal auf Low geht, behalten diese den vorherigen Wert bei und der Motor stoppt nicht.
 void AmMotorDriver::setBrushless(int pinDir, int pinPWM, int speed) {
   //DEBUGLN(speed);
-  if (speed < 0) {
-    digitalWrite(pinDir, HIGH) ;
-    if (abs(speed) < minPwm) speed = -minPwm;
-    pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
-  } else {
-    digitalWrite(pinDir, LOW) ;
-    if (abs(speed) < minPwm) speed = minPwm;
-    pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
-  }
+  digitalWrite(pinDir, speed < 0 ? HIGH : LOW);
+  pinMan.analogWrite(pinPWM, (byte) max(minPwm, abs(speed)) );
 }
 
     
