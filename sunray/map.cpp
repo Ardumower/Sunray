@@ -1126,8 +1126,8 @@ bool Map::nextDockPoint(bool sim){
       if (!sim) dockPointsIdx++;              
       if (!sim) trackReverse = false;              
       if (!sim) trackSlow = true;
-      if (!sim) useGPSfixForPosEstimation = !DOCK_IGNORE_GPS;
-      if (!sim) useGPSfixForDeltaEstimation = !DOCK_IGNORE_GPS;      
+      if (!sim) useGPSfixForPosEstimation = true;
+      if (!sim) useGPSfixForDeltaEstimation = true;      
       if (!sim) useGPSfloatForPosEstimation = false;    
       if (!sim) useGPSfloatForDeltaEstimation = false;    
       if (!sim) useIMU = true;     // false      
