@@ -21,8 +21,10 @@ class AmRobotDriver {
 
 
 class AmMotorDriver: public MotorDriver {
+  private:
+    int minPwm;
   public:    
-    AmMotorDriver();
+    AmMotorDriver(int _minPwm);
     void begin() override;
     void run() override;
     void setMotorPwm(int leftPwm, int rightPwm, int mowPwm) override;

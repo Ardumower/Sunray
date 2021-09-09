@@ -46,7 +46,7 @@ void OdometryRightISR(){
   odomTicksRight++;  
 }
 
-AmMotorDriver::AmMotorDriver(){
+AmMotorDriver::AmMotorDriver(int _minPwm) : minPwm(_minPwm) {
 }
     
 
@@ -134,11 +134,11 @@ void AmMotorDriver::setBrushless(int pinDir, int pinPWM, int speed) {
   //DEBUGLN(speed);
   if (speed < 0) {
     digitalWrite(pinDir, HIGH) ;
-    if (speed >= -2) speed = -2;                         
+    if (abs(speed) < minPwm) speed = -minPwm;
     pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
   } else {
     digitalWrite(pinDir, LOW) ;
-    if (speed <= 2) speed = 2;                           
+    if (abs(speed) < minPwm) speed = minPwm;
     pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
   }
 }
