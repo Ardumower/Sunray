@@ -127,6 +127,8 @@ class Map
     bool trackSlow;    // get to target slowly?
     bool useGPSfloatForPosEstimation;    // use GPS float solution for position estimation?
     bool useGPSfloatForDeltaEstimation;  // use GPS float solution for delta estimation?
+    bool useGPSfixForPosEstimation;  // use GPS fix solution for position estimation?
+    bool useGPSfixForDeltaEstimation;  // use GPS fix solution for delta estimation?    
     bool useIMU; // allow using IMU?
     
     // keeps track of the progress in the different point types

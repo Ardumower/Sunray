@@ -258,6 +258,7 @@ void Motor::setMowState(bool switchOn){
 
 void Motor::stopImmediately(bool includeMowerMotor){
   linearSpeedSet = 0;
+  angularSpeedSet = 0;
   motorRightRpmSet = 0;
   motorLeftRpmSet = 0;      
   motorLeftPWMCurr = 0;

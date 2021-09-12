@@ -24,6 +24,10 @@ SDSerial sdSerial;
 
 
 
+#define SD_LOG_NUM_START 1000   // file number for first log file
+#define SD_LOG_NUM_STOP  1099   // file number for last log file (will 'overflow' to first number)
+
+
 void SDSerial::begin(unsigned long baud){  
   logFileName = "";
   packetIdx = 0;
@@ -33,22 +37,32 @@ void SDSerial::begin(unsigned long baud){
 }  
 
 void SDSerial::beginSD(){  
-  
-  for (int i=1000; i < 9000; i++){
+
+  int nextSession = SD_LOG_NUM_START;
+  // find free log entry...
+  for (int i=SD_LOG_NUM_START; i <= SD_LOG_NUM_STOP; i++){
     logFileName = "log";
     logFileName += i;
     logFileName += ".txt";    
     if (!SD.exists(logFileName)) {
       CONSOLE.print("logfile: ");
-      CONSOLE.println(logFileName);    
+      CONSOLE.println(logFileName);          
       sdStarted = true;
-      break; 
-      //SD.remove(UPDATE_FILE);
-      //updateFile.close();
-      //uint32_t updateSize = updateFile.size();
-      //updateFile.seek(SDU_SIZE);      
+      nextSession = (i+1);
+      if (nextSession > SD_LOG_NUM_STOP) nextSession = SD_LOG_NUM_START;
+      break;       
     }
   }  
+  // make free entry for next session...          
+  String logFileNameNext = "log";      
+  logFileNameNext += nextSession;
+  logFileNameNext += ".txt"; 
+  if (SD.exists(logFileNameNext)) {
+    SD.remove(logFileNameNext);
+    //updateFile.close();
+    //uint32_t updateSize = updateFile.size();
+    //updateFile.seek(SDU_SIZE);      
+  }
 }
 
 size_t SDSerial::write(uint8_t data){

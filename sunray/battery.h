@@ -23,6 +23,7 @@ class Battery {
 	  float chargingVoltage;  // volts
 	  float chargingCurrent;  // amps
     bool chargingEnabled;
+    int chargingCompletedDelay; // ensure that loadingcurrent or loadingvoltage triggers 'chargingCompleted' condition for a longer period
     bool chargingCompleted;
 	  void begin();            
     void run();	  
