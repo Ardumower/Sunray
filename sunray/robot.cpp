@@ -972,7 +972,11 @@ bool robotShouldMove(){
   /*CONSOLE.print(motor.linearSpeedSet);
   CONSOLE.print(",");
   CONSOLE.println(motor.angularSpeedSet / PI * 180.0);  */
-  return ( (fabs(motor.linearSpeedSet) > 0.001) );
+  return ( fabs(motor.linearSpeedSet) > 0.001 );
+}
+
+bool robotShouldMoveForward(){
+   return ( motor.linearSpeedSet > 0.001 );
 }
 
 // should robot rotate?
@@ -1043,9 +1047,10 @@ void detectSensorMalfunction(){
 }
 
 
-// detect obstacle (bumper, sonar, ToF) 
-void detectObstacle(){  
-  if (!robotShouldMove()) return;  
+// detect obstacle (bumper, sonar, ToF)
+// returns true, if obstacle detected, otherwise false
+bool detectObstacle(){  
+  if (! ((robotShouldMoveForward()) || (robotShouldRotate())) ) return false;      
   if (TOF_ENABLE){
     if (millis() >= nextToFTime){
       nextToFTime = millis() + 200;
@@ -1058,7 +1063,7 @@ void detectObstacle(){
           if (avg < TOF_OBSTACLE_CM * 10){
             CONSOLE.println("ToF obstacle!");    
             triggerObstacle();                
-            return; 
+            return true; 
           }
         }      
       } 
@@ -1070,7 +1075,7 @@ void detectObstacle(){
       CONSOLE.println("bumper obstacle!");    
       statMowBumperCounter++;
       triggerObstacle();    
-      return;
+      return true;
     }
   }
   if (sonar.obstacle() && (maps.wayMode != WAY_DOCK)){
@@ -1078,7 +1083,7 @@ void detectObstacle(){
     statMowSonarCounter++;
     if (SONAR_TRIGGER_OBSTACLES){
       triggerObstacle();
-      return;
+      return true;
     }        
   }  
   // check if GPS motion (obstacle detection)  
@@ -1094,12 +1099,13 @@ void detectObstacle(){
         CONSOLE.println("gps no motion => obstacle!");
         statMowGPSMotionTimeoutCounter++;
         triggerObstacle();
-        return;
+        return true;
       }
     }
     lastGPSMotionX = stateX;      
     lastGPSMotionY = stateY;      
   }    
+  return false;
 }
 
 // stuck rotate avoidance (drive forward if robot cannot rotate)
@@ -1130,7 +1136,7 @@ bool detectObstacleRotation(){
     triggerObstacleRotation();
     return true;
   }
-  if (BUMPER_ENABLE){
+  /*if (BUMPER_ENABLE){
     if (millis() > angularMotionStartTime + 500) { // FIXME: do we actually need a deadtime here for the freewheel sensor?        
       if (bumper.obstacle()){  
         CONSOLE.println("bumper obstacle!");    
@@ -1139,15 +1145,15 @@ bool detectObstacleRotation(){
         return true;
       }
     }
-  }
+  }*/
   if (imuFound){
     if (millis() > angularMotionStartTime + 3000) {                  
-      if (fabs(stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s, e.g. due to obstacle
+      if (fabs(stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s yaw speed, e.g. due to obstacle
         triggerObstacleRotation();
         return true;      
       }
     }
-    if (diffIMUWheelYawSpeedLP > 8.0/180.0 * PI) {  // yaw speed difference between wheels and IMU more than 8 degree/s, e.g. due to obstacle
+    if (diffIMUWheelYawSpeedLP > 10.0/180.0 * PI) {  // yaw speed difference between wheels and IMU more than 8 degree/s, e.g. due to obstacle
       triggerObstacleRotation();
       return true;            
     }    
@@ -1521,8 +1527,8 @@ void run(){
             // line tracking
             trackLine();
             detectSensorMalfunction();
-            if (!detectObstacleRotation()){
-              detectObstacle();
+            if (!detectObstacle()){
+              detectObstacleRotation();
             }                   
           }        
         }        
