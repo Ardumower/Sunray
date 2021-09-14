@@ -1309,8 +1309,10 @@ void trackLine(){
           setOperation(OP_ERROR);
           buzzer.sound(SND_ERROR, true);        
           return;
-        }              
-        gps.reboot();   // try to recover from false GPS fix     
+        }   
+        if (GPS_REBOOT_RECOVERY){           
+          gps.reboot();   // try to recover from false GPS fix     
+        }
       }      
     } else {
       recoverGpsTime = millis() + 30000;
@@ -1703,7 +1705,9 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       retryOperationTime = millis() + 10000; // try another map routing after 10 seconds
       if (mapRoutingFailedCounter == 30){
         // try GPS reboot after 5 minutes
-        gps.reboot();  // try to recover from false GPS fix
+        if (GPS_REBOOT_RECOVERY){
+          gps.reboot();  // try to recover from false GPS fix
+        }
         retryOperationTime = millis() + 30000; // wait 30 secs after reboot, then try another map routing
       }     
     }
