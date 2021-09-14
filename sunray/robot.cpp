@@ -195,6 +195,7 @@ float stateDeltaSpeedIMU = 0;
 float stateDeltaSpeedWheels = 0;
 float diffIMUWheelYawSpeed = 0;
 float diffIMUWheelYawSpeedLP = 0;
+bool dockReasonRainTriggered = false;
 
 unsigned long recoverGpsTime = 0;
 int recoverGpsCounter = 0;
@@ -1549,7 +1550,8 @@ void run(){
           if (rainDriver.triggered()){
             if (DOCKING_STATION){
               stateSensor = SENS_RAIN;
-              setOperation(OP_DOCK);
+              dockReasonRainTriggered = true;
+              setOperation(OP_DOCK);              
             }
           }
         }        
@@ -1559,7 +1561,7 @@ void run(){
           if (battery.chargingHasCompleted()){
             if ((DOCKING_STATION) && (!dockingInitiatedByOperator)) {
               if (maps.mowPointsIdx > 0){  // if mowing not completed yet
-                if (DOCK_AUTO_START) { // automatic continue mowing allowed?
+                if ((DOCK_AUTO_START) && (!dockReasonRainTriggered)) { // automatic continue mowing allowed?
                   setOperation(OP_MOW); // continue mowing
                 }
               }
@@ -1627,6 +1629,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
   CONSOLE.print(op);
   bool error = false;
   bool routingFailed = false;  
+  if (initiatedbyOperator) dockReasonRainTriggered = false;
   switch (op){
     case OP_IDLE:
       CONSOLE.println(" OP_IDLE");
@@ -1637,7 +1640,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
     case OP_DOCK:
       CONSOLE.println(" OP_DOCK");
       if ((initiatedbyOperator) || (lastMapRoutingFailed))  maps.clearObstacles();
-      dockingInitiatedByOperator = initiatedbyOperator;      
+      dockingInitiatedByOperator = initiatedbyOperator;            
       motor.setLinearAngularSpeed(0,0);
       motor.setMowState(false);                
       if (maps.startDocking(stateX, stateY)){       
