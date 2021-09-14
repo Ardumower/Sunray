@@ -305,8 +305,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define OBSTACLE_DETECTION_ROTATION true // detect robot rotation stuck (requires IMU) 
 
-#define OSTACLE_AVOIDANCE true   // try to find a way around obstacle
-//#define OSTACLE_AVOIDANCE false  // stop robot on obstacle
+#define OBSTACLE_AVOIDANCE true   // try to find a way around obstacle
+//#define OBSTACLE_AVOIDANCE false  // stop robot on obstacle
 #define OBSTACLE_DIAMETER 1.2   // choose diameter of obstacles placed in front of robot (m) for obstacle avoidance
 
 // detect robot being kidnapped? robot will go into error if distance to tracked path is greater than a certain value

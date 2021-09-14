@@ -995,7 +995,7 @@ bool robotShouldBeInMotion(){
 void triggerObstacle(){
   CONSOLE.println("triggerObstacle");    
   statMowObstacles++;    
-  if ((OSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){    
+  if ((OBSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){    
     driveReverseStopTime = millis() + 3000;      
   } else { 
     stateSensor = SENS_OBSTACLE;
@@ -1113,7 +1113,7 @@ bool detectObstacle(){
 void triggerObstacleRotation(){
   CONSOLE.println("triggerObstacleRotation");    
   statMowObstacles++;   
-  if ((OSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){    
+  if ((OBSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){    
     if (FREEWHEEL_IS_AT_BACKSIDE){    
       driveForwardStopTime = millis() + 2000;      
     } else {
