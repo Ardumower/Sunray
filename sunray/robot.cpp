@@ -1294,7 +1294,7 @@ void trackLine(){
 
   // gps-jump/false fix check
   if (KIDNAP_DETECT){
-    float allowedPathTolerance = 1.0;     
+    float allowedPathTolerance = KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE;     
     if ( maps.isUndocking() ) allowedPathTolerance = 0.2;
     if (fabs(distToPath) > allowedPathTolerance){ // actually, this should not happen (except on false GPS fixes or robot being kidnapped...)
       linear = 0;

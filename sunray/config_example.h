@@ -309,6 +309,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // detect robot being kidnapped? robot will go into error if distance to tracked path is greater than a certain value
 //#define KIDNAP_DETECT true
 #define KIDNAP_DETECT false
+#define KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE 1.0  // allowed path tolerance (m) 
+
 
 // drive curves smoothly?
 //#define SMOOTH_CURVES  true
