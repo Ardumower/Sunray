@@ -128,6 +128,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 
 // ----- gear motors --------------------------------------------------
+// for brushless motors, study the sections (drivers, adapter, protection etc.) in the Wiki (https://wiki.ardumower.de/index.php?title=DIY_Brushless_Driver_Board)
 // #define MOTOR_DRIVER_BRUSHLESS   1     // uncomment this for new brushless motor drivers
 
 #define MOTOR_OVERLOAD_CURRENT 0.8    // gear motors overload current (amps)
