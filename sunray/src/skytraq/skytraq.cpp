@@ -276,6 +276,7 @@ bool SKYTRAQ::processNmea(U32 f, const char* buf, ParsingType type)
     case SkyTraqNmeaParser::UpdateSpeed:
       CONSOLE.print("Speed:");
       CONSOLE.println(gnss.GetSpeedInKmHr());
+      groundSpeed = gnss.GetSpeedInKmHr() / 1000.0 * 60.0 * 60.0; 
       break;
     case SkyTraqNmeaParser::UpdateQualitMode:
       CONSOLE.print("Qualit Mode:");
