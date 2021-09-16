@@ -99,6 +99,8 @@ float stateDeltaIMU = 0;
 float stateGroundSpeed = 0; // m/s
 float stateTemp = 0; // degreeC
 float stateHumidity = 0; // percent
+bool stateInMotionLP = false; // robot is in angular or linear motion? (with motion low-pass filtering)
+unsigned long stateInMotionLastTime = 0;
 float setSpeed = 0.1; // linear speed (m/s)
 unsigned long stateLeftTicks = 0;
 unsigned long stateRightTicks = 0;
@@ -220,7 +222,7 @@ void resetAngularMotionMeasurement(){
 
 // reset overall motion timeout
 void resetOverallMotionTimeout(){
-  overallMotionTimeout = millis() + 18000;      
+  overallMotionTimeout = millis() + 10000;      
 }
 
 void updateGPSMotionCheckTime(){
@@ -985,9 +987,16 @@ bool robotShouldRotate(){
   return ( (fabs(motor.linearSpeedSet) < 0.001) &&  (fabs(motor.angularSpeedSet) > 0.001) );
 }
 
-// should robot be in motion?
-bool robotShouldBeInMotion(){
-  return (robotShouldMove() || (robotShouldRotate()));
+// should robot be in motion? NOTE: function ignores very short motion pauses (with motion low-pass filtering)
+bool robotShouldBeInMotion(){  
+  if (robotShouldMove() || (robotShouldRotate())) {
+    stateInMotionLastTime = millis();
+    stateInMotionLP = true;    
+  }
+  if (millis() > stateInMotionLastTime + 2000) {
+    stateInMotionLP = false;
+  }
+  return stateInMotionLP;
 }
 
 
