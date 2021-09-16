@@ -85,6 +85,7 @@ int stateButton = 0;
 int stateButtonTemp = 0;
 unsigned long stateButtonTimeout = 0;
 OperationType stateOp = OP_IDLE; // operation-mode
+bool stateInitiatedbyOperator = true; // operation initiated by operator?
 Sensor stateSensor = SENS_NONE; // last triggered sensor
 unsigned long controlLoops = 0;
 String stateOpText = "";  // current operation as text
@@ -1473,7 +1474,7 @@ void run(){
         CONSOLE.println("restarting operation (retryOperationTime)");
         retryOperationTime = 0;
         motor.stopImmediately(true);
-        setOperation(stateOp, true);    // restart current operation
+        setOperation(stateOp, true, stateInitiatedbyOperator);    // restart current operation
       }
     }
 
@@ -1520,7 +1521,7 @@ void run(){
               Point pt;
               if (!maps.findObstacleSafeMowPoint(pt)){
                 setOperation(OP_DOCK, true); // dock if no more (valid) mowing points
-              } else setOperation(stateOp, true);    // continue current operation
+              } else setOperation(stateOp, true, stateInitiatedbyOperator);    // continue current operation
             }            
           } else if (driveForwardStopTime > 0){
             // rotate stuck avoidance
@@ -1533,7 +1534,7 @@ void run(){
               Point pt;
               if (!maps.findObstacleSafeMowPoint(pt)){
                 setOperation(OP_DOCK, true); // dock if no more (valid) mowing points
-              } else*/ setOperation(stateOp, true);    // continue current operation              
+              } else*/ setOperation(stateOp, true, stateInitiatedbyOperator);    // continue current operation              
             }            
           } else {          
             // line tracking
@@ -1638,6 +1639,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
   CONSOLE.print(op);
   bool error = false;
   bool routingFailed = false;  
+  stateInitiatedbyOperator = initiatedbyOperator;
   if (initiatedbyOperator) dockReasonRainTriggered = false;
   switch (op){
     case OP_IDLE:
