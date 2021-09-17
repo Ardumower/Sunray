@@ -85,7 +85,6 @@ int stateButton = 0;
 int stateButtonTemp = 0;
 unsigned long stateButtonTimeout = 0;
 OperationType stateOp = OP_IDLE; // operation-mode
-bool stateInitiatedbyOperator = true; // operation initiated by operator?
 Sensor stateSensor = SENS_NONE; // last triggered sensor
 unsigned long controlLoops = 0;
 String stateOpText = "";  // current operation as text
@@ -187,7 +186,7 @@ PubSubClient mqttClient(espClient);
 
 float dockSignal = 0;
 float dockAngularSpeed = 0.1;
-bool dockingInitiatedByOperator = true;
+bool dockingInitiatedByOperator = false;
 bool gpsJump = false;
 int motorErrorCounter = 0;
 float trackerDiffDelta = 0;
@@ -1474,7 +1473,7 @@ void run(){
         CONSOLE.println("restarting operation (retryOperationTime)");
         retryOperationTime = 0;
         motor.stopImmediately(true);
-        setOperation(stateOp, true, stateInitiatedbyOperator);    // restart current operation
+        setOperation(stateOp, true);    // restart current operation
       }
     }
 
@@ -1521,7 +1520,7 @@ void run(){
               Point pt;
               if (!maps.findObstacleSafeMowPoint(pt)){
                 setOperation(OP_DOCK, true); // dock if no more (valid) mowing points
-              } else setOperation(stateOp, true, stateInitiatedbyOperator);    // continue current operation
+              } else setOperation(stateOp, true);    // continue current operation
             }            
           } else if (driveForwardStopTime > 0){
             // rotate stuck avoidance
@@ -1534,7 +1533,7 @@ void run(){
               Point pt;
               if (!maps.findObstacleSafeMowPoint(pt)){
                 setOperation(OP_DOCK, true); // dock if no more (valid) mowing points
-              } else*/ setOperation(stateOp, true, stateInitiatedbyOperator);    // continue current operation              
+              } else*/ setOperation(stateOp, true);    // continue current operation              
             }            
           } else {          
             // line tracking
@@ -1638,22 +1637,22 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
   CONSOLE.print("setOperation op=");
   CONSOLE.print(op);
   bool error = false;
-  bool routingFailed = false;  
-  stateInitiatedbyOperator = initiatedbyOperator;
-  if (initiatedbyOperator) dockReasonRainTriggered = false;
+  bool routingFailed = false;    
   switch (op){
     case OP_IDLE:
-      CONSOLE.println(" OP_IDLE");
-      dockingInitiatedByOperator = true;
+      CONSOLE.println(" OP_IDLE");      
       motor.setLinearAngularSpeed(0,0);
       motor.setMowState(false);
       break;
     case OP_DOCK:
       CONSOLE.println(" OP_DOCK");
-      if ((initiatedbyOperator) || (lastMapRoutingFailed))  maps.clearObstacles();
-      dockingInitiatedByOperator = initiatedbyOperator;            
       motor.setLinearAngularSpeed(0,0);
       motor.setMowState(false);                
+      if ((initiatedbyOperator) || (lastMapRoutingFailed))  maps.clearObstacles();
+      if (initiatedbyOperator) {
+        dockingInitiatedByOperator = true;            
+        dockReasonRainTriggered = false;
+      }
       if (maps.startDocking(stateX, stateY)){       
         if (maps.nextPoint(true)) {
           maps.repeatLastMowingPoint();
@@ -1675,8 +1674,10 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       break;
     case OP_MOW:      
       CONSOLE.println(" OP_MOW");      
+      motor.setLinearAngularSpeed(0,0);      
+      dockingInitiatedByOperator = false;
+      dockReasonRainTriggered = false;
       if ((initiatedbyOperator) || (lastMapRoutingFailed)) maps.clearObstacles();
-      motor.setLinearAngularSpeed(0,0);
       if (maps.startMowing(stateX, stateY)){
         if (maps.nextPoint(true)) {
           lastFixTime = millis();                
