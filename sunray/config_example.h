@@ -101,6 +101,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // driving the same distance on the ground (without connected GPS): 
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Odometry_test
 // https://forum.ardumower.de/threads/andere-r%C3%A4der-wie-config-h-%C3%A4ndern.23865/post-41732
+
+// NOTE: if using non-default Ardumower chassis and your freewheel is at frontside (gear motors at backside), have may have to swap motor cables, 
+// more info here: https://wiki.ardumower.de/index.php?title=Ardumower_Chassis_%27mountain_mod%27)
 #define FREEWHEEL_IS_AT_BACKSIDE   true   // default Ardumower: true   (change to false, if your freewheel is at frontside) - this is used for obstacle avoidance
 #define WHEEL_BASE_CM         36         // wheel-to-wheel distance (cm)        
 #define WHEEL_DIAMETER        250        // wheel diameter (mm)                 
