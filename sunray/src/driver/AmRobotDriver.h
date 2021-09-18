@@ -56,13 +56,16 @@ class AmBatteryDriver : public BatteryDriver {
 };
 
 class AmBumperDriver: public BumperDriver {
-  public:    
+  private:
+    uint32_t triggerTime;
+  public:
+    AmBumperDriver(uint32_t _triggerTime) : triggerTime(_triggerTime) {}
     void begin() override;
     void run() override;
     bool obstacle() override;
         
     // get triggered bumper
-    void getTriggeredBumper(bool &leftBumper, bool &rightBumper) override;  	  		    
+    void getTriggeredBumper(bool &leftBumper, bool &rightBumper) override;
 };
 
 
