@@ -47,6 +47,15 @@ connect to wifi               AT+WIFImode,ssid,pass\r\n       +WIFI=mode,ssid,pa
 #define BLE_LATENCY      0
 #define BLE_TIMEOUT      30  
 
+#define MQTT_ENABLED    true
+#define MQTT_PREFIX     "/ardumower/"
+#define MQTT_HOSTNAME   "mqtt-server"
+#define MQTT_CLIENT_ID  NAME
+#define MQTT_USERNAME   ""
+#define MQTT_PASSWORD   ""
+
+#define ENCRYPTION_PASSWORD   123456
+#define ENCRYPTION_ENABLED    true
 
 //IP WiFi:
 //#define WIFI_STATIC_IP true  // activate this for static IP
@@ -90,7 +99,9 @@ String pass = "yourPASSWORD";  // WiFi password  (leave empty ("") to not use Wi
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+#include "./ardumower_adapter.h"
 
+ArduMower::Adapter mower(UART, ENCRYPTION_PASSWORD, ENCRYPTION_ENABLED);
 
 String cmd;
 unsigned long nextInfoTime = 0;
@@ -140,6 +151,9 @@ void uartSend(String s){
   CONSOLE.println(s);
   UART.print(s);
   UART.print("\r\n");  
+  mower.tx(s);
+  String crlf = "\r\n";
+  mower.tx(crlf);
 }
 
 // ------------------------------- BLE -----------------------------------------------------
@@ -352,10 +366,12 @@ void httpServer(){
           CONSOLE.println(cmd);
           String cmdResponse;
           UART.print(cmd);
+          mower.tx(cmd);
           timeout = millis() + WIFI_TIMEOUT_FIRST_RESPONSE; 
           while ( millis() < timeout){
             if (UART.available()){
               char ch = UART.read();
+              mower.rx(ch);
               cmdResponse += ch;
               timeout = millis() + WIFI_TIMEOUT_RESPONSE;  
             }
@@ -488,10 +504,12 @@ void setup() {
 
   startBLE();
   //startWIFI();
+  mqtt_setup();
 }
 
 
 void loop() {     
+  mower.loop(millis());
   // -------- BLE -----------------------------  
   // disconnecting
   if (!bleConnected && oldBleConnected) {
@@ -522,6 +540,7 @@ void loop() {
   // UART receive   
   while (UART.available()){    
     char ch = UART.read();          
+    mower.rx(ch);
     if (bleConnected){
       // BLE client connected
       bleAnswerTimeout = millis() + 100;
@@ -566,6 +585,7 @@ void loop() {
     char ch = rxBuf[rxReadPos];
     s += ch;
     UART.write(ch);
+    mower.tx(ch);
     rxReadPos = (rxReadPos + 1) % BLE_BUF_SZ;	
     num++;
   }
@@ -597,7 +617,5 @@ void loop() {
 
   startWIFI();
   ArduinoOTA.handle();
-
+  mqtt_loop();
 }
-
-
