@@ -14,6 +14,8 @@ class Properties {
   public:
     String firmware;
     String version;
+
+    String toJson();
 };
 
 // changes during runtime

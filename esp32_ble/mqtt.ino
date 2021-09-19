@@ -20,6 +20,7 @@
 
 WiFiClient mqttNet;
 MQTTClient mqttClient(1024);
+bool mqttPendingPublishProps = false;
 bool mqttPendingPublishState = false;
 
 void mqtt_on_message(String &topic, String &payload);
@@ -33,7 +34,7 @@ void mqtt_setup() {
     mqttPendingPublishState = true;
   });
   mower.addPropertiesListeners([ = ](ArduMower::Properties & props) {
-//    mqttPendingPublishProps = true;
+    mqttPendingPublishProps = true;
   });
 
   mqttClient.begin(MQTT_HOSTNAME, mqttNet);
@@ -46,6 +47,7 @@ void mqtt_loop() {
   mqtt_poll_mower(millis());
   mqtt_connect();
   mqttClient.loop();
+  mqtt_publish_props();
   mqtt_publish_state();
 #endif
 }
@@ -97,6 +99,14 @@ void mqtt_on_message(String &topic, String &payload) {
   } else if (command == "dock") {
     mqtt_handle_command_dock(doc);
   }
+}
+
+void mqtt_publish_props() {
+  if (!mqttPendingPublishProps) return;
+
+  if (!mqttClient.publish(mqtt_topic("/props").c_str(), mower.props.toJson().c_str())) return;
+
+  mqttPendingPublishProps = false;
 }
 
 void mqtt_publish_state() {

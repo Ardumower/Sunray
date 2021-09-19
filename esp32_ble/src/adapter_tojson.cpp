@@ -1,6 +1,18 @@
 #include "adapter.h"
 
 
+String ArduMower::Properties::toJson() {
+  String result = "";
+  DynamicJsonDocument doc(1024);
+
+  doc["firmware"] = firmware;
+  doc["version"] = version;
+
+  serializeJson(doc, result);
+  
+  return result;
+}
+
 String ArduMower::State::State::toJson() {
   String result = "";
   DynamicJsonDocument doc(1024);
