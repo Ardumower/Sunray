@@ -1,4 +1,4 @@
-#include "ardumower_adapter.h"
+#include "adapter.h"
 
 void ArduMower::Adapter::loop(uint32_t now) {
   if (txBufferDirty) processTxBuffer(now);
@@ -212,44 +212,4 @@ void ArduMower::Adapter::sendCommand(String cmd) {
   io.print(result.c_str());
   
   free(buf);
-}
-
-String ArduMower::State::State::toJson() {
-  String result = "";
-  DynamicJsonDocument doc(1024);
-
-  doc["battery_voltage"] = batteryVoltage;
-  doc["position"] = position.toJsonObject();
-  doc["target"] = target.toJsonObject();
-  doc["job"] = job;
-  doc["sensor"] = sensor;
-  doc["amps"] = amps;
-  doc["map_crc"] = mapCrc;
-
-  serializeJson(doc, result);
-  
-  return result;
-}
-
-JsonObject ArduMower::State::Point::toJsonObject() {
-  DynamicJsonDocument doc(1024);
-  doc["x"] = x;
-  doc["y"] = y;
-
-  return doc.as<JsonObject>();
-}
-
-JsonObject ArduMower::State::Position::toJsonObject() {
-  DynamicJsonDocument doc(1024);
-  doc["x"] = x;
-  doc["y"] = y;
-  doc["delta"] = delta;
-  doc["solution"] = solution;
-  doc["age"] = age;
-  doc["accuracy"] = accuracy;
-  doc["visible_satellites"] = visibleSatellites;
-  doc["visible_satellites_dgps"] = visibleSatellitesDgps;
-  doc["mow_point_index"] = mowPointIndex;
-
-  return doc.as<JsonObject>();
 }

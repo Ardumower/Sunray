@@ -12,9 +12,9 @@
 #define BLE_LATENCY      0
 #define BLE_TIMEOUT      30  
 
-#define MQTT_ENABLED    true
+#define MQTT_ENABLED    false
 #define MQTT_PREFIX     "/ardumower/"
-#define MQTT_HOSTNAME   "mqtt-server"
+#define MQTT_HOSTNAME   "mqtt-server.home.lan"
 #define MQTT_CLIENT_ID  NAME
 #define MQTT_USERNAME   ""
 #define MQTT_PASSWORD   ""
