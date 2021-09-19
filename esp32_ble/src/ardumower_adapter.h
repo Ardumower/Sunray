@@ -3,8 +3,8 @@
 
 #include <list>
 #include <ArduinoJson.h>
-#include "./src/encrypt.h"
-#include "./src/checksum.h"
+#include "encrypt.h"
+#include "checksum.h"
 
 namespace ArduMower {
 

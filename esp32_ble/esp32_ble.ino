@@ -39,9 +39,7 @@ connect to wifi               AT+WIFImode,ssid,pass\r\n       +WIFI=mode,ssid,pa
 
 #include "config.h"
 
-// ---------- configuration ----------------------------------
 #define VERSION "ESP32 firmware V0.2.4,Bluetooth V4.0 LE"
-
 
 // configure below IPs if using static IP
 IPAddress av_local_IP(WIFI_STATIC_IP_LOCAL);
@@ -64,7 +62,7 @@ String pass = WIFI_STA_PSK;
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
-#include "./ardumower_adapter.h"
+#include "src/ardumower_adapter.h"
 
 ArduMower::Adapter mower(UART, ENCRYPTION_PASSWORD, ENCRYPTION_ENABLED);
 
