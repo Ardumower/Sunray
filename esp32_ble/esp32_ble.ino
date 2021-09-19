@@ -62,7 +62,7 @@ String pass = WIFI_STA_PSK;
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
-#include "src/ardumower_adapter.h"
+#include "src/adapter.h"
 
 ArduMower::Adapter mower(UART, ENCRYPTION_PASSWORD, ENCRYPTION_ENABLED);
 
