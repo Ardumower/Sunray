@@ -38,7 +38,7 @@ connect to wifi               AT+WIFImode,ssid,pass\r\n       +WIFI=mode,ssid,pa
 */
 
 // ---------- configuration ----------------------------------
-#define VERSION "ESP32 firmware V0.2.4,Bluetooth V4.0 LE"
+#define VERSION "ESP32 firmware V0.2.5,Bluetooth V4.0 LE"
 #define NAME "Ardumower"
 #define BLE_MTU 20   // max. transfer bytes per BLE frame
 
@@ -81,6 +81,9 @@ String pass = "yourPASSWORD";  // WiFi password  (leave empty ("") to not use Wi
 #define CONSOLE Serial  // where to send/receive console messages for debugging etc.
 #define UART Serial2    // where to send/receive UART data
 
+// watch dog timeout (WDT) in seconds
+#define WDT_TIMEOUT 60
+
 #include <WiFi.h>
 #include <BLEDevice.h>
 #include <BLEServer.h>
@@ -90,12 +93,14 @@ String pass = "yourPASSWORD";  // WiFi password  (leave empty ("") to not use Wi
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+#include <esp_task_wdt.h>
 
 
 String cmd;
 unsigned long nextInfoTime = 0;
 unsigned long nextPingTime = 0;
 unsigned long nextLEDTime = 0; 
+unsigned long nextWatchDogResetTime = 0;
 bool ledStateNew = false;
 bool ledStateCurr = false;
 
@@ -486,6 +491,10 @@ void setup() {
 
   CONSOLE.println(VERSION);
 
+  CONSOLE.println("Configuring WDT...");
+  esp_task_wdt_init(WDT_TIMEOUT, true); //enable panic so ESP32 restarts
+  esp_task_wdt_add(NULL); //add current thread to WDT watch
+
   startBLE();
   //startWIFI();
 }
@@ -598,6 +607,10 @@ void loop() {
   startWIFI();
   ArduinoOTA.handle();
 
+  if (millis() > nextWatchDogResetTime){
+    nextWatchDogResetTime = millis() + 1000;
+    esp_task_wdt_reset(); // watch dog reset
+  }
 }
 
 
