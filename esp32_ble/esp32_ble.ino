@@ -38,7 +38,7 @@ connect to wifi               AT+WIFImode,ssid,pass\r\n       +WIFI=mode,ssid,pa
 */
 
 // ---------- configuration ----------------------------------
-#define VERSION "ESP32 firmware V0.2.5,Bluetooth V4.0 LE"
+#define VERSION "ESP32 firmware V0.2.6,Bluetooth V4.0 LE"
 #define NAME "Ardumower"
 #define BLE_MTU 20   // max. transfer bytes per BLE frame
 
@@ -269,6 +269,14 @@ void startBLE(){
 void startWIFI(){
   if ((ssid == "") || (pass == "")) return;
   if ((WiFi.status() != WL_CONNECTED) || (WiFi.localIP().toString() == "0.0.0.0")) {    
+    
+    for (int i=0; i < 5; i++){
+      digitalWrite(pinLED, HIGH);
+      delay(50);
+      digitalWrite(pinLED, LOW);
+      delay(50);
+    }
+    
     CONSOLE.print("Attempting to connect to WPA SSID: ");
     CONSOLE.println(ssid);
 
@@ -284,7 +292,7 @@ void startWIFI(){
     WiFi.begin(ssid.c_str(), pass.c_str());        
     if (WiFi.waitForConnectResult() != WL_CONNECTED) {
       CONSOLE.println("Connection Failed!");
-      delay(1000);
+      delay(2000);
       return;
     };
     
