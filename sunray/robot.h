@@ -31,7 +31,7 @@
 #include "PubSubClient.h"
 
 
-#define VER "Ardumower Sunray,1.0.219"
+#define VER "Ardumower Sunray,1.0.220"
 
 enum OperationType {
       OP_IDLE,      

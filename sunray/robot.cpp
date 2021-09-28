@@ -1244,8 +1244,12 @@ void trackLine(){
     }      
     //angula                                    r = 3.0 * trackerDiffDelta + 3.0 * lateralError;       // correct for path errors 
     float k = STANLEY_CONTROL_K_NORMAL;
-    if (maps.trackSlow) k = STANLEY_CONTROL_K_SLOW;   
-    angular = trackerDiffDelta + atan2(k * lateralError, (0.001 + fabs(motor.linearSpeedSet)));       // correct for path errors           
+    float p = STANLEY_CONTROL_P_NORMAL;    
+    if (maps.trackSlow) {
+      k = STANLEY_CONTROL_K_SLOW;   
+      p = STANLEY_CONTROL_P_SLOW;          
+    }
+    angular =  p * trackerDiffDelta + atan2(k * lateralError, (0.001 + fabs(motor.linearSpeedSet)));       // correct for path errors           
     /*pidLine.w = 0;              
     pidLine.x = lateralError;
     pidLine.max_output = PI;
