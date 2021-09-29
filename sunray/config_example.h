@@ -305,30 +305,29 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define CPG_CONFIG_FILTER_NCNOTHRS 10   // C/N0 Threshold #SVs: 10 (robust), 6 (less robust)
 #define CPG_CONFIG_FILTER_CNOTHRS  30   // 30 dbHz (robust), 13 dbHz (less robust)
 
-// ------ experimental options -------------------------
 
-#define OBSTACLE_DETECTION_ROTATION true // detect robot rotation stuck (requires IMU) 
+// ------ obstacle detection and avoidance  -------------------------
+
+#define ENABLE_PATH_FINDER  true     // path finder calculates routes around exclusions and obstacles 
+//#define ENABLE_PATH_FINDER  false
+#define ALLOW_ROUTE_OUTSIDE_PERI_METER 1.0   // max. distance (m) to allow routing from outside perimeter 
+// (increase if you get 'no map route' errors near perimeter)
+
+#define OBSTACLE_DETECTION_ROTATION true // detect robot rotation stuck (requires IMU)
+// #define OBSTACLE_DETECTION_ROTATION false   // NOTE: recommended to turn this off for slope environment   
 
 #define OBSTACLE_AVOIDANCE true   // try to find a way around obstacle
 //#define OBSTACLE_AVOIDANCE false  // stop robot on obstacle
 #define OBSTACLE_DIAMETER 1.2   // choose diameter of obstacles placed in front of robot (m) for obstacle avoidance
 
-// detect robot being kidnapped? robot will go into error if distance to tracked path is greater than a certain value
+// detect robot being kidnapped? robot will try GPS recovery if distance to tracked path is greater than a certain value
+// (false GPS fix recovery), and if that fails go into error 
 //#define KIDNAP_DETECT true
 #define KIDNAP_DETECT false
 #define KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE 1.0  // allowed path tolerance (m) 
 
 
-// drive curves smoothly?
-//#define SMOOTH_CURVES  true
-#define SMOOTH_CURVES  false
-
-
-#define ENABLE_PATH_FINDER  true     // path finder is experimental (can be slow - you may have to wait until robot actually starts)
-//#define ENABLE_PATH_FINDER  false
-#define ALLOW_ROUTE_OUTSIDE_PERI_METER 1.0   // max. distance (m) to allow routing from outside perimeter 
-                                              // (increase if you get 'no map route' errors near perimeter)
-
+// ------ docking --------------------------------------
 // is a docking station available?
 #define DOCKING_STATION true   // use this if docking station available and mower should dock automatically
 //#define DOCKING_STATION false    // mower will just stop after mowing instead of docking automatically 
@@ -338,6 +337,13 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 //#define DOCK_AUTO_START true     // robot will automatically continue mowing after docked automatically
 #define DOCK_AUTO_START false      // robot will not automatically continue mowing after docked automatically
+
+
+// ------ experimental options  -------------------------
+
+// drive curves smoothly?
+//#define SMOOTH_CURVES  true
+#define SMOOTH_CURVES  false
 
 
 // stanley control for path tracking - determines gain how fast to correct for lateral path errors
