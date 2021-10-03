@@ -11,6 +11,9 @@
      5. Choose Partition Scheme "Minimal SPIFFS"  (otherwise you may get 'memory space errors' in the Arduino IDE)
     (also see: https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md )
      6. Choose Port (Windows NOTE: if the port is not shown you may have to install drivers: https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers)
+     7. Choose "Tools->Manager Libraries..."
+     8. Add library "ESP32_HTTPS_Server"
+     9. Add library "NimBLE-Arduino"
 
   wiring (also see wiring image in Github folder):
   ESP32 Rx2 (GPIO16) ---  Ardumower PCB1.3 Bluetooth conn RX   (3.3v level)
@@ -29,7 +32,7 @@
   serial protocol:
 
   ---COMMANDS---                                                ---ANSWER---
-                              AT\r\n                          OK\r\n
+                                AT\r\n                          OK\r\n
   request version               AT+VERSION\r\n                  +VERSION=ESP32 firmware V0.1,Bluetooth V4.0 LE\r\n
   change BLE name               AT+NAMEname\r\n                 +NAME=name\r\n
   reset module                  AT+RESET\r\n                    +RESET\r\n
@@ -38,8 +41,11 @@
 */
 
 // ---------- configuration ----------------------------------
-#define VERSION "ESP32 firmware V0.2.6,Bluetooth V4.0 LE"
+#define VERSION "ESP32 firmware V0.3.0,Bluetooth V4.0 LE"
 #define NAME "Ardumower"
+
+
+#define USE_BLE 1    // comment this line to remove BLE support
 #define BLE_MTU 20   // max. transfer bytes per BLE frame
 
 #define BLE_MIN_INTERVAL 2    // connection parameters (tuned for high speed/high power consumption - see: https://support.ambiq.com/hc/en-us/articles/115002907792-Managing-BLE-Connection-Parameters)
@@ -65,6 +71,8 @@ String pass = "yourPASSWORD";  // WiFi password  (leave empty ("") to not use Wi
 #define WIFI_TIMEOUT_FIRST_RESPONSE  800   // fast response times (500), for more reliable choose: 800     
 #define WIFI_TIMEOUT_RESPONSE        400    // fast response times (100), for more reliable choose: 400
 
+// #define USE_HTTPS  // comment this line to use HTTP
+
 // -----------------------------------------------------------
 
 #define pinGpioRx   16    // UART2 / GPIO16 / IO16
@@ -84,17 +92,35 @@ String pass = "yourPASSWORD";  // WiFi password  (leave empty ("") to not use Wi
 // watch dog timeout (WDT) in seconds
 #define WDT_TIMEOUT 60
 
+// Include certificate data 
+#include "cert.h"
+#include "private_key.h"
+
 #include <WiFi.h>
-#include <BLEDevice.h>
-#include <BLEServer.h>
-#include <BLEUtils.h>
-#include <BLECharacteristic.h>
-#include <BLE2902.h>
-#include <ESPmDNS.h>
-#include <WiFiUdp.h>
+#ifdef USE_HTTPS
+  #include <HTTPSServer.hpp>
+  #include <SSLCert.hpp>
+#else
+  #include <HTTPServer.hpp>
+#endif
+#include <HTTPRequest.hpp>
+#include <HTTPResponse.hpp>
+// The HTTPS Server comes in a separate namespace. For easier use, include it here.
+using namespace httpsserver;
+
+#ifdef USE_BLE
+  #include "NimBLEDevice.h"
+  //#include <BLEDevice.h>
+  //#include <BLEServer.h>
+  //#include <BLEUtils.h>
+  //#include <BLECharacteristic.h>
+  //#include <BLE2902.h>
+  //#include <ESPmDNS.h>
+  //#include <WiFiUdp.h>
+#endif
+
 #include <ArduinoOTA.h>
 #include <esp_task_wdt.h>
-
 
 String cmd;
 unsigned long nextInfoTime = 0;
@@ -106,8 +132,10 @@ bool ledStateCurr = false;
 
 // ---- BLE ---------------------------
 String bleName = NAME;
-BLEServer *pServer = NULL;
-BLECharacteristic * pCharacteristic;
+#ifdef USE_BLE
+  BLEServer *pServer = NULL;
+  BLECharacteristic * pCharacteristic;
+#endif
 
 String bleAnswer = "";
 unsigned long bleAnswerTimeout = 0;
@@ -132,9 +160,22 @@ byte txBuf[BLE_BUF_SZ];
 String notifyData;
 
 // ----- wifi --------------------------
-WiFiServer server(80);
+#ifdef USE_HTTPS
+  // Create an SSL certificate object from the files included above
+  SSLCert cert = SSLCert(
+    example_crt_DER, example_crt_DER_len,
+    example_key_DER, example_key_DER_len
+  );
+  HTTPSServer * server = NULL;
+#else
+  HTTPServer * server = NULL;
+#endif
+
+//WiFiServer server(80);
 WiFiClient client;
-unsigned long stopClientTime = 0;
+// We declare some handler functions (definition at the end of the file)
+void handleRoot(HTTPRequest * req, HTTPResponse * res);
+ResourceNode * nodeRoot      = new ResourceNode("/", "GET", &handleRoot);
 
 // ------------------------------- UART -----------------------------------------------------
 
@@ -148,6 +189,8 @@ void uartSend(String s) {
 }
 
 // ------------------------------- BLE -----------------------------------------------------
+
+#ifdef USE_BLE
 
 // send BLE data to BLE client (write data to FIFO)
 void bleSend(String s) {
@@ -186,7 +229,8 @@ void bleNotify() {
 }
 
 class MyServerCallbacks: public BLEServerCallbacks {
-    void onConnect(BLEServer* pServer, esp_ble_gatts_cb_param_t* param ) {
+     void onConnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) {
+    //void onConnect(BLEServer* pServer, esp_ble_gatts_cb_param_t* param ) {
       rxReadPos = rxWritePos = 0;
       txReadPos = txWritePos = 0;
       /** After connection we should change the parameters if we (don't) need fast response times.
@@ -195,12 +239,14 @@ class MyServerCallbacks: public BLEServerCallbacks {
           I find a multiple of 3-5 * the interval works best for quick response/reconnect.
           Min interval: 120 * 1.25ms = 150, Max interval: 120 * 1.25ms = 150, 0 latency, 60 * 10ms = 600ms timeout
       */
-      uint16_t connId = pServer->getConnId();
+      /*uint16_t connId = pServer->getConnId();
       uint16_t peerMTU = pServer->getPeerMTU(connId);
-      // min(1.25ms units),max(1.25ms units),latency(intervals),timeout(10ms units)
       pServer->updateConnParams( param->connect.remote_bda, BLE_MIN_INTERVAL, BLE_MAX_INTERVAL, BLE_LATENCY, BLE_TIMEOUT); // 1, 10, 0, 20
-      CONSOLE.print("---------BLE client connected---------peer mtu=");
-      CONSOLE.println(peerMTU);
+      */
+      // min(1.25ms units),max(1.25ms units),latency(intervals),timeout(10ms units)      
+      pServer->updateConnParams(desc->conn_handle, BLE_MIN_INTERVAL, BLE_MAX_INTERVAL, BLE_LATENCY, BLE_TIMEOUT);
+      CONSOLE.println("---------BLE client connected---------");
+      //CONSOLE.println(peerMTU);
       bleConnected = true;
     };
     void onDisconnect(BLEServer* pServer) {
@@ -250,12 +296,17 @@ void startBLE() {
   // Create the BLE Service
   BLEService *pService = pServer->createService(SERVICE_UUID);
   // Create a BLE Characteristic
-  pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID,
+  /*pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID,
                     BLECharacteristic::PROPERTY_NOTIFY |
                     BLECharacteristic::PROPERTY_READ |
                     BLECharacteristic::PROPERTY_WRITE |
                     BLECharacteristic::PROPERTY_WRITE_NR );
-  pCharacteristic->addDescriptor(new BLE2902());
+  pCharacteristic->addDescriptor(new BLE2902());*/
+  pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID,
+                    NIMBLE_PROPERTY::NOTIFY |
+                    NIMBLE_PROPERTY::READ |
+                    NIMBLE_PROPERTY::WRITE |
+                    NIMBLE_PROPERTY::WRITE_NR );
   pCharacteristic->setCallbacks(new MyCallbacks());
   // Start the service
   pService->start();
@@ -264,7 +315,9 @@ void startBLE() {
   CONSOLE.println("Waiting a BLE client connection to notify...");
 }
 
+#endif 
 // ------------------------------- wifi -----------------------------------------------------
+
 
 void startWIFI() {
   if ((ssid == "") || (pass == "")) return;
@@ -302,8 +355,27 @@ void startWIFI() {
       CONSOLE.print(" and IP=");
       IPAddress ip = WiFi.localIP();
       CONSOLE.println(ip);
-      //server.listenOnLocalhost();
-      server.begin();
+      //server.begin();
+
+      // https://github.com/fhessel/esp32_https_server/issues/11
+      //size_t memAvail = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+      //HTTPS_LOGE("Available mem: %ld bytes", (long)memAvail);
+      CONSOLE.printf("Default Memory:       free size: %8u bytes   largest free block: %8u\n",
+        heap_caps_get_free_size(MALLOC_CAP_DEFAULT),
+        heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT));
+        // explanation for the following line comes below:
+      CONSOLE.printf("Internal 8bit Memory: free size: %8u bytes   largest free block: %8u\n",
+        heap_caps_get_free_size(MALLOC_CAP_INTERNAL|MALLOC_CAP_8BIT),
+        heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL|MALLOC_CAP_8BIT));
+
+      #ifdef USE_HTTPS
+        server = new HTTPSServer(&cert, 443, 1);  
+      #else
+        server = new HTTPServer(80);        
+      #endif
+      server->registerNode(nodeRoot);
+      server->setDefaultNode(nodeRoot);
+      server->start();
 
       ArduinoOTA.setHostname(NAME);
       ArduinoOTA
@@ -326,78 +398,39 @@ void startWIFI() {
   }
 }
 
-void httpServerStopClient() {
-  if (stopClientTime != 0) {
-    if (millis() < stopClientTime) return;
-    CONSOLE.println("stopping HTTP client");
-    client.stop();
-    stopClientTime = 0;
+
+void handleRoot(HTTPRequest * req, HTTPResponse * res) {
+  // We will deliver an HTML page
+  res->setHeader("Content-Type", "text/html");
+  byte buffer[256];
+  // HTTPReqeust::requestComplete can be used to check whether the
+  // body has been parsed completely.
+  CONSOLE.print("HTTP rx:");
+  while(!(req->requestComplete())) {
+    // HTTPRequest::readBytes provides access to the request body.
+    // It requires a buffer, the max buffer length and it will return
+    // the amount of bytes that have been written to the buffer.
+    size_t s = req->readBytes(buffer, 256);
+    CONSOLE.print(cmd);
+    UART.write(buffer, s);     
   }
-}
-
-void httpServer() {
-  client = server.available();   // listen for incoming clients
-  if (!client) return;
-
-  CONSOLE.println("new HTTP client");           // print a message out the serial port
-  String currentLine = "";                // make a String to hold incoming data from the client
-  while (client.connected()) {            // loop while the client's connected
-    if (client.available()) {             // if there's bytes to read from the client,
-      char c = client.read();             // read a byte, then
-      //CONSOLE.write(c);                    // print it out the serial monitor
-      if (c == '\n') {                    // if the byte is a newline character
-
-        // if the current line is blank, you got two newline characters in a row.
-        // that's the end of the client HTTP request, so send a response:
-        if (currentLine.length() == 0) {
-          // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
-          // and a content-type so the client knows what's coming, then a blank line:
-          unsigned long timeout = millis() + WIFI_TIMEOUT_FIRST_RESPONSE;
-          String cmd = "";
-          while ((client.connected()) && (millis() < timeout)) {
-            if (client.available()) {
-              char ch = client.read();
-              timeout = millis() + WIFI_TIMEOUT_RESPONSE;
-              cmd = cmd + ch;
-            }
-          }
-          CONSOLE.print("HTTP rx:");
-          CONSOLE.println(cmd);
-          String cmdResponse;
-          UART.print(cmd);
-          timeout = millis() + WIFI_TIMEOUT_FIRST_RESPONSE;
-          while ( millis() < timeout) {
-            if (UART.available()) {
-              char ch = UART.read();
-              cmdResponse += ch;
-              timeout = millis() + WIFI_TIMEOUT_RESPONSE;
-            }
-            delay(1);
-          }
-          CONSOLE.print("UART tx:");
-          CONSOLE.println(cmdResponse);
-          client.print(
-            "HTTP/1.1 200 OK\r\n"
-            "Access-Control-Allow-Origin: *\r\n"
-            "Content-Type: text/html\r\n"
-            "Connection: close\r\n"  // the connection will be closed after completion of the response
-            // "Refresh: 1\r\n"        // refresh the page automatically every 20 sec
-          );
-          client.print("Content-length: ");
-          client.print(cmdResponse.length());
-          client.print("\r\n\r\n");
-          client.print(cmdResponse);
-          stopClientTime = millis() + 100;
-          // break out of the while loop:
-          break;
-        } else {    // if you got a newline, then clear currentLine:
-          currentLine = "";
-        }
-      } else if (c != '\r') {  // if you got anything else but a carriage return character,
-        currentLine += c;      // add it to the end of the currentLine
-      }
+  CONSOLE.println();  
+  String cmdResponse;
+  UART.print(cmd);
+  unsigned long timeout = millis() + WIFI_TIMEOUT_FIRST_RESPONSE;
+  while ( millis() < timeout) {
+    if (UART.available()) {
+      char ch = UART.read();
+      cmdResponse += ch;
+      timeout = millis() + WIFI_TIMEOUT_RESPONSE;
     }
+    delay(1);
   }
+  CONSOLE.print("UART tx:");
+  CONSOLE.println(cmdResponse);
+  // Write the response 
+  res->print(cmdResponse);
+  //res->write(buffer, s);
 }
 
 
@@ -409,7 +442,9 @@ void cmdVersion() {
 
 void cmdTestPacket() {
   String s = F("+TEST");
+#ifdef USE_BLE
   bleSend(s);
+#endif
 }
 
 void cmdName(String aname) {
@@ -503,12 +538,15 @@ void setup() {
   esp_task_wdt_init(WDT_TIMEOUT, true); //enable panic so ESP32 restarts
   esp_task_wdt_add(NULL); //add current thread to WDT watch
 
+#ifdef USE_BLE
   startBLE();
+#endif
   //startWIFI();
 }
 
 
 void loop() {
+#ifdef USE_BLE
   // -------- BLE -----------------------------
   // disconnecting
   if (!bleConnected && oldBleConnected) {
@@ -529,6 +567,7 @@ void loop() {
     oldBleConnected = true;
     CONSOLE.println("BLE connected");
   }
+#endif
 
   // USB receive
   while (CONSOLE.available()) {
@@ -551,6 +590,7 @@ void loop() {
   }
 
   // UART->BLE bridge
+#ifdef USE_BLE
   if (bleConnected) {
     if (bleAnswer.length() > 0) {
       // BLE client connected
@@ -560,6 +600,7 @@ void loop() {
       }
     }
   }
+#endif
 
   // LED
   if (!bleConnected) {
@@ -608,9 +649,10 @@ void loop() {
     CONSOLE.print(millis());
     CONSOLE.println(" ping");
   }
-
-  httpServerStopClient();
-  if (!bleConnected) httpServer();
+  
+  if (!bleConnected) {
+    if (server != NULL) server->loop();
+  }
 
   startWIFI();
   ArduinoOTA.handle();
