@@ -46,6 +46,7 @@
 
 
 #define USE_BLE 1    // comment this line to remove BLE support
+//#define USE_NIM_BLE   // use NimBLE library instead of ESP32 library? 
 #define BLE_MTU 20   // max. transfer bytes per BLE frame
 
 #define BLE_MIN_INTERVAL 2    // connection parameters (tuned for high speed/high power consumption - see: https://support.ambiq.com/hc/en-us/articles/115002907792-Managing-BLE-Connection-Parameters)
@@ -97,6 +98,9 @@ String pass = "yourPASSWORD";  // WiFi password  (leave empty ("") to not use Wi
 #include "private_key.h"
 
 #include <WiFi.h>
+//#include <ESPmDNS.h>
+//#include <WiFiUdp.h>
+
 #ifdef USE_HTTPS
   #include <HTTPSServer.hpp>
   #include <SSLCert.hpp>
@@ -109,14 +113,15 @@ String pass = "yourPASSWORD";  // WiFi password  (leave empty ("") to not use Wi
 using namespace httpsserver;
 
 #ifdef USE_BLE
-  #include "NimBLEDevice.h"
-  //#include <BLEDevice.h>
-  //#include <BLEServer.h>
-  //#include <BLEUtils.h>
-  //#include <BLECharacteristic.h>
-  //#include <BLE2902.h>
-  //#include <ESPmDNS.h>
-  //#include <WiFiUdp.h>
+  #ifdef USE_NIM_BLE
+    #include "NimBLEDevice.h"
+  #else
+    #include <BLEDevice.h>
+    #include <BLEServer.h>
+    #include <BLEUtils.h>
+    #include <BLECharacteristic.h>
+    #include <BLE2902.h>
+  #endif
 #endif
 
 #include <ArduinoOTA.h>
@@ -175,7 +180,7 @@ String notifyData;
 WiFiClient client;
 // We declare some handler functions (definition at the end of the file)
 void handleRoot(HTTPRequest * req, HTTPResponse * res);
-ResourceNode * nodeRoot      = new ResourceNode("/", "GET", &handleRoot);
+ResourceNode * nodeRoot      = new ResourceNode("/", "POST", &handleRoot);
 
 // ------------------------------- UART -----------------------------------------------------
 
@@ -229,8 +234,11 @@ void bleNotify() {
 }
 
 class MyServerCallbacks: public BLEServerCallbacks {
-     void onConnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) {
-    //void onConnect(BLEServer* pServer, esp_ble_gatts_cb_param_t* param ) {
+    #ifdef USE_NIM_BLE
+      void onConnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) {
+    #else
+      void onConnect(BLEServer* pServer, esp_ble_gatts_cb_param_t* param ) {
+    #endif
       rxReadPos = rxWritePos = 0;
       txReadPos = txWritePos = 0;
       /** After connection we should change the parameters if we (don't) need fast response times.
@@ -239,12 +247,14 @@ class MyServerCallbacks: public BLEServerCallbacks {
           I find a multiple of 3-5 * the interval works best for quick response/reconnect.
           Min interval: 120 * 1.25ms = 150, Max interval: 120 * 1.25ms = 150, 0 latency, 60 * 10ms = 600ms timeout
       */
-      /*uint16_t connId = pServer->getConnId();
-      uint16_t peerMTU = pServer->getPeerMTU(connId);
-      pServer->updateConnParams( param->connect.remote_bda, BLE_MIN_INTERVAL, BLE_MAX_INTERVAL, BLE_LATENCY, BLE_TIMEOUT); // 1, 10, 0, 20
-      */
       // min(1.25ms units),max(1.25ms units),latency(intervals),timeout(10ms units)      
-      pServer->updateConnParams(desc->conn_handle, BLE_MIN_INTERVAL, BLE_MAX_INTERVAL, BLE_LATENCY, BLE_TIMEOUT);
+      #ifdef USE_NIM_BLE
+        pServer->updateConnParams(desc->conn_handle, BLE_MIN_INTERVAL, BLE_MAX_INTERVAL, BLE_LATENCY, BLE_TIMEOUT);
+      #else
+        uint16_t connId = pServer->getConnId();
+        uint16_t peerMTU = pServer->getPeerMTU(connId);
+        pServer->updateConnParams( param->connect.remote_bda, BLE_MIN_INTERVAL, BLE_MAX_INTERVAL, BLE_LATENCY, BLE_TIMEOUT); // 1, 10, 0, 20    
+      #endif      
       CONSOLE.println("---------BLE client connected---------");
       //CONSOLE.println(peerMTU);
       bleConnected = true;
@@ -296,17 +306,22 @@ void startBLE() {
   // Create the BLE Service
   BLEService *pService = pServer->createService(SERVICE_UUID);
   // Create a BLE Characteristic
-  /*pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID,
+  #ifdef USE_NIM_BLE
+    CONSOLE.println("using NimBLE library");
+    pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID,
+                    NIMBLE_PROPERTY::NOTIFY |
+                    NIMBLE_PROPERTY::READ |
+                    NIMBLE_PROPERTY::WRITE |
+                    NIMBLE_PROPERTY::WRITE_NR );    
+  #else
+    CONSOLE.println("using ESP32 BLE library");
+    pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID,
                     BLECharacteristic::PROPERTY_NOTIFY |
                     BLECharacteristic::PROPERTY_READ |
                     BLECharacteristic::PROPERTY_WRITE |
                     BLECharacteristic::PROPERTY_WRITE_NR );
-  pCharacteristic->addDescriptor(new BLE2902());*/
-  pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID,
-                    NIMBLE_PROPERTY::NOTIFY |
-                    NIMBLE_PROPERTY::READ |
-                    NIMBLE_PROPERTY::WRITE |
-                    NIMBLE_PROPERTY::WRITE_NR );
+    pCharacteristic->addDescriptor(new BLE2902());
+  #endif
   pCharacteristic->setCallbacks(new MyCallbacks());
   // Start the service
   pService->start();
@@ -369,8 +384,10 @@ void startWIFI() {
         heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL|MALLOC_CAP_8BIT));
 
       #ifdef USE_HTTPS
+        CONSOLE.println("using HTTPS");
         server = new HTTPSServer(&cert, 443, 1);  
       #else
+        CONSOLE.println("using HTTP");
         server = new HTTPServer(80);        
       #endif
       server->registerNode(nodeRoot);
@@ -402,6 +419,7 @@ void startWIFI() {
 void handleRoot(HTTPRequest * req, HTTPResponse * res) {
   // We will deliver an HTML page
   res->setHeader("Content-Type", "text/html");
+  res->setHeader("Access-Control-Allow-Origin", "*");
   byte buffer[256];
   // HTTPReqeust::requestComplete can be used to check whether the
   // body has been parsed completely.
@@ -411,7 +429,7 @@ void handleRoot(HTTPRequest * req, HTTPResponse * res) {
     // It requires a buffer, the max buffer length and it will return
     // the amount of bytes that have been written to the buffer.
     size_t s = req->readBytes(buffer, 256);
-    CONSOLE.print(cmd);
+    CONSOLE.write(buffer, s);
     UART.write(buffer, s);     
   }
   CONSOLE.println();  
