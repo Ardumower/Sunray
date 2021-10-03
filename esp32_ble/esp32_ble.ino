@@ -93,15 +93,15 @@ String pass = "yourPASSWORD";  // WiFi password  (leave empty ("") to not use Wi
 // watch dog timeout (WDT) in seconds
 #define WDT_TIMEOUT 60
 
-// Include certificate data 
-#include "cert.h"
-#include "private_key.h"
 
 #include <WiFi.h>
 //#include <ESPmDNS.h>
 //#include <WiFiUdp.h>
 
 #ifdef USE_HTTPS
+  // Include certificate data 
+  #include "cert.h"
+  #include "private_key.h"
   #include <HTTPSServer.hpp>
   #include <SSLCert.hpp>
 #else
