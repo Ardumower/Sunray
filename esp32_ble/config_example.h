@@ -33,6 +33,8 @@
   - need to wait few secs after mower reboots before connecting (CRC issues)
   - need to close/reopen app if the phone disconnects (CRC issues)
 
+  Note: Please see and ask in the forum if you experience HTTP connection issues: 
+  https://forum.ardumower.de/threads/sunray-app-connection-issue-solved-sunray-app-verbindungsproblem-gel%C3%B6st.24467/
 
 */
 
