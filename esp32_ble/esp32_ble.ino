@@ -35,10 +35,6 @@ String pass = WIFI_STA_PSK;
 #include <WiFi.h>
 //#include <ESPmDNS.h>
 //#include <WiFiUdp.h>
-#ifdef USE_MQTT
-  #include "src/adapter.h"
-  #include "src/mqtt.h"
-#endif
 
 #ifdef USE_HTTPS
   // Include certificate data 
@@ -69,6 +65,10 @@ using namespace httpsserver;
 #include <ArduinoOTA.h>
 #include <esp_task_wdt.h>
 
+#ifdef USE_MQTT
+  #include "src/adapter.h"
+  ArduMower::Adapter mower(UART, ENCRYPTION_PASSWORD, ENCRYPTION_ENABLED);  
+#endif
 
 String cmd;
 unsigned long nextInfoTime = 0;

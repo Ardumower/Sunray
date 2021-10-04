@@ -1,3 +1,9 @@
+#include "config.h"
+
+#ifdef USE_MQTT
+
+#include "src/adapter.h"
+
 //#include <WiFi.h>
 /*
    MQTT
@@ -5,7 +11,6 @@
    2.5.0
    https://github.com/256dpi/arduino-mqtt
 */
-#include "../config.h"
 
 #include <MQTT.h>
 /*
@@ -20,8 +25,6 @@
 #define MQTT_MOWER_POLL_BACKOFF       5000
 #define MQTT_MOWER_POLL_ATS           5000
 
-ArduMower::Adapter mower(UART, ENCRYPTION_PASSWORD, ENCRYPTION_ENABLED);
-
 WiFiClient mqttNet;
 MQTTClient mqttClient(1024);
 bool mqttPendingPublishProps = false;
@@ -31,6 +34,11 @@ void mqtt_on_message(String &topic, String &payload);
 void mqtt_handle_command_start(DynamicJsonDocument& doc);
 void mqtt_handle_command_stop(DynamicJsonDocument& doc);
 void mqtt_handle_command_dock(DynamicJsonDocument& doc);
+void mqtt_poll_mower(uint32_t now);
+void mqtt_connect();
+void mqtt_publish_props();
+void mqtt_publish_state();
+
 
 String mqtt_topic(String postfix) {
   String result = MQTT_PREFIX;
@@ -41,7 +49,6 @@ String mqtt_topic(String postfix) {
 }
 
 void mqtt_setup() {
-#if MQTT_ENABLED
   mower.addStateListener([ = ](ArduMower::State::State & state) {
     mqttPendingPublishState = true;
   });
@@ -51,17 +58,14 @@ void mqtt_setup() {
 
   mqttClient.begin(MQTT_HOSTNAME, MQTT_PORT, mqttNet);
   mqttClient.onMessage(mqtt_on_message);
-#endif
 }
 
 void mqtt_loop() {
-#if MQTT_ENABLED
   mqtt_poll_mower(millis());
   mqtt_connect();
   mqttClient.loop();
   mqtt_publish_props();
   mqtt_publish_state();
-#endif
 }
 
 void mqtt_poll_mower(uint32_t now) {
@@ -141,4 +145,7 @@ void mqtt_handle_command_stop(DynamicJsonDocument& doc) {
 void mqtt_handle_command_dock(DynamicJsonDocument& doc) {
   mower.sendCommand("AT+C,-1,4,-1,-1,-1,-1,-1,1");
 }
+
+#endif  // USE_MQTT
+
 

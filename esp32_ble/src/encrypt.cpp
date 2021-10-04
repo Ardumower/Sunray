@@ -1,8 +1,3 @@
-#include "config.h"
-
-
-#ifdef USE_MQTT
-
 #include "encrypt.h"
 
 
@@ -43,5 +38,4 @@ void ArduMower::Encrypt::decrypt(char* buffer, size_t len) {
   }
 }
 
-#endif // USE_MQTT
 

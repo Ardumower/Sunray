@@ -1,9 +1,6 @@
 
-#include "config.h"
-
-#ifdef USE_MQTT
-
 #include "adapter.h"
+
 
 void ArduMower::Adapter::loop(uint32_t now) {
   if (txBufferDirty) processTxBuffer(now);
@@ -219,4 +216,3 @@ void ArduMower::Adapter::sendCommand(String cmd) {
   free(buf);
 }
 
-#endif // USE_MQTT  
