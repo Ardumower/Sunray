@@ -254,17 +254,17 @@ void startBLE() {
   #ifdef USE_NIM_BLE
     CONSOLE.println("using NimBLE library");
     pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID,
-                    NIMBLE_PROPERTY::NOTIFY |
-                    NIMBLE_PROPERTY::READ |
-                    NIMBLE_PROPERTY::WRITE |
-                    NIMBLE_PROPERTY::WRITE_NR );    
+                    NIMBLE_PROPERTY::NOTIFY |  // client will be notified if value changed
+                    NIMBLE_PROPERTY::READ |  // client can read
+                    NIMBLE_PROPERTY::WRITE |  // client can write
+                    NIMBLE_PROPERTY::WRITE_NR );  // client can write without our acknowledge (no-response)
   #else
     CONSOLE.println("using ESP32 BLE library");
     pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID,
-                    BLECharacteristic::PROPERTY_NOTIFY |
-                    BLECharacteristic::PROPERTY_READ |
-                    BLECharacteristic::PROPERTY_WRITE |
-                    BLECharacteristic::PROPERTY_WRITE_NR );
+                    BLECharacteristic::PROPERTY_NOTIFY |  // client will be notified if value changed
+                    BLECharacteristic::PROPERTY_READ |  // client can read
+                    BLECharacteristic::PROPERTY_WRITE |  // client can write 
+                    BLECharacteristic::PROPERTY_WRITE_NR );  // client can write without our acknowledge (no-response)
     pCharacteristic->addDescriptor(new BLE2902());
   #endif
   pCharacteristic->setCallbacks(new MyCallbacks());
