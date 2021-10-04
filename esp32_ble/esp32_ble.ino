@@ -171,8 +171,9 @@ void bleNotify() {
   if (notifyData.length() > 0) {
     //CONSOLE.print("notify:");
     //CONSOLE.println(notifyData);
-    pCharacteristic->setValue(notifyData.c_str());
+    pCharacteristic->setValue( ((uint8_t*)(notifyData.c_str())), notifyData.length());
     pCharacteristic->notify();
+    //delay(3); // give BLE some time for transmission
   }
 }
 
@@ -249,6 +250,7 @@ void startBLE() {
   // Create the BLE Service
   BLEService *pService = pServer->createService(SERVICE_UUID);
   // Create a BLE Characteristic
+  // https://www.electrosoftcloud.com/en/ble-in-esp32-bluetooth-low-energy-connection/
   #ifdef USE_NIM_BLE
     CONSOLE.println("using NimBLE library");
     pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID,
@@ -269,7 +271,12 @@ void startBLE() {
   // Start the service
   pService->start();
   // Start advertising
-  pServer->getAdvertising()->start();
+  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+  pAdvertising->addServiceUUID(SERVICE_UUID);  
+  pAdvertising->setScanResponse(true);
+  pAdvertising->setMinPreferred(0x06);  // functions that help with iPhone connections issue
+  pAdvertising->setMinPreferred(0x12);
+  BLEDevice::startAdvertising();
   CONSOLE.println("Waiting a BLE client connection to notify...");
 }
 
@@ -514,15 +521,10 @@ void loop() {
   // -------- BLE -----------------------------
   // disconnecting
   if (!bleConnected && oldBleConnected) {
-    // advertising
-    //delay(500); // give the bluetooth stack the chance to get things ready
-    BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
-    pAdvertising->addServiceUUID(SERVICE_UUID);
-    pAdvertising->setScanResponse(true);
-    pAdvertising->setMinPreferred(0x06);  // functions that help with iPhone connections issue
-    pAdvertising->setMinPreferred(0x12);
-    BLEDevice::startAdvertising();
-    CONSOLE.println("start advertising");
+    CONSOLE.println("waiting for bluetooth stack to get things ready...");
+    delay(500); // give the bluetooth stack the chance to get things ready
+    pServer->startAdvertising(); // restart advertising
+    CONSOLE.println("restart advertising");
     oldBleConnected = false;
   }
   // connecting
@@ -554,8 +556,9 @@ void loop() {
   }
 
   // UART->BLE bridge
-#ifdef USE_BLE
+#ifdef USE_BLE  
   if (bleConnected) {
+    //bleAnswer = "dunno\n"; // simulate Ardumower answer (only for BLE testing)
     if (bleAnswer.length() > 0) {
       // BLE client connected
       if ((bleAnswer.endsWith("\n")) || (bleAnswer.endsWith("\r")) || (millis() > bleAnswerTimeout) || (bleAnswer.length() >= BLE_MTU)) {
