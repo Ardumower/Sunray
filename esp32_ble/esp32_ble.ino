@@ -16,7 +16,7 @@
 
 #include "config.h"
 
-#define VERSION "ESP32 firmware V0.3.2,Bluetooth V4.0 LE"
+#define VERSION "ESP32 firmware V0.3.3,Bluetooth V4.0 LE"
 
 // watch dog timeout (WDT) in seconds
 #define WDT_TIMEOUT 60
