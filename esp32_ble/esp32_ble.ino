@@ -3,32 +3,6 @@
      2. WiFi UART bridge (HTTP server UART)
 
 
-  Steps to install ESP32 for Arduino IDE:
-     1. Arduino IDE: File->Preferences:  Add to board manager URLs: ",https://dl.espressif.com/dl/package_esp32_index.json"
-     2. Choose "Tools->Board->Boards Manager"
-     3. Add board "esp32" (IMPORTANT!!! choose v1.0.4, latest v1.0.6 does not seem to connect to WiFi access point! )
-     4. Choose Board "ESP32 Dev Module"  (if upload does not work: PRESS EN+BOOT, release EN  on your ESP32)
-     5. Choose Partition Scheme "Minimal SPIFFS"  (otherwise you may get 'memory space errors' in the Arduino IDE)
-    (also see: https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md )
-     6. Choose Port (Windows NOTE: if the port is not shown you may have to install drivers: https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers)
-     7. Choose "Tools->Manager Libraries..."
-     8. Add library "ESP32_HTTPS_Server"
-     9. Add library "NimBLE-Arduino"
-
-  wiring (also see wiring image in Github folder):
-  ESP32 Rx2 (GPIO16) ---  Ardumower PCB1.3 Bluetooth conn RX   (3.3v level)
-  ESP32 Tx2 (GPIO17) ---  Ardumower PCB1.3 Bluetooth conn TX   (3.3v level)
-  ESP32 GND          ---  Ardumower PCB1.3 Bluetooth conn GND
-  ESP32 5V  (Vin)    ---  Ardumower PCB1.3 Bluetooth conn 5V
-
-
-  Note: ESP32 D1 Mini (china cheapo) can work as a comm/BLE chip.
-  Data is reported and mower can be steered using app.
-  Things to remember are:
-  - need to wait few secs after mower reboots before connecting (CRC issues)
-  - need to close/reopen app if the phone disconnects (CRC issues)
-
-
   serial protocol:
 
   ---COMMANDS---                                                ---ANSWER---
@@ -40,68 +14,36 @@
   connect to wifi               AT+WIFImode,ssid,pass\r\n       +WIFI=mode,ssid,pass\r\n
 */
 
-// ---------- configuration ----------------------------------
+#include "config.h"
+
 #define VERSION "ESP32 firmware V0.3.0,Bluetooth V4.0 LE"
-#define NAME "Ardumower"
-
-
-#define USE_BLE 1    // comment this line to remove BLE support
-//#define USE_NIM_BLE   // use NimBLE library instead of ESP32 library? 
-#define BLE_MTU 20   // max. transfer bytes per BLE frame
-
-#define BLE_MIN_INTERVAL 2    // connection parameters (tuned for high speed/high power consumption - see: https://support.ambiq.com/hc/en-us/articles/115002907792-Managing-BLE-Connection-Parameters)
-#define BLE_MAX_INTERVAL 10
-#define BLE_LATENCY      0
-#define BLE_TIMEOUT      30
-
-
-//IP WiFi:
-//#define WIFI_STATIC_IP true  // activate this for static IP
-#define WIFI_STATIC_IP false // activate this for dynamic IP
-
-// configure below IPs if using static IP
-IPAddress av_local_IP(10, 0, 100, 11);
-IPAddress av_gateway(10, 0, 100, 1);
-IPAddress av_subnet(255, 255, 255, 0);
-IPAddress av_primaryDNS(8, 8, 8, 8); //optional
-IPAddress av_secondaryDNS(8, 8, 4, 4); //optional
-
-String ssid = "yourSSID";  // WiFi SSID      (leave empty ("") to not use WiFi)
-String pass = "yourPASSWORD";  // WiFi password  (leave empty ("") to not use WiFi)
-
-#define WIFI_TIMEOUT_FIRST_RESPONSE  800   // fast response times (500), for more reliable choose: 800     
-#define WIFI_TIMEOUT_RESPONSE        400    // fast response times (100), for more reliable choose: 400
-
-// #define USE_HTTPS  // comment this line to use HTTP
-
-// -----------------------------------------------------------
-
-#define pinGpioRx   16    // UART2 / GPIO16 / IO16
-#define pinGpioTx   17    // UART2 / GPIO17 / IO17
-
-//#define pinGpioRx   9   // UART1 / GPIO9  / SD2
-//#define pinGpioTx   10  // UART1 / GPIO10 / SD3
-
-//#define pinGpioRx   3   // UART0 / GPIO3  / RXD0
-//#define pinGpioTx   1   // UART0 / GPIO1  / TXD0
-
-#define pinLED   2
-
-#define CONSOLE Serial  // where to send/receive console messages for debugging etc.
-#define UART Serial2    // where to send/receive UART data
 
 // watch dog timeout (WDT) in seconds
 #define WDT_TIMEOUT 60
+
+// configure below IPs if using static IP
+IPAddress av_local_IP(WIFI_STATIC_IP_LOCAL);
+IPAddress av_gateway(WIFI_STATIC_IP_GW);
+IPAddress av_subnet(WIFI_STATIC_IP_SUBNET);
+IPAddress av_primaryDNS(WIFI_STATIC_IP_DNS1); //optional
+IPAddress av_secondaryDNS(WIFI_STATIC_IP_DNS2); //optional
+      
+String ssid = WIFI_STA_SSID;
+String pass = WIFI_STA_PSK;
 
 
 #include <WiFi.h>
 //#include <ESPmDNS.h>
 //#include <WiFiUdp.h>
+#ifdef USE_MQTT
+  #include "src/adapter.h"
+  #include "src/mqtt.h"
+#endif
 
 #ifdef USE_HTTPS
   // Include certificate data 
-  #include "cert.h"
-  #include "private_key.h"
+  #include "src/cert.h"
+  #include "src/private_key.h"
   #include <HTTPSServer.hpp>
   #include <SSLCert.hpp>
 #else
@@ -126,6 +68,7 @@ using namespace httpsserver;
 
 #include <ArduinoOTA.h>
 #include <esp_task_wdt.h>
+
 
 String cmd;
 unsigned long nextInfoTime = 0;
@@ -559,6 +502,9 @@ void setup() {
 #ifdef USE_BLE
   startBLE();
 #endif
+#ifdef USE_MQTT
+   mqtt_setup();
+#endif
   //startWIFI();
 }
 
@@ -674,6 +620,9 @@ void loop() {
 
   startWIFI();
   ArduinoOTA.handle();
+#ifdef USE_MQTT
+  mqtt_loop();
+#endif
 
   if (millis() > nextWatchDogResetTime) {
     nextWatchDogResetTime = millis() + 1000;
