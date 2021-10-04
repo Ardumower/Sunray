@@ -49,7 +49,7 @@ void mqtt_setup() {
     mqttPendingPublishProps = true;
   });
 
-  mqttClient.begin(MQTT_HOSTNAME, mqttNet);
+  mqttClient.begin(MQTT_HOSTNAME, MQTT_PORT, mqttNet);
   mqttClient.onMessage(mqtt_on_message);
 #endif
 }
