@@ -629,7 +629,9 @@ void loop() {
 #ifdef USE_MQTT
   mqtt_loop();
 #endif
+#ifdef USE_BLE
   bleLoop();
+#endif
 
   if (millis() > nextWatchDogResetTime) {
     nextWatchDogResetTime = millis() + 1000;
