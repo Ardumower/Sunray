@@ -66,10 +66,14 @@
 
 //#define USE_HTTPS  1 // comment this line to use HTTP
 
-// MQTT
+
+// MQTT server 
+// (subscribed topcis: '/command/start', '/command/stop', '/command/dock')
+//  published topics: '/online', '/state', '/props')
+
 //#define USE_MQTT  1     // uncomment to activate MQTT
 #define MQTT_PREFIX     "/ardumower/"
-#define MQTT_HOSTNAME   "mqtt-server.home.lan"
+#define MQTT_HOSTNAME   "mqtt-server.home.lan"  // IP or hostname
 #define MQTT_PORT       1883
 #define MQTT_CLIENT_ID  NAME
 #define MQTT_USERNAME   ""
