@@ -16,7 +16,7 @@
 
 #include "config.h"
 
-#define VERSION "ESP32 firmware V0.3.4,Bluetooth V4.0 LE"
+#define VERSION "ESP32 firmware V0.3.5,Bluetooth V4.0 LE"
 
 // watch dog timeout (WDT) in seconds
 #define WDT_TIMEOUT 60
@@ -53,7 +53,7 @@ using namespace httpsserver;
 #ifdef USE_BLE
   #ifdef USE_NIM_BLE
     #include "NimBLEDevice.h"
-  #else
+  #else    
     #include <BLEDevice.h>
     #include <BLEServer.h>
     #include <BLEUtils.h>
@@ -88,7 +88,6 @@ String bleName = NAME;
 String bleAnswer = "";
 unsigned long bleAnswerTimeout = 0;
 bool bleConnected = false;
-volatile bool bleSendNextPacket = false;
 bool oldBleConnected = false;
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
@@ -145,7 +144,6 @@ void uartSend(String s) {
 void bleSend(String s) {
   if (!bleConnected) {
     CONSOLE.println("bleSend ignoring: not connected");
-    bleSendNextPacket = false;
     return;
   }
   CONSOLE.print(millis());
@@ -157,36 +155,40 @@ void bleSend(String s) {
       break;
     }
     txBuf[txWritePos] = s[i];                          // push it to the ring buffer
-    txWritePos = (txWritePos + 1) % BLE_BUF_SZ;
-  }
-  bleSendNextPacket = true;
+    txWritePos = (txWritePos + 1) % BLE_BUF_SZ;      
+  }  
+  bleNotify();
 }
 
 // notify BLE client (send next packet from FIFO)
-void bleLoop() {
-  if (!bleSendNextPacket) return;
-  bleSendNextPacket = false;
+void bleNotify() {  
+  if (txReadPos == txWritePos) return;
   notifyData = "";
-  while ((txReadPos != txWritePos) && (notifyData.length() < BLE_MTU)) {
+  while ((txReadPos != txWritePos) && (notifyData.length() < BLE_MTU-5)) {
     char ch = txBuf[txReadPos];
     notifyData += ch;
     txReadPos = (txReadPos + 1) % BLE_BUF_SZ;
-  }
-  if (notifyData.length() > 0) {
-    //CONSOLE.print("notify:");
-    //CONSOLE.println(notifyData);
-    pCharacteristic->setValue( ((uint8_t*)(notifyData.c_str())), notifyData.length());
-    pCharacteristic->notify();
-    //delay(3); // give BLE some time for transmission
+  }  
+  if (notifyData.length() > 0){    
+    pCharacteristic->setValue( (uint8_t*) notifyData.c_str(), notifyData.length() );
+    pCharacteristic->notify();         
   }
 }
 
 class MyServerCallbacks: public BLEServerCallbacks {
-    #ifdef USE_NIM_BLE
-      void onConnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) {
-    #else
-      void onConnect(BLEServer* pServer, esp_ble_gatts_cb_param_t* param ) {
-    #endif
+  #ifdef USE_NIM_BLE
+    virtual void onMTUChange(uint16_t MTU, ble_gap_conn_desc* desc){
+      CONSOLE.print("onMTUChange ");
+      CONSOLE.println(MTU);
+    }
+  #endif  
+
+  #ifdef USE_NIM_BLE
+    void onConnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) {      
+  #else
+    void onConnect(BLEServer* pServer, esp_ble_gatts_cb_param_t* param ) {
+  #endif
+      uint16_t peerMTU = 0;
       rxReadPos = rxWritePos = 0;
       txReadPos = txWritePos = 0;
       /** After connection we should change the parameters if we (don't) need fast response times.
@@ -198,13 +200,15 @@ class MyServerCallbacks: public BLEServerCallbacks {
       // min(1.25ms units),max(1.25ms units),latency(intervals),timeout(10ms units)      
       #ifdef USE_NIM_BLE
         pServer->updateConnParams(desc->conn_handle, BLE_MIN_INTERVAL, BLE_MAX_INTERVAL, BLE_LATENCY, BLE_TIMEOUT);
+        peerMTU = pServer->getPeerMTU(desc->conn_handle);
       #else
         uint16_t connId = pServer->getConnId();
-        uint16_t peerMTU = pServer->getPeerMTU(connId);
+        peerMTU = pServer->getPeerMTU(connId);
         pServer->updateConnParams( param->connect.remote_bda, BLE_MIN_INTERVAL, BLE_MAX_INTERVAL, BLE_LATENCY, BLE_TIMEOUT); // 1, 10, 0, 20    
       #endif      
-      CONSOLE.println("---------BLE client connected---------");
-      //CONSOLE.println(peerMTU);
+      CONSOLE.println("---------BLE client connected---------");            
+      CONSOLE.print("peerMTU=");
+      CONSOLE.println(peerMTU);
       bleConnected = true;
     };
     void onDisconnect(BLEServer* pServer) {
@@ -213,12 +217,25 @@ class MyServerCallbacks: public BLEServerCallbacks {
     }
 };
 
-class MyCallbacks: public BLECharacteristicCallbacks {
+class MyCallbacks: public BLECharacteristicCallbacks {    
+    
+    #ifdef USE_NIM_BLE
+      virtual void onStatus(NimBLECharacteristic* pCharacteristic, Status s, int code){
+        //CONSOLE.println("onStatus");            
+        if (s == BLECharacteristicCallbacks::Status::SUCCESS_NOTIFY) {
+          //CONSOLE.println("SUCCESS_NOTIFY");
+          // notify success => send next BLE packet...        
+          bleNotify();
+        }
+      }
+    #endif
+
     void onStatus(BLECharacteristic* pCharacteristic, BLECharacteristicCallbacks::Status s, uint32_t code) {
+      //CONSOLE.println("onStatus");      
       if (s == BLECharacteristicCallbacks::Status::SUCCESS_NOTIFY) {
-        //CONSOLE.println("onStatus: SUCCESS_NOTIFY");
+        //CONSOLE.println("SUCCESS_NOTIFY");
         // notify success => send next BLE packet...        
-        bleSendNextPacket = true;
+        bleNotify();
       }
     }
     // BLE data received from BLE client => save to FIFO
@@ -247,7 +264,7 @@ void startBLE() {
   // Create the BLE Device
   CONSOLE.println("starting BLE...");
   BLEDevice::init(bleName.c_str());
-  //BLEDevice::setMTU(517);
+  //BLEDevice::setMTU(BLE_MTU);  
   // Create the BLE Server
   pServer = BLEDevice::createServer();
   pServer->setCallbacks(new MyServerCallbacks());
@@ -535,6 +552,7 @@ void loop() {
     // do stuff here on connecting
     oldBleConnected = true;
     CONSOLE.println("BLE connected");
+    UART.println(); // clear any remaining characters in Ardumower FIFO 
   }
 #endif
 
@@ -564,8 +582,10 @@ void loop() {
     //bleAnswer = "dunno\n"; // simulate Ardumower answer (only for BLE testing)
     if (bleAnswer.length() > 0) {
       // BLE client connected
-      if ((bleAnswer.endsWith("\n")) || (bleAnswer.endsWith("\r")) || (millis() > bleAnswerTimeout) || (bleAnswer.length() >= BLE_MTU)) {
-        bleSend(bleAnswer);
+      if ((bleAnswer.endsWith("\n")) || (bleAnswer.endsWith("\r")) || (millis() > bleAnswerTimeout)) {
+        if (bleAnswer.length() > 1){
+          bleSend(bleAnswer);
+        }
         bleAnswer = "";
       }
     }
@@ -629,10 +649,6 @@ void loop() {
 #ifdef USE_MQTT
   mqtt_loop();
 #endif
-#ifdef USE_BLE
-  bleLoop();
-#endif
-
   if (millis() > nextWatchDogResetTime) {
     nextWatchDogResetTime = millis() + 1000;
     esp_task_wdt_reset(); // watch dog reset
