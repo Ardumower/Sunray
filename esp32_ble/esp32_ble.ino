@@ -88,6 +88,7 @@ String bleName = NAME;
 String bleAnswer = "";
 unsigned long bleAnswerTimeout = 0;
 bool bleConnected = false;
+volatile bool bleSendNextPacket = false;
 bool oldBleConnected = false;
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
@@ -97,12 +98,12 @@ bool oldBleConnected = false;
 
 #define BLE_BUF_SZ 2048
 
-int rxReadPos = 0;
-int rxWritePos = 0;
+volatile int rxReadPos = 0;
+volatile int rxWritePos = 0;
 byte rxBuf[BLE_BUF_SZ];
 
-int txReadPos = 0;
-int txWritePos = 0;
+volatile int txReadPos = 0;
+volatile int txWritePos = 0;
 byte txBuf[BLE_BUF_SZ];
 
 String notifyData;
@@ -144,6 +145,7 @@ void uartSend(String s) {
 void bleSend(String s) {
   if (!bleConnected) {
     CONSOLE.println("bleSend ignoring: not connected");
+    bleSendNextPacket = false;
     return;
   }
   CONSOLE.print(millis());
@@ -157,11 +159,13 @@ void bleSend(String s) {
     txBuf[txWritePos] = s[i];                          // push it to the ring buffer
     txWritePos = (txWritePos + 1) % BLE_BUF_SZ;
   }
-  bleNotify();
+  bleSendNextPacket = true;
 }
 
 // notify BLE client (send next packet from FIFO)
-void bleNotify() {
+void bleLoop() {
+  if (!bleSendNextPacket) return;
+  bleSendNextPacket = false;
   notifyData = "";
   while ((txReadPos != txWritePos) && (notifyData.length() < BLE_MTU)) {
     char ch = txBuf[txReadPos];
@@ -213,8 +217,8 @@ class MyCallbacks: public BLECharacteristicCallbacks {
     void onStatus(BLECharacteristic* pCharacteristic, BLECharacteristicCallbacks::Status s, uint32_t code) {
       if (s == BLECharacteristicCallbacks::Status::SUCCESS_NOTIFY) {
         //CONSOLE.println("onStatus: SUCCESS_NOTIFY");
-        // notify success => send next BLE packet...
-        bleNotify();
+        // notify success => send next BLE packet...        
+        bleSendNextPacket = true;
       }
     }
     // BLE data received from BLE client => save to FIFO
@@ -384,7 +388,6 @@ void handleRoot(HTTPRequest * req, HTTPResponse * res) {
   }
   CONSOLE.println();  
   String cmdResponse;
-  UART.print(cmd);
   unsigned long timeout = millis() + WIFI_TIMEOUT_FIRST_RESPONSE;
   while ( millis() < timeout) {
     if (UART.available()) {
@@ -626,6 +629,7 @@ void loop() {
 #ifdef USE_MQTT
   mqtt_loop();
 #endif
+  bleLoop();
 
   if (millis() > nextWatchDogResetTime) {
     nextWatchDogResetTime = millis() + 1000;
