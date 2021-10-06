@@ -515,6 +515,27 @@ void processCmd() {
 }
 
 
+// simulate Ardumower answer (only for BLE testing) 
+void simulateArdumowerAnswer(String req){
+  simPacketCounter++;
+  if (req.startsWith("AT+V")){
+    bleAnswer = "V,Ardumower Sunray,1.0.219,0,78,0x56\n";
+  }
+  if (req.startsWith("AT+P")){
+    bleAnswer = "P,0x50\n";  
+  }
+  if (req.startsWith("AT+M")){        
+    bleAnswer = "M,0x4d\n";
+  }
+  if (req.startsWith("AT+S")){        
+    if (simPacketCounter % 2 == 0){
+      bleAnswer = "S,28.60,15.15,-10.24,2.02,2,2,0,0.25,0,15.70,-11.39,0.02,49,-0.05,48,-971195,0x92\n";
+    } else {
+      bleAnswer = "S,27.60,15.15,-10.24,2.02,2,2,0,0.25,0,15.70,-11.39,0.02,49,-0.05,48,-971195,0x91\n";
+    }        
+  }        
+}
+
 
 void setup() {
   pinMode(pinLED, OUTPUT);
@@ -612,27 +633,7 @@ void loop() {
 #ifdef USE_BLE  
   if (bleConnected) {    
     if (bleReceivedCmd != ""){      
-      if (false){      
-        // ----- simulate Ardumower answer (only for BLE testing) ---------
-        simPacketCounter++;
-        if (bleReceivedCmd.startsWith("AT+V")){
-          bleAnswer = "V,Ardumower Sunray,1.0.219,0,78,0x56\n";
-        }
-        if (bleReceivedCmd.startsWith("AT+P")){
-          bleAnswer = "P,0x50\n";  
-        }
-        if (bleReceivedCmd.startsWith("AT+M")){        
-          bleAnswer = "M,0x4d\n";
-        }
-        if (bleReceivedCmd.startsWith("AT+S")){        
-          if (simPacketCounter % 2 == 0){
-            bleAnswer = "S,28.60,15.15,-10.24,2.02,2,2,0,0.25,0,15.70,-11.39,0.02,49,-0.05,48,-971195,0x92\n";
-          } else {
-            bleAnswer = "S,27.60,15.15,-10.24,2.02,2,2,0,0.25,0,15.70,-11.39,0.02,49,-0.05,48,-971195,0x91\n";
-          }        
-        }        
-        // --------------------------------------------------------------
-      }
+      //simulateArdumowerAnswer(bleReceivedCmd);      
     }
     if (bleAnswer.length() > 0) {
       // BLE client connected
