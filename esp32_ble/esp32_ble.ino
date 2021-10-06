@@ -16,7 +16,7 @@
 
 #include "config.h"
 
-#define VERSION "ESP32 firmware V0.3.5,Bluetooth V4.0 LE"
+#define VERSION "ESP32 firmware V0.3.6,Bluetooth V4.0 LE"
 
 // watch dog timeout (WDT) in seconds
 #define WDT_TIMEOUT 60
@@ -77,6 +77,7 @@ unsigned long nextLEDTime = 0;
 unsigned long nextWatchDogResetTime = 0;
 bool ledStateNew = false;
 bool ledStateCurr = false;
+int simPacketCounter = 0; 
 
 // ---- BLE ---------------------------
 String bleName = NAME;
@@ -264,7 +265,7 @@ void startBLE() {
   // Create the BLE Device
   CONSOLE.println("starting BLE...");
   BLEDevice::init(bleName.c_str());
-  //BLEDevice::setMTU(BLE_MTU);  
+  BLEDevice::setMTU(BLE_MTU);  
   // Create the BLE Server
   pServer = BLEDevice::createServer();
   pServer->setCallbacks(new MyServerCallbacks());
@@ -576,22 +577,6 @@ void loop() {
     }
   }
 
-  // UART->BLE bridge
-#ifdef USE_BLE  
-  if (bleConnected) {
-    //bleAnswer = "dunno\n"; // simulate Ardumower answer (only for BLE testing)
-    if (bleAnswer.length() > 0) {
-      // BLE client connected
-      if ((bleAnswer.endsWith("\n")) || (bleAnswer.endsWith("\r")) || (millis() > bleAnswerTimeout)) {
-        if (bleAnswer.length() > 1){
-          bleSend(bleAnswer);
-        }
-        bleAnswer = "";
-      }
-    }
-  }
-#endif
-
   // LED
   if (!bleConnected) {
     if (millis() > nextLEDTime) {
@@ -609,10 +594,10 @@ void loop() {
 
   // BLE->UART bridge
   int num = 0;
-  String s = "";
+  String bleReceivedCmd = "";  
   while (rxReadPos != rxWritePos) {
     char ch = rxBuf[rxReadPos];
-    s += ch;
+    bleReceivedCmd += ch;
     UART.write(ch);
     rxReadPos = (rxReadPos + 1) % BLE_BUF_SZ;
     num++;
@@ -620,8 +605,46 @@ void loop() {
   if (num != 0) {
     CONSOLE.print(millis());
     CONSOLE.print(" BLE rx: ");
-    CONSOLE.println(s);
+    CONSOLE.println(bleReceivedCmd);
   }
+
+// UART->BLE bridge
+#ifdef USE_BLE  
+  if (bleConnected) {    
+    if (bleReceivedCmd != ""){      
+      if (false){      
+        // ----- simulate Ardumower answer (only for BLE testing) ---------
+        simPacketCounter++;
+        if (bleReceivedCmd.startsWith("AT+V")){
+          bleAnswer = "V,Ardumower Sunray,1.0.219,0,78,0x56\n";
+        }
+        if (bleReceivedCmd.startsWith("AT+P")){
+          bleAnswer = "P,0x50\n";  
+        }
+        if (bleReceivedCmd.startsWith("AT+M")){        
+          bleAnswer = "M,0x4d\n";
+        }
+        if (bleReceivedCmd.startsWith("AT+S")){        
+          if (simPacketCounter % 2 == 0){
+            bleAnswer = "S,28.60,15.15,-10.24,2.02,2,2,0,0.25,0,15.70,-11.39,0.02,49,-0.05,48,-971195,0x92\n";
+          } else {
+            bleAnswer = "S,27.60,15.15,-10.24,2.02,2,2,0,0.25,0,15.70,-11.39,0.02,49,-0.05,48,-971195,0x91\n";
+          }        
+        }        
+        // --------------------------------------------------------------
+      }
+    }
+    if (bleAnswer.length() > 0) {
+      // BLE client connected
+      if ((bleAnswer.endsWith("\n")) || (bleAnswer.endsWith("\r")) || (millis() > bleAnswerTimeout)) {
+        if (bleAnswer.length() > 1){
+          bleSend(bleAnswer);
+        }
+        bleAnswer = "";
+      }
+    }
+  }
+#endif
 
   // UART AT-commands
   if (cmd.length() > 0) {
