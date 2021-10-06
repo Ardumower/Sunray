@@ -64,7 +64,9 @@
 #define WIFI_TIMEOUT_FIRST_RESPONSE  800   // fast response times (500), for more reliable choose: 800     
 #define WIFI_TIMEOUT_RESPONSE        400   // fast response times (100), for more reliable choose: 400
 
-//#define USE_HTTPS  1 // comment this line to use HTTP
+// comment this line to use HTTP, uncomment to use HTTPS
+// NOTE: if using HTTPS, you also need to uncomment USE_NIM_BLE above!
+//#define USE_HTTPS  1  
 
 
 // MQTT server 
