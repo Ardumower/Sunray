@@ -396,13 +396,16 @@ void handleRoot(HTTPRequest * req, HTTPResponse * res) {
   // HTTPReqeust::requestComplete can be used to check whether the
   // body has been parsed completely.
   CONSOLE.print("HTTP rx:");
+  String wifiCmd = "";
   while(!(req->requestComplete())) {
     // HTTPRequest::readBytes provides access to the request body.
     // It requires a buffer, the max buffer length and it will return
     // the amount of bytes that have been written to the buffer.
-    size_t s = req->readBytes(buffer, 256);
+    size_t s = req->readBytes(buffer, 255);
+    buffer[s] = '\0';
     CONSOLE.write(buffer, s);
-    UART.write(buffer, s);     
+    UART.write(buffer, s);
+    wifiCmd += String((char*)buffer);     
   }
   CONSOLE.println();  
   String cmdResponse;
@@ -415,6 +418,7 @@ void handleRoot(HTTPRequest * req, HTTPResponse * res) {
     }
     delay(1);
   }
+  //simulateArdumowerAnswer(wifiCmd, cmdResponse);  
   CONSOLE.print("UART tx:");
   CONSOLE.println(cmdResponse);
   // Write the response 
@@ -516,22 +520,22 @@ void processCmd() {
 
 
 // simulate Ardumower answer (only for BLE testing) 
-void simulateArdumowerAnswer(String req){
+void simulateArdumowerAnswer(String req, String &resp){
   simPacketCounter++;
   if (req.startsWith("AT+V")){
-    bleAnswer = "V,Ardumower Sunray,1.0.219,0,78,0x56\n";
+    resp = "V,Ardumower Sunray,1.0.219,0,78,0x56\n";
   }
   if (req.startsWith("AT+P")){
-    bleAnswer = "P,0x50\n";  
+    resp = "P,0x50\n";  
   }
   if (req.startsWith("AT+M")){        
-    bleAnswer = "M,0x4d\n";
+    resp = "M,0x4d\n";
   }
   if (req.startsWith("AT+S")){        
     if (simPacketCounter % 2 == 0){
-      bleAnswer = "S,28.60,15.15,-10.24,2.02,2,2,0,0.25,0,15.70,-11.39,0.02,49,-0.05,48,-971195,0x92\n";
+      resp = "S,28.60,15.15,-10.24,2.02,2,2,0,0.25,0,15.70,-11.39,0.02,49,-0.05,48,-971195,0x92\n";
     } else {
-      bleAnswer = "S,27.60,15.15,-10.24,2.02,2,2,0,0.25,0,15.70,-11.39,0.02,49,-0.05,48,-971195,0x91\n";
+      resp = "S,27.60,15.15,-10.24,2.02,2,2,0,0.25,0,15.70,-11.39,0.02,49,-0.05,48,-971195,0x91\n";
     }        
   }        
 }
@@ -633,7 +637,7 @@ void loop() {
 #ifdef USE_BLE  
   if (bleConnected) {    
     if (bleReceivedCmd != ""){      
-      //simulateArdumowerAnswer(bleReceivedCmd);      
+      // simulateArdumowerAnswer(bleReceivedCmd, bleAnswer);      
     }
     if (bleAnswer.length() > 0) {
       // BLE client connected
