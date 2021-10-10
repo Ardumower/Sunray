@@ -145,6 +145,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define MOTOR_PID_KI     0.03   // do not change 0.03
 #define MOTOR_PID_KD     0.03   // do not change 0.03
 
+//#define MOTOR_LEFT_SWAP_DIRECTION 1  // uncomment to swap left motor direction
+//#define MOTOR_RIGHT_SWAP_DIRECTION 1  // uncomment to swap right motor direction
 
 // ----- mowing motor -------------------------------------------------
 // NOTE: motor drivers will indicate 'fault' signal if motor current (e.g. due to a stall on a molehole) or temperature is too high for a 

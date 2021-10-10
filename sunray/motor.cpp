@@ -36,6 +36,15 @@ void Motor::begin() {
     motorLeftSwapDir = false;  
   #endif
   motorRightSwapDir = false;
+  
+  // apply optional custom motor direction swapping 
+  #ifdef MOTOR_LEFT_SWAP_DIRECTION
+    motorLeftSwapDir = !motorLeftSwapDir;
+  #endif
+  #ifdef MOTOR_RIGHT_SWAP_DIRECTION
+    motorRightSwapDir = !motorRightSwapDir;
+  #endif
+
   motorError = false;
   resetMotorFault = false;
   resetMotorFaultCounter = 0;
