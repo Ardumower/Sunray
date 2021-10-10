@@ -50,9 +50,9 @@ void SerialRobotDriver::requestSummary(){
 void SerialRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   String req;
   req += "AT+M,";
-  req +=  (-rightPwm);   // ag   
+  req +=  rightPwm;      
   req += ",";
-  req +=  (-leftPwm);    // ag
+  req +=  leftPwm;    
   req += ",";  
   if (abs(mowPwm) > 0)
     req += "1";
