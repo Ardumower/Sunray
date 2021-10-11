@@ -148,6 +148,20 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define MOTOR_LEFT_SWAP_DIRECTION 1  // uncomment to swap left motor direction
 //#define MOTOR_RIGHT_SWAP_DIRECTION 1  // uncomment to swap right motor direction
 
+// ------------ dynamic gear motors speed ----------------
+// speed will be adjusted by the mowing motor current. If USE_MOWMOTOR_CURRENT_AVERAGE is set to false, the Speed 
+// will be changed if the mow Current is lower or higher than MOWMOTOR_CURRENT_FACTOR * MOW_OVERLOAD_CURRENT.
+// If USE_MOWMOTOR_CURRENT_AVERAGE is set to true the algorithm will detect the current at the middle PWM of the mowMotor.
+// The mowing average will be calculate over 10000 loops and start at MOWMOTOR_CURRENT_FACTOR.
+#define ENABLE_DYNAMIC_MOWER_SPEED false
+#define SPEED_ACCELERATION 0.005 // Speed factor will be changed with every programm loop 
+
+#define SPEED_FACTOR_MAX 1.2
+#define SPEED_FACTOR_MIN 0.5
+#define USE_MOWMOTOR_CURRENT_AVERAGE true
+#define MOWMOTOR_CURRENT_FACTOR 0.25
+
+
 // ----- mowing motor -------------------------------------------------
 // NOTE: motor drivers will indicate 'fault' signal if motor current (e.g. due to a stall on a molehole) or temperature is too high for a 
 // certain time (normally a few seconds) and the mower will try again and set a virtual obstacle after too many tries
@@ -166,6 +180,14 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // should the motor fault (error) detection be enabled? 
 #define ENABLE_FAULT_DETECTION  true
 //#define ENABLE_FAULT_DETECTION  false       // use this if you keep getting 'motor error'
+
+// ----------- dynamic mowingm motor RPM --------------
+// RPM of the mow motor will be adjust over the actual current of the mow motor. If the motor needs more current the PWM will be higher.
+// it can be used 3 different functions for the calculation of the PWM depended´nt on the mowMotor current. The root-Function is recommended
+#define ENABLE_DYNAMIC_MOWMOTOR false // set true to activate, set false to deactivate
+#define DYNAMIC_MOWMOTOR_ALGORITHM 2 // 1 - linear; 2 - root-Function; 3 - square-Function
+#define MIN_MOW_RPM 170   //minimum value of mow RPM
+#define MAX_MOW_RPM 255   // maximum value is 255
 
 
 // ------ WIFI module (ESP8266 ESP-01 with ESP firmware 2.2.1) --------------------------------
@@ -281,8 +303,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 //#define GPS_SKYTRAQ  1               // comment for ublox gps, uncomment for skytraq gps 
 
-//#define REQUIRE_VALID_GPS  true       // mower will pause if no float and no fix GPS solution during mowing
-#define REQUIRE_VALID_GPS  false    // mower will continue to mow if no float or no fix solution
+//#define REQUIRE_VALID_GPS  true       // mower will pause if no float and no fix GPS solution during mowing (recommended)
+#define REQUIRE_VALID_GPS  false    // mower will continue to mow if no float or no fix solution (not recommended)
 
 #define GPS_SPEED_DETECTION true  // will detect obstacles via GPS feedback (no speed)
 //#define GPS_SPEED_DETECTION false
@@ -341,19 +363,21 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DOCK_AUTO_START false      // robot will not automatically continue mowing after docked automatically
 
 
-// ------ experimental options  -------------------------
-
-// drive curves smoothly?
-//#define SMOOTH_CURVES  true
-#define SMOOTH_CURVES  false
-
-
+// ---- path tracking -----------------------------------
 // stanley control for path tracking - determines gain how fast to correct for lateral path errors
 #define STANLEY_CONTROL_P_NORMAL  3.0   // 3.0 for path tracking control (angular gain) when mowing
 #define STANLEY_CONTROL_K_NORMAL  1.0   // 1.0 for path tracking control (lateral gain) when mowing
 
 #define STANLEY_CONTROL_P_SLOW    3.0   // 3.0 for path tracking control (angular gain) when docking tracking
 #define STANLEY_CONTROL_K_SLOW    0.1   // 0.1 for path tracking control (lateral gain) when docking tracking
+
+
+// ----- other options --------------------------------------------
+
+// button control (turns on additional features via the POWER-ON button)
+#define BUTTON_CONTROL true      // additional features activated (press-and-hold button for specific beep count: 
+                                 //  1 beep=start/stop, 5 beeps=dock, 3 beeps=R/C mode ON/OFF)
+//#define BUTTON_CONTROL false   // additional features deactivated
 
 
 // activate support for model R/C control?
@@ -363,32 +387,12 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define RCMODEL_ENABLE true
 #define RCMODEL_ENABLE false
 
-// button control (turns on additional features via the POWER-ON button)
-#define BUTTON_CONTROL true      // additional features activated (press-and-hold button for specific beep count: 
-                                 //  1 beep=start/stop, 5 beeps=dock, 3 beeps=R/C mode ON/OFF)
-//#define BUTTON_CONTROL false   // additional features deactivated
 
-// activate dynamic mowMotorRPM
+// ------ experimental options  -------------------------
 
-// RPM of the mow motor will be adjust over the actual current of the mow motor. If the motor needs more current the PWM will be higher.
-// it can be used 3 different functions for the calculation of the PWM depended´nt on the mowMotor current. The root-Function is recommended
-#define ENABLE_DYNAMIC_MOWMOTOR true // set true to activate, set false to deaktivate
-#define DYNAMIC_MOWMOTOR_ALGORITHM 2 // 1 - linear; 2 - root-Function; 3 - square-Function
-#define MIN_MOW_RPM 170   //minimum value of mow RPM
-#define MAX_MOW_RPM 255   // maximum value is 255
-
-// activate dynamic mower speed
-// speed will be adjusted over the mowMotor current. If USE_MOWMOTOR_CURRENT_AVERAGE is set to false, the Speed 
-// will be changed if the mow Current is lower or higher than MOWMOTOR_CURRENT_FACTOR * MOW_OVERLOAD_CURRENT.
-// If USE_MOWMOTOR_CURRENT_AVERAGE is set to true the algorithm will detect the current at the middle PWM of the mowMotor.
-// The mowing average will be calculate over 10000 loops and start at MOWMOTOR_CURRENT_FACTOR.
-#define ENABLE_DYNAMIC_MOWER_SPEED true
-#define SPEED_ACCELERATION 0.005 // Speed factor will be changed with every programm loop 
-
-#define SPEED_FACTOR_MAX 1.2
-#define SPEED_FACTOR_MIN 0.5
-#define USE_MOWMOTOR_CURRENT_AVERAGE true
-#define MOWMOTOR_CURRENT_FACTOR 0.25
+// drive curves smoothly?
+//#define SMOOTH_CURVES  true
+#define SMOOTH_CURVES  false
 
 // --------- serial monitor output (CONSOLE) ------------------------
 // which Arduino Due USB port do you want to your for serial monitor output (CONSOLE)?
