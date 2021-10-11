@@ -263,7 +263,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define BAT_FULL_VOLTAGE  28.7  // start mowing again at this voltage
 #define BAT_FULL_CURRENT  0.2   // start mowing again below this charging current (amps)
 
-// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Automatic_robot_switch_off
+// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Automatic_battery_switch_off
 #define BAT_SWITCH_OFF_IDLE  false         // switch off if idle (JP8 must be set to autom.)
 #define BAT_SWITCH_OFF_UNDERVOLTAGE  true  // switch off if undervoltage (JP8 must be set to autom.)
 
@@ -368,6 +368,27 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
                                  //  1 beep=start/stop, 5 beeps=dock, 3 beeps=R/C mode ON/OFF)
 //#define BUTTON_CONTROL false   // additional features deactivated
 
+// activate dynamic mowMotorRPM
+
+// RPM of the mow motor will be adjust over the actual current of the mow motor. If the motor needs more current the PWM will be higher.
+// it can be used 3 different functions for the calculation of the PWM depended´nt on the mowMotor current. The root-Function is recommended
+#define ENABLE_DYNAMIC_MOWMOTOR true // set true to activate, set false to deaktivate
+#define DYNAMIC_MOWMOTOR_ALGORITHM 2 // 1 - linear; 2 - root-Function; 3 - square-Function
+#define MIN_MOW_RPM 170   //minimum value of mow RPM
+#define MAX_MOW_RPM 255   // maximum value is 255
+
+// activate dynamic mower speed
+// speed will be adjusted over the mowMotor current. If USE_MOWMOTOR_CURRENT_AVERAGE is set to false, the Speed 
+// will be changed if the mow Current is lower or higher than MOWMOTOR_CURRENT_FACTOR * MOW_OVERLOAD_CURRENT.
+// If USE_MOWMOTOR_CURRENT_AVERAGE is set to true the algorithm will detect the current at the middle PWM of the mowMotor.
+// The mowing average will be calculate over 10000 loops and start at MOWMOTOR_CURRENT_FACTOR.
+#define ENABLE_DYNAMIC_MOWER_SPEED true
+#define SPEED_ACCELERATION 0.005 // Speed factor will be changed with every programm loop 
+
+#define SPEED_FACTOR_MAX 1.2
+#define SPEED_FACTOR_MIN 0.5
+#define USE_MOWMOTOR_CURRENT_AVERAGE true
+#define MOWMOTOR_CURRENT_FACTOR 0.25
 
 // --------- serial monitor output (CONSOLE) ------------------------
 // which Arduino Due USB port do you want to your for serial monitor output (CONSOLE)?
@@ -526,4 +547,3 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // 2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h
   
 #define SERIAL_BUFFER_SIZE 1024
-

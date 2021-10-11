@@ -33,7 +33,11 @@ class Motor {
     bool odometryError;    
     unsigned long motorOverloadDuration; // accumulated duration (ms)
     int  pwmMax;
-    int  pwmMaxMow;    
+    int  pwmMaxMow;  
+    float  pwmSpeedOffset;
+    float mowMotorCurrentAverage;
+    float currentFactor;
+    bool pwmSpeedCurveDetection;
     unsigned long motorLeftTicks;
     unsigned long motorRightTicks;
     float linearSpeedSet; // m/s
@@ -57,7 +61,7 @@ class Motor {
     void stopImmediately(bool includeMowerMotor);
   protected: 
     float motorLeftRpmSet; // set speed
-    float motorRightRpmSet;    
+    float motorRightRpmSet;   
     float motorLeftRpmCurr;
     float motorRightRpmCurr;
     float motorLeftRpmLast;
