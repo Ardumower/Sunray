@@ -116,7 +116,7 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
 
   //########################  Modify pwm depend to to actual Mower Current ############################
 
-  if (pwmMow != 0 && ENABLE_DYNAMIC_MOWMOTOR)
+  if ((pwmMow != 0) && (ENABLE_DYNAMIC_MOWMOTOR))
   {
     switch (DYNAMIC_MOWMOTOR_ALGORITHM){
       case 1:
@@ -156,7 +156,7 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
 
   //########################  Set Mower Speed depend to actual Mower Current ############################
 
-  if (pwmMow != 0)
+  if ((pwmMow != 0) && (ENABLE_DYNAMIC_MOWER_SPEED))
   {    
     if (USE_MOWMOTOR_CURRENT_AVERAGE)
     {
