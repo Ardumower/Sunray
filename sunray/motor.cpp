@@ -303,8 +303,8 @@ void Motor::run() {
     if (millis() > nextResetMotorFaultTime){
       if (resetMotorFault){
         nextResetMotorFaultTime = millis() + 5000;
-//        CONSOLE.print("resetMotorFaultCounter ");
-//        CONSOLE.println(resetMotorFaultCounter);
+        CONSOLE.print("resetMotorFaultCounter ");
+        CONSOLE.println(resetMotorFaultCounter);
         resetMotorFaultCounter++;        
         motorDriver.resetMotorFaults();
         resetMotorFault = false;  
