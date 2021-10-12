@@ -303,14 +303,14 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 //#define GPS_SKYTRAQ  1               // comment for ublox gps, uncomment for skytraq gps 
 
-//#define REQUIRE_VALID_GPS  true       // mower will pause if no float and no fix GPS solution during mowing (recommended)
-#define REQUIRE_VALID_GPS  false    // mower will continue to mow if no float or no fix solution (not recommended)
+#define REQUIRE_VALID_GPS  true       // mower will pause if no float and no fix GPS solution during mowing (recommended)
+//#define REQUIRE_VALID_GPS  false    // mower will continue to mow if no float or no fix solution (not recommended)
 
-#define GPS_SPEED_DETECTION true  // will detect obstacles via GPS feedback (no speed)
+#define GPS_SPEED_DETECTION true  // will detect obstacles via GPS feedback (no speed)  - recommended
 //#define GPS_SPEED_DETECTION false
 
 // detect if robot is actually moving (obstacle detection via GPS feedback)
-#define GPS_MOTION_DETECTION          true    // if robot is not moving trigger obstacle avoidance
+#define GPS_MOTION_DETECTION          true    // if robot is not moving trigger obstacle avoidance (recommended)
 //#define GPS_MOTION_DETECTION        false   // ignore if robot is not moving
 #define GPS_MOTION_DETECTION_TIMEOUT  5      // timeout for motion (secs)
 
@@ -346,8 +346,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // detect robot being kidnapped? robot will try GPS recovery if distance to tracked path is greater than a certain value
 // (false GPS fix recovery), and if that fails go into error 
-//#define KIDNAP_DETECT true
-#define KIDNAP_DETECT false
+#define KIDNAP_DETECT true  // recommended
+//#define KIDNAP_DETECT false
 #define KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE 1.0  // allowed path tolerance (m) 
 
 
