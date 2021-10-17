@@ -13,7 +13,7 @@
     (also see: https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md )
      6. Choose Port (Windows NOTE: if the port is not shown you may have to install drivers: https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers)
      7. Choose "Tools->Manager Libraries..."
-     8. Optional: Add library "ESP32_HTTPS_Server"   (for HTTPS instread of HTTP - only if activated 'USE_HTTPS')
+     8. Add library "ESP32_HTTPS_Server"   
      9. Optional: Add library "NimBLE-Arduino"  (requires less memory - only if activated 'USE_NIM_BLE')
      10. Optional: Add library "ArduinoJson by Benoit Blanchon)" and "MQTT (by Joel Gaehwiler)" (only if activated 'USE_MQTT')
      11. Copy this file into 'config.h'     
