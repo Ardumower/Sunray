@@ -46,7 +46,7 @@ void OdometryRightISR(){
   odomTicksRight++;  
 }
 
-AmMotorDriver::AmMotorDriver(int _minPwm) : minPwm(_minPwm) {
+AmMotorDriver::AmMotorDriver(int _motorMinPwm, int _mowerMinPwm) : motorMinPwm(_motorMinPwm), mowerMinPwm(_mowerMinPwm) {
 }
     
 
@@ -130,7 +130,7 @@ void AmMotorDriver::setMC33926(int pinDir, int pinPWM, int speed) {
 // PWM                H     Reverse
 // minPwm verhindert, dass das PWM Signal 0 wird. Manche Driver brauchen einen kurzen Impuls, um das PWM zu erkennen.
 // Wenn der z.B. vom max. PWM Wert auf 0 bzw. das Signal auf Low geht, behalten diese den vorherigen Wert bei und der Motor stoppt nicht.
-void AmMotorDriver::setBrushless(int pinDir, int pinPWM, int speed) {
+void AmMotorDriver::setBrushless(int pinDir, int pinPWM, int speed, int minPwm) {
   //DEBUGLN(speed);
   digitalWrite(pinDir, speed < 0 ? HIGH : LOW);
   pinMan.analogWrite(pinPWM, (byte) max(minPwm, abs(speed)) );
@@ -139,9 +139,9 @@ void AmMotorDriver::setBrushless(int pinDir, int pinPWM, int speed) {
     
 void AmMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   #ifdef MOTOR_DRIVER_BRUSHLESS
-    setBrushless(pinMotorLeftDir, pinMotorLeftPWM, leftPwm);
-    setBrushless(pinMotorRightDir, pinMotorRightPWM, rightPwm);
-    setBrushless(pinMotorMowDir, pinMotorMowPWM, mowPwm);
+    setBrushless(pinMotorLeftDir, pinMotorLeftPWM, leftPwm, motorMinPwm);
+    setBrushless(pinMotorRightDir, pinMotorRightPWM, rightPwm, motorMinPwm);
+    setBrushless(pinMotorMowDir, pinMotorMowPWM, mowPwm, mowerMinPwm);
   #else
     setMC33926(pinMotorLeftDir, pinMotorLeftPWM, leftPwm);
     setMC33926(pinMotorRightDir, pinMotorRightPWM, rightPwm);
