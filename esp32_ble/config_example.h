@@ -36,6 +36,9 @@
   Note: Please see and ask in the forum if you experience HTTP connection issues: 
   https://forum.ardumower.de/threads/sunray-app-connection-issue-solved-sunray-app-verbindungsproblem-gel%C3%B6st.24467/
 
+  NOTE: If your ESP32 is not available as a device, you may have to install an USB driver: 
+  https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers 
+
 */
 
 #define NAME "Ardumower"
