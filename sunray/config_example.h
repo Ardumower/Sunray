@@ -219,6 +219,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define UDP_SERVER_PORT 4210
 
 // --------- NTRIP client (linux only, highly experimental) ---------------------------------
+//#define ENABLE_NTRIP 1            // must be activated to use Linux NTRIP
 #define NTRIP_HOST "195.227.70.119"   // sapos nrw
 #define NTRIP_PORT 2101
 #define NTRIP_MOUNT "VRS_3_4G_NW"

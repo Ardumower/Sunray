@@ -180,7 +180,7 @@ WiFiEspClient client;
 WiFiEspClient espClient;
 PubSubClient mqttClient(espClient);
 //int status = WL_IDLE_STATUS;     // the Wifi radio's status
-#ifdef __linux__
+#ifdef ENABLE_NTRIP
   NTRIPClient ntrip;
 #endif
 
@@ -808,7 +808,7 @@ void start(){
   
   // initialize ESP module
   startWIFI();
-  #ifdef __linux__
+  #ifdef ENABLE_NTRIP
     ntrip.begin();  
   #endif
   
@@ -1378,7 +1378,7 @@ void trackLine(){
 
 // robot main loop
 void run(){  
-  #ifdef __linux__
+  #ifdef ENABLE_NTRIP
     ntrip.run();
   #endif
   robotDriver.run();
