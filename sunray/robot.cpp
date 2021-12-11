@@ -57,7 +57,7 @@ MPU9250_DMP imu;
   SerialRainSensorDriver rainDriver(robotDriver);
 #else
   AmRobotDriver robotDriver;
-  AmMotorDriver motorDriver;
+  AmMotorDriver motorDriver(MOTOR_DRIVER_MIN_PWM, MOWER_DRIVER_MIN_PWM);
   AmBatteryDriver batteryDriver;
   AmBumperDriver bumper;
   AmStopButtonDriver stopButton;

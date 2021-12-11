@@ -21,8 +21,11 @@ class AmRobotDriver {
 
 
 class AmMotorDriver: public MotorDriver {
+  private:
+    int motorMinPwm;
+    int mowerMinPwm;
   public:    
-    AmMotorDriver();
+    AmMotorDriver(int _motorMinPwm, int _mowerMinPwm);
     void begin() override;
     void run() override;
     void setMotorPwm(int leftPwm, int rightPwm, int mowPwm) override;
@@ -32,7 +35,7 @@ class AmMotorDriver: public MotorDriver {
     void getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks) override;
   protected:
     void setMC33926(int pinDir, int pinPWM, int speed);
-    void setBrushless(int pinDir, int pinPWM, int speed);
+    void setBrushless(int pinDir, int pinPWM, int speed, int minPwm);
 };
 
 class AmBatteryDriver : public BatteryDriver {
