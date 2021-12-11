@@ -312,7 +312,7 @@ protected:  //functions
 class SkyTraqNotifyFun 
 {
   public:
-    virtual bool gnssUpdated(U32 f, const char* buf, ParsingType parsingType);
+    virtual bool gnssUpdated(U32 f, const char* buf, ParsingType parsingType) = 0;
 };
 
 
