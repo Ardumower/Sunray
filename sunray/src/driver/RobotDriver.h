@@ -8,6 +8,8 @@
 #ifndef ROBOT_DRIVER_H
 #define ROBOT_DRIVER_H
 
+#include "../../gps.h"
+
 
 class MotorDriver {
   public:    
@@ -89,8 +91,34 @@ class ImuDriver {
 
 class GpsDriver {
   public:
-    virtual void begin() = 0;
+    unsigned long iTOW; //  An interval time of week (ITOW)
+    int numSV;         // #signals tracked 
+    int numSVdgps;     // #signals tracked with DGPS signal
+    double lon;        // deg
+    double lat;        // deg
+    double height;     // m
+    float relPosN;     // m
+    float relPosE;     // m
+    float relPosD;     // m
+    float heading;     // rad
+    float groundSpeed; // m/s
+    float accuracy;    // m
+    float hAccuracy;   // m
+    float vAccuracy;   // m
+    SolType solution;    
+    bool solutionAvail; // should bet set true if received new solution 
+    unsigned long dgpsAge;
+    unsigned long chksumErrorCounter;
+    unsigned long dgpsChecksumErrorCounter;
+    unsigned long dgpsPacketCounter;
+    // start receiver        
+    virtual void begin(HardwareSerial& bus,uint32_t baud) = 0;
+    // should process receiver data
     virtual void run() = 0;    
+    // should configure receiver    
+    virtual bool configure() = 0; 
+    // should reboot receiver
+    virtual void reboot() = 0;
 };
 
 
