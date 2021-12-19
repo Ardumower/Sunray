@@ -12,6 +12,8 @@ using namespace websockets;
 
 WebsocketsClient relayClient;
 bool relayConnected;
+// reaches 60s max in ~5.5 minutes with ~20 attempts
+Backoff relayBackoff(1000, 60000, 1.2);
 
 void relay_setup() {
   relayConnected = false;
@@ -97,8 +99,12 @@ bool relay_loopConnection() {
   static bool wasConnected = true;
   if (relayConnected != wasConnected) {
     wasConnected = relayConnected;
-    if (relayConnected) CONSOLE.println("Relay connected");
-    else CONSOLE.println("Relay disconnected");
+    if (relayConnected) {
+      CONSOLE.println("Relay connected");
+      relayBackoff.reset();
+    } else {
+      CONSOLE.println("Relay disconnected");
+    }
   }
 
   if (relayConnected)
@@ -109,7 +115,7 @@ bool relay_loopConnection() {
   if (now < nextAttempt)
     return false;
 
-  nextAttempt = now + 1000;
+  nextAttempt = now + relayBackoff.next();;
 
   if (relayClient.connect(RELAY_URL)) CONSOLE.println("Relay connection successful");
   else CONSOLE.println("Relay connection failed");
