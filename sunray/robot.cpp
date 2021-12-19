@@ -22,6 +22,7 @@
 #include "src/driver/AmRobotDriver.h"
 #include "src/driver/SerialRobotDriver.h"
 #include "src/driver/MpuDriver.h"
+#include "src/driver/BnoDriver.h"
 #include "battery.h"
 #include "gps.h"
 #include "src/ublox/ublox.h"
@@ -47,7 +48,11 @@ const signed char orientationMatrix[9] = {
 };
 
 File stateFile;
-MpuDriver imu;
+#ifdef BNO055
+  BnoDriver imuDriver;  
+#else
+  MpuDriver imuDriver;
+#endif
 #ifdef DRV_SERIAL_ROBOT
   SerialRobotDriver robotDriver;
   SerialMotorDriver motorDriver(robotDriver);
@@ -536,8 +541,8 @@ bool startIMU(bool forceIMU){
   uint8_t data = 0;
   int counter = 0;  
   while ((forceIMU) || (counter < 1)){          
-     imu.detect();
-     if (imu.imuFound){
+     imuDriver.detect();
+     if (imuDriver.imuFound){
        break;
      }
      I2Creset();  
@@ -556,10 +561,10 @@ bool startIMU(bool forceIMU){
      }
      watchdogReset();          
   }  
-  if (!imu.imuFound) return false;  
+  if (!imuDriver.imuFound) return false;  
   counter = 0;  
   while (true){    
-    if (imu.begin()) break;
+    if (imuDriver.begin()) break;
     CONSOLE.print("Unable to communicate with IMU.");
     CONSOLE.print("Check connections, and try again.");
     CONSOLE.println();
@@ -587,10 +592,10 @@ bool startIMU(bool forceIMU){
 // bus (by clocking out any garbage on the I2C bus) and then restarting the IMU module.
 // https://learn.sparkfun.com/tutorials/9dof-razor-imu-m0-hookup-guide/using-the-mpu-9250-dmp-arduino-library
 void readIMU(){
-  if (!imu.imuFound) return;
+  if (!imuDriver.imuFound) return;
   // Check for new data in the FIFO  
   unsigned long startTime = millis();
-  bool avail = (imu.isDataAvail());
+  bool avail = (imuDriver.isDataAvail());
   // check time for I2C access : if too long, there's an I2C issue and we need to restart I2C bus...
   unsigned long duration = millis() - startTime;    
   //CONSOLE.print("duration:");
@@ -616,24 +621,24 @@ void readIMU(){
     //CONSOLE.println("fifoAvailable");
     // Use dmpUpdateFifo to update the ax, gx, mx, etc. values
     #ifdef ENABLE_TILT_DETECTION
-      rollChange += (imu.roll-stateRoll);
-      pitchChange += (imu.pitch-statePitch);               
+      rollChange += (imuDriver.roll-stateRoll);
+      pitchChange += (imuDriver.pitch-statePitch);               
       rollChange = 0.95 * rollChange;
       pitchChange = 0.95 * pitchChange;
-      statePitch = imu.pitch;
-      stateRoll = imu.roll;        
+      statePitch = imuDriver.pitch;
+      stateRoll = imuDriver.roll;        
       //CONSOLE.print(rollChange/PI*180.0);
       //CONSOLE.print(",");
       //CONSOLE.println(pitchChange/PI*180.0);
-      if ( (fabs(scalePI(imu.roll)) > 60.0/180.0*PI) || (fabs(scalePI(imu.pitch)) > 100.0/180.0*PI)
+      if ( (fabs(scalePI(imuDriver.roll)) > 60.0/180.0*PI) || (fabs(scalePI(imuDriver.pitch)) > 100.0/180.0*PI)
             || (fabs(rollChange) > 30.0/180.0*PI) || (fabs(pitchChange) > 60.0/180.0*PI)   )  {
         CONSOLE.println("ERROR IMU tilt");
         CONSOLE.print("imu ypr=");
-        CONSOLE.print(imu.yaw/PI*180.0);
+        CONSOLE.print(imuDriver.yaw/PI*180.0);
         CONSOLE.print(",");
-        CONSOLE.print(imu.pitch/PI*180.0);
+        CONSOLE.print(imuDriver.pitch/PI*180.0);
         CONSOLE.print(",");
-        CONSOLE.print(imu.roll/PI*180.0);
+        CONSOLE.print(imuDriver.roll/PI*180.0);
         CONSOLE.print(" rollChange=");
         CONSOLE.print(rollChange/PI*180.0);
         CONSOLE.print(" pitchChange=");
@@ -642,17 +647,17 @@ void readIMU(){
         setOperation(OP_ERROR);
       }           
     #endif
-    motor.robotPitch = scalePI(imu.pitch);
-    imu.yaw = scalePI(imu.yaw);
-    //CONSOLE.println(imu.yaw / PI * 180.0);
+    motor.robotPitch = scalePI(imuDriver.pitch);
+    imuDriver.yaw = scalePI(imuDriver.yaw);
+    //CONSOLE.println(imuDriver.yaw / PI * 180.0);
     lastIMUYaw = scalePI(lastIMUYaw);
-    lastIMUYaw = scalePIangles(lastIMUYaw, imu.yaw);
-    stateDeltaIMU = -scalePI ( distancePI(imu.yaw, lastIMUYaw) );  
-    //CONSOLE.print(imu.yaw);
+    lastIMUYaw = scalePIangles(lastIMUYaw, imuDriver.yaw);
+    stateDeltaIMU = -scalePI ( distancePI(imuDriver.yaw, lastIMUYaw) );  
+    //CONSOLE.print(imuDriver.yaw);
     //CONSOLE.print(",");
     //CONSOLE.print(stateDeltaIMU/PI*180.0);
     //CONSOLE.println();
-    lastIMUYaw = imu.yaw;      
+    lastIMUYaw = imuDriver.yaw;      
     imuDataTimeout = millis() + 10000;         
   }     
 }
@@ -898,14 +903,14 @@ void computeRobotState(){
   stateY += distOdometry/100.0 * sin(stateDelta);        
   if (stateOp == OP_MOW) statMowDistanceTraveled += distOdometry/100.0;
   
-  if ((imu.imuFound) && (maps.useIMU)) {
+  if ((imuDriver.imuFound) && (maps.useIMU)) {
     // IMU available and should be used by planner
     stateDelta = scalePI(stateDelta + stateDeltaIMU );          
   } else {
     // odometry
     stateDelta = scalePI(stateDelta + deltaOdometry);  
   }
-  if (imu.imuFound){
+  if (imuDriver.imuFound){
     stateDeltaSpeedIMU = 0.99 * stateDeltaSpeedIMU + 0.01 * stateDeltaIMU / 0.02; // IMU yaw rotation speed (20ms timestep)
   }
   stateDeltaSpeedWheels = 0.99 * stateDeltaSpeedWheels + 0.01 * deltaOdometry / 0.02; // wheels yaw rotation speed (20ms timestep) 
@@ -918,7 +923,7 @@ void computeRobotState(){
   stateDeltaLast = stateDelta;
   //CONSOLE.println(stateDeltaSpeedLP/PI*180.0);
 
-  if (imu.imuFound) {
+  if (imuDriver.imuFound) {
     // compute difference between IMU yaw rotation speed and wheels yaw rotation speed
     diffIMUWheelYawSpeed = stateDeltaSpeedIMU - stateDeltaSpeedWheels;
     diffIMUWheelYawSpeedLP = diffIMUWheelYawSpeedLP * 0.95 + fabs(diffIMUWheelYawSpeed) * 0.05;  
@@ -1115,7 +1120,7 @@ bool detectObstacleRotation(){
       }
     }
   }*/
-  if (imu.imuFound){
+  if (imuDriver.imuFound){
     if (millis() > angularMotionStartTime + 3000) {                  
       if (fabs(stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s yaw speed, e.g. due to obstacle
         triggerObstacleRotation();
@@ -1391,7 +1396,7 @@ void run(){
           imuIsCalibrating = false;
           CONSOLE.println();                
           lastIMUYaw = 0;          
-          imu.resetData();
+          imuDriver.resetData();
           imuDataTimeout = millis() + 10000;
         }
       }       

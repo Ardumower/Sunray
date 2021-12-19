@@ -75,7 +75,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define MPU6050
 //#define MPU9150
 #define MPU9250   // also choose this for MPU9255
-
+//#define BNO055
 
 // should the mower turn off if IMU is tilt over? (yes: uncomment line, no: comment line)
 #define ENABLE_TILT_DETECTION  1
@@ -552,3 +552,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // 2. Locate file 'packages/arduino/hardware/sam/xxxxx/cores/arduino/RingBuffer.h
   
 #define SERIAL_BUFFER_SIZE 1024
+
+#ifdef BNO055
+  #define MPU9250   // just to make mpu driver happy to compile something
+#endif
+
