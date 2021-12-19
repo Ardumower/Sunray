@@ -242,13 +242,13 @@ void BnoDriver::detect(){
     return;
   }
   CONSOLE.println("BNO055 found!");  
-  readCalibration();
   imuFound = true;  
 }
 
 
 bool BnoDriver::begin(){ 
-    return false;
+    readCalibration();
+    return true;
 }
 
 
