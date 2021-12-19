@@ -168,7 +168,6 @@ unsigned long nextImuTime = 0;
 unsigned long nextTempTime = 0;
 unsigned long imuDataTimeout = 0;
 unsigned long nextSaveTime = 0;
-bool imuFound = false;
 float lastIMUYaw = 0; 
 
 bool wifiFound = false;
@@ -588,7 +587,7 @@ bool startIMU(bool forceIMU){
 // bus (by clocking out any garbage on the I2C bus) and then restarting the IMU module.
 // https://learn.sparkfun.com/tutorials/9dof-razor-imu-m0-hookup-guide/using-the-mpu-9250-dmp-arduino-library
 void readIMU(){
-  if (!imuFound) return;
+  if (!imu.imuFound) return;
   // Check for new data in the FIFO  
   unsigned long startTime = millis();
   bool avail = (imu.isDataAvail());
@@ -899,14 +898,14 @@ void computeRobotState(){
   stateY += distOdometry/100.0 * sin(stateDelta);        
   if (stateOp == OP_MOW) statMowDistanceTraveled += distOdometry/100.0;
   
-  if ((imuFound) && (maps.useIMU)) {
+  if ((imu.imuFound) && (maps.useIMU)) {
     // IMU available and should be used by planner
     stateDelta = scalePI(stateDelta + stateDeltaIMU );          
   } else {
     // odometry
     stateDelta = scalePI(stateDelta + deltaOdometry);  
   }
-  if (imuFound){
+  if (imu.imuFound){
     stateDeltaSpeedIMU = 0.99 * stateDeltaSpeedIMU + 0.01 * stateDeltaIMU / 0.02; // IMU yaw rotation speed (20ms timestep)
   }
   stateDeltaSpeedWheels = 0.99 * stateDeltaSpeedWheels + 0.01 * deltaOdometry / 0.02; // wheels yaw rotation speed (20ms timestep) 
@@ -919,7 +918,7 @@ void computeRobotState(){
   stateDeltaLast = stateDelta;
   //CONSOLE.println(stateDeltaSpeedLP/PI*180.0);
 
-  if (imuFound) {
+  if (imu.imuFound) {
     // compute difference between IMU yaw rotation speed and wheels yaw rotation speed
     diffIMUWheelYawSpeed = stateDeltaSpeedIMU - stateDeltaSpeedWheels;
     diffIMUWheelYawSpeedLP = diffIMUWheelYawSpeedLP * 0.95 + fabs(diffIMUWheelYawSpeed) * 0.05;  
@@ -1116,7 +1115,7 @@ bool detectObstacleRotation(){
       }
     }
   }*/
-  if (imuFound){
+  if (imu.imuFound){
     if (millis() > angularMotionStartTime + 3000) {                  
       if (fabs(stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s yaw speed, e.g. due to obstacle
         triggerObstacleRotation();
