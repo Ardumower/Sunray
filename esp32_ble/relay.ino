@@ -40,6 +40,9 @@ void relay_setup() {
   });
 
   relay_setupCredentials();
+
+  relayClient.addHeader("Ardumower-Relay-Client-Robot-Timeout", String(RELAY_TIMEOUT));
+  relayClient.addHeader("Ardumower-Relay-Client-Ping-Interval", String(RELAY_PINGWAIT * 1000));
 }
 
 void relay_loop() {
@@ -138,12 +141,13 @@ void relay_loopPing() {
 
 void relay_onTimeout() {
   CONSOLE.println("Relay UART timeout");
-  relayClient.send("ERROR TIMEOUT\n");
+  // no response causes timeout error in relay server
 }
 
 void relay_onOverflow() {
   CONSOLE.println("Relay UART overflow");
-  relayClient.send("ERROR OVERFLOW\n");
+  // there is no way to signal errors as the transport is transparent
+  // fallback to timeout error in relay server
 }
 
 void relay_setupCredentials() {
