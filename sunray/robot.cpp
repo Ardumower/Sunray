@@ -14,7 +14,6 @@
   #include "src/esp/WiFiEsp.h"
 #endif
 #include "PubSubClient.h"
-#include "src/mpu/SparkFunMPU9250-DMP.h"
 #include "SparkFunHTU21D.h"
 #include "RunningMedian.h"
 #include "pinman.h"
@@ -22,6 +21,7 @@
 #include "motor.h"
 #include "src/driver/AmRobotDriver.h"
 #include "src/driver/SerialRobotDriver.h"
+#include "src/driver/MpuDriver.h"
 #include "battery.h"
 #include "gps.h"
 #include "src/ublox/ublox.h"
@@ -47,7 +47,7 @@ const signed char orientationMatrix[9] = {
 };
 
 File stateFile;
-MPU9250_DMP imu;
+MpuDriver imu;
 #ifdef DRV_SERIAL_ROBOT
   SerialRobotDriver robotDriver;
   SerialMotorDriver motorDriver(robotDriver);
@@ -533,32 +533,14 @@ void startWIFI(){
 // https://learn.sparkfun.com/tutorials/9dof-razor-imu-m0-hookup-guide#using-the-mpu-9250-dmp-arduino-library
 // start IMU sensor and calibrate
 bool startIMU(bool forceIMU){    
-  // detect MPU9250
+  // detect IMU
   uint8_t data = 0;
   int counter = 0;  
   while ((forceIMU) || (counter < 1)){          
-     I2CreadFrom(0x69, 0x75, 1, &data, 1); // whoami register
-     CONSOLE.print(F("MPU ID=0x"));
-     CONSOLE.println(data, HEX);     
-     #if defined MPU6050 || defined MPU9150      
-       if (data == 0x68) {
-         CONSOLE.println("MPU6050/9150 found");
-         imuFound = true;
-         break;
-       }
-     #endif
-     #if defined MPU9250 
-       if (data == 0x73) {
-         CONSOLE.println("MPU9255 found");
-         imuFound = true;
-         break;
-       } else if (data == 0x71) {
-         CONSOLE.println("MPU9250 found");
-         imuFound = true;
-         break;
-       }
-     #endif
-     CONSOLE.println(F("MPU6050/9150/9250/9255 not found - Did you connect AD0 to 3.3v and choose it in config.h?"));          
+     imu.detect();
+     if (imu.imuFound){
+       break;
+     }
      I2Creset();  
      Wire.begin();    
      #ifdef I2C_SPEED
@@ -575,10 +557,10 @@ bool startIMU(bool forceIMU){
      }
      watchdogReset();          
   }  
-  if (!imuFound) return false;  
+  if (!imu.imuFound) return false;  
   counter = 0;  
   while (true){    
-    if (imu.begin() == INV_SUCCESS) break;
+    if (imu.begin()) break;
     CONSOLE.print("Unable to communicate with IMU.");
     CONSOLE.print("Check connections, and try again.");
     CONSOLE.println();
@@ -591,17 +573,7 @@ bool startIMU(bool forceIMU){
       return false;
     }
     watchdogReset();     
-  }     
-  //imu.setAccelFSR(2);
-	       
-  imu.dmpBegin(DMP_FEATURE_6X_LP_QUAT  // Enable 6-axis quat
-               |  DMP_FEATURE_GYRO_CAL // Use gyro calibration
-             //  | DMP_FEATURE_SEND_RAW_ACCEL
-              , 5); // Set DMP FIFO rate to 5 Hz
-  // DMP_FEATURE_LP_QUAT can also be used. It uses the 
-  // accelerometer in low-power mode to estimate quat's.
-  // DMP_FEATURE_LP_QUAT and 6X_LP_QUAT are mutually exclusive    
-  //imu.dmpSetOrientation(orientationMatrix);
+  }              
   imuIsCalibrating = true;   
   nextImuCalibrationSecond = millis() + 1000;
   imuCalibrationSeconds = 0;
@@ -619,7 +591,7 @@ void readIMU(){
   if (!imuFound) return;
   // Check for new data in the FIFO  
   unsigned long startTime = millis();
-  bool avail = (imu.fifoAvailable() > 0);
+  bool avail = (imu.isDataAvail());
   // check time for I2C access : if too long, there's an I2C issue and we need to restart I2C bus...
   unsigned long duration = millis() - startTime;    
   //CONSOLE.print("duration:");
@@ -644,57 +616,45 @@ void readIMU(){
   if (avail) {        
     //CONSOLE.println("fifoAvailable");
     // Use dmpUpdateFifo to update the ax, gx, mx, etc. values
-    if ( imu.dmpUpdateFifo() == INV_SUCCESS)
-    {      
-      // computeEulerAngles can be used -- after updating the
-      // quaternion values -- to estimate roll, pitch, and yaw
-      //  toEulerianAngle(imu.calcQuat(imu.qw), imu.calcQuat(imu.qx), imu.calcQuat(imu.qy), imu.calcQuat(imu.qz), imu.roll, imu.pitch, imu.yaw);
-      imu.computeEulerAngles(false);      
-      //CONSOLE.print(imu.ax);
+    #ifdef ENABLE_TILT_DETECTION
+      rollChange += (imu.roll-stateRoll);
+      pitchChange += (imu.pitch-statePitch);               
+      rollChange = 0.95 * rollChange;
+      pitchChange = 0.95 * pitchChange;
+      statePitch = imu.pitch;
+      stateRoll = imu.roll;        
+      //CONSOLE.print(rollChange/PI*180.0);
       //CONSOLE.print(",");
-      //CONSOLE.print(imu.ay);
-      //CONSOLE.print(",");
-      //CONSOLE.println(imu.az);
-      #ifdef ENABLE_TILT_DETECTION
-        rollChange += (imu.roll-stateRoll);
-        pitchChange += (imu.pitch-statePitch);               
-        rollChange = 0.95 * rollChange;
-        pitchChange = 0.95 * pitchChange;
-        statePitch = imu.pitch;
-        stateRoll = imu.roll;        
-        //CONSOLE.print(rollChange/PI*180.0);
-        //CONSOLE.print(",");
-        //CONSOLE.println(pitchChange/PI*180.0);
-        if ( (fabs(scalePI(imu.roll)) > 60.0/180.0*PI) || (fabs(scalePI(imu.pitch)) > 100.0/180.0*PI)
-             || (fabs(rollChange) > 30.0/180.0*PI) || (fabs(pitchChange) > 60.0/180.0*PI)   )  {
-          CONSOLE.println("ERROR IMU tilt");
-          CONSOLE.print("imu ypr=");
-          CONSOLE.print(imu.yaw/PI*180.0);
-          CONSOLE.print(",");
-          CONSOLE.print(imu.pitch/PI*180.0);
-          CONSOLE.print(",");
-          CONSOLE.print(imu.roll/PI*180.0);
-          CONSOLE.print(" rollChange=");
-          CONSOLE.print(rollChange/PI*180.0);
-          CONSOLE.print(" pitchChange=");
-          CONSOLE.println(pitchChange/PI*180.0);
-          stateSensor = SENS_IMU_TILT;
-          setOperation(OP_ERROR);
-        }           
-      #endif
-      motor.robotPitch = scalePI(imu.pitch);
-      imu.yaw = scalePI(imu.yaw);
-      //CONSOLE.println(imu.yaw / PI * 180.0);
-      lastIMUYaw = scalePI(lastIMUYaw);
-      lastIMUYaw = scalePIangles(lastIMUYaw, imu.yaw);
-      stateDeltaIMU = -scalePI ( distancePI(imu.yaw, lastIMUYaw) );  
-      //CONSOLE.print(imu.yaw);
-      //CONSOLE.print(",");
-      //CONSOLE.print(stateDeltaIMU/PI*180.0);
-      //CONSOLE.println();
-      lastIMUYaw = imu.yaw;      
-      imuDataTimeout = millis() + 10000;
-    }     
+      //CONSOLE.println(pitchChange/PI*180.0);
+      if ( (fabs(scalePI(imu.roll)) > 60.0/180.0*PI) || (fabs(scalePI(imu.pitch)) > 100.0/180.0*PI)
+            || (fabs(rollChange) > 30.0/180.0*PI) || (fabs(pitchChange) > 60.0/180.0*PI)   )  {
+        CONSOLE.println("ERROR IMU tilt");
+        CONSOLE.print("imu ypr=");
+        CONSOLE.print(imu.yaw/PI*180.0);
+        CONSOLE.print(",");
+        CONSOLE.print(imu.pitch/PI*180.0);
+        CONSOLE.print(",");
+        CONSOLE.print(imu.roll/PI*180.0);
+        CONSOLE.print(" rollChange=");
+        CONSOLE.print(rollChange/PI*180.0);
+        CONSOLE.print(" pitchChange=");
+        CONSOLE.println(pitchChange/PI*180.0);
+        stateSensor = SENS_IMU_TILT;
+        setOperation(OP_ERROR);
+      }           
+    #endif
+    motor.robotPitch = scalePI(imu.pitch);
+    imu.yaw = scalePI(imu.yaw);
+    //CONSOLE.println(imu.yaw / PI * 180.0);
+    lastIMUYaw = scalePI(lastIMUYaw);
+    lastIMUYaw = scalePIangles(lastIMUYaw, imu.yaw);
+    stateDeltaIMU = -scalePI ( distancePI(imu.yaw, lastIMUYaw) );  
+    //CONSOLE.print(imu.yaw);
+    //CONSOLE.print(",");
+    //CONSOLE.print(stateDeltaIMU/PI*180.0);
+    //CONSOLE.println();
+    lastIMUYaw = imu.yaw;      
+    imuDataTimeout = millis() + 10000;         
   }     
 }
 
@@ -1432,7 +1392,7 @@ void run(){
           imuIsCalibrating = false;
           CONSOLE.println();                
           lastIMUYaw = 0;          
-          imu.resetFifo();
+          imu.resetData();
           imuDataTimeout = millis() + 10000;
         }
       }       

@@ -70,6 +70,28 @@ class RainSensorDriver {
     virtual bool triggered() = 0;  	  		    
 };
 
+class ImuDriver {
+  public:
+    float roll;
+    float pitch;
+    float yaw;    
+    bool imuFound;   
+    // detect module (should update member 'imuFound')
+    virtual void detect() = 0;             
+    // try starting module (should return true on success)
+    virtual bool begin() = 0;    
+    virtual void run() = 0;
+    // check if data has been updated (should update members roll, pitch, yaw)
+    virtual bool isDataAvail() = 0;
+    // reset module data queue (should reset module FIFO etc.)         
+    virtual void resetData() = 0;        
+};
+
+class GpsDriver {
+  public:
+    virtual void begin() = 0;
+    virtual void run() = 0;    
+};
 
 
 #endif
