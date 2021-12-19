@@ -20,26 +20,26 @@
 /**************************************************************************/
 void BnoDriver::displaySensorOffsets(const adafruit_bno055_offsets_t &calibData)
 {
-    Serial.print(F("Accelerometer: "));
-    Serial.print(calibData.accel_offset_x); Serial.print(F(" "));
-    Serial.print(calibData.accel_offset_y); Serial.print(F(" "));
-    Serial.print(calibData.accel_offset_z); Serial.print(F(" "));
+    CONSOLE.print(F("Accelerometer: "));
+    CONSOLE.print(calibData.accel_offset_x); CONSOLE.print(F(" "));
+    CONSOLE.print(calibData.accel_offset_y); CONSOLE.print(F(" "));
+    CONSOLE.print(calibData.accel_offset_z); CONSOLE.print(F(" "));
 
-    Serial.print(F("\nGyro: "));
-    Serial.print(calibData.gyro_offset_x); Serial.print(F(" "));
-    Serial.print(calibData.gyro_offset_y); Serial.print(F(" "));
-    Serial.print(calibData.gyro_offset_z); Serial.print(F(" "));
+    CONSOLE.print(F("\nGyro: "));
+    CONSOLE.print(calibData.gyro_offset_x); CONSOLE.print(F(" "));
+    CONSOLE.print(calibData.gyro_offset_y); CONSOLE.print(F(" "));
+    CONSOLE.print(calibData.gyro_offset_z); CONSOLE.print(F(" "));
 
-    Serial.print(F("\nMag: "));
-    Serial.print(calibData.mag_offset_x); Serial.print(F(" "));
-    Serial.print(calibData.mag_offset_y); Serial.print(F(" "));
-    Serial.print(calibData.mag_offset_z); Serial.print(F(" "));
+    CONSOLE.print(F("\nMag: "));
+    CONSOLE.print(calibData.mag_offset_x); CONSOLE.print(F(" "));
+    CONSOLE.print(calibData.mag_offset_y); CONSOLE.print(F(" "));
+    CONSOLE.print(calibData.mag_offset_z); CONSOLE.print(F(" "));
 
-    Serial.print(F("\nAccel Radius: "));
-    Serial.print(calibData.accel_radius);
+    CONSOLE.print(F("\nAccel Radius: "));
+    CONSOLE.print(calibData.accel_radius);
 
-    Serial.print(F("\nMag Radius: "));
-    Serial.print(calibData.mag_radius);
+    CONSOLE.print(F("\nMag Radius: "));
+    CONSOLE.print(calibData.mag_radius);
 }
 
 
@@ -56,14 +56,14 @@ void BnoDriver::displaySensorStatus(void)
   bno.getSystemStatus(&system_status, &self_test_results, &system_error);
 
   /* Display the results in the Serial Monitor */
-  Serial.println("");
-  Serial.print(F("System Status: 0x"));
-  Serial.println(system_status, HEX);
-  Serial.print(F("Self Test:     0x"));
-  Serial.println(self_test_results, HEX);
-  Serial.print(F("System Error:  0x"));
-  Serial.println(system_error, HEX);
-  Serial.println("");
+  CONSOLE.println("");
+  CONSOLE.print(F("System Status: 0x"));
+  CONSOLE.println(system_status, HEX);
+  CONSOLE.print(F("Self Test:     0x"));
+  CONSOLE.println(self_test_results, HEX);
+  CONSOLE.print(F("System Error:  0x"));
+  CONSOLE.println(system_error, HEX);
+  CONSOLE.println("");
   //delay(500);
 }
 
@@ -77,15 +77,15 @@ void BnoDriver::displaySensorDetails(void)
 {
   sensor_t sensor;
   bno.getSensor(&sensor);
-  Serial.println(F("------------------------------------"));
-  Serial.print  (F("Sensor:       ")); Serial.println(sensor.name);
-  Serial.print  (F("Driver Ver:   ")); Serial.println(sensor.version);
-  Serial.print  (F("Unique ID:    ")); Serial.println(sensor.sensor_id);
-  Serial.print  (F("Max Value:    ")); Serial.print(sensor.max_value); Serial.println(F(" xxx"));
-  Serial.print  (F("Min Value:    ")); Serial.print(sensor.min_value); Serial.println(F(" xxx"));
-  Serial.print  (F("Resolution:   ")); Serial.print(sensor.resolution); Serial.println(F(" xxx"));
-  Serial.println(F("------------------------------------"));
-  Serial.println("");
+  CONSOLE.println(F("------------------------------------"));
+  CONSOLE.print  (F("Sensor:       ")); CONSOLE.println(sensor.name);
+  CONSOLE.print  (F("Driver Ver:   ")); CONSOLE.println(sensor.version);
+  CONSOLE.print  (F("Unique ID:    ")); CONSOLE.println(sensor.sensor_id);
+  CONSOLE.print  (F("Max Value:    ")); CONSOLE.print(sensor.max_value); CONSOLE.println(F(" xxx"));
+  CONSOLE.print  (F("Min Value:    ")); CONSOLE.print(sensor.min_value); CONSOLE.println(F(" xxx"));
+  CONSOLE.print  (F("Resolution:   ")); CONSOLE.print(sensor.resolution); CONSOLE.println(F(" xxx"));
+  CONSOLE.println(F("------------------------------------"));
+  CONSOLE.println("");
   //delay(500);
 }
 
