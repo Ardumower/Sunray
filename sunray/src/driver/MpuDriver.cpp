@@ -13,7 +13,7 @@ MpuDriver::MpuDriver(){
 }
 
 void MpuDriver::detect(){
-  // detect MPUxxxx
+  // detect MPUxxxx  
   uint8_t data = 0;
   I2CreadFrom(0x69, 0x75, 1, &data, 1); // whoami register
   CONSOLE.print(F("MPU ID=0x"));
@@ -36,6 +36,7 @@ void MpuDriver::detect(){
         return;
     }
   #endif
+  imuFound = false;
   CONSOLE.println(F("MPU6050/9150/9250/9255 not found - Did you connect AD0 to 3.3v and choose it in config.h?"));          
 }
 
