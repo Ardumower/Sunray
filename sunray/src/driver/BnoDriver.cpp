@@ -228,6 +228,7 @@ void BnoDriver::readCalibration(){
 
 
 BnoDriver::BnoDriver(){    
+    nextUpdateTime = 0;
 }
 
 void BnoDriver::detect(){
@@ -256,6 +257,8 @@ void BnoDriver::run(){
 
 
 bool BnoDriver::isDataAvail(){
+    if (millis() < nextUpdateTime) return false;
+    nextUpdateTime = millis() + 200; // 5 Hz
     sensors_event_t event; 
     bno.getEvent(&event);              
     //bno.getCalibration(&msgTele.calSystem, &msgTele.calGyro, &msgTele.calAccel, &msgTele.calMag);            

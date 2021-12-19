@@ -24,6 +24,7 @@ class BnoDriver: public ImuDriver {
     bool isDataAvail() override;         
     void resetData() override;        
   protected:
+    unsigned long nextUpdateTime;
     adafruit_bno055_offsets_t calibrationData;
     Adafruit_BNO055 bno = Adafruit_BNO055(55); // Adafruit BNO055
     //Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x29);  // GY-BNO055    
