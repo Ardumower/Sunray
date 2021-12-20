@@ -237,7 +237,7 @@ void BnoDriver::detect(){
   {
     //if (!bno.begin(Adafruit_BNO055::OPERATION_MODE_NDOF))  // compass fusion (fast calibration)
     //if (!bno.begin(Adafruit_BNO055::OPERATION_MODE_NDOF_FMC_OFF))  // compass fusion (slow calibration)
-    CONSOLE.println(F("BNO055 not found - Did you choose it in config.h?"));          
+    CONSOLE.println(F("BNO055 not found - Did you choose the correct IMU in config.h?"));          
     imuFound = false;
     return;
   }
