@@ -1365,19 +1365,21 @@ void run(){
   
   // temp
   if (millis() > nextTempTime){
-    // https://learn.sparkfun.com/tutorials/htu21d-humidity-sensor-hookup-guide
     nextTempTime = millis() + 60000;
-    stateTemp = myHumidity.readTemperature();
-    statTempMin = min(statTempMin, stateTemp);
-    statTempMax = max(statTempMax, stateTemp);
-    stateHumidity = myHumidity.readHumidity();      
-    CONSOLE.print("temp=");
-    CONSOLE.print(stateTemp,1);
-    CONSOLE.print("  humidity=");
-    CONSOLE.print(stateHumidity,0);    
-    CONSOLE.print(" ");    
+    #ifdef USE_TEMP_SENSOR
+      // https://learn.sparkfun.com/tutorials/htu21d-humidity-sensor-hookup-guide
+      stateTemp = myHumidity.readTemperature();
+      statTempMin = min(statTempMin, stateTemp);
+      statTempMax = max(statTempMax, stateTemp);
+      stateHumidity = myHumidity.readHumidity();      
+      CONSOLE.print("temp=");
+      CONSOLE.print(stateTemp,1);
+      CONSOLE.print("  humidity=");
+      CONSOLE.print(stateHumidity,0);    
+      CONSOLE.println();        
+    #endif
     logCPUHealth();
-    CONSOLE.println();    
+    CONSOLE.println();
   }
   
   // IMU

@@ -380,6 +380,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
                                  //  1 beep=start/stop, 5 beeps=dock, 3 beeps=R/C mode ON/OFF)
 //#define BUTTON_CONTROL false   // additional features deactivated
 
+//#define USE_TEMP_SENSOR   // only activate if temp sensor (htu21d) connected
 
 // activate support for model R/C control?
 // use PCB pin 'mow' for R/C model control speed and PCB pin 'steering' for R/C model control steering, 
