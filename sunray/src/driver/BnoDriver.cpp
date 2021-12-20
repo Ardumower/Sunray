@@ -265,7 +265,7 @@ bool BnoDriver::isDataAvail(){
     //imu::Quaternion quat = bno.getQuat();           // Request quaternion data from BNO055
     roll = event.orientation.z / 180.0 * PI;
     pitch = event.orientation.y / 180.0 * PI;
-    yaw = event.orientation.x / 180.0 * PI;
+    yaw = -event.orientation.x / 180.0 * PI;
     return true;
 }         
     
