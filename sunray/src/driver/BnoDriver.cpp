@@ -179,7 +179,7 @@ void BnoDriver::readCalibration(){
             delay(BNO055_SAMPLERATE_DELAY_MS);
         }*/
     }
-    else
+    else if (false)
     {
         CONSOLE.println(F("Please Calibrate Sensor: "));
         while (!bno.isFullyCalibrated())
@@ -263,9 +263,9 @@ bool BnoDriver::isDataAvail(){
     bno.getEvent(&event);              
     //bno.getCalibration(&msgTele.calSystem, &msgTele.calGyro, &msgTele.calAccel, &msgTele.calMag);            
     //imu::Quaternion quat = bno.getQuat();           // Request quaternion data from BNO055
-    roll = event.orientation.x;
-    pitch = event.orientation.y;
-    yaw = event.orientation.z;
+    roll = event.orientation.z / 180.0 * PI;
+    pitch = event.orientation.y / 180.0 * PI;
+    yaw = event.orientation.x / 180.0 * PI;
     return true;
 }         
     
