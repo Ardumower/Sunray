@@ -12,9 +12,21 @@
 MpuDriver::MpuDriver(){    
 }
 
+void MpuDriver::selectChip(){
+  #ifdef __linux__
+    //CONSOLE.println("selecting I2C mux device 0...");
+    // select chip via TCA9548A (I2C device0)
+    //I2CwriteTo(0x70, 0, 1 << 0);
+    Wire.beginTransmission(0x70);
+    Wire.write(1 << 0);
+    Wire.endTransmission(); 
+  #endif
+}
+
 void MpuDriver::detect(){
   // detect MPUxxxx  
   uint8_t data = 0;
+  selectChip();
   I2CreadFrom(0x69, 0x75, 1, &data, 1); // whoami register
   CONSOLE.print(F("MPU ID=0x"));
   CONSOLE.println(data, HEX);     
@@ -42,6 +54,7 @@ void MpuDriver::detect(){
 
 
 bool MpuDriver::begin(){ 
+    selectChip();
     if (mpu.begin() != INV_SUCCESS){
         return false;
     }
@@ -63,6 +76,7 @@ void MpuDriver::run(){
 
 
 bool MpuDriver::isDataAvail(){
+    selectChip();
     bool avail = (mpu.fifoAvailable() > 0);    
     if (!avail) return false;
     //CONSOLE.println("fifoAvailable");
@@ -84,6 +98,7 @@ bool MpuDriver::isDataAvail(){
 }         
     
 void MpuDriver::resetData(){
+    selectChip();
     mpu.resetFifo();
 }
 

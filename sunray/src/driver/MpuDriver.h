@@ -23,6 +23,7 @@ class MpuDriver: public ImuDriver {
     void resetData() override;        
   protected:
     MPU9250_DMP mpu;    
+    void selectChip();
 };
 
 

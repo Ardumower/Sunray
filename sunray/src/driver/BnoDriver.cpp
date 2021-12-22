@@ -233,6 +233,7 @@ BnoDriver::BnoDriver(){
 
 void BnoDriver::selectChip(){
     #ifdef __linux__
+        //CONSOLE.println("selecting I2C mux device 7...");
         // select chip via TCA9548A (I2C device7)
         //I2CwriteTo(0x70, 0, 1 << 7);
         Wire.beginTransmission(0x70);
