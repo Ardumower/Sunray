@@ -33,6 +33,7 @@ class BnoDriver: public ImuDriver {
     void displaySensorDetails(void);
     void displayCalStatus(void);
     void readCalibration();
+    void selectChip();
 };
 
 

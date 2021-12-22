@@ -231,8 +231,20 @@ BnoDriver::BnoDriver(){
     nextUpdateTime = 0;
 }
 
+void BnoDriver::selectChip(){
+    #ifdef __linux__
+        // select chip via TCA9548A (I2C device7)
+        //I2CwriteTo(0x70, 0, 1 << 7);
+        Wire.beginTransmission(0x70);
+        Wire.write(1 << 7);
+        Wire.endTransmission(); 
+    #endif
+}
+
 void BnoDriver::detect(){
   // detect BNO055  
+  selectChip();
+
   if (!bno.begin(Adafruit_BNO055::OPERATION_MODE_IMUPLUS))  // IMU fusion only
   {
     //if (!bno.begin(Adafruit_BNO055::OPERATION_MODE_NDOF))  // compass fusion (fast calibration)
@@ -247,6 +259,7 @@ void BnoDriver::detect(){
 
 
 bool BnoDriver::begin(){ 
+    selectChip();
     readCalibration();
     return true;
 }
@@ -260,6 +273,8 @@ bool BnoDriver::isDataAvail(){
     if (millis() < nextUpdateTime) return false;
     nextUpdateTime = millis() + 200; // 5 Hz
     sensors_event_t event; 
+    
+    selectChip();
     bno.getEvent(&event);              
     //bno.getCalibration(&msgTele.calSystem, &msgTele.calGyro, &msgTele.calAccel, &msgTele.calMag);            
     //imu::Quaternion quat = bno.getQuat();           // Request quaternion data from BNO055
