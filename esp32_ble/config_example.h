@@ -72,6 +72,18 @@
 //#define USE_HTTPS  1  
 
 
+// Relay server
+//
+// Install this library with the Arduino Library Manager:
+// ArduinoWebsockets - by Gil Maimon - https://github.com/gilmaimon/ArduinoWebsockets
+//
+//#define USE_RELAY
+//#define RELAY_URL       "wss://example.relay.mow.timotto.io/mower"
+//#define RELAY_USERNAME  ""
+//#define RELAY_PASSWORD  ""
+//#define RELAY_TIMEOUT   1000
+//#define RELAY_PINGWAIT  55
+
 // MQTT server 
 // (subscribed topcis: '/command/start', '/command/stop', '/command/dock')
 //  published topics: '/online', '/state', '/props')

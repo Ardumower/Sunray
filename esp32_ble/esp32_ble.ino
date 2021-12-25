@@ -559,6 +559,7 @@ void setup() {
    mqtt_setup();
 #endif
   //startWIFI();
+  relay_setup();
 }
 
 
@@ -677,6 +678,7 @@ void loop() {
 #ifdef USE_MQTT
   mqtt_loop();
 #endif
+  relay_loop();
   if (millis() > nextWatchDogResetTime) {
     nextWatchDogResetTime = millis() + 1000;
     esp_task_wdt_reset(); // watch dog reset
