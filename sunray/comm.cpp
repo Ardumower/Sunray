@@ -4,6 +4,7 @@
 #include "reset.h"
 #ifdef __linux__
   #include <BridgeClient.h>
+  #include <Process.h>
 #else
   #include "src/esp/WiFiEsp.h"
 #endif
