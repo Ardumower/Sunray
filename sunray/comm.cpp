@@ -365,8 +365,7 @@ void cmdSwitchOffRobot(){
   battery.switchOff();
   #ifdef __linux__
     Process p;
-    p.begin("sudo shutdown now");
-    p.run();
+    p.runShellCommand("poweroff -f");
   #endif
 }
 
