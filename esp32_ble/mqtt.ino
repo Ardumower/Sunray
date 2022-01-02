@@ -12,7 +12,9 @@
    https://github.com/256dpi/arduino-mqtt
 */
 
-#include <MQTT.h>
+//#include <MQTT.h>
+#include <MQTTClient.h>
+
 /*
     ArduinoJson
    Benoit Blanchon
