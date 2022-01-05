@@ -51,7 +51,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
   #include "sdserial.h"
   #include "src/agcm4/adafruit_grand_central.h"
   #ifdef __linux__
-    #include "src/raspi/raspi.h"    
+    #include "src/linux/linux.h"    
     #include <Console.h>
   #endif
 #endif
@@ -407,7 +407,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
   #define BOARD "Adafruit Grand Central M4"
   #define CONSOLE Serial      // Adafruit Grand Central M4 
 #elif __linux__ 
-  #define BOARD "Raspberry PI"
+  #define BOARD "Linux"
   #define CONSOLE Console 
 #endif
 
