@@ -418,6 +418,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define BLE_NAME      "Ardumower"     // name for BLE module
 #define GPS_BAUDRATE  115200          // baudrate for GPS RTK module
 #define WIFI_BAUDRATE 115200          // baudrate for WIFI module
+#define ROBOT_BAUDRATE 115200         // baudrate for Linux serial robot (non-Ardumower)
 
 #ifdef _SAM3XA_                 // Arduino Due
   #define WIFI Serial1

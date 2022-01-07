@@ -12,7 +12,7 @@
 
 
 void SerialRobotDriver::begin(){
-  COMM.begin(115200);
+  COMM.begin(ROBOT_BAUDRATE);
   encoderTicksLeft = 0;
   encoderTicksRight = 0;
   chargeVoltage = 0;
