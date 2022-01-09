@@ -5,6 +5,7 @@
 #ifdef __linux__
   #include <BridgeClient.h>
   #include <Process.h>
+  #include <WiFi.h>
 #else
   #include "src/esp/WiFiEsp.h"
 #endif
@@ -531,6 +532,62 @@ void cmdClearStats(){
   cmdAnswer(s);  
 }
 
+// scan WiFi networks
+void cmdWiFiScan(){
+  String s = F("B1,");  
+  int numNetworks = WiFi.scanNetworks();
+  #ifdef __linux__  
+  for (int i=0; i < numNetworks; i++){
+		s += WiFi.SSID(i);
+		if (i < numNetworks-1) s += ",";
+	}
+  #endif  
+  cmdAnswer(s);
+}
+
+// setup WiFi
+void cmdWiFiSetup(){
+  #ifdef __linux__
+    if (cmd.length()<6) return;  
+    int counter = 0;
+    int lastCommaIdx = 0;    
+    String ssid = "";
+    String pass = "";
+    for (int idx=0; idx < cmd.length(); idx++){
+      char ch = cmd[idx];
+      //Serial.print("ch=");
+      //Serial.println(ch);
+      if ((ch == ',') || (idx == cmd.length()-1)){
+        String str = cmd.substring(lastCommaIdx+1, idx+1);
+        if (counter == 1){                            
+            ssid = str;
+        } else if (counter == 2){
+            pass = str;
+        } 
+        counter++;
+        lastCommaIdx = idx;
+      }    
+    }      
+    /*CONSOLE.print("ssid=");
+    CONSOLE.print(ssid);
+    CONSOLE.print(" pass=");
+    CONSOLE.println(pass);*/
+    WiFi.begin((char*)ssid.c_str(), (char*)pass.c_str());    
+  #endif
+  String s = F("B2");
+  cmdAnswer(s);
+}
+
+// request WiFi status
+void cmdWiFiStatus(){
+  String s = F("B3,");  
+  int numNetworks = WiFi.scanNetworks();
+  #ifdef __linux__
+  s += WiFi.localIP();
+  #endif  
+  cmdAnswer(s);
+}
+
 
 // process request
 void processCmd(bool checkCrc, bool decrypt){
@@ -601,6 +658,11 @@ void processCmd(bool checkCrc, bool decrypt){
   if (cmd[3] == 'Q') cmdMotorPlot();  
   if (cmd[3] == 'O') cmdObstacle();  
   if (cmd[3] == 'F') cmdSensorTest(); 
+  if (cmd[3] == 'B') {
+    if (cmd[4] == '1') cmdWiFiScan();
+    if (cmd[4] == '2') cmdWiFiSetup();   
+    if (cmd[4] == '3') cmdWiFiStatus();     
+  }
   if (cmd[3] == 'G') cmdToggleGPSSolution();   // for developers
   if (cmd[3] == 'K') cmdKidnap();   // for developers
   if (cmd[3] == 'Z') cmdStressTest();   // for developers
