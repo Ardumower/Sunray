@@ -537,10 +537,10 @@ void cmdWiFiScan(){
   String s = F("B1,");  
   int numNetworks = WiFi.scanNetworks();
   #ifdef __linux__  
-  for (int i=0; i < numNetworks; i++){
-		s += WiFi.SSID(i);
-		if (i < numNetworks-1) s += ",";
-	}
+    for (int i=0; i < numNetworks; i++){
+      s += WiFi.SSID(i);
+      if (i < numNetworks-1) s += ",";
+    }
   #endif  
   cmdAnswer(s);
 }
