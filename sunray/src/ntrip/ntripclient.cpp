@@ -51,7 +51,7 @@ void NTRIPClient::run(){
     int count = 0;    
     while(available()) {
       char ch = read();  
-      NTRIP.write(ch);  // send to GPS receiver (NTRIP port)
+      NTRIP.write(ch);  // send to GPS receiver (GPS receiver NTRIP serial port)
       count++;            
       //CONSOLE.print(ch);            
     }

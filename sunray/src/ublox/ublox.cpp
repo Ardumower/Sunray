@@ -25,6 +25,12 @@ UBLOX::UBLOX()
   #endif
 }
 
+void UBLOX::begin(Stream &stream){
+  CONSOLE.println("WARNING!!! UBLOX::begin TCP - not yet implemented!");
+  // TODO
+}   
+
+
 /* starts the serial communication */
 void UBLOX::begin(HardwareSerial& bus,uint32_t baud)
 {	

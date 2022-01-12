@@ -31,6 +31,7 @@ class SKYTRAQ : public SkyTraqNotifyFun, GpsDriver {
 
     } state_t;        
     SKYTRAQ();
+    void begin(Stream &stream) override;    
     void begin(HardwareSerial& bus,uint32_t baud) override;
     void run() override;
     bool configure() override;  
@@ -41,6 +42,7 @@ class SKYTRAQ : public SkyTraqNotifyFun, GpsDriver {
 
     uint32_t _baud;  	
     HardwareSerial* _bus;
+    Stream* _stream;
     state_t state;
     int msgid;
     int msglen;

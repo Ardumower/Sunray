@@ -19,12 +19,8 @@ SKYTRAQ::SKYTRAQ()
   #endif
 }
 
-/* starts the serial communication */
-void SKYTRAQ::begin(HardwareSerial& bus,uint32_t baud)
-{	
-  CONSOLE.println("SKYTRAQ::begin");
-  _bus = &bus;
-	_baud = baud;  
+void SKYTRAQ::begin(Stream &stream){
+  _stream = &stream;
   this->state    = GOT_NONE;
   this->msgid    = -1;
   this->msglen   = -1;
@@ -38,15 +34,24 @@ void SKYTRAQ::begin(HardwareSerial& bus,uint32_t baud)
   this->chksumErrorCounter = 0;
   this->dgpsChecksumErrorCounter = 0;
   this->dgpsPacketCounter = 0;
-	// begin the serial port for skytraq	
-  _bus->begin(_baud);
-  
   gnssUpdateFlag = 0;
   parser.SetNotify(this); 
   
   if (GPS_CONFIG){
     configure();
   }
+}
+
+/* starts the serial communication */
+void SKYTRAQ::begin(HardwareSerial& bus,uint32_t baud)
+{	
+  CONSOLE.println("SKYTRAQ::begin");
+  _bus = &bus;
+	_baud = baud;  
+  // begin the serial port for skytraq	
+  _bus->begin(_baud);  
+  // start streaming-in
+  begin(*_bus);
 }
 
 
@@ -201,9 +206,9 @@ void SKYTRAQ::run()
 {
 	//CONSOLE.println("SKYTRAQ::run");
   // read a byte from the serial port	  
-  if (!_bus->available()) return;
-  while (_bus->available()) {		
-    byte data = _bus->read();        		
+  if (!_stream->available()) return;
+  while (_stream->available()) {		
+    byte data = _stream->read();        		
     parser.Encode(data); // NMEA parser
     //parseBinary(data);  // binary parser
 #ifdef GPS_DUMP

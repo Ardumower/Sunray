@@ -185,7 +185,10 @@ WiFiEspClient espClient;
 PubSubClient mqttClient(espClient);
 //int status = WL_IDLE_STATUS;     // the Wifi radio's status
 #ifdef ENABLE_NTRIP
-  NTRIPClient ntrip;
+  NTRIPClient ntrip;  // NTRIP tcp client (optional)
+#endif
+#ifdef GPS_USE_TCP
+  WiFiClient gpsClient; // GPS tcp client (optional)  
 #endif
 
 float dockSignal = 0;
@@ -764,7 +767,12 @@ void start(){
   //CONSOLE.println("change:     #define SERIAL_BUFFER_SIZE 128     into into:     #define SERIAL_BUFFER_SIZE 1024");
   CONSOLE.println("-----------------------------------------------------");
   
-  gps.begin(GPS,GPS_BAUDRATE);   
+  #ifdef GPS_USE_TCP
+    gps.begin(gpsClient);
+  #else 
+    gps.begin(GPS, GPS_BAUDRATE);   
+  #endif
+
   maps.begin();      
   //maps.clipperTest();
   

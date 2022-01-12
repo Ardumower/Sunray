@@ -111,7 +111,9 @@ class GpsDriver {
     unsigned long chksumErrorCounter;
     unsigned long dgpsChecksumErrorCounter;
     unsigned long dgpsPacketCounter;
-    // start receiver        
+    // start tcp receiver
+    virtual void begin(Stream& stream) = 0;   
+    // start serial receiver          
     virtual void begin(HardwareSerial& bus,uint32_t baud) = 0;
     // should process receiver data
     virtual void run() = 0;    
