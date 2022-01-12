@@ -259,48 +259,48 @@ bool SKYTRAQ::processNmea(U32 f, const char* buf, ParsingType type)
       //Do nothing
       break;
     case SkyTraqNmeaParser::UpdateDate:
-      CONSOLE.print("Date:");
-      CONSOLE.print(gnss.GetYear());
-      CONSOLE.print('/');
-      CONSOLE.print(gnss.GetMonth());
-      CONSOLE.print('/');
-      CONSOLE.println(gnss.GetDay());
+      //CONSOLE.print("Date:");
+      //CONSOLE.print(gnss.GetYear());
+      //CONSOLE.print('/');
+      //CONSOLE.print(gnss.GetMonth());
+      //CONSOLE.print('/');
+      //CONSOLE.println(gnss.GetDay());
       break;
     case SkyTraqNmeaParser::UpdateTime:
-      CONSOLE.print("Time:");
-      CONSOLE.print(gnss.GetHour());
-      CONSOLE.print(':');
-      CONSOLE.print(gnss.GetMinute());
-      CONSOLE.print(':');
-      CONSOLE.println(gnss.GetSecond());      
+      //CONSOLE.print("Time:");
+      //CONSOLE.print(gnss.GetHour());
+      //CONSOLE.print(':');
+      //CONSOLE.print(gnss.GetMinute());
+      //CONSOLE.print(':');
+      //CONSOLE.println(gnss.GetSecond());      
       break;
     case SkyTraqNmeaParser::UpdateLatitude:
-      CONSOLE.print("Latitude:");
-      CONSOLE.println(gnss.GetLatitude());
+      //CONSOLE.print("Latitude:");
+      //CONSOLE.println(gnss.GetLatitude());
       lat = gnss.GetLatitude();
       break;
     case SkyTraqNmeaParser::UpdateLongitude:
-      CONSOLE.print("Longitude:");
-      CONSOLE.println(gnss.GetLongitude());
+      //CONSOLE.print("Longitude:");
+      //CONSOLE.println(gnss.GetLongitude());
       lon = gnss.GetLongitude();
       break;
     case SkyTraqNmeaParser::UpdateAltitude:
-      CONSOLE.print("Altitude:");
-      CONSOLE.println(gnss.GetAltitudeInMeter());
+      //CONSOLE.print("Altitude:");
+      //CONSOLE.println(gnss.GetAltitudeInMeter());
       height = gnss.GetAltitudeInMeter();
       break;
     case SkyTraqNmeaParser::UpdateCourse:
-      CONSOLE.print("Course:");
-      CONSOLE.println(gnss.GetCourseInDegree());
+      //CONSOLE.print("Course:");
+      //CONSOLE.println(gnss.GetCourseInDegree());
       break;
     case SkyTraqNmeaParser::UpdateSpeed:
-      CONSOLE.print("Speed:");
-      CONSOLE.println(gnss.GetSpeedInKmHr());
+      //CONSOLE.print("Speed:");
+      //CONSOLE.println(gnss.GetSpeedInKmHr());
       groundSpeed = gnss.GetSpeedInKmHr() / 1000.0 * 60.0 * 60.0; 
       break;
     case SkyTraqNmeaParser::UpdateQualitMode:
-      CONSOLE.print("Qualit Mode:");
-      CONSOLE.println(gnss.GetQualitMode());
+      //CONSOLE.print("Qualit Mode:");
+      //CONSOLE.println(gnss.GetQualitMode());
       switch (gnss.GetQualitMode()){
         case GnssData::QM_FloatRtk:
           solution = SOL_FLOAT;
@@ -313,27 +313,27 @@ bool SKYTRAQ::processNmea(U32 f, const char* buf, ParsingType type)
       }
       break;
     case SkyTraqNmeaParser::UpdateNumberOfSv:
-      CONSOLE.print("Number Of Sv:");
-      CONSOLE.println(gnss.GetNumberOfSv());
+      //CONSOLE.print("Number Of Sv:");
+      //CONSOLE.println(gnss.GetNumberOfSv());
       numSV = gnss.GetNumberOfSv();
       break;
     case SkyTraqNmeaParser::UpdateHdop:
-      CONSOLE.print("HDOP:");
-      CONSOLE.println(gnss.GetHdop());
+      //CONSOLE.print("HDOP:");
+      //CONSOLE.println(gnss.GetHdop());
       hAccuracy = gnss.GetHdop();
       break;
     case SkyTraqNmeaParser::UpdatePdop:
-      CONSOLE.print("PDOP:");
-      CONSOLE.println(gnss.GetPdop());
+      //CONSOLE.print("PDOP:");
+      //CONSOLE.println(gnss.GetPdop());
       break;
     case SkyTraqNmeaParser::UpdateVdop:
-      CONSOLE.print("VDOP:");
-      CONSOLE.println(gnss.GetVdop());
+      //CONSOLE.print("VDOP:");
+      //CONSOLE.println(gnss.GetVdop());
       vAccuracy = gnss.GetVdop();
       break;
     case SkyTraqNmeaParser::UpdateNavigationMode:
-      CONSOLE.print("Navigation Mode:");
-      CONSOLE.println(gnss.GetNavigationMode());
+      //CONSOLE.print("Navigation Mode:");
+      //CONSOLE.println(gnss.GetNavigationMode());
       break;
     case SkyTraqNmeaParser::UpdateSatelliteInfo:
 #if (_SUPPORT_GPS_SATELLITES_)
@@ -347,41 +347,41 @@ bool SKYTRAQ::processNmea(U32 f, const char* buf, ParsingType type)
 #endif
       break;
     case SkyTraqNmeaParser::UpdateEnuVelocity:
-      CONSOLE.print("E-Velocity:");
-      CONSOLE.print(gnss.GetEVelocity());
-      CONSOLE.print("   N-Velocity:");
-      CONSOLE.print(gnss.GetNVelocity());
-      CONSOLE.print("   U-Velocity:");
-      CONSOLE.println(gnss.GetUVelocity());
+      //CONSOLE.print("E-Velocity:");
+      //CONSOLE.print(gnss.GetEVelocity());
+      //CONSOLE.print("   N-Velocity:");
+      //CONSOLE.print(gnss.GetNVelocity());
+      //CONSOLE.print("   U-Velocity:");
+      //CONSOLE.println(gnss.GetUVelocity());
      break;
     case SkyTraqNmeaParser::UpdateRtkAge:
-      CONSOLE.print("RTK Age:");
-      CONSOLE.println(gnss.GetRtkAge());
+      //CONSOLE.print("RTK Age:");
+      //CONSOLE.println(gnss.GetRtkAge());
       dgpsAge = millis() - gnss.GetRtkAge() * 1000;
       break;
     case SkyTraqNmeaParser::UpdateRtkRatio:
-      CONSOLE.print("RTK Ratio:");
-      CONSOLE.println(gnss.GetRtkRatio());
+      //CONSOLE.print("RTK Ratio:");
+      //CONSOLE.println(gnss.GetRtkRatio());
       numSVdgps = ((float)gnss.GetRtkRatio()) * 100.0 * numSV;  
      break;
     case SkyTraqNmeaParser::UpdateEnuProjection:
-      CONSOLE.print("E-Projection:");
-      CONSOLE.print(gnss.GetEProjection());
-      CONSOLE.print("   N-Projection:");
-      CONSOLE.print(gnss.GetNProjection());
-      CONSOLE.print("   U-Projection:");
-      CONSOLE.println(gnss.GetUProjection());      
+      //CONSOLE.print("E-Projection:");
+      //CONSOLE.print(gnss.GetEProjection());
+      //CONSOLE.print("   N-Projection:");
+      //CONSOLE.print(gnss.GetNProjection());
+      //CONSOLE.print("   U-Projection:");
+      //CONSOLE.println(gnss.GetUProjection());      
       relPosN = gnss.GetNProjection();
       relPosE = gnss.GetEProjection();
       relPosD = gnss.GetUProjection();
       break;
     case SkyTraqNmeaParser::UpdateBaselineLength:
-       CONSOLE.print("RTK Baseline Length:");
-       CONSOLE.println(gnss.GetBaselineLength());
+       //CONSOLE.print("RTK Baseline Length:");
+       //CONSOLE.println(gnss.GetBaselineLength());
        break;
     case SkyTraqNmeaParser::UpdateBaselineCourse:
-      CONSOLE.print("RTK Baseline Course:");
-      CONSOLE.println(gnss.GetBaselineCourse());
+      //CONSOLE.print("RTK Baseline Course:");
+      //CONSOLE.println(gnss.GetBaselineCourse());
       break;
     default:
       break;
