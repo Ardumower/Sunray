@@ -16,7 +16,7 @@
 #include "../../gps.h"
 #include "../driver/RobotDriver.h"
 
-class SKYTRAQ : public SkyTraqNotifyFun, GpsDriver {
+class SKYTRAQ : public SkyTraqNotifyFun, public GpsDriver {
   public:
     typedef enum {
         GOT_NONE,
