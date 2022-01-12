@@ -278,11 +278,13 @@ bool SKYTRAQ::processNmea(U32 f, const char* buf, ParsingType type)
       //CONSOLE.print("Latitude:");
       //CONSOLE.println(gnss.GetLatitude());
       lat = gnss.GetLatitude();
+      solutionAvail=true;
       break;
     case SkyTraqNmeaParser::UpdateLongitude:
       //CONSOLE.print("Longitude:");
       //CONSOLE.println(gnss.GetLongitude());
       lon = gnss.GetLongitude();
+      solutionAvail=true;
       break;
     case SkyTraqNmeaParser::UpdateAltitude:
       //CONSOLE.print("Altitude:");
@@ -298,8 +300,7 @@ bool SKYTRAQ::processNmea(U32 f, const char* buf, ParsingType type)
       //CONSOLE.println(gnss.GetSpeedInKmHr());
       groundSpeed = gnss.GetSpeedInKmHr() / 1000.0 * 60.0 * 60.0; 
       break;
-    case SkyTraqNmeaParser::UpdateQualitMode:
-      solutionAvail = true;
+    case SkyTraqNmeaParser::UpdateQualitMode:      
       //CONSOLE.print("Qualit Mode:");
       //CONSOLE.println(gnss.GetQualitMode());      
       switch (gnss.GetQualitMode()){
@@ -375,6 +376,7 @@ bool SKYTRAQ::processNmea(U32 f, const char* buf, ParsingType type)
       relPosN = gnss.GetNProjection();
       relPosE = gnss.GetEProjection();
       relPosD = gnss.GetUProjection();
+      solutionAvail = true;
       break;
     case SkyTraqNmeaParser::UpdateBaselineLength:
        //CONSOLE.print("RTK Baseline Length:");
