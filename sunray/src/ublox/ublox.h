@@ -38,7 +38,7 @@ class UBLOX : public GpsDriver {
 
     } state_t;        
     UBLOX();
-    void begin(Stream &stream) override;
+    void begin(Client &client, char *host, uint16_t port) override;
     void begin(HardwareSerial& bus,uint32_t baud) override;
     void run() override;
     bool configure() override;  

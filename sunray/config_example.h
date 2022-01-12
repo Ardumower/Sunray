@@ -438,7 +438,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
   #define BLE SerialBLE
   #define GPS SerialGPS
   #define SERIAL_GPS_PATH "/dev/serial/by-id/usb-u-blox_AG_-_www.u-blox.com_u-blox_GNSS_receiver-if00"  
-  #define GPS_HOST 127.0.0.1  
+  #define GPS_HOST "127.0.0.1"  
   #define GPS_PORT 2947  
   #define ROBOT SerialROBOT
   #define SERIAL_ROBOT_PATH "/dev/ttyUSB1"  

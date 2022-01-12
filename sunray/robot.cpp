@@ -768,7 +768,7 @@ void start(){
   CONSOLE.println("-----------------------------------------------------");
   
   #ifdef GPS_USE_TCP
-    gps.begin(gpsClient);
+    gps.begin(gpsClient, GPS_HOST, GPS_PORT);
   #else 
     gps.begin(GPS, GPS_BAUDRATE);   
   #endif

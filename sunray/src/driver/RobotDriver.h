@@ -9,7 +9,7 @@
 #define ROBOT_DRIVER_H
 
 #include "../../gps.h"
-
+#include <Client.h>
 
 class MotorDriver {
   public:    
@@ -112,7 +112,7 @@ class GpsDriver {
     unsigned long dgpsChecksumErrorCounter;
     unsigned long dgpsPacketCounter;
     // start tcp receiver
-    virtual void begin(Stream& stream) = 0;   
+    virtual void begin(Client &client, char *host, uint16_t port) = 0;
     // start serial receiver          
     virtual void begin(HardwareSerial& bus,uint32_t baud) = 0;
     // should process receiver data

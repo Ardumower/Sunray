@@ -25,7 +25,7 @@ UBLOX::UBLOX()
   #endif
 }
 
-void UBLOX::begin(Stream &stream){
+void UBLOX::begin(Client &client, char *host, uint16_t port){
   CONSOLE.println("WARNING!!! UBLOX::begin TCP - not yet implemented!");
   // TODO
 }   

@@ -30,8 +30,8 @@ class SKYTRAQ : public SkyTraqNotifyFun, public GpsDriver {
         GOT_CHK 
 
     } state_t;        
-    SKYTRAQ();
-    void begin(Stream &stream) override;    
+    SKYTRAQ();    
+    void begin(Client &client, char *host, uint16_t port) override;
     void begin(HardwareSerial& bus,uint32_t baud) override;
     void run() override;
     bool configure() override;  
@@ -42,7 +42,7 @@ class SKYTRAQ : public SkyTraqNotifyFun, public GpsDriver {
 
     uint32_t _baud;  	
     HardwareSerial* _bus;
-    Stream* _stream;
+    Client* _client;
     state_t state;
     int msgid;
     int msglen;
@@ -56,6 +56,7 @@ class SKYTRAQ : public SkyTraqNotifyFun, public GpsDriver {
     // Notification of SkyTraqNmeaParser
     U32 gnssUpdateFlag;
     
+    void begin();
     void addchk(int b);
     void dispatchMessage();
     long unpack_int32(int offset);
