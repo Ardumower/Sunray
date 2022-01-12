@@ -174,12 +174,26 @@ double distanceLL(double lat1, double lon1, double lat2, double lon2)
   return delta * 6372795.0f; 
 }
 
-void relativeLL(double lat1, double lon1, double lat2, double lon2, float &n, float &e){
+void relativeLL(double lat1, double lon1, double lat2, double lon2, float &n, float &e){  
   // compute relative north/east coordinates (n,e) in meters between (lat,lon1) and (lat2,lon2)  
   int slat = sign(lat2-lat1);
   int slon = sign(lon2-lon1);
   n = slat * distanceLL(lat1, lon1, lat2, lon1);
   e = slon * distanceLL(lat1, lon1, lat1, lon2);
+  if (false){
+    CONSOLE.print("relativeLL lat1=");
+    CONSOLE.print(lat1, 8);
+    CONSOLE.print("  lat2=");
+    CONSOLE.print(lat2, 8);
+    CONSOLE.print("  n=");
+    CONSOLE.println(n, 8);
+    CONSOLE.print("relativeLL lon1=");
+    CONSOLE.print(lon1, 8);
+    CONSOLE.print("  lon2=");
+    CONSOLE.print(lon2, 8);
+    CONSOLE.print("  e=");
+    CONSOLE.println(e, 8);
+  }
 }
 
 void printFloat(float v){

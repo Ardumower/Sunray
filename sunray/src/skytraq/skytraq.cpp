@@ -219,7 +219,10 @@ long SKYTRAQ::unpack(int offset, int size) {
 /* parse the skytraq data */
 void SKYTRAQ::run()
 {
-	solutionAvail = (millis() < solutionTimeout);
+	if (millis() > solutionTimeout){
+    solution = SOL_INVALID;
+    solutionAvail = true;
+  }
   //CONSOLE.println("SKYTRAQ::run");
   // read a byte from the serial port	  
   if (!_client->available()) return;
@@ -279,12 +282,15 @@ bool SKYTRAQ::processNmea(U32 f, const char* buf, ParsingType type)
     case SkyTraqNmeaParser::UpdateLatitude:
       //CONSOLE.print("Latitude:");
       //CONSOLE.println(gnss.GetLatitude());
-      lat = gnss.GetLatitude();      
+      lat = gnss.GetLatitude();            
       break;
     case SkyTraqNmeaParser::UpdateLongitude:
-      //CONSOLE.print("Longitude:");
-      //CONSOLE.println(gnss.GetLongitude());
       lon = gnss.GetLongitude();
+      //CONSOLE.print("Longitude:");
+      //CONSOLE.print(gnss.GetLongitude(),8);
+      //CONSOLE.print(",");
+      //CONSOLE.println(lon,8);
+      solutionAvail = true;
       solutionTimeout=millis() + 1000;
       break;
     case SkyTraqNmeaParser::UpdateAltitude:
