@@ -20,23 +20,14 @@ UBLOX::UBLOX()
 {
   debug = false;
   verbose = false;
+  useTCP = false;
   #ifdef GPS_DUMP
     verbose = true;
   #endif
 }
 
-void UBLOX::begin(Client &client, char *host, uint16_t port){
-  CONSOLE.println("WARNING!!! UBLOX::begin TCP - not yet implemented!");
-  // TODO
-}   
-
-
-/* starts the serial communication */
-void UBLOX::begin(HardwareSerial& bus,uint32_t baud)
-{	
-  CONSOLE.println("UBLOX::begin");
-  _bus = &bus;
-	_baud = baud;  
+void UBLOX::begin(){
+  CONSOLE.println("UBLOX::begin");  
   this->state    = GOT_NONE;
   this->msgclass = -1;
   this->msgid    = -1;
@@ -52,8 +43,33 @@ void UBLOX::begin(HardwareSerial& bus,uint32_t baud)
   this->chksumErrorCounter = 0;
   this->dgpsChecksumErrorCounter = 0;
   this->dgpsPacketCounter = 0;
+}
+
+void UBLOX::begin(Client &client, char *host, uint16_t port){
+  CONSOLE.println("UBLOX::begin tcp");
+   useTCP = true;
+  _client = &client;
+  if(!client.connect(host,port)){
+    CONSOLE.print("Cannot connect to ");
+    CONSOLE.print(host);
+    CONSOLE.print(":");
+    CONSOLE.println(port);
+  }
+  // start streaming-in
+  begin(); 
+}   
+
+
+/* starts the serial communication */
+void UBLOX::begin(HardwareSerial& bus,uint32_t baud)
+{	
+  CONSOLE.println("UBLOX::begin serial");
+  _bus = &bus;
+	_baud = baud;  
 	// begin the serial port for uBlox	
   _bus->begin(_baud);
+   // start streaming-in
+  begin(); 
   if (GPS_CONFIG){
     configure();
   }

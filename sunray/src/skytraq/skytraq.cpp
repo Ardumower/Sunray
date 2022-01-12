@@ -14,14 +14,14 @@ SKYTRAQ::SKYTRAQ()
 {
   debug = false;
   verbose = false;
+  useTCP   = false;
   #ifdef GPS_DUMP
     verbose = true;
   #endif
 }
 
 void SKYTRAQ::begin(){
-  CONSOLE.println("SKYTRAQ::begin");
-  this->useTCP   = false;
+  CONSOLE.println("SKYTRAQ::begin");  
   this->state    = GOT_NONE;
   this->msgid    = -1;
   this->msglen   = -1;
@@ -229,9 +229,10 @@ void SKYTRAQ::run()
   }
   //CONSOLE.println("SKYTRAQ::run");
   // read a byte from the serial port
-  Stream *stream = _bus; 
+  Stream *stream; 
   if (useTCP) stream = _client;
-  
+    else stream = _bus;
+
   if (!stream->available()) return;
   while (!stream->available()) {		
     byte data = stream->read();        		
