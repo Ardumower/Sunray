@@ -220,7 +220,9 @@ long SKYTRAQ::unpack(int offset, int size) {
 void SKYTRAQ::run()
 {
 	if (millis() > solutionTimeout){
+    CONSOLE.println("SYKTRAQ::solutionTimeout");
     solution = SOL_INVALID;
+    solutionTimeout = millis() + 1000;
     solutionAvail = true;
   }
   //CONSOLE.println("SKYTRAQ::run");
