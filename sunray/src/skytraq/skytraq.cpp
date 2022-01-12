@@ -226,10 +226,14 @@ void SKYTRAQ::run()
     solutionAvail = true;
   }
   //CONSOLE.println("SKYTRAQ::run");
-  // read a byte from the serial port	  
-  if (!_client->available()) return;
-  while (_client->available()) {		
-    byte data = _client->read();        		
+  // read a byte from the serial port
+  Stream *stream = _bus; 
+  #ifdef GPS_USE_TCP
+    stream = _client;
+  #endif
+  if (!stream->available()) return;
+  while (!stream->available()) {		
+    byte data = stream->read();        		
     parser.Encode(data); // NMEA parser
     //parseBinary(data);  // binary parser
 #ifdef GPS_DUMP
