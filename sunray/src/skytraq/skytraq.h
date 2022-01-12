@@ -49,6 +49,7 @@ class SKYTRAQ : public SkyTraqNotifyFun, public GpsDriver {
     int chk;
     int count;
     char payload[2000];                                          
+    bool useTCP;
     bool debug;
     bool verbose;
     // The SkyTraqNmeaParser result

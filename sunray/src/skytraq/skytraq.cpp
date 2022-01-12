@@ -21,6 +21,7 @@ SKYTRAQ::SKYTRAQ()
 
 void SKYTRAQ::begin(){
   CONSOLE.println("SKYTRAQ::begin");
+  this->useTCP   = false;
   this->state    = GOT_NONE;
   this->msgid    = -1;
   this->msglen   = -1;
@@ -59,6 +60,7 @@ void SKYTRAQ::begin(HardwareSerial& bus,uint32_t baud)
 void SKYTRAQ::begin(Client &client, char *host, uint16_t port)
 {
   CONSOLE.println("SKYTRAQ::begin tcp");
+  useTCP = true;
   _client = &client;
   if(!client.connect(host,port)){
     CONSOLE.print("Cannot connect to ");
@@ -228,9 +230,8 @@ void SKYTRAQ::run()
   //CONSOLE.println("SKYTRAQ::run");
   // read a byte from the serial port
   Stream *stream = _bus; 
-  #ifdef GPS_USE_TCP
-    stream = _client;
-  #endif
+  if (useTCP) stream = _client;
+  
   if (!stream->available()) return;
   while (!stream->available()) {		
     byte data = stream->read();        		
