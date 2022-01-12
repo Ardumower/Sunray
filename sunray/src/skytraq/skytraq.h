@@ -55,6 +55,7 @@ class SKYTRAQ : public SkyTraqNotifyFun, public GpsDriver {
     const GnssData* gdata;
     // Notification of SkyTraqNmeaParser
     U32 gnssUpdateFlag;
+    bool solutionTimeout;
     
     void begin();
     void addchk(int b);

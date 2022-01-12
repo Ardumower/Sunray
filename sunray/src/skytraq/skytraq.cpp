@@ -34,6 +34,7 @@ void SKYTRAQ::begin(){
   this->chksumErrorCounter = 0;
   this->dgpsChecksumErrorCounter = 0;
   this->dgpsPacketCounter = 0;
+  this->solutionTimeout = 0; 
   gnssUpdateFlag = 0;
   parser.SetNotify(this); 
   
@@ -218,7 +219,8 @@ long SKYTRAQ::unpack(int offset, int size) {
 /* parse the skytraq data */
 void SKYTRAQ::run()
 {
-	//CONSOLE.println("SKYTRAQ::run");
+	solutionAvail = (millis() < solutionTimeout);
+  //CONSOLE.println("SKYTRAQ::run");
   // read a byte from the serial port	  
   if (!_client->available()) return;
   while (_client->available()) {		
@@ -277,14 +279,13 @@ bool SKYTRAQ::processNmea(U32 f, const char* buf, ParsingType type)
     case SkyTraqNmeaParser::UpdateLatitude:
       //CONSOLE.print("Latitude:");
       //CONSOLE.println(gnss.GetLatitude());
-      lat = gnss.GetLatitude();
-      solutionAvail=true;
+      lat = gnss.GetLatitude();      
       break;
     case SkyTraqNmeaParser::UpdateLongitude:
       //CONSOLE.print("Longitude:");
       //CONSOLE.println(gnss.GetLongitude());
       lon = gnss.GetLongitude();
-      solutionAvail=true;
+      solutionTimeout=millis() + 1000;
       break;
     case SkyTraqNmeaParser::UpdateAltitude:
       //CONSOLE.print("Altitude:");
@@ -375,8 +376,7 @@ bool SKYTRAQ::processNmea(U32 f, const char* buf, ParsingType type)
       //CONSOLE.println(gnss.GetUProjection());      
       relPosN = gnss.GetNProjection();
       relPosE = gnss.GetEProjection();
-      relPosD = gnss.GetUProjection();
-      solutionAvail = true;
+      relPosD = gnss.GetUProjection();      
       break;
     case SkyTraqNmeaParser::UpdateBaselineLength:
        //CONSOLE.print("RTK Baseline Length:");
