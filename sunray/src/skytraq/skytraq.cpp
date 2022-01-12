@@ -299,8 +299,9 @@ bool SKYTRAQ::processNmea(U32 f, const char* buf, ParsingType type)
       groundSpeed = gnss.GetSpeedInKmHr() / 1000.0 * 60.0 * 60.0; 
       break;
     case SkyTraqNmeaParser::UpdateQualitMode:
+      solutionAvail = true;
       //CONSOLE.print("Qualit Mode:");
-      //CONSOLE.println(gnss.GetQualitMode());
+      //CONSOLE.println(gnss.GetQualitMode());      
       switch (gnss.GetQualitMode()){
         case GnssData::QM_FloatRtk:
           solution = SOL_FLOAT;
@@ -310,7 +311,7 @@ bool SKYTRAQ::processNmea(U32 f, const char* buf, ParsingType type)
           break;
         default:
           solution = SOL_INVALID;
-      }
+      }   
       break;
     case SkyTraqNmeaParser::UpdateNumberOfSv:
       //CONSOLE.print("Number Of Sv:");
