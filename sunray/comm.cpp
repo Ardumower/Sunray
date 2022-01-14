@@ -536,10 +536,14 @@ void cmdClearStats(){
 
 // scan WiFi networks
 void cmdWiFiScan(){
+  CONSOLE.println("cmdWiFiScan");
   String s = F("B1,");  
   int numNetworks = WiFi.scanNetworks();
+  CONSOLE.print("numNetworks=");
+  CONSOLE.println(numNetworks);
   #ifdef __linux__  
     for (int i=0; i < numNetworks; i++){
+      CONSOLE.println(WiFi.SSID(i));
       s += WiFi.SSID(i);
       if (i < numNetworks-1) s += ",";
     }
