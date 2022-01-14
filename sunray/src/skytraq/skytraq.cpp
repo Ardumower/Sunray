@@ -14,13 +14,14 @@ SKYTRAQ::SKYTRAQ()
 {
   debug = false;
   verbose = false;
+  useTCP   = false;
   #ifdef GPS_DUMP
     verbose = true;
   #endif
 }
 
 void SKYTRAQ::begin(){
-  CONSOLE.println("SKYTRAQ::begin");
+  CONSOLE.println("SKYTRAQ::begin");  
   this->state    = GOT_NONE;
   this->msgid    = -1;
   this->msglen   = -1;
@@ -59,6 +60,7 @@ void SKYTRAQ::begin(HardwareSerial& bus,uint32_t baud)
 void SKYTRAQ::begin(Client &client, char *host, uint16_t port)
 {
   CONSOLE.println("SKYTRAQ::begin tcp");
+  useTCP = true;
   _client = &client;
   if(!client.connect(host,port)){
     CONSOLE.print("Cannot connect to ");
@@ -220,16 +222,20 @@ long SKYTRAQ::unpack(int offset, int size) {
 void SKYTRAQ::run()
 {
 	if (millis() > solutionTimeout){
-    CONSOLE.println("SYKTRAQ::solutionTimeout");
+    //CONSOLE.println("SYKTRAQ::solutionTimeout");
     solution = SOL_INVALID;
     solutionTimeout = millis() + 1000;
     solutionAvail = true;
   }
   //CONSOLE.println("SKYTRAQ::run");
-  // read a byte from the serial port	  
-  if (!_client->available()) return;
-  while (_client->available()) {		
-    byte data = _client->read();        		
+  // read a byte from the serial port
+  Stream *stream; 
+  if (useTCP) stream = _client;
+    else stream = _bus;
+
+  if (!stream->available()) return;
+  while (!stream->available()) {		
+    byte data = stream->read();        		
     parser.Encode(data); // NMEA parser
     //parseBinary(data);  // binary parser
 #ifdef GPS_DUMP

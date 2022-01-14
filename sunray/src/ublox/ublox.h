@@ -44,6 +44,8 @@ class UBLOX : public GpsDriver {
     bool configure() override;  
     void reboot() override;
   private:
+    bool useTCP;
+    Client* _client;    
     uint32_t _baud;  	
     HardwareSerial* _bus;
     state_t state;
@@ -57,6 +59,7 @@ class UBLOX : public GpsDriver {
     bool debug;
     bool verbose;
     
+    void begin();
     void addchk(int b);
     void dispatchMessage();
     long unpack_int32(int offset);
