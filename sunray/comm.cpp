@@ -321,6 +321,8 @@ void cmdVersion(){
   s += encryptMode;
   s += F(",");
   s += encryptChallenge;
+  s += F(",");
+  s += BOARD;
   CONSOLE.print("sending encryptMode=");
   CONSOLE.print(encryptMode);
   CONSOLE.print(" encryptChallenge=");  
