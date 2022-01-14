@@ -68,8 +68,8 @@ void cmdControl(){
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){
-      int intValue = cmd.substring(lastCommaIdx+1, idx).toInt();
-      float floatValue = cmd.substring(lastCommaIdx+1, idx).toFloat();
+      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
       if (counter == 1){                            
           if (intValue >= 0) {
             motor.enableMowMotor = (intValue == 1);
@@ -115,7 +115,7 @@ void cmdMotor(){
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){
-      float value = cmd.substring(lastCommaIdx+1, idx).toFloat();
+      float value = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
       if (counter == 1){                            
           linear = value;
       } else if (counter == 2){
@@ -167,8 +167,8 @@ void cmdWaypoint(){
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){            
-      float intValue = cmd.substring(lastCommaIdx+1, idx).toInt();
-      float floatValue = cmd.substring(lastCommaIdx+1, idx).toFloat();
+      float intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
       if (counter == 1){                            
           widx = intValue;
       } else if (counter == 2){
@@ -216,8 +216,8 @@ void cmdWayCount(){
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){            
-      float intValue = cmd.substring(lastCommaIdx+1, idx).toInt();
-      float floatValue = cmd.substring(lastCommaIdx+1, idx).toFloat();      
+      float intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();      
       if (counter == 1){                            
           if (!maps.setWayCount(WAY_PERIMETER, intValue)) return;                
       } else if (counter == 2){
@@ -250,8 +250,8 @@ void cmdExclusionCount(){
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){            
-      float intValue = cmd.substring(lastCommaIdx+1, idx).toInt();
-      float floatValue = cmd.substring(lastCommaIdx+1, idx).toFloat();
+      float intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
       if (counter == 1){                            
           widx = intValue;
       } else if (counter == 2){
@@ -279,8 +279,8 @@ void cmdPosMode(){
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){
-      int intValue = cmd.substring(lastCommaIdx+1, idx).toInt();
-      double doubleValue = cmd.substring(lastCommaIdx+1, idx).toDouble();
+      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      double doubleValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toDouble();
       if (counter == 1){                            
           absolutePosSource = bool(intValue);
       } else if (counter == 2){                                      
@@ -565,7 +565,7 @@ void cmdWiFiSetup(){
       //Serial.print("ch=");
       //Serial.println(ch);
       if ((ch == ',') || (idx == cmd.length()-1)){
-        String str = cmd.substring(lastCommaIdx+1, idx);
+        String str = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1);
         if (counter == 1){                            
             ssid = str;
         } else if (counter == 2){
