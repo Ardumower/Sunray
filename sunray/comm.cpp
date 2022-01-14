@@ -538,21 +538,22 @@ void cmdClearStats(){
 void cmdWiFiScan(){
   CONSOLE.println("cmdWiFiScan");
   String s = F("B1,");  
+  #ifdef __linux__    
   int numNetworks = WiFi.scanNetworks();
   CONSOLE.print("numNetworks=");
   CONSOLE.println(numNetworks);
-  #ifdef __linux__  
-    for (int i=0; i < numNetworks; i++){
+  for (int i=0; i < numNetworks; i++){
       CONSOLE.println(WiFi.SSID(i));
       s += WiFi.SSID(i);
       if (i < numNetworks-1) s += ",";
-    }
+  }
   #endif  
   cmdAnswer(s);
 }
 
 // setup WiFi
 void cmdWiFiSetup(){
+  CONSOLE.println("cmdWiFiSetup");
   #ifdef __linux__
     if (cmd.length()<6) return;  
     int counter = 0;
@@ -587,9 +588,15 @@ void cmdWiFiSetup(){
 // request WiFi status
 void cmdWiFiStatus(){
   String s = F("B3,");  
-  int numNetworks = WiFi.scanNetworks();
   #ifdef __linux__
-  s += WiFi.localIP();
+  IPAddress addr = WiFi.localIP();
+	s += addr[0];
+	s += ".";
+	s += addr[1];
+	s += ".";
+	s += addr[2];
+	s += ".";
+	s += addr[3];		
   #endif  
   cmdAnswer(s);
 }
