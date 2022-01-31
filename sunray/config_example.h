@@ -31,6 +31,7 @@
 Adafruit Grand Central M4 NOTE: You have to add SDA, SCL pull-up resistors to the board 
 and deactivate Due clone reset cicuit (JP13):
 https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Adafruit_Grand_Central_M4
+NOTE: If you get compilation errors with Adafruit Grand Central M4, you may have to downgrade 'Adafruit SAMD Boards' to version to 1.7.5.
 
 Arduino Due UPLOAD NOTE:  
 
