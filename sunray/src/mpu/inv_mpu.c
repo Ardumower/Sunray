@@ -434,7 +434,7 @@ const struct gyro_reg_s reg = {
 #endif
 };
 const struct hw_s hw = {
-    .addr           = 0x69,   
+    .addr           = MPU_ADDR, // 0x69,   
     .max_fifo       = 1024,
     .num_reg        = 118,
     .temp_sens      = 340,
