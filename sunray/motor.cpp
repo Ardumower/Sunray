@@ -98,10 +98,14 @@ void Motor::begin() {
   motorLeftPWMCurrLP = 0;
   motorRightPWMCurrLP=0;   
   motorMowPWMCurrLP = 0;
+  
   motorLeftRpmCurr=0;
   motorRightRpmCurr=0;
   motorLeftRpmLast = 0;
   motorRightRpmLast = 0;
+  motorLeftRpmCurrLP = 0;
+  motorRightRpmCurrLP = 0;
+  
   setLinearAngularSpeedTimeoutActive = false;  
   setLinearAngularSpeedTimeout = 0;
   motorMowSpinUpTime = 0;
@@ -321,15 +325,15 @@ void Motor::run() {
   }
 
   if (nextResetMotorFaultTime == 0) {    
-    if  (   ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (abs(motorLeftRpmCurr) < 0.001))    
-        ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (abs(motorRightRpmCurr) < 0.001))  )
+    if  (   ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (abs(motorLeftRpmCurrLP) < 0.001))    
+        ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (abs(motorRightRpmCurrLP) < 0.001))  )
     {               
       if (!odometryError){
         // odometry error
         CONSOLE.print("ERROR: odometry error rpm=");
-        CONSOLE.print(motorLeftRpmCurr);
+        CONSOLE.print(motorLeftRpmCurrLP);
         CONSOLE.print(",");
-        CONSOLE.println(motorRightRpmCurr);     
+        CONSOLE.println(motorRightRpmCurrLP);     
         odometryError = true;
       }      
     } else odometryError = false;
@@ -375,6 +379,9 @@ void Motor::run() {
   // 20 ticksPerRevolution: @ 30 rpm => 0.5 rps => 10 ticksPerSec
   motorLeftRpmCurr = 60.0 * ( ((float)ticksLeft) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
   motorRightRpmCurr = 60.0 * ( ((float)ticksRight) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
+  float lp = 0.9; // 0.995
+  motorLeftRpmCurrLP = lp * motorLeftRpmCurrLP + (1.0-lp) * motorLeftRpmCurr;
+  motorRightRpmCurrLP = lp * motorRightRpmCurrLP + (1.0-lp) * motorRightRpmCurr;
 
   if (ticksLeft == 0) {
     motorLeftTicksZero++;

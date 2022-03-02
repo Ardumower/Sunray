@@ -217,12 +217,16 @@ void SerialMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &
   leftFault = serialRobot.motorFault;
   rightFault = serialRobot.motorFault;
   if (serialRobot.motorFault){
-    //CONSOLE.println("serialRobot: motorFault");
+    CONSOLE.println("serialRobot: motorFault");
   }
   mowFault = false;
 }
 
 void SerialMotorDriver::resetMotorFaults(){
+  CONSOLE.println("serialRobot: resetting motor fault");
+  serialRobot.requestMotorPwm(1, 1, 0);
+  delay(1);
+  serialRobot.requestMotorPwm(0, 0, 0);
 }
 
 void SerialMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) {
