@@ -351,7 +351,7 @@ void cmdTriggerWatchdog(){
   setOperation(OP_IDLE);
   #ifdef __linux__
     Process p;
-    p.runShellCommand("restart now");    
+    p.runShellCommand("reboot");    
   #else
     triggerWatchdog = true;  
   #endif
