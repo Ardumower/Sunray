@@ -18,6 +18,10 @@ void SerialRobotDriver::begin(){
   chargeVoltage = 0;
   chargeCurrent = 0;  
   batteryVoltage = 0;
+  mowCurr = 0;
+  motorLeftCurr = 0;
+  motorRightCurr = 0;
+  batteryTemp = 0;
   triggeredLeftBumper = false;
   triggeredRightBumper = false;
   triggeredRain = false;
@@ -123,6 +127,14 @@ void SerialRobotDriver::summaryResponse(){
         triggeredRain = (intValue != 0);
       } else if (counter == 7){
         motorFault = (intValue != 0);
+      } else if (counter == 8){
+        mowCurr = floatValue;
+      } else if (counter == 9){
+        motorLeftCurr = floatValue;
+      } else if (counter == 10){
+        motorRightCurr = floatValue;
+      } else if (counter == 11){
+        batteryTemp = floatValue;
       } 
       counter++;
       lastCommaIdx = idx;
@@ -229,10 +241,13 @@ void SerialMotorDriver::resetMotorFaults(){
   serialRobot.requestMotorPwm(0, 0, 0);
 }
 
-void SerialMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) {
-  leftCurrent = 0.5;
-  rightCurrent = 0.5;
-  mowCurrent = 0.8;
+void SerialMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) {  
+  //leftCurrent = 0.5;
+  //rightCurrent = 0.5;
+  //mowCurrent = 0.8;
+  leftCurrent = serialRobot.motorLeftCurr;
+  rightCurrent = serialRobot.motorRightCurr;
+  mowCurrent = serialRobot.mowCurr;
 }
 
 void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
