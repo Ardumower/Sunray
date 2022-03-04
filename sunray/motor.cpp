@@ -577,31 +577,35 @@ void Motor::test(){
   int pwmRight = 200; 
   bool slowdown = true;
   unsigned long stopTicks = ticksPerRevolution * 10;
+  unsigned long nextControlTime = 0;
   while (motorLeftTicks < stopTicks || motorRightTicks < stopTicks){
-    if ((slowdown) && ((motorLeftTicks + ticksPerRevolution  > stopTicks)||(motorRightTicks + ticksPerRevolution > stopTicks))){  //Letzte halbe drehung verlangsamen
-      pwmLeft = pwmRight = 20;
-      slowdown = false;
-    }    
-    if (millis() > nextInfoTime){      
-      nextInfoTime = millis() + 1000;            
-      dumpOdoTicks(seconds);
-      seconds++;      
-    }    
-    if(motorLeftTicks >= stopTicks)
-    {
-      pwmLeft = 0;
-    }  
-    if(motorRightTicks >= stopTicks)
-    {
-      pwmRight = 0;      
+    if (millis() > nextControlTime){
+      nextControlTime = millis() + 20;
+      if ((slowdown) && ((motorLeftTicks + ticksPerRevolution  > stopTicks)||(motorRightTicks + ticksPerRevolution > stopTicks))){  //Letzte halbe drehung verlangsamen
+        pwmLeft = pwmRight = 20;
+        slowdown = false;
+      }    
+      if (millis() > nextInfoTime){      
+        nextInfoTime = millis() + 1000;            
+        dumpOdoTicks(seconds);
+        seconds++;      
+      }    
+      if(motorLeftTicks >= stopTicks)
+      {
+        pwmLeft = 0;
+      }  
+      if(motorRightTicks >= stopTicks)
+      {
+        pwmRight = 0;      
+      }
+      
+      speedPWM(pwmLeft, pwmRight, 0);
+      sense();
+      //delay(50);         
+      watchdogReset();     
+      robotDriver.run();
     }
-    speedPWM(pwmLeft, pwmRight, 0);
-    sense();
-    delay(50);
-    watchdogReset();     
-    robotDriver.run();   
-  }
-  dumpOdoTicks(seconds);
+  }  
   speedPWM(0, 0, 0);
   CONSOLE.println("motor test done - please ignore any IMU/GPS errors");
 }
@@ -617,47 +621,52 @@ void Motor::plot(){
   bool forward = true;
   unsigned long nextPlotTime = 0;
   unsigned long stopTime = millis() + 30 * 1000;
+  unsigned long nextControlTime = 0;
 
   while (millis() < stopTime){   // 30 seconds...
-    int ticksLeft=0;
-    int ticksRight=0;
-    int ticksMow=0;
-    motorDriver.getMotorEncoderTicks(ticksLeft, ticksRight, ticksMow);  
-    motorLeftTicks += ticksLeft;
-    motorRightTicks += ticksRight;
+    if (millis() > nextControlTime){
+      nextControlTime = millis() + 20; 
 
-    if (millis() > nextPlotTime){ 
-      nextPlotTime = millis() + 100;
-      CONSOLE.print(pwmLeft);
-      CONSOLE.print(",");  
-      CONSOLE.print(pwmRight);
-      CONSOLE.print(",");
-      CONSOLE.print(motorLeftTicks);    
-      CONSOLE.print(",");
-      CONSOLE.print(motorRightTicks);
-      CONSOLE.println();
-      motorLeftTicks = 0;
-      motorRightTicks = 0;      
-    }
+      int ticksLeft=0;
+      int ticksRight=0;
+      int ticksMow=0;
+      motorDriver.getMotorEncoderTicks(ticksLeft, ticksRight, ticksMow);  
+      motorLeftTicks += ticksLeft;
+      motorRightTicks += ticksRight;
 
-    speedPWM(pwmLeft, pwmRight, 0);
-    if (pwmLeft >= 255){
-      forward = false; 
-    }      
-    if (pwmLeft <= -255){
-      forward = true; 
-    }          
-    if (forward){
-      pwmLeft++;
-      pwmRight++;            
-    } else {
-      pwmLeft--;
-      pwmRight--;
-    }
+      if (millis() > nextPlotTime){ 
+        nextPlotTime = millis() + 100;
+        CONSOLE.print(pwmLeft);
+        CONSOLE.print(",");  
+        CONSOLE.print(pwmRight);
+        CONSOLE.print(",");
+        CONSOLE.print(motorLeftTicks);    
+        CONSOLE.print(",");
+        CONSOLE.print(motorRightTicks);
+        CONSOLE.println();
+        motorLeftTicks = 0;
+        motorRightTicks = 0;      
+      }
+
+      speedPWM(pwmLeft, pwmRight, 0);
+      if (pwmLeft >= 255){
+        forward = false; 
+      }      
+      if (pwmLeft <= -255){
+        forward = true; 
+      }          
+      if (forward){
+        pwmLeft++;
+        pwmRight++;            
+      } else {
+        pwmLeft--;
+        pwmRight--;
+      }    
+    }  
     //sense();
     //delay(10);
     watchdogReset();     
-    robotDriver.run();   
+    robotDriver.run(); 
   }
   speedPWM(0, 0, 0);
   CONSOLE.println("motor plot done - please ignore any IMU/GPS errors");
