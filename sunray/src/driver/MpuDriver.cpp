@@ -27,12 +27,16 @@ void MpuDriver::detect(){
   // detect MPUxxxx  
   uint8_t data = 0;
   selectChip();
-  I2CreadFrom(0x69, 0x75, 1, &data, 1); // whoami register
+  I2CreadFrom(MPU_ADDR, 0x75, 1, &data, 1); // whoami register
   CONSOLE.print(F("MPU ID=0x"));
   CONSOLE.println(data, HEX);     
-  #if defined MPU6050 || defined MPU9150      
+  #if defined MPU6050 || defined MPU9150       
     if (data == 0x68) {
         CONSOLE.println("MPU6050/9150 found");
+        imuFound = true;
+        return;
+    } else if (data == 0x72) {
+        CONSOLE.println("MPU6052 found");
         imuFound = true;
         return;
     }
