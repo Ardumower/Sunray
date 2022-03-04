@@ -140,6 +140,8 @@ void SerialRobotDriver::summaryResponse(){
       lastCommaIdx = idx;
     }    
   }
+  //CONSOLE.print("batteryTemp=");
+  //CONSOLE.println(batteryTemp);
 }
 
 // process response
