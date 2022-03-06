@@ -238,9 +238,9 @@ void SerialMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &
 
 void SerialMotorDriver::resetMotorFaults(){
   CONSOLE.println("serialRobot: resetting motor fault");
-  serialRobot.requestMotorPwm(1, 1, 0);
-  delay(1);
-  serialRobot.requestMotorPwm(0, 0, 0);
+  //serialRobot.requestMotorPwm(1, 1, 0);
+  //delay(1);
+  //serialRobot.requestMotorPwm(0, 0, 0);
 }
 
 void SerialMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) {  
