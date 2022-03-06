@@ -281,6 +281,14 @@ void Motor::stopImmediately(bool includeMowerMotor){
     motorMowPWMCurr = 0;    
   }
   speedPWM(motorLeftPWMCurr, motorRightPWMCurr, motorMowPWMCurr);
+  // reset PID
+  motorLeftPID.reset();
+  motorRightPID.reset();
+  // reset unread encoder ticks
+  int ticksLeft=0;
+  int ticksRight=0;
+  int ticksMow=0;
+  motorDriver.getMotorEncoderTicks(ticksLeft, ticksRight, ticksMow);        
 }
 
 
