@@ -30,6 +30,11 @@ void SerialRobotDriver::begin(){
   motorFault = false;
   receivedEncoders = false;
   nextSummaryTime = 0;
+  nextConsoleTime = 0;
+  cmdMotorResponseCounter = 0;
+  cmdSummaryResponseCounter = 0;
+  cmdMotorCounter = 0;
+  cmdSummaryCounter = 0;
 }
 
 void SerialRobotDriver::sendRequest(String s){
@@ -40,15 +45,16 @@ void SerialRobotDriver::sendRequest(String s){
   s += String(crc, HEX);  
   s += F("\r\n");             
   //CONSOLE.print(s);  
-  cmdResponse = s;
-  COMM.print(s);
+  //cmdResponse = s;
+  COMM.print(s);  
 }
 
 
 void SerialRobotDriver::requestSummary(){
   String req;
-  req += "AT+S";
+  req += "AT+S";  
   sendRequest(req);
+  cmdSummaryCounter++;
 }
 
 void SerialRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
@@ -61,8 +67,9 @@ void SerialRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   if (abs(mowPwm) > 0)
     req += "1";
   else
-    req += "0";
+    req += "0";  
   sendRequest(req);
+  cmdMotorCounter++;
 }
 
 void SerialRobotDriver::motorResponse(){
@@ -98,6 +105,7 @@ void SerialRobotDriver::motorResponse(){
   if (triggeredStopButton){
     CONSOLE.println("STOPBUTTON");
   }
+  cmdMotorResponseCounter++;
   receivedEncoders=true;
 }
 
@@ -140,6 +148,7 @@ void SerialRobotDriver::summaryResponse(){
       lastCommaIdx = idx;
     }    
   }
+  cmdSummaryResponseCounter++;
   //CONSOLE.print("batteryTemp=");
   //CONSOLE.println(batteryTemp);
 }
@@ -205,6 +214,20 @@ void SerialRobotDriver::run(){
   if (millis() > nextSummaryTime){
     nextSummaryTime = millis() + 500;
     requestSummary();
+  }
+  if (millis() > nextConsoleTime){
+    nextConsoleTime = millis() + 1000;
+    if ( (abs(cmdMotorCounter-cmdMotorResponseCounter) > 3) || (abs(cmdSummaryCounter-cmdSummaryResponseCounter) > 0) ){
+      CONSOLE.print("SerialRobot unmet communication frequency: motorFreq=");
+      CONSOLE.print(cmdMotorCounter);
+      CONSOLE.print("/");
+      CONSOLE.print(cmdMotorResponseCounter);
+      CONSOLE.print("  summaryFreq=");
+      CONSOLE.print(cmdSummaryCounter);
+      CONSOLE.print("/");
+      CONSOLE.println(cmdSummaryResponseCounter);
+    }   
+    cmdMotorCounter=cmdMotorResponseCounter=cmdSummaryCounter=cmdSummaryResponseCounter=0;
   }
 }
 

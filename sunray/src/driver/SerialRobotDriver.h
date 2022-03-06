@@ -35,10 +35,15 @@ class SerialRobotDriver {
     void run();
     void requestMotorPwm(int leftPwm, int rightPwm, int mowPwm);
     void requestSummary();
-  protected:
+  protected:    
     String cmd;
-    String cmdResponse;
+    String cmdResponse;    
     unsigned long nextSummaryTime;
+    unsigned long nextConsoleTime;
+    int cmdMotorCounter;
+    int cmdSummaryCounter;
+    int cmdMotorResponseCounter;
+    int cmdSummaryResponseCounter;
     void sendRequest(String s);
     void processComm();
     void processResponse(bool checkCrc);
