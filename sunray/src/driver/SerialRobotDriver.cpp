@@ -81,8 +81,8 @@ void SerialRobotDriver::motorResponse(){
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){
-      int intValue = cmd.substring(lastCommaIdx+1, idx+1).toInt();
-      int floatValue = cmd.substring(lastCommaIdx+1, idx+1).toFloat();      
+      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      int floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();      
       if (counter == 1){                            
         encoderTicksRight = intValue;  // ag
       } else if (counter == 2){
@@ -119,8 +119,8 @@ void SerialRobotDriver::summaryResponse(){
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){
-      int intValue = cmd.substring(lastCommaIdx+1, idx+1).toInt();
-      int floatValue = cmd.substring(lastCommaIdx+1, idx+1).toFloat();      
+      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      int floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();      
       if (counter == 1){                            
         batteryVoltage = floatValue;
       } else if (counter == 2){
