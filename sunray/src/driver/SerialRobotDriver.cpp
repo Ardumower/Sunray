@@ -254,7 +254,12 @@ void SerialMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &
   leftFault = serialRobot.motorFault;
   rightFault = serialRobot.motorFault;
   if (serialRobot.motorFault){
-    CONSOLE.println("serialRobot: motorFault");
+    CONSOLE.print("serialRobot: motorFault (lefCurr=");
+    CONSOLE.print(serialRobot.motorLeftCurr);
+    CONSOLE.print(" rightCurr=");
+    CONSOLE.print(serialRobot.motorRightCurr);
+    CONSOLE.print(" mowCurr=");
+    CONSOLE.println(serialRobot.mowCurr);
   }
   mowFault = false;
 }
