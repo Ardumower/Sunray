@@ -217,7 +217,7 @@ void SerialRobotDriver::run(){
   }
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;
-    if ( (abs(cmdMotorResponseCounter) < 17) || (cmdSummaryResponseCounter == 0) ){
+    if ( (cmdMotorResponseCounter < 17) || (cmdSummaryResponseCounter == 0) ){
       CONSOLE.print("WARN: SerialRobot unmet communication frequency: motorFreq=");
       CONSOLE.print(cmdMotorCounter);
       CONSOLE.print("/");
@@ -226,6 +226,9 @@ void SerialRobotDriver::run(){
       CONSOLE.print(cmdSummaryCounter);
       CONSOLE.print("/");
       CONSOLE.println(cmdSummaryResponseCounter);
+      if (cmdMotorResponseCounter == 0){
+        // FIXME: maybe reset motor PID controls here?
+      }
     }   
     cmdMotorCounter=cmdMotorResponseCounter=cmdSummaryCounter=cmdSummaryResponseCounter=0;
   }
