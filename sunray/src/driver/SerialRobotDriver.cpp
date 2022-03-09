@@ -239,8 +239,7 @@ SerialMotorDriver::SerialMotorDriver(SerialRobotDriver &sr): serialRobot(sr){
 
 void SerialMotorDriver::begin(){
   lastEncoderTicksLeft=0;
-  lastEncoderTicksRight=0;
-  started = false;       
+  lastEncoderTicksRight=0;         
 }
 
 void SerialMotorDriver::run(){
@@ -281,15 +280,14 @@ void SerialMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent,
 }
 
 void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
-  if (!started){
-    if (serialRobot.receivedEncoders){
-      started = true;
-      lastEncoderTicksLeft = serialRobot.encoderTicksLeft;
-      lastEncoderTicksRight = serialRobot.encoderTicksRight;
-    }
-  } 
   leftTicks = serialRobot.encoderTicksLeft - lastEncoderTicksLeft;
   rightTicks = serialRobot.encoderTicksRight - lastEncoderTicksRight;
+  if (leftTicks > 1000){
+    leftTicks = 0;
+  }
+  if (rightTicks > 1000){
+    rightTicks = 0;
+  } 
   lastEncoderTicksLeft = serialRobot.encoderTicksLeft;
   lastEncoderTicksRight = serialRobot.encoderTicksRight;
   mowTicks = 0;

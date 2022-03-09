@@ -56,7 +56,6 @@ class SerialMotorDriver: public MotorDriver {
     unsigned long lastEncoderTicksLeft;
     unsigned long lastEncoderTicksRight; 
     SerialRobotDriver &serialRobot;
-    bool started;
     SerialMotorDriver(SerialRobotDriver &sr);
     void begin() override;
     void run() override;
