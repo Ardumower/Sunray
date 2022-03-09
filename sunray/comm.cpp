@@ -991,6 +991,8 @@ void outputConsole(){
     #endif
     CONSOLE.print(" volt=");
     CONSOLE.print(battery.batteryVoltage);
+    CONSOLE.print("/");    
+    CONSOLE.print(battery.chargingVoltage);
     CONSOLE.print(" chg=");
     CONSOLE.print(battery.chargingCurrent);    
     CONSOLE.print(" tg=");
