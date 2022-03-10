@@ -559,11 +559,11 @@ void Motor::control(){
     CONSOLE.print("PID curr=");
     CONSOLE.print(motorLeftRpmCurr);
     CONSOLE.print(",");  
-    CONSOLE.print(motorLeftRpmCurr);
+    CONSOLE.print(motorRightRpmCurr);
     CONSOLE.print(" set=");    
     CONSOLE.print(motorLeftRpmSet);
     CONSOLE.print(",");  
-    CONSOLE.print(motorLeftRpmSet);
+    CONSOLE.print(motorRightRpmSet);
     CONSOLE.print(" PWM:");
     CONSOLE.print(motorLeftPWMCurr);
     CONSOLE.print(",");
