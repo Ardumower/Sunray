@@ -91,8 +91,7 @@ class Motor {
     void control();    
     bool checkFault();
     void sense();
-    void dumpOdoTicks(int seconds);
-    
+    void dumpOdoTicks(int seconds);    
 };
 
 

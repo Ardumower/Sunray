@@ -15,6 +15,7 @@ class PID
     PID(float Kp, float Ki, float Kd);
     void reset(void);
     float compute();
+    double TaMax; // maximum expected sample time
     double Ta; // sampling time	
     float w; // set value
     float x; // current value
@@ -28,6 +29,7 @@ class PID
     float Ki;   // integral control
     float Kd;   // differential control
     unsigned long lastControlTime;
+    unsigned long consoleWarnTimeout;
 };
 
 

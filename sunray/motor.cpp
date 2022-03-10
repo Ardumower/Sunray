@@ -36,10 +36,12 @@ void Motor::begin() {
 
   motorLeftPID.Kp       = MOTOR_PID_KP;  // 2.0;  
   motorLeftPID.Ki       = MOTOR_PID_KI;  // 0.03; 
-  motorLeftPID.Kd       = MOTOR_PID_KD;  // 0.03; 
+  motorLeftPID.Kd       = MOTOR_PID_KD;  // 0.03;
+  motorLeftPID.reset(); 
   motorRightPID.Kp       = motorLeftPID.Kp;
   motorRightPID.Ki       = motorLeftPID.Ki;
-  motorRightPID.Kd       = motorLeftPID.Kd;		 
+  motorRightPID.Kd       = motorLeftPID.Kd;
+  motorRightPID.reset();		 
 
   robotPitch = 0;
   #ifdef MOTOR_DRIVER_BRUSHLESS
@@ -505,6 +507,7 @@ void Motor::control(){
 
   //########################  Calculate PWM for left driving motor ############################
 
+  motorLeftPID.TaMax = 0.07;
   motorLeftPID.x = motorLeftRpmCurr;
   motorLeftPID.w  = tempMotorLeftRpmSet;
   motorLeftPID.y_min = -pwmMax;
@@ -517,6 +520,7 @@ void Motor::control(){
 
   //########################  Calculate PWM for right driving motor ############################
   
+  motorRightPID.TaMax = 0.07;
   motorRightPID.x = motorRightRpmCurr;
   motorRightPID.w = tempMotorRightRpmSet;
   motorRightPID.y_min = -pwmMax;
