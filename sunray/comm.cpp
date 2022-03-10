@@ -993,7 +993,9 @@ void outputConsole(){
     CONSOLE.print(battery.batteryVoltage);
     CONSOLE.print("/");    
     CONSOLE.print(battery.chargingVoltage);
-    CONSOLE.print(" chg=");
+    CONSOLE.print(" curr=");
+    CONSOLE.print(motor.motorsSenseLP);    
+    CONSOLE.print("/");
     CONSOLE.print(battery.chargingCurrent);    
     CONSOLE.print(" tg=");
     CONSOLE.print(maps.targetPoint.x());
