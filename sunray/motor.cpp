@@ -555,6 +555,22 @@ void Motor::control(){
   //########################  set PWM for all motors ############################
 
   speedPWM(motorLeftPWMCurr, motorRightPWMCurr, motorMowPWMCurr);
+  /*if ((motorLeftPWMCurr != 0) || (motorRightPWMCurr != 0)){
+    CONSOLE.print("PID curr=");
+    CONSOLE.print(motorLeftRpmCurr);
+    CONSOLE.print(",");  
+    CONSOLE.print(motorLeftRpmCurr);
+    CONSOLE.print(" set=");    
+    CONSOLE.print(motorLeftRpmSet);
+    CONSOLE.print(",");  
+    CONSOLE.print(motorLeftRpmSet);
+    CONSOLE.print(" PWM:");
+    CONSOLE.print(motorLeftPWMCurr);
+    CONSOLE.print(",");
+    CONSOLE.print(motorRightPWMCurr);
+    CONSOLE.print(",");
+    CONSOLE.println(motorMowPWMCurr);  
+  }*/
 }
 
 
