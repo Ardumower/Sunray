@@ -989,15 +989,15 @@ void outputConsole(){
       CONSOLE.print (" sp=");
       CONSOLE.print (*spReg, HEX);
     #endif
-    CONSOLE.print(" volt=");
+    CONSOLE.print(" bat=");
     CONSOLE.print(battery.batteryVoltage);
-    CONSOLE.print("/");    
-    CONSOLE.print(battery.chargingVoltage);
-    CONSOLE.print(" curr=");
+    CONSOLE.print("(");    
     CONSOLE.print(motor.motorsSenseLP);    
-    CONSOLE.print("/");
+    CONSOLE.print(") chg=");
+    CONSOLE.print(battery.chargingVoltage);    
+    CONSOLE.print("(");
     CONSOLE.print(battery.chargingCurrent);    
-    CONSOLE.print(" tg=");
+    CONSOLE.print(") tg=");
     CONSOLE.print(maps.targetPoint.x());
     CONSOLE.print(",");
     CONSOLE.print(maps.targetPoint.y());
