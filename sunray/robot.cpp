@@ -1677,12 +1677,14 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       break;
     case OP_CHARGE:
       CONSOLE.println(" OP_CHARGE");
-      motor.setLinearAngularSpeed(0,0, false);
+      motor.stopImmediately(true); // do not use PID to get to stop 
+      //motor.setLinearAngularSpeed(0,0, false);
       motor.setMowState(false);     
       break;
     case OP_ERROR:            
       CONSOLE.println(" OP_ERROR"); 
-      motor.setLinearAngularSpeed(0,0);
+      motor.stopImmediately(true); // do not use PID to get to stop
+      //motor.setLinearAngularSpeed(0,0);
       motor.setMowState(false);      
       break;
   }
