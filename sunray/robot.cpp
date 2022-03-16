@@ -1474,9 +1474,10 @@ void run(){
           // get robot yaw orientation from map 
           //float tempX;
           //float tempY;
-          //maps.setRobotStatePosToDockingPos(tempX, tempY, stateDelta);                       
+          //maps.setRobotStatePosToDockingPos(tempX, tempY, stateDelta);
+          motor.stopImmediately(true); // motor drivers tend to generate some additional time after docking incorrect encoder values when stopped while turning                       
         }
-        battery.resetIdle();        
+        battery.resetIdle();                       
       } else {
         if ((stateOp == OP_IDLE) || (stateOp == OP_CHARGE)){
           maps.setIsDocked(false);
