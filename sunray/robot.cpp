@@ -1458,11 +1458,17 @@ void run(){
     if (battery.chargerConnected() != stateChargerConnected) {    
       stateChargerConnected = battery.chargerConnected(); 
       if (stateChargerConnected){      
-        stateChargerConnected = true;
+        // charger connected event        
         setOperation(OP_CHARGE);                
+      } else {
+        // charger disconnected event
+        motor.enableTractionMotors(true); // allow traction motors to operate                       
+        if (stateOp == OP_CHARGE) setOperation(OP_IDLE);
       }           
-    }           
+    } 
 
+
+    // some things to do permanently while charger connected/not connected
     if (battery.chargerConnected()){
       if ((stateOp == OP_IDLE) || (stateOp == OP_CHARGE)){
         maps.setIsDocked(true);               
@@ -1473,19 +1479,16 @@ void run(){
         // get robot yaw orientation from map 
         //float tempX;
         //float tempY;
-        //maps.setRobotStatePosToDockingPos(tempX, tempY, stateDelta);
-        motor.stopImmediately(true);                        
-        motor.enableTractionMotors(false); // keep traction motors off (motor drivers tend to generate some incorrect encoder values when stopped while not turning) 
-      } else motor.enableTractionMotors(true); // allow traction motors to operate       
-      battery.resetIdle();                       
+        //maps.setRobotStatePosToDockingPos(tempX, tempY, stateDelta);                       
+      }
+      battery.resetIdle();        
     } else {
-      motor.enableTractionMotors(true); // allow traction motors to operate 
       if ((stateOp == OP_IDLE) || (stateOp == OP_CHARGE)){
         maps.setIsDocked(false);
       }
-    }
-
-
+    }          
+ 
+    
     if (!imuIsCalibrating){     
             
       if ((stateOp == OP_MOW) ||  (stateOp == OP_DOCK)) {              
@@ -1558,8 +1561,6 @@ void run(){
               }
             }
           }
-        } else {
-          setOperation(OP_IDLE);        
         }        
       }      
       
@@ -1656,6 +1657,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       break;
     case OP_MOW:      
       CONSOLE.println(" OP_MOW");      
+      motor.enableTractionMotors(true); // allow traction motors to operate         
       motor.setLinearAngularSpeed(0,0);      
       dockingInitiatedByOperator = false;
       dockReasonRainTriggered = false;
@@ -1684,6 +1686,7 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       motor.stopImmediately(true); // do not use PID to get to stop 
       //motor.setLinearAngularSpeed(0,0, false);
       motor.setMowState(false);     
+      motor.enableTractionMotors(false); // keep traction motors off (motor drivers tend to generate some incorrect encoder values when stopped while not turning)                 
       break;
     case OP_ERROR:            
       CONSOLE.println(" OP_ERROR"); 
