@@ -224,7 +224,7 @@ void SerialRobotDriver::run(){
   }
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;
-    if ( (cmdMotorResponseCounter < 17) || (cmdSummaryResponseCounter == 0) ){
+    if ( (cmdMotorResponseCounter < 45) || (cmdSummaryResponseCounter == 0) ){
       CONSOLE.print("WARN: SerialRobot unmet communication frequency: motorFreq=");
       CONSOLE.print(cmdMotorCounter);
       CONSOLE.print("/");
