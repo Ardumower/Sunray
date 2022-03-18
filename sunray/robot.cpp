@@ -1475,11 +1475,11 @@ void run(){
         //float tempY;
         //maps.setRobotStatePosToDockingPos(tempX, tempY, stateDelta);
         motor.stopImmediately(true);                        
-        motor.enableTractionMotors = false; // keep traction motors off (motor drivers tend to generate some incorrect encoder values when stopped while not turning) 
-      } else motor.enableTractionMotors = true; // allow traction motors to operate       
+        motor.enableTractionMotors(false); // keep traction motors off (motor drivers tend to generate some incorrect encoder values when stopped while not turning) 
+      } else motor.enableTractionMotors(true); // allow traction motors to operate       
       battery.resetIdle();                       
     } else {
-      motor.enableTractionMotors = true; // allow traction motors to operate 
+      motor.enableTractionMotors(true); // allow traction motors to operate 
       if ((stateOp == OP_IDLE) || (stateOp == OP_CHARGE)){
         maps.setIsDocked(false);
       }

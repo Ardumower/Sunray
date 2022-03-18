@@ -64,7 +64,7 @@ void Motor::begin() {
   resetMotorFaultCounter = 0;
   nextResetMotorFaultTime = 0;
   enableMowMotor = true;
-  enableTractionMotors = true;
+  tractionMotorsEnabled = true;
   
   motorLeftOverload = false;
   motorRightOverload = false;
@@ -251,6 +251,17 @@ void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRam
 //   CONSOLE.print(",");
 //   CONSOLE.println(rspeed);
 }
+
+
+void Motor::enableTractionMotors(bool enable){
+  if (enable == tractionMotorsEnabled) return;
+  if (enable)
+    CONSOLE.println("traction motors enabled");
+  else 
+    CONSOLE.println("traction motors disabled");
+  tractionMotorsEnabled = enable;
+}
+
 
 void Motor::setMowState(bool switchOn){
   if ((enableMowMotor) && (switchOn)){
@@ -556,7 +567,7 @@ void Motor::control(){
 
   //########################  set PWM for all motors ############################
 
-  if (!enableTractionMotors){
+  if (!tractionMotorsEnabled){
     motorLeftPWMCurr = motorRightPWMCurr = 0;
   }
 
