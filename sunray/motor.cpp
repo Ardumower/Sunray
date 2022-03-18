@@ -64,6 +64,7 @@ void Motor::begin() {
   resetMotorFaultCounter = 0;
   nextResetMotorFaultTime = 0;
   enableMowMotor = true;
+  enableTractionMotors = true;
   
   motorLeftOverload = false;
   motorRightOverload = false;
@@ -270,6 +271,7 @@ void Motor::setMowState(bool switchOn){
 
    pwmSpeedOffset = 1.0; // reset Mow SpeedOffset
 }
+
 
 void Motor::stopImmediately(bool includeMowerMotor){
   linearSpeedSet = 0;
@@ -489,7 +491,7 @@ void Motor::sense(){
 
 
 void Motor::control(){  
-  
+    
   //########################  Set SpeedOffset if curve or manual driving is detected ############################
   
   float tempPwmSpeedOffset = pwmSpeedOffset;
@@ -553,6 +555,10 @@ void Motor::control(){
   motorMowPWMCurr = 0.99 * motorMowPWMCurr + 0.01 * motorMowPWMSet;
 
   //########################  set PWM for all motors ############################
+
+  if (!enableTractionMotors){
+    motorLeftPWMCurr = motorRightPWMCurr = 0;
+  }
 
   speedPWM(motorLeftPWMCurr, motorRightPWMCurr, motorMowPWMCurr);
   /*if ((motorLeftPWMCurr != 0) || (motorRightPWMCurr != 0)){

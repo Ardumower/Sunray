@@ -1455,36 +1455,39 @@ void run(){
       }
     }
 
-    if (!imuIsCalibrating){     
-      
-      if (battery.chargerConnected() != stateChargerConnected) {    
-        stateChargerConnected = battery.chargerConnected(); 
-        if (stateChargerConnected){      
-          stateChargerConnected = true;
-          setOperation(OP_CHARGE);                
-        }           
-      }     
-      if (battery.chargerConnected()){
-        if ((stateOp == OP_IDLE) || (stateOp == OP_CHARGE)){
-          maps.setIsDocked(true);               
-          // get robot position and yaw from map
-          // sensing charging contacts means we are in docking station - we use docking point coordinates to get rid of false fix positions in
-          // docking station
-          maps.setRobotStatePosToDockingPos(stateX, stateY, stateDelta);
-          // get robot yaw orientation from map 
-          //float tempX;
-          //float tempY;
-          //maps.setRobotStatePosToDockingPos(tempX, tempY, stateDelta);
-          motor.stopImmediately(true); // keep motors off (motor drivers tend to generate some incorrect encoder values when stopped while not turning)                       
-        }
-        battery.resetIdle();                       
-      } else {
-        if ((stateOp == OP_IDLE) || (stateOp == OP_CHARGE)){
-          maps.setIsDocked(false);
-        }
+    if (battery.chargerConnected() != stateChargerConnected) {    
+      stateChargerConnected = battery.chargerConnected(); 
+      if (stateChargerConnected){      
+        stateChargerConnected = true;
+        setOperation(OP_CHARGE);                
+      }           
+    }           
+
+    if (battery.chargerConnected()){
+      if ((stateOp == OP_IDLE) || (stateOp == OP_CHARGE)){
+        maps.setIsDocked(true);               
+        // get robot position and yaw from map
+        // sensing charging contacts means we are in docking station - we use docking point coordinates to get rid of false fix positions in
+        // docking station
+        maps.setRobotStatePosToDockingPos(stateX, stateY, stateDelta);
+        // get robot yaw orientation from map 
+        //float tempX;
+        //float tempY;
+        //maps.setRobotStatePosToDockingPos(tempX, tempY, stateDelta);
+        motor.stopImmediately(true);                        
+        motor.enableTractionMotors = false; // keep traction motors off (motor drivers tend to generate some incorrect encoder values when stopped while not turning) 
+      } else motor.enableTractionMotors = true; // allow traction motors to operate       
+      battery.resetIdle();                       
+    } else {
+      motor.enableTractionMotors = true; // allow traction motors to operate 
+      if ((stateOp == OP_IDLE) || (stateOp == OP_CHARGE)){
+        maps.setIsDocked(false);
       }
-      
-      
+    }
+
+
+    if (!imuIsCalibrating){     
+            
       if ((stateOp == OP_MOW) ||  (stateOp == OP_DOCK)) {              
         
         if (retryOperationTime == 0){ // if path planning was successful 

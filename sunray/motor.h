@@ -29,6 +29,7 @@ class Motor {
     bool motorLeftOverload; 
     bool motorRightOverload; 
     bool motorMowOverload; 
+    bool enableTractionMotors;       
     bool enableMowMotor;
     bool odometryError;    
     unsigned long motorOverloadDuration; // accumulated duration (ms)
