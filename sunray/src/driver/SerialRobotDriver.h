@@ -14,6 +14,9 @@
 
 class SerialRobotDriver {
   public:
+    int requestLeftPwm;
+    int requestRightPwm;
+    int requestMowPwm;        
     unsigned long encoderTicksLeft;
     unsigned long encoderTicksRight;
     unsigned long encoderTicksMow;
@@ -37,7 +40,8 @@ class SerialRobotDriver {
     void requestSummary();
   protected:    
     String cmd;
-    String cmdResponse;    
+    String cmdResponse;
+    unsigned long nextMotorTime;    
     unsigned long nextSummaryTime;
     unsigned long nextConsoleTime;
     int cmdMotorCounter;

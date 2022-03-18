@@ -31,10 +31,12 @@ void SerialRobotDriver::begin(){
   receivedEncoders = false;
   nextSummaryTime = 0;
   nextConsoleTime = 0;
+  nextMotorTime = 0;
   cmdMotorResponseCounter = 0;
   cmdSummaryResponseCounter = 0;
   cmdMotorCounter = 0;
   cmdSummaryCounter = 0;
+  requestLeftPwm = requestRightPwm = requestMowPwm = 0;
 }
 
 void SerialRobotDriver::sendRequest(String s){
@@ -218,8 +220,12 @@ void SerialRobotDriver::processComm(){
 
 void SerialRobotDriver::run(){
   processComm();
+  if (millis() > nextMotorTime){
+    nextMotorTime = millis() + 20; // 50 hz
+    requestMotorPwm(requestLeftPwm, requestRightPwm, requestMowPwm);
+  }
   if (millis() > nextSummaryTime){
-    nextSummaryTime = millis() + 500;
+    nextSummaryTime = millis() + 500; // 2 hz
     requestSummary();
   }
   if (millis() > nextConsoleTime){
@@ -256,7 +262,10 @@ void SerialMotorDriver::run(){
 }
 
 void SerialMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  
-  serialRobot.requestMotorPwm(leftPwm, rightPwm, mowPwm);
+  //serialRobot.requestMotorPwm(leftPwm, rightPwm, mowPwm);
+  serialRobot.requestLeftPwm = leftPwm;
+  serialRobot.requestRightPwm = rightPwm;
+  serialRobot.requestMowPwm = mowPwm;
 }
 
 void SerialMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &mowFault){
