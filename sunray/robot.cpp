@@ -1683,10 +1683,10 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
       break;
     case OP_CHARGE:
       CONSOLE.println(" OP_CHARGE");
-      motor.stopImmediately(true); // do not use PID to get to stop 
-      //motor.setLinearAngularSpeed(0,0, false);
+      //motor.stopImmediately(true); // do not use PID to get to stop 
+      motor.setLinearAngularSpeed(0,0, false); 
       motor.setMowState(false);     
-      motor.enableTractionMotors(false); // keep traction motors off (motor drivers tend to generate some incorrect encoder values when stopped while not turning)                 
+      //motor.enableTractionMotors(false); // keep traction motors off (motor drivers tend to generate some incorrect encoder values when stopped while not turning)                 
       break;
     case OP_ERROR:            
       CONSOLE.println(" OP_ERROR"); 
