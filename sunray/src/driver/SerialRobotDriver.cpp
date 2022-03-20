@@ -399,3 +399,18 @@ bool SerialRainSensorDriver::triggered(){
   return (serialRobot.triggeredRain); 
 }
 
+// ------------------------------------------------------------------------------------
+
+SerialLiftSensorDriver::SerialLiftSensorDriver(SerialRobotDriver &sr): serialRobot(sr){
+}
+
+void SerialLiftSensorDriver::begin(){
+}
+
+void SerialLiftSensorDriver::run(){
+}
+
+bool SerialLiftSensorDriver::triggered(){
+  return (serialRobot.triggeredLift);
+}
+

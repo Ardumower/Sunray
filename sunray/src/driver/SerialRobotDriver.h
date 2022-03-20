@@ -111,5 +111,14 @@ class SerialRainSensorDriver: public RainSensorDriver {
     bool triggered() override;  
 };
 
+class SerialLiftSensorDriver: public LiftSensorDriver {
+  public:    
+    SerialRobotDriver &serialRobot;
+    SerialLiftSensorDriver(SerialRobotDriver &sr);    
+    void begin() override;
+    void run() override;
+    bool triggered() override;  
+};
+
 
 #endif

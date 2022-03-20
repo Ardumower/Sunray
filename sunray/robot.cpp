@@ -60,6 +60,7 @@ File stateFile;
   SerialBumperDriver bumper(robotDriver);
   SerialStopButtonDriver stopButton(robotDriver);
   SerialRainSensorDriver rainDriver(robotDriver);
+  SerialLiftSensorDriver liftDriver(robotDriver);
 #else
   AmRobotDriver robotDriver;
   AmMotorDriver motorDriver;
@@ -67,6 +68,7 @@ File stateFile;
   AmBumperDriver bumper;
   AmStopButtonDriver stopButton;
   AmRainSensorDriver rainDriver;
+  AmLiftSensorDriver liftDriver;
 #endif
 Motor motor;
 Battery battery;
@@ -734,7 +736,8 @@ void start(){
   batteryDriver.begin();
   robotDriver.begin();
   motorDriver.begin();
-  rainDriver.begin();  
+  rainDriver.begin();
+  liftDriver.begin();  
   battery.begin();      
   stopButton.begin();
 
@@ -1032,6 +1035,13 @@ void detectSensorMalfunction(){
 // detect obstacle (bumper, sonar, ToF)
 // returns true, if obstacle detected, otherwise false
 bool detectObstacle(){  
+  #ifdef ENABLE_LIFT_DETECTION
+    if (liftDriver.triggered()) {
+      stateSensor = SENS_LIFT;
+      setOperation(OP_ERROR);
+    }
+  #endif
+  
   if (! ((robotShouldMoveForward()) || (robotShouldRotate())) ) return false;      
   if (TOF_ENABLE){
     if (millis() >= nextToFTime){
@@ -1360,6 +1370,7 @@ void run(){
   batteryDriver.run();
   motorDriver.run();
   rainDriver.run();
+  liftDriver.run();
   motor.run();
   sonar.run();
   maps.run();  

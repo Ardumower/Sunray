@@ -349,3 +349,22 @@ bool AmRainSensorDriver::triggered(){
   return isRaining;
 }
 
+// ------------------------------------------------------------------------------------
+
+
+void AmLiftSensorDriver::begin(){
+  nextControlTime = 0;
+  isLifted = false;  
+}
+
+void AmLiftSensorDriver::run(){
+  unsigned long t = millis();
+  if (t < nextControlTime) return;
+  nextControlTime = t + 100;                                       // save CPU resources by running at 10 Hz
+  isLifted = false; //(digitalRead(pinLift)== LOW);
+}
+
+bool AmLiftSensorDriver::triggered(){
+  return isLifted;
+}
+
