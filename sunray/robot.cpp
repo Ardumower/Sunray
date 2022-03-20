@@ -1031,18 +1031,19 @@ void detectSensorMalfunction(){
   }
 }
 
-
-// detect obstacle (bumper, sonar, ToF)
-// returns true, if obstacle detected, otherwise false
-bool detectObstacle(){  
+void detectLift(){
   #ifdef ENABLE_LIFT_DETECTION
     if (liftDriver.triggered()) {
       stateSensor = SENS_LIFT;
       CONSOLE.println("ERROR LIFT");        
       setOperation(OP_ERROR);
     }
-  #endif
-  
+  #endif 
+}
+
+// detect obstacle (bumper, sonar, ToF)
+// returns true, if obstacle detected, otherwise false
+bool detectObstacle(){   
   if (! ((robotShouldMoveForward()) || (robotShouldRotate())) ) return false;      
   if (TOF_ENABLE){
     if (millis() >= nextToFTime){
@@ -1426,6 +1427,9 @@ void run(){
       readIMU();    
     }
   }
+
+  // lift sensor
+  detectLift();
   
   gps.run();
     
