@@ -1032,11 +1032,13 @@ void detectSensorMalfunction(){
 }
 
 void detectLift(){
-  #ifdef ENABLE_LIFT_DETECTION
+  #ifdef ENABLE_LIFT_DETECTION    
     if (liftDriver.triggered()) {
-      stateSensor = SENS_LIFT;
-      CONSOLE.println("ERROR LIFT");        
-      setOperation(OP_ERROR);
+      if (stateOp != OP_ERROR){        
+        stateSensor = SENS_LIFT;
+        CONSOLE.println("ERROR LIFT");        
+        setOperation(OP_ERROR);
+      }      
     }
   #endif 
 }
