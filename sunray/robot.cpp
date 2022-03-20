@@ -1038,6 +1038,7 @@ bool detectObstacle(){
   #ifdef ENABLE_LIFT_DETECTION
     if (liftDriver.triggered()) {
       stateSensor = SENS_LIFT;
+      CONSOLE.println("ERROR LIFT");        
       setOperation(OP_ERROR);
     }
   #endif
