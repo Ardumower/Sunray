@@ -1247,7 +1247,7 @@ void trackLine(){
     //CONSOLE.print(",");        
     //CONSOLE.println(angular/PI*180.0);            
     if (maps.trackReverse) linear *= -1;   // reverse line tracking needs negative speed
-    if (!SMOOTH_CURVES) angular = max(-PI/4, min(PI/4, angular)); // restrict steering angle for stanley
+    if (!SMOOTH_CURVES) angular = max(-PI/16, min(PI/16, angular)); // restrict steering angle for stanley
   }
   // check some pre-conditions that can make linear+angular speed zero
   if (!maps.isUndocking()){
