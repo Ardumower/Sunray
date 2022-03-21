@@ -213,6 +213,9 @@ int recoverGpsCounter = 0;
 
 RunningMedian<unsigned int,3> tofMeasurements;
 
+float stanleyTrackingNormalK = STANLEY_CONTROL_K_NORMAL;
+float stanleyTrackingNormalP = STANLEY_CONTROL_P_NORMAL;    
+
 
 // must be defined to override default behavior
 void watchdogSetup (void){} 
@@ -1229,8 +1232,8 @@ void trackLine(){
       if (sonar.nearObstacle()) linear = 0.1; // slow down near obstacles
     }      
     //angula                                    r = 3.0 * trackerDiffDelta + 3.0 * lateralError;       // correct for path errors 
-    float k = STANLEY_CONTROL_K_NORMAL;
-    float p = STANLEY_CONTROL_P_NORMAL;    
+    float k = stanleyTrackingNormalK; // STANLEY_CONTROL_K_NORMAL;
+    float p = stanleyTrackingNormalP; // STANLEY_CONTROL_P_NORMAL;    
     if (maps.trackSlow) {
       k = STANLEY_CONTROL_K_SLOW;   
       p = STANLEY_CONTROL_P_SLOW;          

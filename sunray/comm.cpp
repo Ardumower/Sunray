@@ -54,6 +54,33 @@ void cmdAnswer(String s){
   cmdResponse = s;
 }
 
+// request tracking params change
+void cmdTrackingParams(){
+  if (cmd.length()<6) return;  
+  int counter = 0;
+  int lastCommaIdx = 0;
+  for (int idx=0; idx < cmd.length(); idx++){
+    char ch = cmd[idx];
+    //Serial.print("ch=");
+    //Serial.println(ch);
+    if ((ch == ',') || (idx == cmd.length()-1)){
+      float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
+      if (counter == 1){                            
+          stanleyTrackingNormalP = floatValue;
+      } else if (counter == 2){                                      
+          stanleyTrackingNormalK = floatValue; 
+      } 
+      counter++;
+      lastCommaIdx = idx;
+    }    
+  }      
+  CONSOLE.print("stanleyTrackingNormalP=");
+  CONSOLE.print(stanleyTrackingNormalP);
+  CONSOLE.print(" stanleyTrackingNormalK=");
+  CONSOLE.println(stanleyTrackingNormalK);    
+  String s = F("CT");
+  cmdAnswer(s);
+}
 
 // request operation
 void cmdControl(){
@@ -664,7 +691,13 @@ void processCmd(bool checkCrc, bool decrypt){
   if (cmd[2] != '+') return;
   if (cmd[3] == 'S') cmdSummary();
   if (cmd[3] == 'M') cmdMotor();
-  if (cmd[3] == 'C') cmdControl();
+  if (cmd[3] == 'C'){ 
+    if (cmd.length() <= 4){
+      cmdControl();
+    } else {
+      if (cmd[4] == 'T') cmdTrackingParams();
+    }
+  }
   if (cmd[3] == 'W') cmdWaypoint();
   if (cmd[3] == 'N') cmdWayCount();
   if (cmd[3] == 'X') cmdExclusionCount();

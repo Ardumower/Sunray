@@ -102,6 +102,9 @@ extern float statMowDistanceTraveled ; // meter
 extern float statTempMin;
 extern float statTempMax;
 
+extern float stanleyTrackingNormalK;
+extern float stanleyTrackingNormalP;    
+
 extern unsigned long lastFixTime;
 extern float stateGroundSpeed; // m/s
 
