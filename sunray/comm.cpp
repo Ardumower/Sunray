@@ -692,11 +692,8 @@ void processCmd(bool checkCrc, bool decrypt){
   if (cmd[3] == 'S') cmdSummary();
   if (cmd[3] == 'M') cmdMotor();
   if (cmd[3] == 'C'){ 
-    if (cmd.length() <= 4){
-      cmdControl();
-    } else {
-      if (cmd[4] == 'T') cmdTrackingParams();
-    }
+    if ((cmd.length() > 4) && (cmd[4] == 'T')) cmdTrackingParams();
+    else cmdControl();
   }
   if (cmd[3] == 'W') cmdWaypoint();
   if (cmd[3] == 'N') cmdWayCount();
