@@ -54,10 +54,11 @@ void cmdAnswer(String s){
   cmdResponse = s;
 }
 
-// request tracking params change
-void cmdTrackingParams(){
+// request tune param
+void cmdTuneParam(){
   if (cmd.length()<6) return;  
   int counter = 0;
+  int paramIdx = -1;
   int lastCommaIdx = 0;
   for (int idx=0; idx < cmd.length(); idx++){
     char ch = cmd[idx];
@@ -66,18 +67,31 @@ void cmdTrackingParams(){
     if ((ch == ',') || (idx == cmd.length()-1)){
       float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
       if (counter == 1){                            
-          stanleyTrackingNormalP = floatValue;
+          paramIdx = floatValue;
       } else if (counter == 2){                                      
-          stanleyTrackingNormalK = floatValue; 
+          CONSOLE.print("tuneParam ");
+          CONSOLE.print(paramIdx);
+          CONSOLE.print("=");
+          CONSOLE.println(floatValue);    
+          switch (paramIdx){
+            case 0: 
+              stanleyTrackingNormalP = floatValue;
+              break;
+            case 1:
+              stanleyTrackingNormalK = floatValue;
+              break;
+            case 2:
+              stanleyTrackingSlowP = floatValue;
+              break;
+            case 3: 
+              stanleyTrackingSlowK = floatValue;
+              break;
+          } 
       } 
       counter++;
       lastCommaIdx = idx;
     }    
   }      
-  CONSOLE.print("stanleyTrackingNormalP=");
-  CONSOLE.print(stanleyTrackingNormalP);
-  CONSOLE.print(" stanleyTrackingNormalK=");
-  CONSOLE.println(stanleyTrackingNormalK);    
   String s = F("CT");
   cmdAnswer(s);
 }
@@ -692,11 +706,8 @@ void processCmd(bool checkCrc, bool decrypt){
   if (cmd[3] == 'S') cmdSummary();
   if (cmd[3] == 'M') cmdMotor();
   if (cmd[3] == 'C'){ 
-    if (cmd.length() <= 4){
-      cmdControl();
-    } else {
-      if (cmd[4] == 'T') cmdTrackingParams();
-    }
+    if ((cmd.length() > 4) && (cmd[4] == 'T')) cmdTuneParam();
+    else cmdControl();
   }
   if (cmd[3] == 'W') cmdWaypoint();
   if (cmd[3] == 'N') cmdWayCount();

@@ -215,7 +215,8 @@ RunningMedian<unsigned int,3> tofMeasurements;
 
 float stanleyTrackingNormalK = STANLEY_CONTROL_K_NORMAL;
 float stanleyTrackingNormalP = STANLEY_CONTROL_P_NORMAL;    
-
+float stanleyTrackingSlowK = STANLEY_CONTROL_K_SLOW;
+float stanleyTrackingSlowP = STANLEY_CONTROL_P_SLOW;    
 
 // must be defined to override default behavior
 void watchdogSetup (void){} 
@@ -1235,8 +1236,8 @@ void trackLine(){
     float k = stanleyTrackingNormalK; // STANLEY_CONTROL_K_NORMAL;
     float p = stanleyTrackingNormalP; // STANLEY_CONTROL_P_NORMAL;    
     if (maps.trackSlow) {
-      k = STANLEY_CONTROL_K_SLOW;   
-      p = STANLEY_CONTROL_P_SLOW;          
+      k = stanleyTrackingSlowK; //STANLEY_CONTROL_K_SLOW;   
+      p = stanleyTrackingSlowP; //STANLEY_CONTROL_P_SLOW;          
     }
     angular =  p * trackerDiffDelta + atan2(k * lateralError, (0.001 + fabs(motor.linearSpeedSet)));       // correct for path errors           
     /*pidLine.w = 0;              
