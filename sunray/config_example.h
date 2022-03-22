@@ -416,6 +416,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #elif __linux__ 
   #define BOARD "Linux"
   #define CONSOLE Console 
+#else
+  #ifdef __cplusplus
+    #error "ERROR: you need to choose either Arduino Due or Adafruit GCM4 in Arduino IDE"
+  #endif
 #endif
 
 // ------- serial ports and baudrates---------------------------------
