@@ -103,7 +103,9 @@ extern float statTempMin;
 extern float statTempMax;
 
 extern float stanleyTrackingNormalK;
-extern float stanleyTrackingNormalP;    
+extern float stanleyTrackingNormalP;
+extern float stanleyTrackingSlowK;
+extern float stanleyTrackingSlowP;
 
 extern unsigned long lastFixTime;
 extern float stateGroundSpeed; // m/s
