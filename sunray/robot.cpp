@@ -689,19 +689,19 @@ bool checkAT24C32() {
       }
     }
   }
-  return (r == 1);
+  #ifdef __linux__  
+    return true;
+  #else
+    return (r == 1);
+  #endif
 }
 
 
 // robot start routine
 void start(){    
-  pinMan.begin();       
+  pinMan.begin();         
   // keep battery switched ON
-  pinMode(pinBatterySwitch, OUTPUT);    
-  //pinMode(pinDockingReflector, INPUT);
-  digitalWrite(pinBatterySwitch, HIGH);         
-  pinMode(pinButton, INPUT_PULLUP);
-  pinMode(pinRain, INPUT);
+  batteryDriver.begin();  
   buzzer.begin();      
   CONSOLE.begin(CONSOLE_BAUDRATE);  
     
@@ -721,7 +721,12 @@ void start(){
   delay(1500);
     
   #if defined(ENABLE_SD)
-    if (SD.begin(SDCARD_SS_PIN)){
+    #ifdef __linux__
+      bool res = SD.begin();
+    #else 
+      bool res = SD.begin(SDCARD_SS_PIN);
+    #endif    
+    if (res){
       CONSOLE.println("SD card found!");
       #if defined(ENABLE_SD_LOG)        
         sdSerial.beginSD();  
@@ -737,7 +742,6 @@ void start(){
   CONSOLE.print("compiled for: ");
   CONSOLE.println(BOARD);
   
-  batteryDriver.begin();
   robotDriver.begin();
   motorDriver.begin();
   rainDriver.begin();

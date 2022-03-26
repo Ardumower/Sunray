@@ -12,6 +12,8 @@
 #include "RobotDriver.h"
 
 
+#ifndef __linux__
+
 class AmRobotDriver {
   public:
     void begin();
@@ -96,5 +98,6 @@ class AmLiftSensorDriver: public LiftSensorDriver {
     bool isLifted;  	  		    
 };
 
+#endif
 
 #endif

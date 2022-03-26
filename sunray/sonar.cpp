@@ -33,6 +33,7 @@ unsigned long timeoutTime = 0;
 unsigned long nextEvalTime = 0;
 
 
+#ifdef SONAR_INSTALLED
 
 // HC-SR04 ultrasonic sensor driver (2cm - 400cm)
 void startHCSR04(int triggerPin, int aechoPin) {
@@ -81,7 +82,11 @@ void echoRight() {
   }
 }
 
+#endif
+
+
 void Sonar::run() {
+#ifdef SONAR_INSTALLED  
   if (!enabled) {
     distanceRight = distanceLeft = distanceCenter = 0;
     return;
@@ -129,10 +134,12 @@ void Sonar::run() {
     distanceCenter = convertCm(distanceCenter);
 
   }
+#endif
 }
 
 void Sonar::begin()
 {
+#ifdef SONAR_INSTALLED
   enabled = SONAR_ENABLE;
   triggerLeftBelow = SONAR_LEFT_OBSTACLE_CM;
   triggerCenterBelow = SONAR_CENTER_OBSTACLE_CM;
@@ -155,17 +162,23 @@ void Sonar::begin()
   //pinMan.setDebounce(pinSonarLeftEcho, 100);  // reject spikes shorter than usecs on pin
   verboseOutput = false;
   nearObstacleTimeout = 0;
+#endif
 }
 
 
 bool Sonar::obstacle()
 {
+#ifdef SONAR_INSTALLED
   if (!enabled) return false;
   return ((distanceLeft < triggerLeftBelow) || (distanceCenter < triggerCenterBelow) || (distanceRight < triggerRightBelow));
+#else
+  return false;
+#endif
 }
 
 bool Sonar::nearObstacle()
 {
+#ifdef SONAR_INSTALLED
   if (!enabled) return false;
   int nearZone = 30; // cm
   if ((nearObstacleTimeout != 0) && (millis() < nearObstacleTimeout)) return true;
@@ -175,6 +188,9 @@ bool Sonar::nearObstacle()
     nearObstacleTimeout = millis() + 5000;
   }
   return res;
+#else
+  return false;
+#endif
 }
 
 unsigned int Sonar::convertCm(unsigned int echoTime) {

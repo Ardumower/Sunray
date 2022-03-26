@@ -17,9 +17,11 @@
 
 volatile boolean tone_pin_state = false;
 
+#ifdef BUZZER_ENABLE
 void toneHandler(){  
   digitalWrite(pinBuzzer, tone_pin_state= !tone_pin_state);  
 }
+#endif
 
 
 #if defined(__SAMD51__)
@@ -48,6 +50,7 @@ bool Buzzer::isPlaying(){
 }
 
 void Buzzer::run(){  
+#ifdef BUZZER_ENABLE
   if (nextToneTime == 0) return;
   unsigned long m = millis();
   if (m < nextToneTime) return;
@@ -106,55 +109,63 @@ void Buzzer::run(){
       break;      
   }
   toneIdx++;
+#endif
 }
 
 void Buzzer::begin()
 {
+#ifdef BUZZER_ENABLE
    pinMode(pinBuzzer, OUTPUT);                
    digitalWrite(pinBuzzer, LOW);
    toneIdx=0;
    nextToneTime=0;   
+#endif
 }
 
 
 void Buzzer::tone( uint16_t  freq )
 {
-#ifdef _SAM3XA_
-  pinMode(pinBuzzer, OUTPUT);
-  Timer1.attachInterrupt(toneHandler).setFrequency(freq).start();   
-#elif __SAMD51__      // __SAMD51__
-  //::tone(pinBuzzer, freq);    
+#ifdef BUZZER_ENABLE
+  #ifdef _SAM3XA_
+    pinMode(pinBuzzer, OUTPUT);
+    Timer1.attachInterrupt(toneHandler).setFrequency(freq).start();   
+  #elif __SAMD51__      // __SAMD51__
+    //::tone(pinBuzzer, freq);    
 
-  // Set up the flexible divider/compare
-  uint8_t divider  = 1;
-  uint16_t compare = 0;
-  tc_clock_prescaler prescaler = TC_CLOCK_PRESCALER_DIV1;
-  
-  divider = 16;
-  prescaler = TC_CLOCK_PRESCALER_DIV16;
-  compare = (48000000/16)/freq;   
-  
-  zerotimer.enable(false);
-  zerotimer.configure(prescaler,       // prescaler
-          TC_COUNTER_SIZE_16BIT,       // bit width of timer/counter
-          TC_WAVE_GENERATION_MATCH_PWM // frequency or PWM mode
-          );
+    // Set up the flexible divider/compare
+    uint8_t divider  = 1;
+    uint16_t compare = 0;
+    tc_clock_prescaler prescaler = TC_CLOCK_PRESCALER_DIV1;
+    
+    divider = 16;
+    prescaler = TC_CLOCK_PRESCALER_DIV16;
+    compare = (48000000/16)/freq;   
+    
+    zerotimer.enable(false);
+    zerotimer.configure(prescaler,       // prescaler
+            TC_COUNTER_SIZE_16BIT,       // bit width of timer/counter
+            TC_WAVE_GENERATION_MATCH_PWM // frequency or PWM mode
+            );
 
-  zerotimer.setCompare(0, compare);
-  zerotimer.setCallback(true, TC_CALLBACK_CC_CHANNEL0, toneHandler);
-  zerotimer.enable(true);
-#endif     
+    zerotimer.setCompare(0, compare);
+    zerotimer.setCallback(true, TC_CALLBACK_CC_CHANNEL0, toneHandler);
+    zerotimer.enable(true);
+  #endif     
+#endif
 }
 
 
 void Buzzer::noTone(){
-#ifdef _SAM3XA_
-  Timer1.stop();  
-  digitalWrite(pinBuzzer, LOW);
-#elif __SAMD51__  // __SAMD51__
-  //::noTone(pinBuzzer);     
-  zerotimer.enable(false);
-  digitalWrite(pinBuzzer, LOW);
-#endif     
+#ifdef BUZZER_ENABLE
+  #ifdef _SAM3XA_
+    Timer1.stop();  
+    digitalWrite(pinBuzzer, LOW);
+  #elif __SAMD51__  // __SAMD51__
+    //::noTone(pinBuzzer);     
+    zerotimer.enable(false);
+    digitalWrite(pinBuzzer, LOW);
+  #endif     
+#endif
 }
+
 

@@ -9,6 +9,8 @@
 #include "../../helper.h"
 #include "../../robot.h"
 
+#ifndef __linux__
+
 
 volatile int odomTicksLeft  = 0;
 volatile int odomTicksRight = 0;
@@ -316,6 +318,7 @@ void AmBumperDriver::run(){
 void AmStopButtonDriver::begin(){
   nextControlTime = 0;
   pressed = false;  
+  pinMode(pinButton, INPUT_PULLUP);  
 }
 
 void AmStopButtonDriver::run(){
@@ -336,6 +339,7 @@ bool AmStopButtonDriver::triggered(){
 void AmRainSensorDriver::begin(){
   nextControlTime = 0;
   isRaining = false;  
+  pinMode(pinRain, INPUT);
 }
 
 void AmRainSensorDriver::run(){
@@ -367,4 +371,6 @@ void AmLiftSensorDriver::run(){
 bool AmLiftSensorDriver::triggered(){
   return isLifted;
 }
+
+#endif
 

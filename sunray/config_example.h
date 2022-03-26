@@ -1,6 +1,6 @@
 // Ardumower Sunray 
 // Copyright (c) 2013-2020 by Alexander Grau, Grau GmbH
-// Licensed GPLv3 for open source use
+// Licensed GPLv3 for open soue use
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
 /* 
@@ -249,7 +249,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // see Wiki on how to install the ultrasonic sensors: 
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Ultrasonic_sensor
 
-//#define SONAR_ENABLE true
+#define SONAR_INSTALLED 1              // uncomment if ultrasonic sensors are installed
+//#define SONAR_ENABLE true              // should ultrasonic sensor be used?
 #define SONAR_ENABLE false
 #define SONAR_TRIGGER_OBSTACLES true     // should sonar be used to trigger obstacles? if not, mower will only slow down
 #define SONAR_LEFT_OBSTACLE_CM   10      // stop mowing operation below this distance (cm) 
@@ -393,8 +394,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // use PCB pin 'mow' for R/C model control speed and PCB pin 'steering' for R/C model control steering, 
 // also connect 5v and GND and activate model R/C control via PCB P20 start button for 3 sec.
 // more details: https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#R.2FC_model
-//#define RCMODEL_ENABLE true
-#define RCMODEL_ENABLE false
+//#define RCMODEL_ENABLE 1  // uncomment line to turn on R/C control
+
+#define BUZZER_ENABLE 1 // uncomment to disable
 
 
 // ------ experimental options  -------------------------
@@ -468,77 +470,90 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // ------ hardware pins---------------------------------------
 // no configuration needed here
-#define pinMotorEnable  37         // EN motors enable
-#define pinMotorLeftPWM 5          // M1_IN1 left motor PWM pin
-#define pinMotorLeftDir 31         // M1_IN2 left motor Dir pin
-#define pinMotorLeftSense A1       // M1_FB  left motor current sense
-#define pinMotorLeftFault 25       // M1_SF  left motor fault
-                                                             
-#define pinMotorRightPWM  3        // M2_IN1 right motor PWM pin
-#define pinMotorRightDir 33        // M2_IN2 right motor Dir pin
-#define pinMotorRightSense A0      // M2_FB  right motor current sense
-#define pinMotorRightFault 27      // M2_SF  right motor fault
-                                    
-#define pinMotorMowPWM 2           // M1_IN1 mower motor PWM pin (if using MOSFET, use this pin)
-#define pinMotorMowDir 29          // M1_IN2 mower motor Dir pin (if using MOSFET, keep unconnected)
-#define pinMotorMowSense A3        // M1_FB  mower motor current sense  
-#define pinMotorMowFault 26        // M1_SF  mower motor fault   (if using MOSFET/L298N, keep unconnected)
-#define pinMotorMowEnable 28       // EN mower motor enable      (if using MOSFET/L298N, keep unconnected)
-#define pinMotorMowRpm A11
-    
-#define pinFreeWheel 8             // front/rear free wheel sensor    
-#define pinBumperLeft 39           // bumper pins
-#define pinBumperRight 38
 
-#define pinDropLeft 45           // drop pins                                                                                          Dropsensor - Absturzsensor
-#define pinDropRight 23          // drop pins                                                                                          Dropsensor - Absturzsensor
+#ifdef __linux__
+  // ...
+#else
+  #define pinMotorEnable  37         // EN motors enable
+  #define pinMotorLeftPWM 5          // M1_IN1 left motor PWM pin
+  #define pinMotorLeftDir 31         // M1_IN2 left motor Dir pin
+  #define pinMotorLeftSense A1       // M1_FB  left motor current sense
+  #define pinMotorLeftFault 25       // M1_SF  left motor fault
+                                                              
+  #define pinMotorRightPWM  3        // M2_IN1 right motor PWM pin
+  #define pinMotorRightDir 33        // M2_IN2 right motor Dir pin
+  #define pinMotorRightSense A0      // M2_FB  right motor current sense
+  #define pinMotorRightFault 27      // M2_SF  right motor fault
+                                      
+  #define pinMotorMowPWM 2           // M1_IN1 mower motor PWM pin (if using MOSFET, use this pin)
+  #define pinMotorMowDir 29          // M1_IN2 mower motor Dir pin (if using MOSFET, keep unconnected)
+  #define pinMotorMowSense A3        // M1_FB  mower motor current sense  
+  #define pinMotorMowFault 26        // M1_SF  mower motor fault   (if using MOSFET/L298N, keep unconnected)
+  #define pinMotorMowEnable 28       // EN mower motor enable      (if using MOSFET/L298N, keep unconnected)
+  #define pinMotorMowRpm A11
+      
+  #define pinFreeWheel 8             // front/rear free wheel sensor    
+  #define pinBumperLeft 39           // bumper pins
+  #define pinBumperRight 38
 
-#define pinSonarCenterTrigger 24   // ultrasonic sensor pins
-#define pinSonarCenterEcho 22
-#define pinSonarRightTrigger 30    
-#define pinSonarRightEcho 32
-#define pinSonarLeftTrigger 34         
-#define pinSonarLeftEcho 36
-#define pinPerimeterRight A4       // perimeter
-#define pinDockingReflector A4     // docking IR reflector
-#define pinPerimeterLeft A5
+  #define pinDropLeft 45           // drop pins                                                                                          Dropsensor - Absturzsensor
+  #define pinDropRight 23          // drop pins                                                                                          Dropsensor - Absturzsensor
 
-#define pinLED 13                  // LED
-#define pinBuzzer 53               // Buzzer
-#define pinTilt 35                 // Tilt sensor (required for TC-G158 board)
-#define pinButton 51               // digital ON/OFF button
-#define pinBatteryVoltage A2       // battery voltage sensor
-#define pinBatterySwitch 4         // battery-OFF switch   
-#define pinChargeVoltage A9        // charging voltage sensor
-#define pinChargeCurrent A8        // charge current sensor
-#define pinChargeRelay 50          // charge relay
-#define pinRemoteMow 12            // remote control mower motor
-#define pinRemoteSteer 11          // remote control steering 
-#define pinRemoteSpeed 10          // remote control speed
-#define pinRemoteSwitch 52         // remote control switch
-#define pinVoltageMeasurement A7   // test pin for your own voltage measurements
-#if defined(_SAM3XA_)              // Arduino Due
-  #define pinOdometryLeft DAC0     // left odometry sensor
-  #define pinOdometryRight CANRX   // right odometry sensor  
-  #define pinReservedP46 CANTX     // reserved
-  #define pinReservedP48 DAC1      // reserved
-#else                              // Adafruit Grand Central M4 
-  #define pinOdometryLeft A12      // left odometry sensor
-  #define pinOdometryRight A14     // right odometry sensor 
-  #define pinReservedP46 A15       // reserved
-  #define pinReservedP48 A13       // reserved
+  #define pinSonarCenterTrigger 24   // ultrasonic sensor pins
+  #define pinSonarCenterEcho 22
+  #define pinSonarRightTrigger 30    
+  #define pinSonarRightEcho 32
+  #define pinSonarLeftTrigger 34         
+  #define pinSonarLeftEcho 36
+  #define pinPerimeterRight A4       // perimeter
+  #define pinDockingReflector A4     // docking IR reflector
+  #define pinPerimeterLeft A5
+
+  #define pinLED 13                  // LED
+  #define pinBuzzer 53               // Buzzer
+  #define pinTilt 35                 // Tilt sensor (required for TC-G158 board)
+  #define pinButton 51               // digital ON/OFF button
+  #define pinBatteryVoltage A2       // battery voltage sensor
+  #define pinBatterySwitch 4         // battery-OFF switch   
+  #define pinChargeVoltage A9        // charging voltage sensor
+  #define pinChargeCurrent A8        // charge current sensor
+  #define pinChargeRelay 50          // charge relay
+  #define pinRemoteMow 12            // remote control mower motor
+  #define pinRemoteSteer 11          // remote control steering 
+  #define pinRemoteSpeed 10          // remote control speed
+  #define pinRemoteSwitch 52         // remote control switch
+  #define pinVoltageMeasurement A7   // test pin for your own voltage measurements
+  #if defined(_SAM3XA_)              // Arduino Due
+    #define pinOdometryLeft DAC0     // left odometry sensor
+    #define pinOdometryRight CANRX   // right odometry sensor  
+    #define pinReservedP46 CANTX     // reserved
+    #define pinReservedP48 DAC1      // reserved
+  #else                              // Adafruit Grand Central M4 
+    #define pinOdometryLeft A12      // left odometry sensor
+    #define pinOdometryRight A14     // right odometry sensor 
+    #define pinReservedP46 A15       // reserved
+    #define pinReservedP48 A13       // reserved
+  #endif
+  #define pinLawnFrontRecv 40        // lawn sensor front receive
+  #define pinLawnFrontSend 41        // lawn sensor front sender 
+  #define pinLawnBackRecv 42         // lawn sensor back receive
+  #define pinLawnBackSend 43         // lawn sensor back sender 
+  #define pinUserSwitch1 46          // user-defined switch 1
+  #define pinUserSwitch2 47          // user-defined switch 2
+  #define pinUserSwitch3 48          // user-defined switch 3
+  #define pinRain 44                 // rain sensor
+  #define pinReservedP14 A7          // reserved
+  #define pinReservedP22 A6          // reserved
+  #define pinReservedP26 A10         // reserved
+
+  #ifndef SDCARD_SS_PIN
+    #if defined(_SAM3XA_)              // Arduino Due
+      #define SDCARD_SS_PIN pinUserSwitch1
+    #else
+      #define SDCARD_SS_PIN 4
+    #endif
+  #endif
 #endif
-#define pinLawnFrontRecv 40        // lawn sensor front receive
-#define pinLawnFrontSend 41        // lawn sensor front sender 
-#define pinLawnBackRecv 42         // lawn sensor back receive
-#define pinLawnBackSend 43         // lawn sensor back sender 
-#define pinUserSwitch1 46          // user-defined switch 1
-#define pinUserSwitch2 47          // user-defined switch 2
-#define pinUserSwitch3 48          // user-defined switch 3
-#define pinRain 44                 // rain sensor
-#define pinReservedP14 A7          // reserved
-#define pinReservedP22 A6          // reserved
-#define pinReservedP26 A10         // reserved
 
 // IMU (compass/gyro/accel): I2C  (SCL, SDA) 
 // Bluetooth: Serial2 (TX2, RX2)
@@ -554,13 +569,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
   #define CONSOLE udpSerial         
 #endif
 
-#ifndef SDCARD_SS_PIN
-  #if defined(_SAM3XA_)              // Arduino Due
-    #define SDCARD_SS_PIN pinUserSwitch1
-  #else
-    #define SDCARD_SS_PIN 4
-  #endif
-#endif
 
 // the following will be used by Arduino library RingBuffer.h - to verify this Arduino library file:
 // 1. Arduino IDE->File->Preferences->Click on 'preferences.txt' at the bottom
