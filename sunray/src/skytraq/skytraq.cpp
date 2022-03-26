@@ -21,7 +21,7 @@ SKYTRAQ::SKYTRAQ()
 }
 
 void SKYTRAQ::begin(){
-  CONSOLE.println("SKYTRAQ::begin");  
+  CONSOLE.println("using gps driver: SKYTRAQ");    
   this->state    = GOT_NONE;
   this->msgid    = -1;
   this->msglen   = -1;

@@ -25,6 +25,7 @@ bool enableActive = LOW;
 
 
 void AmRobotDriver::begin(){
+  CONSOLE.println("using robot driver: AmRobotDriver");
 }
 
 

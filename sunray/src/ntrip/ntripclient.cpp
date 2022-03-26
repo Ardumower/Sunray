@@ -5,6 +5,7 @@
 
 
 void NTRIPClient::begin(){
+  CONSOLE.println("using NTRIPClient");  
   reconnectTimeout = 0;
   ggaTimeout = 0;
   NTRIP.begin(115200);

@@ -260,6 +260,7 @@ void BnoDriver::detect(){
 
 
 bool BnoDriver::begin(){ 
+    CONSOLE.println("using imu driver: BnoDriver");
     selectChip();
     readCalibration();
     return true;

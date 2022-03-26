@@ -27,7 +27,7 @@ UBLOX::UBLOX()
 }
 
 void UBLOX::begin(){
-  CONSOLE.println("UBLOX::begin");  
+  CONSOLE.println("using gps driver: UBLOX");
   this->state    = GOT_NONE;
   this->msgclass = -1;
   this->msgid    = -1;

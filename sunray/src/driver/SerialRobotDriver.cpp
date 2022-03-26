@@ -12,6 +12,7 @@
 
 
 void SerialRobotDriver::begin(){
+  CONSOLE.println("using robot driver: SerialRobotDriver");
   COMM.begin(ROBOT_BAUDRATE);
   encoderTicksLeft = 0;
   encoderTicksRight = 0;

@@ -30,6 +30,7 @@ void get_ang_PPM()                                                        // Int
 
 void RCModel::begin(){  
 #ifdef RCMODEL_ENABLE
+  CONSOLE.println("RCModel enabled in config");  
   lin_PPM = 0;                                            
   linearPPM = 0;                                         
   ang_PPM = 0;                                            
@@ -42,6 +43,8 @@ void RCModel::begin(){
   #ifdef RC_DEBUG
     nextOutputTime = millis() + 1000;
   #endif
+#else
+  CONSOLE.println("RCModel disabled in config");  
 #endif
 } 
 

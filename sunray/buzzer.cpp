@@ -115,10 +115,13 @@ void Buzzer::run(){
 void Buzzer::begin()
 {
 #ifdef BUZZER_ENABLE
-   pinMode(pinBuzzer, OUTPUT);                
-   digitalWrite(pinBuzzer, LOW);
-   toneIdx=0;
-   nextToneTime=0;   
+  CONSOLE.println("buzzer enabled in config");
+  pinMode(pinBuzzer, OUTPUT);                
+  digitalWrite(pinBuzzer, LOW);
+  toneIdx=0;
+  nextToneTime=0;   
+#else
+  CONSOLE.println("buzzer disabled in config");
 #endif
 }
 

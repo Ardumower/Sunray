@@ -49,6 +49,7 @@ String BLEConfig::exec(String cmd, bool doRetry){
 }
 
 void BLEConfig::run(){  
+#ifndef __linux__   
   int baud;
   bool found = false;
   //while (true){    
@@ -106,4 +107,5 @@ void BLEConfig::run(){
     }
     //delay(1000);
   //}
+#endif
 }

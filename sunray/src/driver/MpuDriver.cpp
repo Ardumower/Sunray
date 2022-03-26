@@ -58,6 +58,7 @@ void MpuDriver::detect(){
 
 
 bool MpuDriver::begin(){ 
+    CONSOLE.println("using imu driver: MpuDriver");
     selectChip();
     if (mpu.begin() != INV_SUCCESS){
         return false;

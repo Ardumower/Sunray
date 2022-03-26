@@ -94,7 +94,9 @@ int I2CclearBus() {
 }
 
 void I2Creset(){
-#ifndef __linux__
+#ifdef __linux__
+  CONSOLE.println("I2Creset disabled");  
+#else
   #ifdef __AVR_ATmega2560__
     CONSOLE.println(F("WARNING Mega2560: you may have to add 4k7 resistors (pull-ups) between SDA, SCL and IOREF for proper I2C bus"));  
   #endif 
