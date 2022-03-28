@@ -430,7 +430,9 @@ bool Motor::checkFault() {
   bool leftFault = false;
   bool rightFault = false;
   bool mowFault = false;
-  motorDriver.getMotorFaults(leftFault, rightFault, mowFault);
+  if (ENABLE_FAULT_DETECTION){    
+    motorDriver.getMotorFaults(leftFault, rightFault, mowFault);
+  }
   if (leftFault) {
     CONSOLE.println("Error: motor left fault");
     fault = true;
