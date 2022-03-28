@@ -187,6 +187,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define ENABLE_FAULT_DETECTION  true
 //#define ENABLE_FAULT_DETECTION  false       // use this if you keep getting 'motor error'
 
+// should the robot trigger obstacle avoidance on motor errors if motor recovery failed?
+#define ENABLE_FAULT_OBSTACLE_AVOIDANCE true  
+
 // ----------- dynamic mowingm motor RPM --------------
 // RPM of the mow motor will be adjust over the actual current of the mow motor. If the motor needs more current the PWM will be higher.
 // it can be used 3 different functions for the calculation of the PWM depended´nt on the mowMotor current. The root-Function is recommended

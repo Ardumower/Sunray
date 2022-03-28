@@ -1017,7 +1017,7 @@ void detectSensorMalfunction(){
       return;
     }  
   }
-  if (ENABLE_FAULT_DETECTION){
+  if (ENABLE_FAULT_OBSTACLE_AVOIDANCE){
     if (motor.motorError){
       // this is the molehole situation: motor error will permanently trigger on molehole => we try obstacle avoidance (molehole avoidance strategy)
       motor.motorError = false; // reset motor error flag
