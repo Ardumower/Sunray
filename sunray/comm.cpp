@@ -495,6 +495,8 @@ void cmdSummary(){
   s += gps.numSVdgps;  
   s += ",";
   s += maps.mapCRC;
+  s += ",";
+  s += lateralError;
   cmdAnswer(s);  
 }
 

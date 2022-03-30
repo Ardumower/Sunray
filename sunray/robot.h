@@ -109,6 +109,7 @@ extern float stanleyTrackingSlowP;
 
 extern unsigned long lastFixTime;
 extern float stateGroundSpeed; // m/s
+extern float lateralError; // lateral error
 
 extern WiFiEspClient client;
 extern WiFiEspServer server;
