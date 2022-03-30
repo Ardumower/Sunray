@@ -1041,15 +1041,22 @@ void detectSensorMalfunction(){
 }
 
 void detectLift(){
-  #ifdef ENABLE_LIFT_DETECTION    
-    if (liftDriver.triggered()) {
-      if (stateOp != OP_ERROR){        
-        stateSensor = SENS_LIFT;
-        CONSOLE.println("ERROR LIFT");        
-        setOperation(OP_ERROR);
-      }      
-    }
-  #endif 
+  bool doDetect = true;
+  #ifdef ENABLE_LIFT_DETECTION
+    #ifdef LIFT_OBSTACLE_AVOIDANCE    
+      if (driveReverseStopTime > 0) doDetect = false; // do not detect lift during reverse driving
+    #endif
+  #else
+    doDetect = false;
+  #endif
+  if (!doDetect) return;
+  if (liftDriver.triggered()) {
+    if (stateOp != OP_ERROR){        
+      stateSensor = SENS_LIFT;
+      CONSOLE.println("ERROR LIFT");        
+      setOperation(OP_ERROR);
+    }      
+  } 
 }
 
 // detect obstacle (bumper, sonar, ToF)
@@ -1075,12 +1082,16 @@ bool detectObstacle(){
     }    
   }   
   
-  if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (liftDriver.triggered()) ) {
-    CONSOLE.println("lift sensor obstacle!");    
-    statMowBumperCounter++;
-    triggerObstacle();    
-    return true;
-  }
+  #ifdef ENABLE_LIFT_DETECTION
+    #ifdef LIFT_OBSTACLE_AVOIDANCE
+      if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (liftDriver.triggered()) ) {
+        CONSOLE.println("lift sensor obstacle!");    
+        statMowBumperCounter++;
+        triggerObstacle();    
+        return true;
+      }
+    #endif
+  #endif
 
   if (BUMPER_ENABLE){
     if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (bumper.obstacle()) ){  
