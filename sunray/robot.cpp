@@ -1040,23 +1040,20 @@ void detectSensorMalfunction(){
   }
 }
 
-void detectLift(){
-  bool doDetect = true;
+// detect lift 
+// returns true, if lift detected, otherwise false
+bool detectLift(){  
   #ifdef ENABLE_LIFT_DETECTION
-    #ifdef LIFT_OBSTACLE_AVOIDANCE    
-      if (driveReverseStopTime > 0) doDetect = false; // do not detect lift during reverse driving
-    #endif
-  #else
-    doDetect = false;
-  #endif
-  if (!doDetect) return;
-  if (liftDriver.triggered()) {
-    if (stateOp != OP_ERROR){        
-      stateSensor = SENS_LIFT;
-      CONSOLE.println("ERROR LIFT");        
-      setOperation(OP_ERROR);
-    }      
-  } 
+    if (liftDriver.triggered()) {
+      if (stateOp != OP_ERROR){        
+        stateSensor = SENS_LIFT;
+        CONSOLE.println("ERROR LIFT");        
+        setOperation(OP_ERROR);
+        return true;
+      }      
+    }  
+  #endif 
+  return false;
 }
 
 // detect obstacle (bumper, sonar, ToF)
@@ -1456,9 +1453,6 @@ void run(){
       readIMU();    
     }
   }
-
-  // lift sensor
-  detectLift();
   
   gps.run();
     
@@ -1545,6 +1539,7 @@ void run(){
             if (millis() > driveReverseStopTime){
               CONSOLE.println("driveReverseStopTime");
               motor.stopImmediately(false);
+              detectLift();
               driveReverseStopTime = 0;
               maps.addObstacle(stateX, stateY);
               Point pt;
@@ -1569,9 +1564,11 @@ void run(){
             // line tracking
             trackLine();
             detectSensorMalfunction();
-            if (!detectObstacle()){
-              detectObstacleRotation();
-            }                   
+            if (!detectLift()){            
+              if (!detectObstacle()){
+                detectObstacleRotation();                              
+              }
+            }   
           }        
         }        
         battery.resetIdle();
