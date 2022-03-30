@@ -1075,6 +1075,13 @@ bool detectObstacle(){
     }    
   }   
   
+  if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (liftDriver.triggered()) ) {
+    CONSOLE.println("lift sensor obstacle!");    
+    statMowBumperCounter++;
+    triggerObstacle();    
+    return true;
+  }
+
   if (BUMPER_ENABLE){
     if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (bumper.obstacle()) ){  
       CONSOLE.println("bumper obstacle!");    
