@@ -1564,10 +1564,8 @@ void run(){
             // line tracking
             trackLine();
             detectSensorMalfunction();
-            if (!detectLift()){            
-              if (!detectObstacle()){
-                detectObstacleRotation();                              
-              }
+            if (!detectObstacle()){
+              detectObstacleRotation();                              
             }   
           }        
         }        
