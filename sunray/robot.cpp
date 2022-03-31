@@ -1305,7 +1305,7 @@ void trackLine(){
     // no gps solution
     if (REQUIRE_VALID_GPS){
       if (!maps.isUndocking()) { 
-        //CONSOLE.println("no gps solution!");
+        CONSOLE.println("WARN: no gps solution!");
         stateSensor = SENS_GPS_INVALID;
         //setOperation(OP_ERROR);
         //buzzer.sound(SND_STUCK, true);          
