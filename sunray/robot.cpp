@@ -1535,10 +1535,11 @@ void run(){
         if (retryOperationTime == 0){ // if path planning was successful 
           if (driveReverseStopTime > 0){
             // obstacle avoidance
-            motor.setLinearAngularSpeed(-0.1,0);            
+            motor.setLinearAngularSpeed(-0.1,0);
+            motor.setMowState(false);                        
             if (millis() > driveReverseStopTime){
               CONSOLE.println("driveReverseStopTime");
-              motor.stopImmediately(false);
+              motor.stopImmediately(false); 
               detectLift();
               driveReverseStopTime = 0;
               maps.addObstacle(stateX, stateY);
@@ -1549,10 +1550,11 @@ void run(){
             }            
           } else if (driveForwardStopTime > 0){
             // rotate stuck avoidance
-            motor.setLinearAngularSpeed(0.1,0);            
+            motor.setLinearAngularSpeed(0.1,0);
+            motor.setMowState(false);            
             if (millis() > driveForwardStopTime){
               CONSOLE.println("driveForwardStopTime");
-              motor.stopImmediately(false);
+              motor.stopImmediately(false);  
               driveForwardStopTime = 0;
               /*maps.addObstacle(stateX, stateY);
               Point pt;
