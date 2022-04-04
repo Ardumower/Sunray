@@ -21,6 +21,7 @@ UBLOX::UBLOX()
   debug = false;
   verbose = false;
   useTCP = false;
+  solutionTimeout = 0;
   #ifdef GPS_DUMP
     verbose = true;
   #endif
@@ -488,6 +489,7 @@ void UBLOX::dispatchMessage() {
               relPosD = ((float)this->unpack_int32(16))/100.0;              
               solution = (SolType)((this->unpack_int32(60) >> 3) & 3);              
               solutionAvail = true;
+              solutionTimeout=millis() + 1000;
               if (verbose){
                 CONSOLE.print("UBX-NAV-RELPOSNED ");
                 CONSOLE.print("n=");
@@ -566,6 +568,13 @@ long UBLOX::unpack(int offset, int size) {
 /* parse the uBlox data */
 void UBLOX::run()
 {
+	if (millis() > solutionTimeout){
+    //CONSOLE.println("UBLOX::solutionTimeout");
+    solution = SOL_INVALID;
+    solutionTimeout = millis() + 1000;
+    solutionAvail = true;
+  }
+
 	// read a byte from the serial port	  
   if (!_bus->available()) return;
   while (_bus->available()) {		
