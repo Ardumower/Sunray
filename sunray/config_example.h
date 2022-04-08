@@ -82,7 +82,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // should the mower turn off if IMU is tilt over? (yes: uncomment line, no: comment line)
 #define ENABLE_TILT_DETECTION  1
 
-// --------- lift sensor (only Alfred mower) ---------------------------------------------
+// --------- lift sensor (e.g. Alfred mower) ---------------------------------------------
 // should the lift sensor be enabled? (yes: uncomment line, no: comment line)
 #define ENABLE_LIFT_DETECTION  1
 // should the lift sensor be used for obstacle avoidance (if not, mower will simply go into error if lifted)
