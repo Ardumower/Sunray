@@ -94,7 +94,10 @@ void AmMotorDriver::begin(){
   //pinMode(pinOdometryLeft2, INPUT_PULLUP);
   pinMode(pinOdometryRight, INPUT_PULLUP);
   //pinMode(pinOdometryRight2, INPUT_PULLUP);
-	  
+
+  // lift sensor
+  pinMode(pinLift, INPUT_PULLUP);
+
   // enable interrupts
   attachInterrupt(pinOdometryLeft, OdometryLeftISR, CHANGE);  
   attachInterrupt(pinOdometryRight, OdometryRightISR, CHANGE);  
@@ -366,7 +369,7 @@ void AmLiftSensorDriver::run(){
   unsigned long t = millis();
   if (t < nextControlTime) return;
   nextControlTime = t + 100;                                       // save CPU resources by running at 10 Hz
-  isLifted = false; //(digitalRead(pinLift)== LOW);
+  isLifted = (digitalRead(pinLift)== LOW);
 }
 
 bool AmLiftSensorDriver::triggered(){
