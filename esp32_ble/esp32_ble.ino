@@ -16,7 +16,7 @@
 
 #include "config.h"
 
-#define VERSION "ESP32 firmware V0.4.0,Bluetooth V4.0 LE"
+#define VERSION "ESP32 firmware V0.4.1,Bluetooth V4.0 LE"
 
 // watch dog timeout (WDT) in seconds
 #define WDT_TIMEOUT 60
@@ -329,6 +329,7 @@ void startWIFI() {
       CONSOLE.println("using dynamic IP");
     }
 
+    WiFi.disconnect(); // disconnect any previous (aborted) connection
     WiFi.begin(ssid.c_str(), pass.c_str());
     if (WiFi.waitForConnectResult() != WL_CONNECTED) {
       CONSOLE.println("Connection Failed!");
@@ -355,34 +356,36 @@ void startWIFI() {
         heap_caps_get_free_size(MALLOC_CAP_INTERNAL|MALLOC_CAP_8BIT),
         heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL|MALLOC_CAP_8BIT));
 
-      #ifdef USE_HTTPS
-        CONSOLE.println("using HTTPS");
-        server = new HTTPSServer(&cert, 443, 1);  
-      #else
-        CONSOLE.println("using HTTP");
-        server = new HTTPServer(80);        
-      #endif
-      server->registerNode(nodeRoot);
-      server->setDefaultNode(nodeRoot);
-      server->start();
+      if (server == NULL){ // only start once (do not call for reconnections)
+        #ifdef USE_HTTPS
+          CONSOLE.println("starting HTTPS server");
+          server = new HTTPSServer(&cert, 443, 1);  
+        #else
+          CONSOLE.println("starting HTTP server");
+          server = new HTTPServer(80);        
+        #endif
+        server->registerNode(nodeRoot);
+        server->setDefaultNode(nodeRoot);
+        server->start();
+      
+        ArduinoOTA.setHostname(NAME);
+        ArduinoOTA
+        .onStart([]() {
+          String type;
+          if (ArduinoOTA.getCommand() == U_FLASH)
+            type = "sketch";
+          else // U_SPIFFS
+            type = "filesystem";
+        })
+        .onEnd([]() {
+        })
+        .onProgress([](unsigned int progress, unsigned int total) {
+        })
+        .onError([](ota_error_t error) {
+        });
 
-      ArduinoOTA.setHostname(NAME);
-      ArduinoOTA
-      .onStart([]() {
-        String type;
-        if (ArduinoOTA.getCommand() == U_FLASH)
-          type = "sketch";
-        else // U_SPIFFS
-          type = "filesystem";
-      })
-      .onEnd([]() {
-      })
-      .onProgress([](unsigned int progress, unsigned int total) {
-      })
-      .onError([](ota_error_t error) {
-      });
-
-      ArduinoOTA.begin();
+        ArduinoOTA.begin();
+      }
     }
   }
 }
