@@ -16,7 +16,7 @@
 
 #include "config.h"
 
-#define VERSION "ESP32 firmware V0.4.1,Bluetooth V4.0 LE"
+#define VERSION "ESP32 firmware V0.4.2,Bluetooth V4.0 LE"
 
 // watch dog timeout (WDT) in seconds
 #define WDT_TIMEOUT 60
@@ -75,6 +75,7 @@ unsigned long nextInfoTime = 0;
 unsigned long nextPingTime = 0;
 unsigned long nextLEDTime = 0;
 unsigned long nextWatchDogResetTime = 0;
+unsigned long nextWifiConnectTime = 0;
 bool ledStateNew = false;
 bool ledStateCurr = false;
 int simPacketCounter = 0; 
@@ -308,84 +309,86 @@ void startBLE() {
 
 void startWIFI() {
   if ((ssid == "") || (pass == "")) return;
-  if ((WiFi.status() != WL_CONNECTED) || (WiFi.localIP().toString() == "0.0.0.0")) {
+  if ((WiFi.status() == WL_CONNECTED) && (WiFi.localIP().toString() != "0.0.0.0")) return;
 
-    for (int i = 0; i < 5; i++) {
-      digitalWrite(pinLED, HIGH);
-      delay(50);
-      digitalWrite(pinLED, LOW);
-      delay(50);
+  if (millis() < nextWifiConnectTime) return;
+  nextWifiConnectTime = millis() + 20000;
+
+  for (int i = 0; i < 5; i++) {
+    digitalWrite(pinLED, HIGH);
+    delay(50);
+    digitalWrite(pinLED, LOW);
+    delay(50);
+  }
+
+  CONSOLE.print("Attempting to connect to WPA SSID: ");
+  CONSOLE.println(ssid);
+
+  if (WIFI_STATIC_IP) {
+    CONSOLE.println("using static IP");
+    if (!WiFi.config(av_local_IP, av_gateway, av_subnet, av_primaryDNS, av_secondaryDNS)) {
+      CONSOLE.println("STA Failed to configure");
     }
+  } else {
+    CONSOLE.println("using dynamic IP");
+  }
 
-    CONSOLE.print("Attempting to connect to WPA SSID: ");
-    CONSOLE.println(ssid);
+  WiFi.disconnect(); // disconnect any previous (aborted) connection
+  WiFi.begin(ssid.c_str(), pass.c_str());
+  if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+    CONSOLE.println("Connection Failed!");
+    delay(2000);
+    return;
+  };
 
-    if (WIFI_STATIC_IP) {
-      CONSOLE.println("using static IP");
-      if (!WiFi.config(av_local_IP, av_gateway, av_subnet, av_primaryDNS, av_secondaryDNS)) {
-        CONSOLE.println("STA Failed to configure");
-      }
-    } else {
-      CONSOLE.println("using dynamic IP");
-    }
+  if (WiFi.status() == WL_CONNECTED) {
+    CONSOLE.print("You're connected with SSID=");
+    CONSOLE.print(WiFi.SSID());
+    CONSOLE.print(" and IP=");
+    IPAddress ip = WiFi.localIP();
+    CONSOLE.println(ip);
+    //server.begin();
 
-    WiFi.disconnect(); // disconnect any previous (aborted) connection
-    WiFi.begin(ssid.c_str(), pass.c_str());
-    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-      CONSOLE.println("Connection Failed!");
-      delay(2000);
-      return;
-    };
+    // https://github.com/fhessel/esp32_https_server/issues/11
+    //size_t memAvail = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    //HTTPS_LOGE("Available mem: %ld bytes", (long)memAvail);
+    CONSOLE.printf("Default Memory:       free size: %8u bytes   largest free block: %8u\n",
+      heap_caps_get_free_size(MALLOC_CAP_DEFAULT),
+      heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT));
+      // explanation for the following line comes below:
+    CONSOLE.printf("Internal 8bit Memory: free size: %8u bytes   largest free block: %8u\n",
+      heap_caps_get_free_size(MALLOC_CAP_INTERNAL|MALLOC_CAP_8BIT),
+      heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL|MALLOC_CAP_8BIT));
 
-    if (WiFi.status() == WL_CONNECTED) {
-      CONSOLE.print("You're connected with SSID=");
-      CONSOLE.print(WiFi.SSID());
-      CONSOLE.print(" and IP=");
-      IPAddress ip = WiFi.localIP();
-      CONSOLE.println(ip);
-      //server.begin();
+    if (server == NULL){ // only start once (do not call for reconnections)
+      #ifdef USE_HTTPS
+        CONSOLE.println("starting HTTPS server");
+        server = new HTTPSServer(&cert, 443, 1);  
+      #else
+        CONSOLE.println("starting HTTP server");
+        server = new HTTPServer(80);        
+      #endif
+      server->registerNode(nodeRoot);
+      server->setDefaultNode(nodeRoot);
+      server->start();
+    
+      ArduinoOTA.setHostname(NAME);
+      ArduinoOTA
+      .onStart([]() {
+        String type;
+        if (ArduinoOTA.getCommand() == U_FLASH)
+          type = "sketch";
+        else // U_SPIFFS
+          type = "filesystem";
+      })
+      .onEnd([]() {
+      })
+      .onProgress([](unsigned int progress, unsigned int total) {
+      })
+      .onError([](ota_error_t error) {
+      });
 
-      // https://github.com/fhessel/esp32_https_server/issues/11
-      //size_t memAvail = heap_caps_get_free_size(MALLOC_CAP_8BIT);
-      //HTTPS_LOGE("Available mem: %ld bytes", (long)memAvail);
-      CONSOLE.printf("Default Memory:       free size: %8u bytes   largest free block: %8u\n",
-        heap_caps_get_free_size(MALLOC_CAP_DEFAULT),
-        heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT));
-        // explanation for the following line comes below:
-      CONSOLE.printf("Internal 8bit Memory: free size: %8u bytes   largest free block: %8u\n",
-        heap_caps_get_free_size(MALLOC_CAP_INTERNAL|MALLOC_CAP_8BIT),
-        heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL|MALLOC_CAP_8BIT));
-
-      if (server == NULL){ // only start once (do not call for reconnections)
-        #ifdef USE_HTTPS
-          CONSOLE.println("starting HTTPS server");
-          server = new HTTPSServer(&cert, 443, 1);  
-        #else
-          CONSOLE.println("starting HTTP server");
-          server = new HTTPServer(80);        
-        #endif
-        server->registerNode(nodeRoot);
-        server->setDefaultNode(nodeRoot);
-        server->start();
-      
-        ArduinoOTA.setHostname(NAME);
-        ArduinoOTA
-        .onStart([]() {
-          String type;
-          if (ArduinoOTA.getCommand() == U_FLASH)
-            type = "sketch";
-          else // U_SPIFFS
-            type = "filesystem";
-        })
-        .onEnd([]() {
-        })
-        .onProgress([](unsigned int progress, unsigned int total) {
-        })
-        .onError([](ota_error_t error) {
-        });
-
-        ArduinoOTA.begin();
-      }
+      ArduinoOTA.begin();
     }
   }
 }
