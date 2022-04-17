@@ -3,7 +3,7 @@
 // Licensed GPLv3 for open source use
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
-// external robot (with motor drivers, battery, bumper etc.) connected and controlled via serial line
+// Alfred mower: external robot (with motor drivers, battery, bumper etc.) connected and controlled via serial line
 
 #ifndef AM_SERIAL_ROBOT_DRIVER_H
 #define AM_SERIAL_ROBOT_DRIVER_H
