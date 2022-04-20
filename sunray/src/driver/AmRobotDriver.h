@@ -34,7 +34,7 @@ class AmMotorDriver: public MotorDriver {
     void getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks) override;
   protected:
     void setMC33926(int pinDir, int pinPWM, int speed);
-    void setBrushless(int pinDir, int pinPWM, int speed);
+    void setBrushless(int pinDir, int pinPWM, int speed, bool isMowDriver);
 };
 
 class AmBatteryDriver : public BatteryDriver {
