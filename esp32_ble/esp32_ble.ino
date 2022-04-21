@@ -16,7 +16,7 @@
 
 #include "config.h"
 
-#define VERSION "ESP32 firmware V0.4.2,Bluetooth V4.0 LE"
+#define VERSION "ESP32 firmware V0.4.3,Bluetooth V4.0 LE"
 
 // watch dog timeout (WDT) in seconds
 #define WDT_TIMEOUT 60
@@ -679,7 +679,9 @@ void loop() {
     if (server != NULL) server->loop();
   }
 
-  startWIFI();
+  if (!bleConnected) {
+    startWIFI();
+  }
   ArduinoOTA.handle();
 #ifdef USE_MQTT
   mqtt_loop();
