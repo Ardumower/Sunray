@@ -850,8 +850,8 @@ void start(){
   pinMan.begin();         
   // keep battery switched ON
   batteryDriver.begin();  
+  CONSOLE.begin(CONSOLE_BAUDRATE);    
   buzzer.begin();      
-  CONSOLE.begin(CONSOLE_BAUDRATE);  
     
   Wire.begin();      
   analogReadResolution(12);  // configure ADC 12 bit resolution
