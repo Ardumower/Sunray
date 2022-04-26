@@ -481,6 +481,7 @@ void startWIFI(){
 #ifdef __linux__
   wifiFound = true;
 #else  
+  CONSOLE.println("probing for ESP8266 (NOTE: will fail for ESP32)...");
   int status = WL_IDLE_STATUS;     // the Wifi radio's status
   WIFI.begin(WIFI_BAUDRATE); 
   WIFI.print("AT\r\n");  
@@ -491,7 +492,7 @@ void startWIFI(){
     res += ch;
   }
   if (res.indexOf("OK") == -1){
-    CONSOLE.println("WIFI (ESP8266) not found! If the problem persist, you may need to flash your ESP to firmware 2.2.1");
+    CONSOLE.println("WIFI (ESP8266) not found! If you have ESP8266 and the problem persist, you may need to flash your ESP to firmware 2.2.1");
     return;
   }    
   WiFi.init(&WIFI);  
