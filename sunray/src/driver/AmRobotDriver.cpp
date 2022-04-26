@@ -171,8 +171,6 @@ void AmMotorDriver::setBrushless(int pinDir, int pinPWM, int speed, bool isMowDr
         digitalWrite(pinDir, LOW) ;
         pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
       }
-    #else
-      #error "unknown brushless driver"
     #endif
   } 
   else {
@@ -198,8 +196,6 @@ void AmMotorDriver::setBrushless(int pinDir, int pinPWM, int speed, bool isMowDr
         digitalWrite(pinDir, LOW) ;
         pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
       }
-    #else
-      #error "unknown brushless driver"
     #endif
   }
 }
