@@ -30,15 +30,14 @@
 
 struct DriverChip {
     char *driverName;       // name of driver (MC33926 etc.)
-    bool drivesMowingMotor; // drives mowing motor?
     bool forwardPwmInvert;  // forward pin uses inverted pwm?
     bool forwardDirLevel;   // forward pin level
     bool reversePwmInvert;  // reverse pin uses inverted pwm?
     bool reverseDirLevel;   // reverse pin level
     bool faultActive;       // level for fault active (LOW/HIGH)
     bool enableActive;      // level for enable active (LOW/HIGH)
-    int minPwmSpeed;        // minimum PWM speed to force
-    void printParameters(); 
+    int minPwmSpeed;        // minimum PWM speed to force     
+    //bool drivesMowingMotor; // drives mowing motor?    
 };
 
 

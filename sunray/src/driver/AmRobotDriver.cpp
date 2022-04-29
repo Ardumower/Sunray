@@ -62,7 +62,6 @@ AmMotorDriver::AmMotorDriver(){
   // default values for all motor drivers
   
   MC33926.driverName = "MC33926";
-  MC33926.drivesMowingMotor = false;
   MC33926.forwardPwmInvert = false;
   MC33926.forwardDirLevel = LOW;
   MC33926.reversePwmInvert = true;
@@ -72,7 +71,6 @@ AmMotorDriver::AmMotorDriver(){
   MC33926.minPwmSpeed = 0;
 
   DRV8308.driverName = "DRV8308";
-  DRV8308.drivesMowingMotor = false;
   DRV8308.forwardPwmInvert = false;
   DRV8308.forwardDirLevel = LOW;
   DRV8308.reversePwmInvert = false;
@@ -82,7 +80,6 @@ AmMotorDriver::AmMotorDriver(){
   DRV8308.minPwmSpeed = 2;
 
   A4931.driverName = "A4931";
-  A4931.drivesMowingMotor = false;
   A4931.forwardPwmInvert = false;
   A4931.forwardDirLevel = LOW;
   A4931.reversePwmInvert = false;
@@ -92,7 +89,6 @@ AmMotorDriver::AmMotorDriver(){
   A4931.minPwmSpeed = 15;    
 
   CUSTOM.driverName = "CUSTOM";
-  CUSTOM.drivesMowingMotor = false;
   CUSTOM.forwardPwmInvert = false;
   CUSTOM.forwardDirLevel = LOW;
   CUSTOM.reversePwmInvert = false;
