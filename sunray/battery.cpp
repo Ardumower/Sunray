@@ -19,6 +19,9 @@
 // wenn man z.B. die spannung von 4.2V pro zelle auf 4.1V herab setzt (85–90% charged) kann man die lebensdauer 
 // verdoppeln - das gleiche gilt bei der endladung
 
+// lithium cells
+// ardumower:  Sony US18650 VTC5, 7 cells in series, nominal volage 3.6v
+// alfred:   Samsung INR18650-15M, 7 cells in series, nominal voltage 3.6v 
 
 void Battery::begin()
 {
