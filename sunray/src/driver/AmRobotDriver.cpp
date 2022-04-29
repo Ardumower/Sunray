@@ -105,12 +105,13 @@ void AmMotorDriver::begin(){
     CONSOLE.println("MOTOR_DRIVER_BRUSHLESS: yes");    
 
     // NOTE: you can adjust/override default motor driver parameters here if required for a certain motor!
-    // example: mowDriverChip.minPwmSpeed = 15; 
+    // example: mowDriverChip.minPwmSpeed = 40; 
 
     #ifdef MOTOR_DRIVER_BRUSHLESS_MOW_DRV8308  
       mowDriverChip = DRV8308;                         
     #elif MOTOR_DRIVER_BRUSHLESS_MOW_A4931 
       mowDriverChip = A4931;
+      mowDriverChip.minPwmSpeed = 40;
     #else 
       mowDriverChip = CUSTOM;
     #endif
