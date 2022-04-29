@@ -26,7 +26,7 @@
 // 4) if direction pin is LOW (or HIGH) for reverse
 // 5) if fault signal is active high (or low)
 // 6) if enable signal is active high (or low)
-// 7) if there is a minimum PWM speed to force (or zero)
+// 7) if there is a minimum PWM speed to ensure (or zero)
 
 struct DriverChip {
     char *driverName;       // name of driver (MC33926 etc.)
@@ -36,7 +36,7 @@ struct DriverChip {
     bool reverseDirLevel;   // reverse pin level
     bool faultActive;       // level for fault active (LOW/HIGH)
     bool enableActive;      // level for enable active (LOW/HIGH)
-    int minPwmSpeed;        // minimum PWM speed to force     
+    int minPwmSpeed;        // minimum PWM speed to ensure     
     //bool drivesMowingMotor; // drives mowing motor?    
 };
 
