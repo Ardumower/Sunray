@@ -177,13 +177,15 @@ void AmMotorDriver::run(){
 
 // brushed/brushless motor driver
 //(8-bit PWM=255, 10-bit PWM=1023)
-// IN1 PinPWM         IN2 PinDir
-// PWM                L     Forward
-// PWM                H     Reverse
-// verhindert dass das PWM Signal 0 wird. Der Driver braucht einen kurzen Impuls um das PWM zu erkennen.
-// Wenn der z.B. vom max. PWM Wert auf 0 bzw. das Signal auf Low geht, behält er den vorherigen Wert bei und der Motor stoppt nicht
+// example logic:
+//   IN1 PinPWM         IN2 PinDir
+//   PWM                L     Forward
+//   PWM                H     Reverse
+
 void AmMotorDriver::setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip &chip) {
   //DEBUGLN(speed);
+  // verhindert dass das PWM Signal 0 wird. Der Driver braucht einen kurzen Impuls um das PWM zu erkennen.
+  // Wenn der z.B. vom max. PWM Wert auf 0 bzw. das Signal auf Low geht, behält er den vorherigen Wert bei und der Motor stoppt nicht
   if (abs(speed) < chip.minPwmSpeed) speed = chip.minPwmSpeed * sign(speed);
   
   if (speed < 0) {    
