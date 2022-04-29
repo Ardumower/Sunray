@@ -59,7 +59,7 @@ void OdometryRightISR(){
 
 AmMotorDriver::AmMotorDriver(){
   
-  // default values for all motor drivers
+  // default values for all motor drivers (for parameters description, see AmRobotDriver.h)
   
   MC33926.driverName = "MC33926";
   MC33926.forwardPwmInvert = false;
