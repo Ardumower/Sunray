@@ -70,6 +70,23 @@ void AmMotorDriver::begin(){
     CONSOLE.println("MOTOR_DRIVER_BRUSHLESS: yes");
     faultActive  = LOW; 
     enableActive = LOW; 
+    // ------- mowing motors driver -------
+    #ifdef MOTOR_DRIVER_BRUSHLESS_MOW_DRV8308      
+      mowMinPwmSpeed = 2;                         
+    #elif MOTOR_DRIVER_BRUSHLESS_MOW_A4931  
+      mowMinPwmSpeed = 40; 
+    #else 
+      mowMinPwmSpeed = 0;
+    #endif
+    
+    // ------- gear motors driver -------
+    #ifdef MOTOR_DRIVER_BRUSHLESS_GEARS_DRV8308  
+      gearsMinPwmSpeed = 2;                         
+    #elif MOTOR_DRIVER_BRUSHLESS_GEARS_A4931 
+      gearsMinPwmSpeed = 15;
+    #else 
+      gearsMinPwmSpeed = 0;
+    #endif
   #else 
     // logic for brushed drivers    
     CONSOLE.println("MOTOR_DRIVER_BRUSHLESS: no");
@@ -150,53 +167,18 @@ void AmMotorDriver::setMC33926(int pinDir, int pinPWM, int speed) {
 void AmMotorDriver::setBrushless(int pinDir, int pinPWM, int speed, bool isMowDriver) {
   //DEBUGLN(speed);
   if (isMowDriver){
-    // ----------------- mowing motor -------------
-    #ifdef MOTOR_DRIVER_BRUSHLESS_MOW_DRV8308 
-      // DRV8308
-      if (speed < 0) {
-        digitalWrite(pinDir, HIGH) ;
-        if (speed >= -2) speed = -2;                         
-        pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
-      } else {
-        digitalWrite(pinDir, LOW) ;
-        if (speed <= 2) speed = 2;                           
-        pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
-      }
-    #elif MOTOR_DRIVER_BRUSHLESS_MOW_A4931  // A4931 
-      if ((abs(speed) > 0) && (abs(speed) < 40)) speed = 40 * sign(speed); 
-      if (speed < 0) {
-        digitalWrite(pinDir, HIGH) ;
-        pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
-      } else {
-        digitalWrite(pinDir, LOW) ;
-        pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
-      }
-    #endif
-  } 
-  else {
-    // ----------- gears motor -------------------
-    #ifdef MOTOR_DRIVER_BRUSHLESS_GEARS_DRV8308 
-      // DRV8308
-      if (speed < 0) {
-        digitalWrite(pinDir, HIGH) ;
-        if (speed >= -2) speed = -2;                         
-        pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
-      } else {
-        digitalWrite(pinDir, LOW) ;
-        if (speed <= 2) speed = 2;                           
-        pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
-      }
-    #elif MOTOR_DRIVER_BRUSHLESS_GEARS_A4931  
-      // A4931 
-      if ((abs(speed) > 0) && (abs(speed) < 15)) speed = 15 * sign(speed); 
-      if (speed < 0) {
-        digitalWrite(pinDir, HIGH) ;
-        pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
-      } else {
-        digitalWrite(pinDir, LOW) ;
-        pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
-      }
-    #endif
+    // mowing motor driver
+    if (abs(speed) < mowMinPwmSpeed) speed = mowMinPwmSpeed * sign(speed);
+  } else {
+    // gear motors driver
+    if (abs(speed) < gearsMinPwmSpeed) speed = gearsMinPwmSpeed * sign(speed);  
+  }
+  if (speed < 0) {
+    digitalWrite(pinDir, HIGH) ;
+    pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
+  } else {
+    digitalWrite(pinDir, LOW) ;
+    pinMan.analogWrite(pinPWM, ((byte)abs(speed)));      
   }
 }
 
