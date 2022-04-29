@@ -22,8 +22,6 @@ volatile bool leftPressed = false;
 volatile bool rightPressed = false;
 
 
-bool faultActive  = LOW; 
-bool enableActive = LOW; 
 
 
 void AmRobotDriver::begin(){
@@ -61,6 +59,10 @@ void OdometryRightISR(){
 }
 
 AmMotorDriver::AmMotorDriver(){
+  faultActive  = LOW; 
+  enableActive = LOW; 
+  mowMinPwmSpeed=0;
+  gearsMinPwmSpeed=0; 
 }
     
 
@@ -92,6 +94,8 @@ void AmMotorDriver::begin(){
     CONSOLE.println("MOTOR_DRIVER_BRUSHLESS: no");
     faultActive  = LOW; 
     enableActive = HIGH; 
+    mowMinPwmSpeed = 0; 
+    gearsMinPwmSpeed = 0;
   #endif
 
   // left wheel motor
@@ -145,8 +149,15 @@ void AmMotorDriver::run(){
 // IN1 PinPWM         IN2 PinDir
 // PWM                L     Forward
 // nPWM               H     Reverse
-void AmMotorDriver::setMC33926(int pinDir, int pinPWM, int speed) {
+void AmMotorDriver::setMC33926(int pinDir, int pinPWM, int speed, bool isMowDriver) {
   //DEBUGLN(speed);
+  if (isMowDriver){
+    // mowing motor driver
+    if (abs(speed) < mowMinPwmSpeed) speed = mowMinPwmSpeed * sign(speed);
+  } else {
+    // gear motors driver
+    if (abs(speed) < gearsMinPwmSpeed) speed = gearsMinPwmSpeed * sign(speed);  
+  }
   if (speed < 0) {
     digitalWrite(pinDir, HIGH) ;
     pinMan.analogWrite(pinPWM, 255 - ((byte)abs(speed)));     
@@ -189,9 +200,9 @@ void AmMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
     setBrushless(pinMotorRightDir, pinMotorRightPWM, rightPwm, false);
     setBrushless(pinMotorMowDir, pinMotorMowPWM, mowPwm, true);
   #else
-    setMC33926(pinMotorLeftDir, pinMotorLeftPWM, leftPwm);
-    setMC33926(pinMotorRightDir, pinMotorRightPWM, rightPwm);
-    setMC33926(pinMotorMowDir, pinMotorMowPWM, mowPwm);
+    setMC33926(pinMotorLeftDir, pinMotorLeftPWM, leftPwm, false);
+    setMC33926(pinMotorRightDir, pinMotorRightPWM, rightPwm, false);
+    setMC33926(pinMotorMowDir, pinMotorMowPWM, mowPwm, true);
   #endif
 }
 

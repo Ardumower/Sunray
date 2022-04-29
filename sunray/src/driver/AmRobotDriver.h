@@ -33,7 +33,11 @@ class AmMotorDriver: public MotorDriver {
     void getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) override;
     void getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks) override;
   protected:
-    void setMC33926(int pinDir, int pinPWM, int speed);
+    bool faultActive; 
+    bool enableActive;
+    int mowMinPwmSpeed;
+    int gearsMinPwmSpeed; 
+    void setMC33926(int pinDir, int pinPWM, int speed, bool isMowDriver);
     void setBrushless(int pinDir, int pinPWM, int speed, bool isMowDriver);
 };
 
