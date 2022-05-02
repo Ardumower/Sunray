@@ -49,7 +49,7 @@
 #define log_e     _MLPrintLog 
 static inline int reg_int_cb(struct int_param_s *int_param)
 {
-	
+  return 0;
 }
 
 #if !defined MPU6050 && !defined MPU9150 && !defined MPU6500 && !defined MPU9250
