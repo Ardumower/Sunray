@@ -113,6 +113,9 @@ static void TC_SetCMR_ChannelB(Tc *tc, uint32_t chan, uint32_t v)
 // hardware support.  These are defined in the appropriate
 // pins_*.c file.  For the rest of the pins, we default
 // to digital output.
+
+// ( alternative libs:  https://github.com/adafruit/Adafruit_ZeroTimer/blob/master/Adafruit_ZeroTimer.cpp )
+
 void PinManager::analogWrite(uint32_t ulPin, uint32_t ulValue, byte pwmFreq) {
 
 // --- pwm frequency ---
