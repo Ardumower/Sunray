@@ -27,6 +27,7 @@
 // 5) if fault signal is active high (or low)
 // 6) if enable signal is active high (or low)
 // 7) if there is a minimum PWM speed to ensure (or zero)
+// 8) the PWM frequency it can work with
 
 struct DriverChip {
     char *driverName;       // name of driver (MC33926 etc.)
@@ -37,6 +38,7 @@ struct DriverChip {
     bool faultActive;       // level for fault active (LOW/HIGH)
     bool enableActive;      // level for enable active (LOW/HIGH)
     int minPwmSpeed;        // minimum PWM speed to ensure     
+    byte pwmFreq;           // PWM frequency (PWM_FREQ_3900 or PWM_FREQ_29300)
     //bool drivesMowingMotor; // drives mowing motor?    
 };
 

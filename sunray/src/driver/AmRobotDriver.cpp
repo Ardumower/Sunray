@@ -8,6 +8,8 @@
 #include "../../config.h"
 #include "../../helper.h"
 #include "../../robot.h"
+#include "../../pinman.h"
+
 
 #ifndef __linux__
 
@@ -70,6 +72,7 @@ AmMotorDriver::AmMotorDriver(){
   MC33926.faultActive = LOW;
   MC33926.enableActive = HIGH;
   MC33926.minPwmSpeed = 0;
+  MC33926.pwmFreq = PWM_FREQ_3900;
   
   // DRV8308 (https://www.ti.com/lit/ds/symlink/drv8308.pdf) - PwmFreqMax=30 khz
   DRV8308.driverName = "DRV8308";
@@ -80,6 +83,7 @@ AmMotorDriver::AmMotorDriver(){
   DRV8308.faultActive = LOW;
   DRV8308.enableActive = LOW;
   DRV8308.minPwmSpeed = 2;
+  DRV8308.pwmFreq = PWM_FREQ_29300;
 
   // A4931 (https://www.allegromicro.com/en/Products/Motor-Driver-And-Interface-ICs/Brushless-DC-Motor-Drivers/~/media/Files/Datasheets/A4931-Datasheet.ashx) - PwmFreqMax=30 kHz
   A4931.driverName = "A4931";
@@ -90,16 +94,18 @@ AmMotorDriver::AmMotorDriver(){
   A4931.faultActive = LOW;
   A4931.enableActive = LOW;
   A4931.minPwmSpeed = 15;    
+  A4931.pwmFreq = PWM_FREQ_29300;   
 
   // your custom brushed/brushless driver (ACT-8015A, JYQD_V7.3E3, etc.)
-  CUSTOM.driverName = "CUSTOM";
-  CUSTOM.forwardPwmInvert = false;
-  CUSTOM.forwardDirLevel = LOW;
-  CUSTOM.reversePwmInvert = false;
-  CUSTOM.reverseDirLevel = HIGH;
-  CUSTOM.faultActive = LOW;
-  CUSTOM.enableActive = LOW;
-  CUSTOM.minPwmSpeed = 0;
+  CUSTOM.driverName = "CUSTOM";    // just a name for your driver
+  CUSTOM.forwardPwmInvert = false; // invert PWM signal for forward? (false or true)
+  CUSTOM.forwardDirLevel = LOW;    // logic level for forward (LOW or HIGH)
+  CUSTOM.reversePwmInvert = false; // invert PWM signal for reverse? (false or true)
+  CUSTOM.reverseDirLevel = HIGH;   // logic level for reverse (LOW or HIGH)
+  CUSTOM.faultActive = LOW;        // fault active level (LOW or HIGH) 
+  CUSTOM.enableActive = LOW;       // enable active level (LOW or HIGH)
+  CUSTOM.minPwmSpeed = 0;          // minimum PWM speed your driver can operate
+  CUSTOM.pwmFreq = PWM_FREQ_3900;  // choose between PWM_FREQ_3900 and PWM_FREQ_29300 here   
 }
     
 
@@ -109,7 +115,6 @@ void AmMotorDriver::begin(){
     CONSOLE.println("MOTOR_DRIVER_BRUSHLESS: yes");    
 
     // All motors (gears, mow) are assigned individual motor drivers here.
-    // NOTE: currently all drivers use the same PWM frequency (set in pinman.cpp)
     // NOTE: you can adjust/override default motor driver parameters here if required for a certain motor!
     // example: mowDriverChip.minPwmSpeed = 40; 
 
@@ -199,17 +204,17 @@ void AmMotorDriver::setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip
     // reverse
     digitalWrite(pinDir, chip.reverseDirLevel) ;
     if (chip.reversePwmInvert) 
-      pinMan.analogWrite(pinPWM, 255 - ((byte)abs(speed)));  // nPWM (inverted pwm)
+      pinMan.analogWrite(pinPWM, 255 - ((byte)abs(speed)), chip.pwmFreq);  // nPWM (inverted pwm)
     else 
-      pinMan.analogWrite(pinPWM, ((byte)abs(speed)));       // PWM
+      pinMan.analogWrite(pinPWM, ((byte)abs(speed)), chip.pwmFreq);       // PWM
 
   } else {
     // forward
     digitalWrite(pinDir, chip.forwardDirLevel) ;
     if (chip.forwardPwmInvert) 
-      pinMan.analogWrite(pinPWM, 255 - ((byte)abs(speed)));  // nPWM (inverted pwm)
+      pinMan.analogWrite(pinPWM, 255 - ((byte)abs(speed)), chip.pwmFreq);  // nPWM (inverted pwm)
     else 
-      pinMan.analogWrite(pinPWM, ((byte)abs(speed)));       // PWM
+      pinMan.analogWrite(pinPWM, ((byte)abs(speed)), chip.pwmFreq);       // PWM
   }  
 }
 

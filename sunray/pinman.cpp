@@ -16,25 +16,6 @@
   #include "wiring_private.h"
 #endif  
 
-// --- pwm frequency ---
-#if defined(MOTOR_DRIVER_BRUSHLESS)  // ---- brushless motors use 29300 Hz ----- 
-  #if defined(__SAMD51__)
-    #define TCC_CTRLA_PRESCALER TCC_CTRLA_PRESCALER_DIV16     // PWM base frequency
-    #define TCC_TOP 0xFF                                      // PWM resolution
-  #elif defined(_SAM3XA_)
-    #define PWM_FREQUENCY  29300  
-    #define TC_FREQUENCY   29300
-  #endif
-#else  // --------- brushed motors use 3900 Hz ---------------
-  #if defined(__SAMD51__)
-    #define TCC_CTRLA_PRESCALER TCC_CTRLA_PRESCALER_DIV64     // PWM base frequency
-    #define TCC_TOP 0xFF                                       // PWM resolution
-  #elif defined(_SAM3XA_)
-    #define PWM_FREQUENCY  3900  
-    #define TC_FREQUENCY   3900
-  #endif
-
-#endif
 
 
 static uint8_t PWMEnabled = 0;
@@ -132,7 +113,36 @@ static void TC_SetCMR_ChannelB(Tc *tc, uint32_t chan, uint32_t v)
 // hardware support.  These are defined in the appropriate
 // pins_*.c file.  For the rest of the pins, we default
 // to digital output.
-void PinManager::analogWrite(uint32_t ulPin, uint32_t ulValue) {
+void PinManager::analogWrite(uint32_t ulPin, uint32_t ulValue, byte pwmFreq) {
+
+// --- pwm frequency ---
+#if defined(_SAM3XA_)
+  int pwmFrequency = 3900;  
+  int tcFrequency = 3900;
+  switch(pwmFreq){    
+    case PWM_FREQ_3900:
+      pwmFrequency = 3900;
+      tcFrequency = 3900;      
+      break;
+    case PWM_FREQ_29300:
+      pwmFrequency = 29300;
+      tcFrequency = 29300;
+      break;    
+  }
+#elif defined(__SAMD51__)
+  byte tcc_ctrla_prescaler = TCC_CTRLA_PRESCALER_DIV64;  // PWM base frequency
+  byte tccTop = 0xFF;  // PWM resolution
+  switch(pwmFreq){    
+    case PWM_FREQ_3900:
+      tcc_ctrla_prescaler = TCC_CTRLA_PRESCALER_DIV64;
+      tccTop = 0xFF;  
+      break;
+    case PWM_FREQ_29300:
+      tcc_ctrla_prescaler = TCC_CTRLA_PRESCALER_DIV16;
+      tccTop = 0xFF;  
+      break;    
+  }
+#endif
 
 
 #if defined(_SAM3XA_)
@@ -183,7 +193,7 @@ void PinManager::analogWrite(uint32_t ulPin, uint32_t ulValue) {
     if (!PWMEnabled) {
       // PWM Startup code
       pmc_enable_periph_clk(PWM_INTERFACE_ID);
-      PWMC_ConfigureClocks(PWM_FREQUENCY * PWM_MAX_DUTY_CYCLE, 0, VARIANT_MCK);
+      PWMC_ConfigureClocks(pwmFrequency * PWM_MAX_DUTY_CYCLE, 0, VARIANT_MCK);
       PWMEnabled = 1;
     }
     uint32_t chan = g_APinDescription[ulPin].ulPWMChannel;
@@ -205,7 +215,7 @@ void PinManager::analogWrite(uint32_t ulPin, uint32_t ulValue) {
 
   if ((attr & PIN_ATTR_TIMER) == PIN_ATTR_TIMER) {
     // We use MCLK/2 as clock.
-    const uint32_t TC = VARIANT_MCK / 2 / TC_FREQUENCY;
+    const uint32_t TC = VARIANT_MCK / 2 / tcFrequency;
 
     // Map value to Timer ranges 0..255 => 0..TC
     ulValue = mapResolution(ulValue, _writeResolution, TC_RESOLUTION);
@@ -385,7 +395,7 @@ void PinManager::analogWrite(uint32_t ulPin, uint32_t ulValue) {
         TCCx->CTRLA.bit.ENABLE = 0;
         while (TCCx->SYNCBUSY.bit.ENABLE);
         // Set prescaler to 1/256
-        TCCx->CTRLA.reg = TCC_CTRLA_PRESCALER | TCC_CTRLA_PRESCSYNC_GCLK;
+        TCCx->CTRLA.reg = tcc_ctrla_prescaler | TCC_CTRLA_PRESCSYNC_GCLK;
         // Set TCx as normal PWM
         TCCx->WAVE.reg = TCC_WAVE_WAVEGEN_NPWM;
         while ( TCCx->SYNCBUSY.bit.WAVE );
@@ -394,7 +404,7 @@ void PinManager::analogWrite(uint32_t ulPin, uint32_t ulValue) {
         TCCx->CC[tcChannel].reg = (uint32_t) ulValue;
         while (TCCx->SYNCBUSY.bit.CC0 || TCCx->SYNCBUSY.bit.CC1);
         // Set PER to maximum counter value (resolution : 0xFF)
-        TCCx->PER.reg = TCC_TOP;   
+        TCCx->PER.reg = tccTop;   
         while (TCCx->SYNCBUSY.bit.PER);
         // Enable TCCx
         TCCx->CTRLA.bit.ENABLE = 1;
