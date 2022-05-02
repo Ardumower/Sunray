@@ -91,7 +91,7 @@ AmMotorDriver::AmMotorDriver(){
   A4931.enableActive = LOW;
   A4931.minPwmSpeed = 15;    
 
-  // your custom brushless driver
+  // your custom brushed/brushless driver
   CUSTOM.driverName = "CUSTOM";
   CUSTOM.forwardPwmInvert = false;
   CUSTOM.forwardDirLevel = LOW;
