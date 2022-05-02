@@ -130,7 +130,7 @@ void PinManager::analogWrite(uint32_t ulPin, uint32_t ulValue, byte pwmFreq) {
       break;    
   }
 #elif defined(__SAMD51__)
-  byte tcc_ctrla_prescaler = TCC_CTRLA_PRESCALER_DIV64;  // PWM base frequency
+  int tcc_ctrla_prescaler = TCC_CTRLA_PRESCALER_DIV64;  // PWM base frequency
   byte tccTop = 0xFF;  // PWM resolution
   switch(pwmFreq){    
     case PWM_FREQ_3900:
