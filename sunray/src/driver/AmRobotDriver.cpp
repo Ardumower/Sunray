@@ -91,7 +91,7 @@ AmMotorDriver::AmMotorDriver(){
   A4931.enableActive = LOW;
   A4931.minPwmSpeed = 15;    
 
-  // your custom brushed/brushless driver
+  // your custom brushed/brushless driver (ACT-8015A, JYQD_V7.3E3, etc.)
   CUSTOM.driverName = "CUSTOM";
   CUSTOM.forwardPwmInvert = false;
   CUSTOM.forwardDirLevel = LOW;
@@ -114,7 +114,7 @@ void AmMotorDriver::begin(){
     // example: mowDriverChip.minPwmSpeed = 40; 
 
     #ifdef MOTOR_DRIVER_BRUSHLESS_MOW_DRV8308  
-      mowDriverChip = DRV8308;                         
+      mowDriverChip = DRV8308;                          
     #elif MOTOR_DRIVER_BRUSHLESS_MOW_A4931 
       mowDriverChip = A4931;
       mowDriverChip.minPwmSpeed = 40;
