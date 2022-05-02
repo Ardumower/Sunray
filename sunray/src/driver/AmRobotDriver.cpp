@@ -61,6 +61,7 @@ AmMotorDriver::AmMotorDriver(){
   
   // default values for all motor drivers (for parameters description, see AmRobotDriver.h)
   
+  // MC33926 (https://www.nxp.com/docs/en/data-sheet/MC33926.pdf) - PwmFreqMax=20 khz
   MC33926.driverName = "MC33926";
   MC33926.forwardPwmInvert = false;
   MC33926.forwardDirLevel = LOW;
@@ -69,7 +70,8 @@ AmMotorDriver::AmMotorDriver(){
   MC33926.faultActive = LOW;
   MC33926.enableActive = HIGH;
   MC33926.minPwmSpeed = 0;
-
+  
+  // DRV8308 (https://www.ti.com/lit/ds/symlink/drv8308.pdf) - PwmFreqMax=30 khz
   DRV8308.driverName = "DRV8308";
   DRV8308.forwardPwmInvert = false;
   DRV8308.forwardDirLevel = LOW;
@@ -79,6 +81,7 @@ AmMotorDriver::AmMotorDriver(){
   DRV8308.enableActive = LOW;
   DRV8308.minPwmSpeed = 2;
 
+  // A4931 (https://www.allegromicro.com/en/Products/Motor-Driver-And-Interface-ICs/Brushless-DC-Motor-Drivers/~/media/Files/Datasheets/A4931-Datasheet.ashx) - PwmFreqMax=30 kHz
   A4931.driverName = "A4931";
   A4931.forwardPwmInvert = false;
   A4931.forwardDirLevel = LOW;
@@ -88,6 +91,7 @@ AmMotorDriver::AmMotorDriver(){
   A4931.enableActive = LOW;
   A4931.minPwmSpeed = 15;    
 
+  // your custom brushless driver
   CUSTOM.driverName = "CUSTOM";
   CUSTOM.forwardPwmInvert = false;
   CUSTOM.forwardDirLevel = LOW;
@@ -104,6 +108,8 @@ void AmMotorDriver::begin(){
   #ifdef MOTOR_DRIVER_BRUSHLESS    
     CONSOLE.println("MOTOR_DRIVER_BRUSHLESS: yes");    
 
+    // All motors (gears, mow) are assigned individual motor drivers here.
+    // NOTE: currently all drivers use the same PWM frequency (set in pinman.cpp)
     // NOTE: you can adjust/override default motor driver parameters here if required for a certain motor!
     // example: mowDriverChip.minPwmSpeed = 40; 
 
