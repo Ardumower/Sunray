@@ -36,6 +36,7 @@ struct DriverChip {
     bool reversePwmInvert;  // reverse pin uses inverted pwm?
     bool reverseDirLevel;   // reverse pin level
     bool faultActive;       // level for fault active (LOW/HIGH)
+    bool resetFaultByToggleEnable; // reset a fault by toggling enable? 
     bool enableActive;      // level for enable active (LOW/HIGH)
     bool disableAtPwmZeroSpeed; // disable driver at PWM zero speed? (brake function)
     bool keepPwmZeroSpeed;  // keep zero PWM value (disregard minPwmSpeed at zero speed)?    

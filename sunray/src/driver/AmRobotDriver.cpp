@@ -70,6 +70,7 @@ AmMotorDriver::AmMotorDriver(){
   MC33926.reversePwmInvert = true;
   MC33926.reverseDirLevel = HIGH;
   MC33926.faultActive = LOW;
+  MC33926.resetFaultByToggleEnable = true;
   MC33926.enableActive = HIGH;
   MC33926.disableAtPwmZeroSpeed=false;  
   MC33926.keepPwmZeroSpeed = true;
@@ -86,6 +87,7 @@ AmMotorDriver::AmMotorDriver(){
   DRV8308.reversePwmInvert = false;
   DRV8308.reverseDirLevel = HIGH;
   DRV8308.faultActive = LOW;
+  DRV8308.resetFaultByToggleEnable = true;
   DRV8308.enableActive = LOW;
   DRV8308.disableAtPwmZeroSpeed=false;
   DRV8308.keepPwmZeroSpeed = false; // never go to zero PWM (driver requires a periodic signal)  
@@ -102,9 +104,10 @@ AmMotorDriver::AmMotorDriver(){
   A4931.reversePwmInvert = false;
   A4931.reverseDirLevel = LOW;
   A4931.faultActive = LOW;
-  A4931.enableActive = LOW;
+  A4931.resetFaultByToggleEnable = false;
+  A4931.enableActive = LOW;  // actually is driver brake
   A4931.disableAtPwmZeroSpeed=false;
-  A4931.keepPwmZeroSpeed = false;  
+  A4931.keepPwmZeroSpeed = true;  
   A4931.minPwmSpeed = 5;    
   A4931.pwmFreq = PWM_FREQ_29300;   
   A4931.adcVoltToAmpOfs = -1.65;
@@ -117,7 +120,8 @@ AmMotorDriver::AmMotorDriver(){
   CUSTOM.forwardDirLevel = LOW;    // logic level for forward (LOW or HIGH)
   CUSTOM.reversePwmInvert = false; // invert PWM signal for reverse? (false or true)
   CUSTOM.reverseDirLevel = HIGH;   // logic level for reverse (LOW or HIGH)
-  CUSTOM.faultActive = LOW;        // fault active level (LOW or HIGH) 
+  CUSTOM.faultActive = LOW;        // fault active level (LOW or HIGH)
+  CUSTOM.resetFaultByToggleEnable = false; // reset a fault by toggling enable? 
   CUSTOM.enableActive = LOW;       // enable active level (LOW or HIGH)
   CUSTOM.disableAtPwmZeroSpeed=false;  // disable driver at PWM zero speed? (brake function)
   CUSTOM.keepPwmZeroSpeed = true;  // keep PWM zero value (disregard minPwmSpeed at zero speed)?
@@ -293,18 +297,24 @@ void AmMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &mowF
   }
 }
 
-void AmMotorDriver::resetMotorFaults(){
+void AmMotorDriver::resetMotorFaults(){  
   if (digitalRead(pinMotorLeftFault) == gearsDriverChip.faultActive) {
-    digitalWrite(pinMotorEnable, !gearsDriverChip.enableActive);
-    digitalWrite(pinMotorEnable, gearsDriverChip.enableActive);
+    if (gearsDriverChip.resetFaultByToggleEnable){
+      digitalWrite(pinMotorEnable, !gearsDriverChip.enableActive);
+      digitalWrite(pinMotorEnable, gearsDriverChip.enableActive);
+    }
   }
   if  (digitalRead(pinMotorRightFault) == gearsDriverChip.faultActive) {
-    digitalWrite(pinMotorEnable, !gearsDriverChip.enableActive);
-    digitalWrite(pinMotorEnable, gearsDriverChip.enableActive);
+    if (gearsDriverChip.resetFaultByToggleEnable){
+      digitalWrite(pinMotorEnable, !gearsDriverChip.enableActive);
+      digitalWrite(pinMotorEnable, gearsDriverChip.enableActive);
+    }
   }
   if (digitalRead(pinMotorMowFault) == mowDriverChip.faultActive) {
-    digitalWrite(pinMotorMowEnable, !mowDriverChip.enableActive);
-    digitalWrite(pinMotorMowEnable, mowDriverChip.enableActive);
+    if (mowDriverChip.resetFaultByToggleEnable){
+      digitalWrite(pinMotorMowEnable, !mowDriverChip.enableActive);
+      digitalWrite(pinMotorMowEnable, mowDriverChip.enableActive);
+    }
   }
 }
 
