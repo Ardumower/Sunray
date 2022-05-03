@@ -41,6 +41,7 @@ struct DriverChip {
     byte pwmFreq;           // PWM frequency (PWM_FREQ_3900 or PWM_FREQ_29300)
     float adcVoltToAmpOfs;  // ADC voltage to amps (offset)
     float adcVoltToAmpScale; // ADC voltage to amps (scale)
+    float adcVoltToAmpPow;   // ADC voltage to amps (power of number)
     //bool drivesMowingMotor; // drives mowing motor?    
 };
 

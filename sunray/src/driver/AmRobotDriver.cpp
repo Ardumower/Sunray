@@ -75,7 +75,8 @@ AmMotorDriver::AmMotorDriver(){
   MC33926.pwmFreq = PWM_FREQ_3900;
   MC33926.adcVoltToAmpOfs = 0;
   MC33926.adcVoltToAmpScale = 1.905 * 2; // ADC voltage to amp for 2 drivers connected in parallel
-  
+  MC33926.adcVoltToAmpPow = 1.0;
+
   // DRV8308 (https://www.ti.com/lit/ds/symlink/drv8308.pdf) - PwmFreqMax=30 khz
   DRV8308.driverName = "DRV8308";
   DRV8308.forwardPwmInvert = false;
@@ -88,6 +89,7 @@ AmMotorDriver::AmMotorDriver(){
   DRV8308.pwmFreq = PWM_FREQ_29300;
   DRV8308.adcVoltToAmpOfs = -1.65;
   DRV8308.adcVoltToAmpScale = 7.57; 
+  DRV8308.adcVoltToAmpPow = 1.0; 
 
   // A4931 (https://www.allegromicro.com/en/Products/Motor-Driver-And-Interface-ICs/Brushless-DC-Motor-Drivers/~/media/Files/Datasheets/A4931-Datasheet.ashx) - PwmFreqMax=30 kHz
   A4931.driverName = "A4931";
@@ -99,8 +101,9 @@ AmMotorDriver::AmMotorDriver(){
   A4931.enableActive = LOW;
   A4931.minPwmSpeed = 15;    
   A4931.pwmFreq = PWM_FREQ_29300;   
-  A4931.adcVoltToAmpOfs = -1.65;
-  A4931.adcVoltToAmpScale = 7.57; 
+  A4931.adcVoltToAmpOfs = 0;
+  A4931.adcVoltToAmpScale = 0.25;
+  A4931.adcVoltToAmpPow = 0.333; 
 
   // your custom brushed/brushless driver (ACT-8015A, JYQD_V7.3E3, etc.)
   CUSTOM.driverName = "CUSTOM";    // just a name for your driver
@@ -114,6 +117,7 @@ AmMotorDriver::AmMotorDriver(){
   CUSTOM.pwmFreq = PWM_FREQ_3900;  // choose between PWM_FREQ_3900 and PWM_FREQ_29300 here   
   CUSTOM.adcVoltToAmpOfs = 0;      // ADC voltage to amps (offset)
   CUSTOM.adcVoltToAmpScale = 1.00; // ADC voltage to amps (scale)
+  CUSTOM.adcVoltToAmpPow = 1.0;    // ADC voltage to amps (power of number)
 }
     
 
@@ -131,6 +135,7 @@ void AmMotorDriver::begin(){
     #elif MOTOR_DRIVER_BRUSHLESS_MOW_A4931 
       mowDriverChip = A4931;
       mowDriverChip.minPwmSpeed = 40;
+      mowDriverChip.adcVoltToAmpScale = 0.5;  
     #else 
       mowDriverChip = CUSTOM;
     #endif
@@ -262,9 +267,15 @@ void AmMotorDriver::resetMotorFaults(){
 }
 
 void AmMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent){
-  leftCurrent = (((float)ADC2voltage(analogRead(pinMotorLeftSense))) + gearsDriverChip.adcVoltToAmpOfs) * gearsDriverChip.adcVoltToAmpScale;
-  rightCurrent = (((float)ADC2voltage(analogRead(pinMotorRightSense))) + gearsDriverChip.adcVoltToAmpOfs) * gearsDriverChip.adcVoltToAmpScale;
-  mowCurrent = (((float)ADC2voltage(analogRead(pinMotorMowSense))) + mowDriverChip.adcVoltToAmpOfs) * mowDriverChip.adcVoltToAmpScale; 
+  leftCurrent = pow(
+      ((float)ADC2voltage(analogRead(pinMotorLeftSense))) + gearsDriverChip.adcVoltToAmpOfs, gearsDriverChip.adcVoltToAmpPow
+      )  * gearsDriverChip.adcVoltToAmpScale;
+  rightCurrent = pow(
+      ((float)ADC2voltage(analogRead(pinMotorRightSense))) + gearsDriverChip.adcVoltToAmpOfs, gearsDriverChip.adcVoltToAmpPow
+      )  * gearsDriverChip.adcVoltToAmpScale;
+  mowCurrent = pow(
+            ((float)ADC2voltage(analogRead(pinMotorMowSense))) + mowDriverChip.adcVoltToAmpOfs, mowDriverChip.adcVoltToAmpPow
+      )  * mowDriverChip.adcVoltToAmpScale; 
 }
 
 void AmMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
