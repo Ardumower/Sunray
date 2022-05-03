@@ -262,8 +262,19 @@ void AmMotorDriver::setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip
   }  
 }
 
+static int lastLeftPwm = 0;
+static int lastRightPwm = 0;
+
     
 void AmMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  
+  int deltaLeftPwm = leftPwm-lastLeftPwm;
+  leftPwm = leftPwm + min(1, max(-1, deltaLeftPwm));
+  lastLeftPwm = leftPwm;
+  
+  int deltaRightPwm = rightPwm-lastRightPwm;
+  rightPwm = rightPwm + min(1, max(-1, deltaRightPwm));
+  lastRightPwm = rightPwm;
+  
   setMotorDriver(pinMotorLeftDir, pinMotorLeftPWM, leftPwm, gearsDriverChip);
   setMotorDriver(pinMotorRightDir, pinMotorRightPWM, rightPwm, gearsDriverChip);
   setMotorDriver(pinMotorMowDir, pinMotorMowPWM, mowPwm, mowDriverChip);
