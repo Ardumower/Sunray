@@ -112,7 +112,7 @@ AmMotorDriver::AmMotorDriver(){
   A4931.disableAtPwmZeroSpeed=false;
   A4931.keepPwmZeroSpeed = true;  
   A4931.minPwmSpeed = 0;    
-  A4931.pwmFreq = PWM_FREQ_29300;   
+  A4931.pwmFreq = PWM_FREQ_3900;   
   A4931.adcVoltToAmpOfs = -1.65;
   A4931.adcVoltToAmpScale = 7.57;
   A4931.adcVoltToAmpPow = 1.0; 
