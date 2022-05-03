@@ -71,6 +71,7 @@ AmMotorDriver::AmMotorDriver(){
   MC33926.reverseDirLevel = HIGH;
   MC33926.faultActive = LOW;
   MC33926.enableActive = HIGH;
+  MC33926.keepPwmZeroSpeed = true;
   MC33926.minPwmSpeed = 0;
   MC33926.pwmFreq = PWM_FREQ_3900;
   MC33926.adcVoltToAmpOfs = 0;
@@ -85,6 +86,7 @@ AmMotorDriver::AmMotorDriver(){
   DRV8308.reverseDirLevel = HIGH;
   DRV8308.faultActive = LOW;
   DRV8308.enableActive = LOW;
+  DRV8308.keepPwmZeroSpeed = false; // never go to zero PWM (driver requires a periodic signal)  
   DRV8308.minPwmSpeed = 2;
   DRV8308.pwmFreq = PWM_FREQ_29300;
   DRV8308.adcVoltToAmpOfs = -1.65;
@@ -99,11 +101,12 @@ AmMotorDriver::AmMotorDriver(){
   A4931.reverseDirLevel = HIGH;
   A4931.faultActive = LOW;
   A4931.enableActive = LOW;
+  A4931.keepPwmZeroSpeed = true;  
   A4931.minPwmSpeed = 15;    
   A4931.pwmFreq = PWM_FREQ_29300;   
-  A4931.adcVoltToAmpOfs = 0;
-  A4931.adcVoltToAmpScale = 0.25;
-  A4931.adcVoltToAmpPow = 0.333; 
+  A4931.adcVoltToAmpOfs = -1.65;
+  A4931.adcVoltToAmpScale = 7.57;
+  A4931.adcVoltToAmpPow = 1.0; 
 
   // your custom brushed/brushless driver (ACT-8015A, JYQD_V7.3E3, etc.)
   CUSTOM.driverName = "CUSTOM";    // just a name for your driver
@@ -113,6 +116,7 @@ AmMotorDriver::AmMotorDriver(){
   CUSTOM.reverseDirLevel = HIGH;   // logic level for reverse (LOW or HIGH)
   CUSTOM.faultActive = LOW;        // fault active level (LOW or HIGH) 
   CUSTOM.enableActive = LOW;       // enable active level (LOW or HIGH)
+  CUSTOM.keepPwmZeroSpeed = true;  // keep PWM zero value (disregard minPwmSpeed at zero speed)?
   CUSTOM.minPwmSpeed = 0;          // minimum PWM speed your driver can operate
   CUSTOM.pwmFreq = PWM_FREQ_3900;  // choose between PWM_FREQ_3900 and PWM_FREQ_29300 here   
   CUSTOM.adcVoltToAmpOfs = 0;      // ADC voltage to amps (offset)
@@ -209,9 +213,13 @@ void AmMotorDriver::run(){
 
 void AmMotorDriver::setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip &chip) {
   //DEBUGLN(speed);
-  // verhindert dass das PWM Signal 0 wird. Der Driver braucht einen kurzen Impuls um das PWM zu erkennen.
-  // Wenn der z.B. vom max. PWM Wert auf 0 bzw. das Signal auf Low geht, behält er den vorherigen Wert bei und der Motor stoppt nicht
-  if (abs(speed) < chip.minPwmSpeed) speed = chip.minPwmSpeed * sign(speed);
+  if ((speed == 0) && (chip.keepPwmZeroSpeed)) {
+    // driver does not require periodic signal at zero speed, we can output 'silence' for zero speed
+  } else {
+    // verhindert dass das PWM Signal 0 wird. Der Driver braucht einen kurzen Impuls um das PWM zu erkennen.
+    // Wenn der z.B. vom max. PWM Wert auf 0 bzw. das Signal auf Low geht, behält er den vorherigen Wert bei und der Motor stoppt nicht
+    if (abs(speed) < chip.minPwmSpeed) speed = chip.minPwmSpeed * sign(speed);  
+  }
   
   if (speed < 0) {    
     // reverse

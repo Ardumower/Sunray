@@ -37,6 +37,7 @@ struct DriverChip {
     bool reverseDirLevel;   // reverse pin level
     bool faultActive;       // level for fault active (LOW/HIGH)
     bool enableActive;      // level for enable active (LOW/HIGH)
+    bool keepPwmZeroSpeed;  // keep zero PWM value (disregard minPwmSpeed at zero speed)?
     int minPwmSpeed;        // minimum PWM speed to ensure     
     byte pwmFreq;           // PWM frequency (PWM_FREQ_3900 or PWM_FREQ_29300)
     float adcVoltToAmpOfs;  // ADC voltage to amps (offset)
