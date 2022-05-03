@@ -71,6 +71,7 @@ AmMotorDriver::AmMotorDriver(){
   MC33926.reverseDirLevel = HIGH;
   MC33926.faultActive = LOW;
   MC33926.enableActive = HIGH;
+  MC33926.disableAtPwmZeroSpeed=false;  
   MC33926.keepPwmZeroSpeed = true;
   MC33926.minPwmSpeed = 0;
   MC33926.pwmFreq = PWM_FREQ_3900;
@@ -86,6 +87,7 @@ AmMotorDriver::AmMotorDriver(){
   DRV8308.reverseDirLevel = HIGH;
   DRV8308.faultActive = LOW;
   DRV8308.enableActive = LOW;
+  DRV8308.disableAtPwmZeroSpeed=false;
   DRV8308.keepPwmZeroSpeed = false; // never go to zero PWM (driver requires a periodic signal)  
   DRV8308.minPwmSpeed = 2;
   DRV8308.pwmFreq = PWM_FREQ_29300;
@@ -96,11 +98,12 @@ AmMotorDriver::AmMotorDriver(){
   // A4931 (https://www.allegromicro.com/en/Products/Motor-Driver-And-Interface-ICs/Brushless-DC-Motor-Drivers/~/media/Files/Datasheets/A4931-Datasheet.ashx) - PwmFreqMax=30 kHz
   A4931.driverName = "A4931";
   A4931.forwardPwmInvert = false;
-  A4931.forwardDirLevel = LOW;
+  A4931.forwardDirLevel = HIGH;
   A4931.reversePwmInvert = false;
-  A4931.reverseDirLevel = HIGH;
+  A4931.reverseDirLevel = LOW;
   A4931.faultActive = LOW;
   A4931.enableActive = LOW;
+  A4931.disableAtPwmZeroSpeed=true;
   A4931.keepPwmZeroSpeed = true;  
   A4931.minPwmSpeed = 15;    
   A4931.pwmFreq = PWM_FREQ_29300;   
@@ -116,6 +119,7 @@ AmMotorDriver::AmMotorDriver(){
   CUSTOM.reverseDirLevel = HIGH;   // logic level for reverse (LOW or HIGH)
   CUSTOM.faultActive = LOW;        // fault active level (LOW or HIGH) 
   CUSTOM.enableActive = LOW;       // enable active level (LOW or HIGH)
+  CUSTOM.disableAtPwmZeroSpeed=false;  // disable driver at PWM zero speed? (brake function)
   CUSTOM.keepPwmZeroSpeed = true;  // keep PWM zero value (disregard minPwmSpeed at zero speed)?
   CUSTOM.minPwmSpeed = 0;          // minimum PWM speed your driver can operate
   CUSTOM.pwmFreq = PWM_FREQ_3900;  // choose between PWM_FREQ_3900 and PWM_FREQ_29300 here   
@@ -213,7 +217,7 @@ void AmMotorDriver::run(){
 void AmMotorDriver::setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip &chip) {
   //DEBUGLN(speed);
   if ((speed == 0) && (chip.keepPwmZeroSpeed)) {
-    // driver does not require periodic signal at zero speed, we can output 'silence' for zero speed
+    // driver does not require periodic signal at zero speed, we can output 'silence' for zero speed    
   } else {
     // verhindert dass das PWM Signal 0 wird. Der Driver braucht einen kurzen Impuls um das PWM zu erkennen.
     // Wenn der z.B. vom max. PWM Wert auf 0 bzw. das Signal auf Low geht, behält er den vorherigen Wert bei und der Motor stoppt nicht
@@ -239,7 +243,21 @@ void AmMotorDriver::setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip
 }
 
     
-void AmMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
+void AmMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  
+  bool enableGears = gearsDriverChip.enableActive;
+  bool enableMow = mowDriverChip.enableActive;  
+  if ((leftPwm == 0) && (rightPwm == 0)){
+    if (gearsDriverChip.disableAtPwmZeroSpeed){
+      enableGears = !gearsDriverChip.enableActive;            
+    }
+  } 
+  if (mowPwm == 0) {
+    if (mowDriverChip.disableAtPwmZeroSpeed){
+      enableMow = !mowDriverChip.enableActive;
+    }
+  }  
+  digitalWrite(pinMotorEnable, enableGears);
+  digitalWrite(pinMotorMowEnable, enableMow);
   setMotorDriver(pinMotorLeftDir, pinMotorLeftPWM, leftPwm, gearsDriverChip);
   setMotorDriver(pinMotorRightDir, pinMotorRightPWM, rightPwm, gearsDriverChip);
   setMotorDriver(pinMotorMowDir, pinMotorMowPWM, mowPwm, mowDriverChip);
