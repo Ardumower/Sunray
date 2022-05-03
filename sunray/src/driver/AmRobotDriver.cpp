@@ -43,14 +43,14 @@ void AmRobotDriver::run(){
 void OdometryLeftISR(){			
   if (digitalRead(pinOdometryLeft) == LOW) return;
   if (millis() < motorLeftTicksTimeout) return; // eliminate spikes
-  motorLeftTicksTimeout = millis() + 3;    
+  motorLeftTicksTimeout = millis() + 2;    
   odomTicksLeft++;    
 }
 
 void OdometryRightISR(){			
   if (digitalRead(pinOdometryRight) == LOW) return;
   if (millis() < motorRightTicksTimeout) return; // eliminate spikes
-  motorRightTicksTimeout = millis() + 3;
+  motorRightTicksTimeout = millis() + 2;
   odomTicksRight++;  
   
   #ifdef TEST_PIN_ODOMETRY
