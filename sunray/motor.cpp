@@ -661,6 +661,7 @@ void Motor::test(){
 void Motor::plot(){
   CONSOLE.println("motor plot - NOTE: Start Arduino IDE Tools->Serial Plotter (CTRL+SHIFT+L)");
   delay(5000);
+  CONSOLE.println("pwmLeft,pwmRight,ticksLeft,ticksRight");
   motorLeftTicks = 0;  
   motorRightTicks = 0;  
   int pwmLeft = 0;
