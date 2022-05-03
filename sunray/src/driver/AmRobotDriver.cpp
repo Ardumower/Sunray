@@ -103,9 +103,9 @@ AmMotorDriver::AmMotorDriver(){
   A4931.reverseDirLevel = LOW;
   A4931.faultActive = LOW;
   A4931.enableActive = LOW;
-  A4931.disableAtPwmZeroSpeed=true;
-  A4931.keepPwmZeroSpeed = true;  
-  A4931.minPwmSpeed = 15;    
+  A4931.disableAtPwmZeroSpeed=false;
+  A4931.keepPwmZeroSpeed = false;  
+  A4931.minPwmSpeed = 5;    
   A4931.pwmFreq = PWM_FREQ_29300;   
   A4931.adcVoltToAmpOfs = -1.65;
   A4931.adcVoltToAmpScale = 7.57;
@@ -142,7 +142,9 @@ void AmMotorDriver::begin(){
       mowDriverChip = DRV8308;                          
     #elif MOTOR_DRIVER_BRUSHLESS_MOW_A4931 
       mowDriverChip = A4931;
-      mowDriverChip.minPwmSpeed = 40;  
+      mowDriverChip.minPwmSpeed = 40;
+      mowDriverChip.keepPwmZeroSpeed = true;
+      mowDriverChip.disableAtPwmZeroSpeed = true;  
     #else 
       mowDriverChip = CUSTOM;
     #endif
@@ -216,6 +218,8 @@ void AmMotorDriver::run(){
 
 void AmMotorDriver::setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip &chip) {
   //DEBUGLN(speed);
+  bool reverse = (speed < 0);    
+  
   if ((speed == 0) && (chip.keepPwmZeroSpeed)) {
     // driver does not require periodic signal at zero speed, we can output 'silence' for zero speed    
   } else {
@@ -224,7 +228,13 @@ void AmMotorDriver::setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip
     if (abs(speed) < chip.minPwmSpeed) speed = chip.minPwmSpeed * sign(speed);  
   }
   
-  if (speed < 0) {    
+  if (reverse) {  
+    //CONSOLE.print("reverse ");
+    //CONSOLE.print(pinDir);
+    //CONSOLE.print(",");
+    //CONSOLE.print(pinPWM);
+    //CONSOLE.print(",");
+    //CONSOLE.println(speed);    
     // reverse
     digitalWrite(pinDir, chip.reverseDirLevel) ;
     if (chip.reversePwmInvert) 
@@ -233,6 +243,12 @@ void AmMotorDriver::setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip
       pinMan.analogWrite(pinPWM, ((byte)abs(speed)), chip.pwmFreq);       // PWM
 
   } else {
+    //CONSOLE.print("forward ");
+    //CONSOLE.print(pinDir);
+    //CONSOLE.print(",");
+    //CONSOLE.print(pinPWM);
+    //CONSOLE.print(",");
+    //CONSOLE.println(speed);    
     // forward
     digitalWrite(pinDir, chip.forwardDirLevel) ;
     if (chip.forwardPwmInvert) 
