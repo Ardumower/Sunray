@@ -138,8 +138,7 @@ void AmMotorDriver::begin(){
       mowDriverChip = DRV8308;                          
     #elif MOTOR_DRIVER_BRUSHLESS_MOW_A4931 
       mowDriverChip = A4931;
-      mowDriverChip.minPwmSpeed = 40;
-      mowDriverChip.adcVoltToAmpScale = 0.5;  
+      mowDriverChip.minPwmSpeed = 40;  
     #else 
       mowDriverChip = CUSTOM;
     #endif
