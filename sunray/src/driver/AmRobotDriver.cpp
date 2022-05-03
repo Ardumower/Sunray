@@ -256,11 +256,11 @@ void AmMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
       enableMow = !mowDriverChip.enableActive;
     }
   }  
-  digitalWrite(pinMotorEnable, enableGears);
-  digitalWrite(pinMotorMowEnable, enableMow);
   setMotorDriver(pinMotorLeftDir, pinMotorLeftPWM, leftPwm, gearsDriverChip);
   setMotorDriver(pinMotorRightDir, pinMotorRightPWM, rightPwm, gearsDriverChip);
   setMotorDriver(pinMotorMowDir, pinMotorMowPWM, mowPwm, mowDriverChip);
+  digitalWrite(pinMotorEnable, enableGears);
+  digitalWrite(pinMotorMowEnable, enableMow);
 }
 
 
