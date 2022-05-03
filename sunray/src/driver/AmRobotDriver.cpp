@@ -105,10 +105,10 @@ AmMotorDriver::AmMotorDriver(){
   A4931.reverseDirLevel = LOW;
   A4931.faultActive = LOW;
   A4931.resetFaultByToggleEnable = false;
-  A4931.enableActive = LOW;  // actually is driver brake
+  A4931.enableActive = LOW;  // 'enable' actually is driver brake
   A4931.disableAtPwmZeroSpeed=false;
   A4931.keepPwmZeroSpeed = true;  
-  A4931.minPwmSpeed = 5;    
+  A4931.minPwmSpeed = 0;    
   A4931.pwmFreq = PWM_FREQ_29300;   
   A4931.adcVoltToAmpOfs = -1.65;
   A4931.adcVoltToAmpScale = 7.57;
@@ -264,24 +264,26 @@ void AmMotorDriver::setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip
 
     
 void AmMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  
-  bool enableGears = gearsDriverChip.enableActive;
-  bool enableMow = mowDriverChip.enableActive;  
-  if ((leftPwm == 0) && (rightPwm == 0)){
-    if (gearsDriverChip.disableAtPwmZeroSpeed){
-      enableGears = !gearsDriverChip.enableActive;            
-    }
-  } 
-  if (mowPwm == 0) {
-    if (mowDriverChip.disableAtPwmZeroSpeed){
-      enableMow = !mowDriverChip.enableActive;
-    }
-  }  
   setMotorDriver(pinMotorLeftDir, pinMotorLeftPWM, leftPwm, gearsDriverChip);
   setMotorDriver(pinMotorRightDir, pinMotorRightPWM, rightPwm, gearsDriverChip);
   setMotorDriver(pinMotorMowDir, pinMotorMowPWM, mowPwm, mowDriverChip);
-  // disable driver at zero speed (brake function)
-  digitalWrite(pinMotorEnable, enableGears);
-  digitalWrite(pinMotorMowEnable, enableMow);
+  // disable driver at zero speed (brake function)    
+  bool enableGears = gearsDriverChip.enableActive;
+  bool enableMow = mowDriverChip.enableActive;  
+  if (gearsDriverChip.disableAtPwmZeroSpeed){  
+    if ((leftPwm == 0) && (rightPwm == 0)){
+      enableGears = !gearsDriverChip.enableActive;                
+    }
+    digitalWrite(pinMotorEnable, enableGears);
+  }
+  if (mowDriverChip.disableAtPwmZeroSpeed){ 
+    if (mowPwm == 0) {
+      if (mowDriverChip.disableAtPwmZeroSpeed){
+        enableMow = !mowDriverChip.enableActive;
+      }
+    }      
+    digitalWrite(pinMotorMowEnable, enableMow);
+  }  
 }
 
 
