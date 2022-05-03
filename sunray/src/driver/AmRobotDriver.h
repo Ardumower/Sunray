@@ -39,6 +39,8 @@ struct DriverChip {
     bool enableActive;      // level for enable active (LOW/HIGH)
     int minPwmSpeed;        // minimum PWM speed to ensure     
     byte pwmFreq;           // PWM frequency (PWM_FREQ_3900 or PWM_FREQ_29300)
+    float adcVoltToAmpOfs;  // ADC voltage to amps (offset)
+    float adcVoltToAmpScale; // ADC voltage to amps (scale)
     //bool drivesMowingMotor; // drives mowing motor?    
 };
 

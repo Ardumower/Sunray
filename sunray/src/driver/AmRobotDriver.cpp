@@ -60,7 +60,7 @@ void OdometryRightISR(){
 }
 
 AmMotorDriver::AmMotorDriver(){
-  
+
   // default values for all motor drivers (for parameters description, see AmRobotDriver.h)
   
   // MC33926 (https://www.nxp.com/docs/en/data-sheet/MC33926.pdf) - PwmFreqMax=20 khz
@@ -73,6 +73,8 @@ AmMotorDriver::AmMotorDriver(){
   MC33926.enableActive = HIGH;
   MC33926.minPwmSpeed = 0;
   MC33926.pwmFreq = PWM_FREQ_3900;
+  MC33926.adcVoltToAmpOfs = 0;
+  MC33926.adcVoltToAmpScale = 1.905 * 2; // ADC voltage to amp for 2 drivers connected in parallel
   
   // DRV8308 (https://www.ti.com/lit/ds/symlink/drv8308.pdf) - PwmFreqMax=30 khz
   DRV8308.driverName = "DRV8308";
@@ -84,6 +86,8 @@ AmMotorDriver::AmMotorDriver(){
   DRV8308.enableActive = LOW;
   DRV8308.minPwmSpeed = 2;
   DRV8308.pwmFreq = PWM_FREQ_29300;
+  DRV8308.adcVoltToAmpOfs = -1.65;
+  DRV8308.adcVoltToAmpScale = 7.57; 
 
   // A4931 (https://www.allegromicro.com/en/Products/Motor-Driver-And-Interface-ICs/Brushless-DC-Motor-Drivers/~/media/Files/Datasheets/A4931-Datasheet.ashx) - PwmFreqMax=30 kHz
   A4931.driverName = "A4931";
@@ -95,6 +99,8 @@ AmMotorDriver::AmMotorDriver(){
   A4931.enableActive = LOW;
   A4931.minPwmSpeed = 15;    
   A4931.pwmFreq = PWM_FREQ_29300;   
+  A4931.adcVoltToAmpOfs = -1.65;
+  A4931.adcVoltToAmpScale = 7.57; 
 
   // your custom brushed/brushless driver (ACT-8015A, JYQD_V7.3E3, etc.)
   CUSTOM.driverName = "CUSTOM";    // just a name for your driver
@@ -106,6 +112,8 @@ AmMotorDriver::AmMotorDriver(){
   CUSTOM.enableActive = LOW;       // enable active level (LOW or HIGH)
   CUSTOM.minPwmSpeed = 0;          // minimum PWM speed your driver can operate
   CUSTOM.pwmFreq = PWM_FREQ_3900;  // choose between PWM_FREQ_3900 and PWM_FREQ_29300 here   
+  CUSTOM.adcVoltToAmpOfs = -1.65;  // ADC voltage to amps (offset)
+  CUSTOM.adcVoltToAmpScale = 7.57; // ADC voltage to amps (scale)
 }
     
 
@@ -254,18 +262,9 @@ void AmMotorDriver::resetMotorFaults(){
 }
 
 void AmMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent){
-    float offset      = -1.65;
-    #ifdef MOTOR_DRIVER_BRUSHLESS
-      float scale       = 7.57;   // ADC voltage to amp      
-      leftCurrent = (((float)ADC2voltage(analogRead(pinMotorLeftSense))) + offset) *scale;
-      rightCurrent = (((float)ADC2voltage(analogRead(pinMotorRightSense))) + offset) *scale;
-      mowCurrent = (((float)ADC2voltage(analogRead(pinMotorMowSense))) + offset) *scale; 
-    #else
-      float scale       = 1.905;   // ADC voltage to amp      
-      leftCurrent = ((float)ADC2voltage(analogRead(pinMotorLeftSense))) *scale;
-      rightCurrent = ((float)ADC2voltage(analogRead(pinMotorRightSense))) *scale;
-      mowCurrent = ((float)ADC2voltage(analogRead(pinMotorMowSense))) *scale  *2;	          
-    #endif
+  leftCurrent = (((float)ADC2voltage(analogRead(pinMotorLeftSense))) + gearsDriverChip.adcVoltToAmpOfs) * gearsDriverChip.adcVoltToAmpScale;
+  rightCurrent = (((float)ADC2voltage(analogRead(pinMotorRightSense))) + gearsDriverChip.adcVoltToAmpOfs) * gearsDriverChip.adcVoltToAmpScale;
+  mowCurrent = (((float)ADC2voltage(analogRead(pinMotorMowSense))) + mowDriverChip.adcVoltToAmpOfs) * mowDriverChip.adcVoltToAmpScale; 
 }
 
 void AmMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
