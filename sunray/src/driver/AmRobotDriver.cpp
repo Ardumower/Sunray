@@ -112,8 +112,8 @@ AmMotorDriver::AmMotorDriver(){
   CUSTOM.enableActive = LOW;       // enable active level (LOW or HIGH)
   CUSTOM.minPwmSpeed = 0;          // minimum PWM speed your driver can operate
   CUSTOM.pwmFreq = PWM_FREQ_3900;  // choose between PWM_FREQ_3900 and PWM_FREQ_29300 here   
-  CUSTOM.adcVoltToAmpOfs = -1.65;  // ADC voltage to amps (offset)
-  CUSTOM.adcVoltToAmpScale = 7.57; // ADC voltage to amps (scale)
+  CUSTOM.adcVoltToAmpOfs = 0;      // ADC voltage to amps (offset)
+  CUSTOM.adcVoltToAmpScale = 1.00; // ADC voltage to amps (scale)
 }
     
 
