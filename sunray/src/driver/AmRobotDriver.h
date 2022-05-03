@@ -35,6 +35,7 @@ struct DriverChip {
     bool forwardDirLevel;   // forward pin level
     bool reversePwmInvert;  // reverse pin uses inverted pwm?
     bool reverseDirLevel;   // reverse pin level
+    bool usePwmRamp;        // use a ramp to get to PWM value?
     bool faultActive;       // level for fault active (LOW/HIGH)
     bool resetFaultByToggleEnable; // reset a fault by toggling enable? 
     bool enableActive;      // level for enable active (LOW/HIGH)
@@ -44,7 +45,7 @@ struct DriverChip {
     byte pwmFreq;           // PWM frequency (PWM_FREQ_3900 or PWM_FREQ_29300)
     float adcVoltToAmpOfs;  // ADC voltage to amps (offset)
     float adcVoltToAmpScale; // ADC voltage to amps (scale)
-    float adcVoltToAmpPow;   // ADC voltage to amps (power of number)
+    float adcVoltToAmpPow;   // ADC voltage to amps (power of number)   
     //bool drivesMowingMotor; // drives mowing motor?    
 };
 
@@ -67,6 +68,9 @@ class AmMotorDriver: public MotorDriver {
     void getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) override;
     void getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks) override;
   protected:
+    int lastLeftPwm;
+    int lastRightPwm;
+    int lastMowPwm;
     DriverChip MC33926;
     DriverChip DRV8308;
     DriverChip A4931;

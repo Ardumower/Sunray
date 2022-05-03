@@ -69,6 +69,7 @@ AmMotorDriver::AmMotorDriver(){
   MC33926.forwardDirLevel = LOW;
   MC33926.reversePwmInvert = true;
   MC33926.reverseDirLevel = HIGH;
+  MC33926.usePwmRamp = false;
   MC33926.faultActive = LOW;
   MC33926.resetFaultByToggleEnable = true;
   MC33926.enableActive = HIGH;
@@ -86,6 +87,7 @@ AmMotorDriver::AmMotorDriver(){
   DRV8308.forwardDirLevel = LOW;
   DRV8308.reversePwmInvert = false;
   DRV8308.reverseDirLevel = HIGH;
+  DRV8308.usePwmRamp = false;
   DRV8308.faultActive = LOW;
   DRV8308.resetFaultByToggleEnable = true;
   DRV8308.enableActive = LOW;
@@ -103,6 +105,7 @@ AmMotorDriver::AmMotorDriver(){
   A4931.forwardDirLevel = HIGH;
   A4931.reversePwmInvert = false;
   A4931.reverseDirLevel = LOW;
+  A4931.usePwmRamp = true;
   A4931.faultActive = LOW;
   A4931.resetFaultByToggleEnable = false;
   A4931.enableActive = LOW;  // 'enable' actually is driver brake
@@ -120,6 +123,7 @@ AmMotorDriver::AmMotorDriver(){
   CUSTOM.forwardDirLevel = LOW;    // logic level for forward (LOW or HIGH)
   CUSTOM.reversePwmInvert = false; // invert PWM signal for reverse? (false or true)
   CUSTOM.reverseDirLevel = HIGH;   // logic level for reverse (LOW or HIGH)
+  CUSTOM.usePwmRamp = false;       // use a ramp to get to PWM value?    
   CUSTOM.faultActive = LOW;        // fault active level (LOW or HIGH)
   CUSTOM.resetFaultByToggleEnable = false; // reset a fault by toggling enable? 
   CUSTOM.enableActive = LOW;       // enable active level (LOW or HIGH)
@@ -261,20 +265,22 @@ void AmMotorDriver::setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip
       pinMan.analogWrite(pinPWM, ((byte)abs(speed)), chip.pwmFreq);       // PWM
   }  
 }
-
-static int lastLeftPwm = 0;
-static int lastRightPwm = 0;
-
     
 void AmMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  
-  int deltaLeftPwm = leftPwm-lastLeftPwm;
-  leftPwm = leftPwm + min(1, max(-1, deltaLeftPwm));
-  lastLeftPwm = leftPwm;
+  if (gearsDriverChip.usePwmRamp){
+    int deltaLeftPwm = leftPwm-lastLeftPwm;
+    leftPwm = leftPwm + min(1, max(-1, deltaLeftPwm));
+    lastLeftPwm = leftPwm;
   
-  int deltaRightPwm = rightPwm-lastRightPwm;
-  rightPwm = rightPwm + min(1, max(-1, deltaRightPwm));
-  lastRightPwm = rightPwm;
-  
+    int deltaRightPwm = rightPwm-lastRightPwm;
+    rightPwm = rightPwm + min(1, max(-1, deltaRightPwm));
+    lastRightPwm = rightPwm;
+  }
+  if (mowDriverChip.usePwmRamp){
+    int deltaMowPwm = mowPwm-lastMowPwm;
+    mowPwm = mowPwm + min(1, max(-1, deltaMowPwm));
+    lastMowPwm = mowPwm;  
+  }  
   setMotorDriver(pinMotorLeftDir, pinMotorLeftPWM, leftPwm, gearsDriverChip);
   setMotorDriver(pinMotorRightDir, pinMotorRightPWM, rightPwm, gearsDriverChip);
   setMotorDriver(pinMotorMowDir, pinMotorMowPWM, mowPwm, mowDriverChip);
