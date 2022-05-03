@@ -259,6 +259,7 @@ void AmMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   setMotorDriver(pinMotorLeftDir, pinMotorLeftPWM, leftPwm, gearsDriverChip);
   setMotorDriver(pinMotorRightDir, pinMotorRightPWM, rightPwm, gearsDriverChip);
   setMotorDriver(pinMotorMowDir, pinMotorMowPWM, mowPwm, mowDriverChip);
+  // disable driver at zero speed (brake function)
   digitalWrite(pinMotorEnable, enableGears);
   digitalWrite(pinMotorMowEnable, enableMow);
 }
