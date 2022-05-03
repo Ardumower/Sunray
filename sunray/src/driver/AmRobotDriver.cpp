@@ -153,6 +153,7 @@ void AmMotorDriver::begin(){
       mowDriverChip.minPwmSpeed = 40;
       mowDriverChip.keepPwmZeroSpeed = true;
       mowDriverChip.disableAtPwmZeroSpeed = true;  
+      mowDriverChip.usePwmRamp = false;
     #else 
       mowDriverChip = CUSTOM;
     #endif
