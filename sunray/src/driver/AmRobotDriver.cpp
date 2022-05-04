@@ -105,14 +105,14 @@ AmMotorDriver::AmMotorDriver(){
   A4931.forwardDirLevel = HIGH;
   A4931.reversePwmInvert = false;
   A4931.reverseDirLevel = LOW;
-  A4931.usePwmRamp = true;
+  A4931.usePwmRamp = false;
   A4931.faultActive = LOW;
   A4931.resetFaultByToggleEnable = false;
   A4931.enableActive = LOW;  // 'enable' actually is driver brake
   A4931.disableAtPwmZeroSpeed=false;
   A4931.keepPwmZeroSpeed = true;  
   A4931.minPwmSpeed = 0;    
-  A4931.pwmFreq = PWM_FREQ_3900;   
+  A4931.pwmFreq = PWM_FREQ_29300;   
   A4931.adcVoltToAmpOfs = -1.65;
   A4931.adcVoltToAmpScale = 7.57;
   A4931.adcVoltToAmpPow = 1.0; 
