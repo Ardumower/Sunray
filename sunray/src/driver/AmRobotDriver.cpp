@@ -111,7 +111,7 @@ AmMotorDriver::AmMotorDriver(){
   A4931.enableActive = LOW;  // 'enable' actually is driver brake
   A4931.disableAtPwmZeroSpeed=false;
   A4931.keepPwmZeroSpeed = true;  
-  A4931.minPwmSpeed = 30;    
+  A4931.minPwmSpeed = 40;    
   A4931.pwmFreq = PWM_FREQ_29300;   
   A4931.adcVoltToAmpOfs = -1.65;
   A4931.adcVoltToAmpScale = 7.57;
