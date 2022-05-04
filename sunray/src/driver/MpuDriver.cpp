@@ -7,6 +7,8 @@
 #include "MpuDriver.h"
 #include "../../config.h"
 #include "../../i2c.h"
+#include "../../ioboard.h"
+
 
 
 MpuDriver::MpuDriver(){    
@@ -15,22 +17,11 @@ MpuDriver::MpuDriver(){
 void MpuDriver::selectChip(){
   #ifdef __linux__    
     // IMU power-on code (Alfred-PCB-specific) 
-    // switch-on IMU via port-expander PCA9555 (IO1.6)
-    Wire.beginTransmission(0x21); // PCA9555 address 
-    Wire.write(7); // configuration port 1    
-    Wire.write( ~(1 << 6) ); // enable IO1.6 as output
-    Wire.endTransmission();
+    // switch-on IMU via port-expander PCA9555     
+    ioExpanderOut(EX1_I2C_ADDR, EX1_IMU_POWER_PORT, EX1_IMU_POWER_PIN, true);
 
-    Wire.beginTransmission(0x21); // PCA9555 address 
-    Wire.write(3); // output port 1    
-    Wire.write( (1 << 6) ); // set IO1.6 high-level  
-    Wire.endTransmission();
-
-    // select IMU via multiplexer TCA9548A (I2C device4)
-    Wire.beginTransmission(0x70); // TCA9548A address  
-    //Wire.write(1 << 0);  // choose I2C device0    (for Alfred-dev-PCB without buzzer)
-    Wire.write(1 << 4);  // choose I2C device4    (for Alfred-dev-PCB with buzzer)
-    Wire.endTransmission(); 
+    // select IMU via multiplexer TCA9548A 
+    ioI2cMux(MUX_I2C_ADDR, SLAVE_IMU_MPU);
   #endif
 }
 
