@@ -45,7 +45,7 @@ extern "C"{
 #define ADC_NGP_PWR 4   // ngpPWR
 #define ADC_AD0     5   
 #define ADC_AD1     6
-#define ADC_AD1     7
+#define ADC_AD2     7
 
 
 // choose I2C slave via I2C multiplexer (TCA9548A)
