@@ -111,7 +111,7 @@ AmMotorDriver::AmMotorDriver(){
   A4931.enableActive = LOW;  // 'enable' actually is driver brake
   A4931.disableAtPwmZeroSpeed=false;
   A4931.keepPwmZeroSpeed = true;  
-  A4931.minPwmSpeed = 0;    
+  A4931.minPwmSpeed = 30;    
   A4931.pwmFreq = PWM_FREQ_29300;   
   A4931.adcVoltToAmpOfs = -1.65;
   A4931.adcVoltToAmpScale = 7.57;
@@ -211,6 +211,9 @@ void AmMotorDriver::begin(){
     
 	//pinMan.setDebounce(pinOdometryLeft, 100);  // reject spikes shorter than usecs on pin
 	//pinMan.setDebounce(pinOdometryRight, 100);  // reject spikes shorter than usecs on pin	
+  
+  leftSpeedSign = rightSpeedSign = mowSpeedSign = 1;
+  lastRightPwm = lastLeftPwm = lastMowPwm = 0;
 }
 
 
@@ -225,16 +228,16 @@ void AmMotorDriver::run(){
 //   PWM                L     Forward
 //   PWM                H     Reverse
 
-void AmMotorDriver::setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip &chip) {
+void AmMotorDriver::setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip &chip, int speedSign) {
   //DEBUGLN(speed);
-  bool reverse = (speed < 0);    
+  bool reverse = (speedSign < 0);    
   
   if ((speed == 0) && (chip.keepPwmZeroSpeed)) {
     // driver does not require periodic signal at zero speed, we can output 'silence' for zero speed    
   } else {
     // verhindert dass das PWM Signal 0 wird. Der Driver braucht einen kurzen Impuls um das PWM zu erkennen.
     // Wenn der z.B. vom max. PWM Wert auf 0 bzw. das Signal auf Low geht, behält er den vorherigen Wert bei und der Motor stoppt nicht
-    if (abs(speed) < chip.minPwmSpeed) speed = chip.minPwmSpeed * sign(speed);  
+    if (abs(speed) < chip.minPwmSpeed) speed = chip.minPwmSpeed * speedSign;  
   }
   
   if (reverse) {  
@@ -268,23 +271,36 @@ void AmMotorDriver::setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip
 }
     
 void AmMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  
+  // remember speed sign during zero-transition
+  if (leftPwm < 0) leftSpeedSign = -1;
+  if (leftPwm > 0) leftSpeedSign = 1;
+  if (rightPwm < 0) rightSpeedSign = -1;
+  if (rightPwm > 0) rightSpeedSign = 1;
+  if (mowPwm < 0) mowSpeedSign = -1;
+  if (mowPwm > 0) mowSpeedSign = 1;   
+  
+  // limit pwm to ramp if required
   if (gearsDriverChip.usePwmRamp){
     int deltaLeftPwm = leftPwm-lastLeftPwm;
-    leftPwm = leftPwm + min(1, max(-1, deltaLeftPwm));
-    lastLeftPwm = leftPwm;
-  
+    leftPwm = leftPwm + min(1, max(-1, deltaLeftPwm));    
     int deltaRightPwm = rightPwm-lastRightPwm;
-    rightPwm = rightPwm + min(1, max(-1, deltaRightPwm));
-    lastRightPwm = rightPwm;
+    rightPwm = rightPwm + min(1, max(-1, deltaRightPwm));    
   }
   if (mowDriverChip.usePwmRamp){
     int deltaMowPwm = mowPwm-lastMowPwm;
-    mowPwm = mowPwm + min(1, max(-1, deltaMowPwm));
-    lastMowPwm = mowPwm;  
+    mowPwm = mowPwm + min(1, max(-1, deltaMowPwm));      
   }  
-  setMotorDriver(pinMotorLeftDir, pinMotorLeftPWM, leftPwm, gearsDriverChip);
-  setMotorDriver(pinMotorRightDir, pinMotorRightPWM, rightPwm, gearsDriverChip);
-  setMotorDriver(pinMotorMowDir, pinMotorMowPWM, mowPwm, mowDriverChip);
+
+  // remember last PWM values
+  lastLeftPwm = leftPwm;  
+  lastRightPwm = rightPwm;
+  lastMowPwm = mowPwm;
+
+  // apply motor PWMs
+  setMotorDriver(pinMotorLeftDir, pinMotorLeftPWM, leftPwm, gearsDriverChip, leftSpeedSign);
+  setMotorDriver(pinMotorRightDir, pinMotorRightPWM, rightPwm, gearsDriverChip, rightSpeedSign);
+  setMotorDriver(pinMotorMowDir, pinMotorMowPWM, mowPwm, mowDriverChip, mowSpeedSign);
+  
   // disable driver at zero speed (brake function)    
   bool enableGears = gearsDriverChip.enableActive;
   bool enableMow = mowDriverChip.enableActive;  

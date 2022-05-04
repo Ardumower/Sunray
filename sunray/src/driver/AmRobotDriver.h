@@ -71,13 +71,16 @@ class AmMotorDriver: public MotorDriver {
     int lastLeftPwm;
     int lastRightPwm;
     int lastMowPwm;
+    int leftSpeedSign; // current motor direction (1 or -1)
+    int rightSpeedSign; // current motor direction (1 or -1)
+    int mowSpeedSign; // current motor direction (1 or -1)
     DriverChip MC33926;
     DriverChip DRV8308;
     DriverChip A4931;
     DriverChip CUSTOM;
     DriverChip mowDriverChip;
     DriverChip gearsDriverChip;
-    void setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip &chip);    
+    void setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip &chip, int speedSign);    
 };
 
 class AmBatteryDriver : public BatteryDriver {
