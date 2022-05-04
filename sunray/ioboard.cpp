@@ -68,14 +68,17 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin){
 }
 
 
-// choose ADC multiplexer (DG408)  
-void ioAdcMux(uint8_t addr, uint8_t adc){
-
+// choose ADC multiplexer (DG408) channel  
+void ioAdcMux(uint8_t adc){
+  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_A0_PORT, EX1_ADC_A0_PIN, adc & 1);
+  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_A1_PORT, EX1_ADC_A1_PIN, adc & 2);
+  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_A2_PORT, EX1_ADC_A2_PIN, adc & 4);
+  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_EN_PORT, EX1_ADC_EN_PIN, true);
 }
 
 // ADC conversion (MCP3421)
 short ioAdc(uint8_t addr){
-  Wire.beginTransmission(addr); // PCA9555 address 
+  Wire.beginTransmission(addr); // MCP3421 address 
   Wire.write(0x00);    // conversion data    
   Wire.requestFrom(addr, 3);  
   uint8_t val1 = Wire.read();   // get conversion

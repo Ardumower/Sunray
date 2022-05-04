@@ -25,8 +25,9 @@ void MpuDriver::selectChip(){
 
     // select ADC via multiplexer TCA9548A 
     ioI2cMux(MUX_I2C_ADDR, SLAVE_ADC);
-    
+
     // ADC conversion
+    ioAdcMux(ADC_NGP_PWR);
     short v = ioAdc(ADC_I2C_ADDR);
     CONSOLE.print("v=");
     CONSOLE.println(v);

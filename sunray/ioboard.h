@@ -21,6 +21,14 @@ extern "C"{
 #define EX1_I2C_ADDR        0x21
 #define EX1_IMU_POWER_PORT  1          // MT9700 powers IMU      
 #define EX1_IMU_POWER_PIN   (1 << 6)   // MT9700 powers IMU
+#define EX1_ADC_A0_PORT  1                
+#define EX1_ADC_A0_PIN   (1 << 0)   
+#define EX1_ADC_A1_PORT  1                
+#define EX1_ADC_A1_PIN   (1 << 1)   
+#define EX1_ADC_A2_PORT  1          
+#define EX1_ADC_A2_PIN   (1 << 2)   
+#define EX1_ADC_EN_PORT  1          
+#define EX1_ADC_EN_PIN   (1 << 3)   
 
 // I/O port expander 2 channels (PCA9555) - a channel is identified by two numbers: port, pin
 #define EX2_I2C_ADDR        0x20
@@ -49,8 +57,8 @@ void ioExpanderOut(uint8_t addr, uint8_t port, uint8_t pin, bool level);
 // read I/O port expander (PCA9555) input
 bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin);
 
-// choose ADC multiplexer (DG408)  
-void ioAdcMux(uint8_t addr, uint8_t adc);
+// choose ADC multiplexer (DG408) channel  
+void ioAdcMux(uint8_t adc);
 
 // ADC conversion (MCP3421)
 short ioAdc(uint8_t addr);
