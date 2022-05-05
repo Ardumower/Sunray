@@ -35,7 +35,12 @@ void MpuDriver::selectChip(){
     ioAdcMux(ADC_AD0); 
     v = ioAdc(ADC_I2C_ADDR);    
     CONSOLE.print("AD0=");
-    CONSOLE.println(v);    
+    CONSOLE.println(v);
+
+    ioAdcMux(ADC_BAT1); 
+    v = ioAdc(ADC_I2C_ADDR);    
+    CONSOLE.print("BAT1=");
+    CONSOLE.println(v);        
   #endif
 }
 

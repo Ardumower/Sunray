@@ -77,14 +77,67 @@ void ioAdcMux(uint8_t adc){
 }
 
 // ADC conversion (MCP3421)
-float ioAdc(uint8_t addr){
-  Wire.beginTransmission(addr); // MCP3421 address 
-  Wire.write(0x00);    // conversion data    
-  Wire.requestFrom(addr, 3);  
-  uint8_t val1 = Wire.read();   // get conversion
-  uint8_t val2 = Wire.read();   // get conversion
-  uint8_t val3 = Wire.read();   // get conversion    
+//
+// sr= Sample Rate Selection 
+// sr=0  ; 00 = 240 SPS (12 bits),
+// sr=1  ; 01 = 60 SPS (14 bits),
+// sr=2  ; 10 = 15 SPS (16 bits),
+// sr=3  ; 11 = 3.75 SPS (18 bits)
+// 
+// pga=  PGA Gain Selector 
+// 0 = 1 V/V,
+// 1 = 2 V/V,
+// 2 = 4 V/V,
+// 3 = 8 V/V
+
+#define ADC_SR 0
+#define ADC_PGA 0
+
+
+float ioAdc(uint8_t addr){ 
+  byte sr=ADC_SR & 3;      // Sample Rate
+  byte pga=ADC_PGA & 3;    // PGA ampification Factor
+
+  // send config
+  byte conf=0;    
+  conf = conf | ( sr  << 2 );     
+  conf = conf | pga;     
+  bitWrite (conf ,7,1);   // RDY    
+  bitWrite (conf ,4,1);   // O/C 1       
+
+  Wire.beginTransmission(addr); // MCP3421 address   
+  Wire.write(conf);   // config register %1000 1000
+  // /RDY = 1, One Conversion, 15 samples per, PGA = X1
+  // Serial.println(conf,BIN);     
   Wire.endTransmission();
-  float volt = (int(val1) << 16) | (int(val2) << 8) | (int(val3));
-  volt = volt * 0.000015625 / 2.0;
+
+  // do conversion
+  long l1;
+  byte b2, b3, b4;
+  float db1; 
+  if (sr < 3) {
+    Wire.requestFrom(addr, 3);
+    b2 = Wire.read();
+    b3 = Wire.read();
+    conf = Wire.read();
+    Wire.endTransmission();
+    l1= 256 * b2 + b3;
+  } 
+  else {
+    Wire.requestFrom(addr, 4);
+    b2 = Wire.read();
+    b3 = Wire.read();
+    b4 = Wire.read();
+    conf = Wire.read();
+    Wire.endTransmission();
+    // _l1=_b4;    
+    l1 = (long)b3*256;
+    l1 = l1+b4;
+    l1 = l1+0x10000 * b2;
+    if ( b2 > 0x10 ) l1=l1 + 0xFF000000;
+  }    
+  float volt = l1 *  1e-3 / (1 << sr*2  ) ; // = 1mv * ADC * / sample rate factor
+  volt = volt / (1 <<pga);            // divide by pga amplification
+  return volt;
 }
+  
