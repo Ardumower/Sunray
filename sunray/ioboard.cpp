@@ -96,9 +96,9 @@ float ioAdcStart(uint8_t addr){
   // send config  
   Config cfg;
   cfg.reg      = 0x00;
-	cfg.bit.GAIN = eGain_x1;
-	cfg.bit.SR   = eSR_18Bit;
-	cfg.bit.OC   = 0; // 1=repeat, 0=single shot
+  cfg.bit.GAIN = eGain_x1;
+  cfg.bit.SR   = eSR_18Bit;
+  cfg.bit.OC   = 0; // 1=repeat, 0=single shot
   Wire.beginTransmission(addr); // MCP3421 address   
   Wire.write(cfg.reg);   // config register 
   Wire.endTransmission();
@@ -107,9 +107,9 @@ float ioAdcStart(uint8_t addr){
 void ioAdcTrigger(uint8_t addr){
   Config cfg;
   cfg.reg      = 0x00;
-	cfg.bit.GAIN = eGain_x1;
-	cfg.bit.SR   = eSR_18Bit;
-	cfg.bit.OC   = 0; // 1=repeat, 0=single shot  
+  cfg.bit.GAIN = eGain_x1;
+  cfg.bit.SR   = eSR_18Bit;
+  cfg.bit.OC   = 0; // 1=repeat, 0=single shot  
   Wire.beginTransmission(addr); // MCP3421 address   
   Wire.write(cfg.reg | 0x80);   // config register 
   Wire.endTransmission();
@@ -119,30 +119,30 @@ void ioAdcTrigger(uint8_t addr){
 // do conversion MCP3421
 float ioAdc(uint8_t addr){
 
-	uint8_t u8Data;
-	uint8_t u8Len = 4;
-	
-	if ((u8Len != Wire.requestFrom(addr, u8Len)) ||
-	    (u8Len < 3)){
-		CONSOLE.println("ioAdc no data");
+  uint8_t u8Data;
+  uint8_t u8Len = 4;
+
+  if ((u8Len != Wire.requestFrom(addr, u8Len)) ||
+      (u8Len < 3)){
+    CONSOLE.println("ioAdc no data");
     return -1;
   }
 
-	u8Data     = (uint8_t)Wire.read();
-	int32_t s32Value = ((u8Data & 0x80) != 0) ? -1 : 0;
-	s32Value = (s32Value & 0xFFFFFF00) | u8Data;
-	
-	for (u8Len--; u8Len > 1; u8Len--)
-	{
-		s32Value <<= 8;
-		s32Value  |= (uint8_t)Wire.read();
-	}
-	
-	Config cfg;
+  u8Data     = (uint8_t)Wire.read();
+  int32_t s32Value = ((u8Data & 0x80) != 0) ? -1 : 0;
+  s32Value = (s32Value & 0xFFFFFF00) | u8Data;
+
+  for (u8Len--; u8Len > 1; u8Len--)
+  {
+    s32Value <<= 8;
+    s32Value  |= (uint8_t)Wire.read();
+  }
+
+  Config cfg;
   cfg.reg = Wire.read();
   Wire.endTransmission();
 
-	if (cfg.bit.RDY == 0) {    
+  if (cfg.bit.RDY == 0) {    
     CONSOLE.print("ioAdc not ready - config=");
     CONSOLE.println(cfg.reg, BIN);  
     return -1;
