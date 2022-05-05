@@ -13,7 +13,8 @@ extern "C"{
 
 // I2C multiplexer slaves (TCA9548A)
 #define MUX_I2C_ADDR    0x70
-#define SLAVE_IMU_MPU     4   // MPU6050
+#define SLAVE_BUS0        0   // MPU6050 (Alfred dev PCB without buzzer)
+#define SLAVE_IMU_MPU     4   // MPU6050 (Alfred dev PCB with buzzer)
 #define SLAVE_ADC         6   // MCP3421
 #define SLAVE_IMU_BNO     7   // BNO055
 
