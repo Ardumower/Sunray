@@ -124,6 +124,7 @@ float ioAdc(uint8_t addr){
   uint8_t u8Data;
   uint8_t u8Len = 4;
 
+  //unsigned long startTime = millis();                
   if ((u8Len != Wire.requestFrom(addr, u8Len)) ||
       (u8Len < 3)){
     CONSOLE.println("ioAdc no data");
@@ -142,14 +143,16 @@ float ioAdc(uint8_t addr){
 
   Config cfg;
   cfg.reg = Wire.read();
-  //Wire.endTransmission();
+  
+  //unsigned long duration = millis() - startTime;
+  //CONSOLE.print("duration ");
+  //CONSOLE.println(duration);  
 
   if (cfg.bit.RDY == 1) {    
     CONSOLE.print("ioAdc not ready - config=");
     CONSOLE.println(cfg.reg, BIN);  
     return -1;
-  }
-
+  }    
   return ((float)s32Value) / 262143.0 * 2.048;
 }
   
