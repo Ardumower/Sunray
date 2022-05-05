@@ -33,15 +33,13 @@ void MpuDriver::selectChip(){
     // ADC conversion
     ioAdcStart(ADC_I2C_ADDR);
 
-    int waitms = 500;
-  
     for (int idx=1; idx < 9; idx++){
       ioAdcMux(idx);            
       delay(50);
       ioAdcTrigger(ADC_I2C_ADDR);
-      delay(waitms);
+      delay(500);
       float v = ioAdc(ADC_I2C_ADDR);
-      CONSOLE.print("S=");
+      CONSOLE.print("S");
       CONSOLE.print(idx);
       CONSOLE.print("=");
       CONSOLE.println(v);   
