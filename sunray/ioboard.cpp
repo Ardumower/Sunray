@@ -97,7 +97,7 @@ void ioAdcMux(uint8_t adc){
 // sr=1  ; 01 = 60 SPS (14 bits),
 // sr=2  ; 10 = 15 SPS (16 bits),
 // sr=3  ; 11 = 3.75 SPS (18 bits)
-#define ADC_SR 3
+#define ADC_SR 0
 
 // pga=  PGA Gain Selector 
 // 0 = 1 V/V,
@@ -122,7 +122,7 @@ float ioAdcStart(uint8_t addr){
   Wire.beginTransmission(addr); // MCP3421 address   
   Wire.write(conf);   // config register %1000 1000
   // /RDY = 1, One Conversion, 15 samples per, PGA = X1
-  // Serial.println(conf,BIN);     
+  CONSOLE.println(conf,BIN);     
   Wire.endTransmission();
 }
 

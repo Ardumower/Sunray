@@ -48,7 +48,7 @@ void MpuDriver::selectChip(){
     v = ioAdc(ADC_I2C_ADDR);    
     CONSOLE.print("BAT1=");
     CONSOLE.println(v);
-            
+
     duration = millis() - startTime;
     CONSOLE.print("duration ");
     CONSOLE.println(duration);
