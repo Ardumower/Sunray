@@ -18,6 +18,7 @@ void MpuDriver::selectChip(){
   #ifdef __linux__    
     // IMU power-on code (Alfred-PCB-specific) 
     // switch-on IMU via port-expander PCA9555     
+    unsigned long startTime = millis();    
     ioExpanderOut(EX1_I2C_ADDR, EX1_IMU_POWER_PORT, EX1_IMU_POWER_PIN, true);
 
     // select IMU via multiplexer TCA9548A 
@@ -25,14 +26,20 @@ void MpuDriver::selectChip(){
 
     // select ADC via multiplexer TCA9548A 
     ioI2cMux(MUX_I2C_ADDR, SLAVE_ADC, true);
+    unsigned long duration = millis() - startTime;
+    CONSOLE.print("duration ");
+    CONSOLE.println(duration);
 
     // ADC conversion
-    ioAdcMux(ADC_NGP_PWR);
+    ioAdcMux(ADC_NGP_PWR);    
+    ioAdcStart(ADC_I2C_ADDR);
+    
+    startTime = millis();
     float v = ioAdc(ADC_I2C_ADDR);
     CONSOLE.print("ngpPWR=");
     CONSOLE.println(v);   
 
-    ioAdcMux(ADC_AD0); 
+    /*ioAdcMux(ADC_AD0); 
     v = ioAdc(ADC_I2C_ADDR);    
     CONSOLE.print("AD0=");
     CONSOLE.println(v);
@@ -40,14 +47,17 @@ void MpuDriver::selectChip(){
     ioAdcMux(ADC_BAT1); 
     v = ioAdc(ADC_I2C_ADDR);    
     CONSOLE.print("BAT1=");
-    CONSOLE.println(v);        
+    CONSOLE.println(v);*/        
+    duration = millis() - startTime;
+    CONSOLE.print("duration ");
+    CONSOLE.println(duration);
   #endif
 }
 
 void MpuDriver::detect(){
   // detect MPUxxxx  
   uint8_t data = 0;
-  selectChip();
+  //selectChip();
   I2CreadFrom(MPU_ADDR, 0x75, 1, &data, 1); // whoami register
   CONSOLE.print(F("MPU ID=0x"));
   CONSOLE.println(data, HEX);     
@@ -102,7 +112,7 @@ void MpuDriver::run(){
 
 
 bool MpuDriver::isDataAvail(){
-    selectChip();
+    //selectChip();
     bool avail = (mpu.fifoAvailable() > 0);    
     if (!avail) return false;
     //CONSOLE.println("fifoAvailable");
@@ -124,7 +134,7 @@ bool MpuDriver::isDataAvail(){
 }         
     
 void MpuDriver::resetData(){
-    selectChip();
+    //selectChip();
     mpu.resetFifo();
 }
 

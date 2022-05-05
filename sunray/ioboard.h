@@ -60,6 +60,9 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin);
 // choose ADC multiplexer (DG408) channel  
 void ioAdcMux(uint8_t adc);
 
+// ADC start (MCP3421)
+float ioAdcStart(uint8_t addr);
+
 // ADC conversion (MCP3421)
 float ioAdc(uint8_t addr);
 

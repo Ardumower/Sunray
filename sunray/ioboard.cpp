@@ -107,7 +107,8 @@ void ioAdcMux(uint8_t adc){
 #define ADC_PGA 0
 
 
-float ioAdc(uint8_t addr){ 
+// configure ADC MCP3421
+float ioAdcStart(uint8_t addr){ 
   byte sr=ADC_SR & 3;      // Sample Rate
   byte pga=ADC_PGA & 3;    // PGA ampification Factor
 
@@ -123,8 +124,14 @@ float ioAdc(uint8_t addr){
   // /RDY = 1, One Conversion, 15 samples per, PGA = X1
   // Serial.println(conf,BIN);     
   Wire.endTransmission();
+}
 
-  // do conversion
+// do conversion MCP3421
+float ioAdc(uint8_t addr){
+  byte sr=ADC_SR & 3;      // Sample Rate
+  byte pga=ADC_PGA & 3;    // PGA ampification Factor
+  byte conf=0;    
+  
   long l1;
   byte b2, b3, b4;
   float db1; 
