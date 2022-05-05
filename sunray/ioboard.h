@@ -48,6 +48,33 @@ extern "C"{
 #define ADC_AD2      7
 #define ADC_BAT      8   // battery voltage
 
+// ADC (MCP3421) config
+typedef union {
+    struct {
+    uint8_t GAIN : 2;
+    uint8_t SR   : 2;
+    uint8_t OC   : 1;
+    uint8_t Cx   : 2;
+    uint8_t RDY  : 1;
+    } bit;
+    uint8_t reg;
+} Config;
+
+enum EGain {
+    eGain_x1 = 0,
+    eGain_x2,
+    eGain_x4,
+    eGain_x8,
+};
+	
+enum ESampleRate {
+    eSR_12Bit = 0,
+    eSR_14Bit,
+    eSR_16Bit,
+    eSR_18Bit,
+};
+
+
 // choose I2C slave via I2C multiplexer (TCA9548A)
 void ioI2cMux(uint8_t addr, uint8_t slave, bool enable);
 
@@ -64,6 +91,7 @@ void ioAdcMux(uint8_t adc);
 float ioAdcStart(uint8_t addr);
 
 // ADC conversion (MCP3421)
+void ioAdcTrigger(uint8_t addr);
 float ioAdc(uint8_t addr);
 
 

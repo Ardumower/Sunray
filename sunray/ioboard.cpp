@@ -90,75 +90,62 @@ void ioAdcMux(uint8_t adc){
   ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_EN_PORT, EX1_ADC_EN_PIN, true);
 }
 
-// ADC conversion (MCP3421)
-
-// sr= Sample Rate Selection 
-// sr=0  ; 00 = 240 SPS (12 bits),
-// sr=1  ; 01 = 60 SPS (14 bits),
-// sr=2  ; 10 = 15 SPS (16 bits),
-// sr=3  ; 11 = 3.75 SPS (18 bits)
-#define ADC_SR 0
-
-// pga=  PGA Gain Selector 
-// 0 = 1 V/V,
-// 1 = 2 V/V,
-// 2 = 4 V/V,
-// 3 = 8 V/V
-#define ADC_PGA 0
-
 
 // configure ADC MCP3421
 float ioAdcStart(uint8_t addr){ 
-  byte sr=ADC_SR & 3;      // Sample Rate
-  byte pga=ADC_PGA & 3;    // PGA ampification Factor
-
-  // send config
-  byte conf=0;    
-  conf = conf | ( sr  << 2 );     
-  conf = conf | pga;     
-  bitWrite (conf ,7,1);   // RDY    
-  bitWrite (conf ,4,1);   // O/C 1       
-
+  // send config  
+  Config cfg;
+  cfg.reg      = 0x00;
+	cfg.bit.GAIN = eGain_x1;
+	cfg.bit.SR   = eSR_18Bit;
+	cfg.bit.OC   = 0; // 1=repeat, 0=single shot
   Wire.beginTransmission(addr); // MCP3421 address   
-  Wire.write(conf);   // config register %1000 1000
-  // /RDY = 1, One Conversion, 15 samples per, PGA = X1
-  CONSOLE.println(conf,BIN);     
+  Wire.write(cfg.reg);   // config register 
+  Wire.endTransmission();
+}
+
+void ioAdcTrigger(uint8_t addr){
+  Config cfg;
+  cfg.reg      = 0x00;
+	cfg.bit.GAIN = eGain_x1;
+	cfg.bit.SR   = eSR_18Bit;
+	cfg.bit.OC   = 0; // 1=repeat, 0=single shot  
+  Wire.beginTransmission(addr); // MCP3421 address   
+  Wire.write(cfg.reg | 0x80);   // config register 
   Wire.endTransmission();
 }
 
 
 // do conversion MCP3421
 float ioAdc(uint8_t addr){
-  byte sr=ADC_SR & 3;      // Sample Rate
-  byte pga=ADC_PGA & 3;    // PGA ampification Factor
-  byte conf=0;    
-  
-  long l1;
-  byte b2, b3, b4;
-  
-  if (sr < 3) {
-    Wire.requestFrom(addr, 3);
-    b2 = Wire.read();
-    b3 = Wire.read();
-    conf = Wire.read();
-    Wire.endTransmission();
-    l1= 256 * b2 + b3;
-  } 
-  else {
-    Wire.requestFrom(addr, 4);
-    b2 = Wire.read();
-    b3 = Wire.read();
-    b4 = Wire.read();
-    conf = Wire.read();
-    Wire.endTransmission();
-    // _l1=_b4;    
-    l1 = (long)b3*256;
-    l1 = l1+b4;
-    l1 = l1+0x10000 * b2;
-    if ( b2 > 0x10 ) l1=l1 + 0xFF000000;
-  }    
-  float volt = l1 *  1e-3 / (1 << sr*2  ) ; // = 1mv * ADC * / sample rate factor
-  volt = volt / (1 <<pga);            // divide by pga amplification
-  return volt;
+
+	uint8_t u8Data;
+	uint8_t u8Len = 4;
+	
+	if ((u8Len != Wire.requestFrom(addr, u8Len)) ||
+	    (u8Len < 3)){
+		CONSOLE.println("ioAdc no data");
+    return -1;
+  }
+
+	u8Data     = (uint8_t)Wire.read();
+	int32_t s32Value = ((u8Data & 0x80) != 0) ? -1 : 0;
+	s32Value = (s32Value & 0xFFFFFF00) | u8Data;
+	
+	for (u8Len--; u8Len > 1; u8Len--)
+	{
+		s32Value <<= 8;
+		s32Value  |= (uint8_t)Wire.read();
+	}
+	
+	Config cfg;
+  cfg.reg = Wire.read();
+	if (cfg.bit.RDY == 0) {    
+    CONSOLE.print("ioAdc not ready - config=");
+    CONSOLE.println(cfg.reg, BIN);  
+    return -1;
+  }
+
+  return ((float)s32Value) / 262143.0 * 2.048;
 }
   
