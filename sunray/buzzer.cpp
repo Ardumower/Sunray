@@ -95,12 +95,16 @@ void Buzzer::begin()
 
 
 void Buzzer::tone( uint16_t  freq ){
-  buzzerDriver.tone(freq);
+  #ifdef BUZZER_ENABLE
+    buzzerDriver.tone(freq);
+  #endif
 }
 
 
 void Buzzer::noTone(){
-  buzzerDriver.noTone();
+  #ifdef BUZZER_ENABLE  
+    buzzerDriver.noTone();
+  #endif
 }
 
 
