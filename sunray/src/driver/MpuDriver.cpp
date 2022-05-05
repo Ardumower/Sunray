@@ -7,7 +7,6 @@
 #include "MpuDriver.h"
 #include "../../config.h"
 #include "../../i2c.h"
-#include "../../ioboard.h"
 
 
 
@@ -15,37 +14,6 @@ MpuDriver::MpuDriver(){
 }
 
 void MpuDriver::selectChip(){
-  #ifdef __linux__    
-    // IMU power-on code (Alfred-PCB-specific) 
-    // switch-on IMU via port-expander PCA9555     
-    unsigned long startTime = millis();    
-    ioExpanderOut(EX1_I2C_ADDR, EX1_IMU_POWER_PORT, EX1_IMU_POWER_PIN, true);
-
-    // select IMU via multiplexer TCA9548A 
-    ioI2cMux(MUX_I2C_ADDR, SLAVE_IMU_MPU, true);  // Alfred dev PCB with buzzer
-    ioI2cMux(MUX_I2C_ADDR, SLAVE_BUS0, true); // Alfred dev PCB without buzzer    
-
-    // select ADC via multiplexer TCA9548A 
-    ioI2cMux(MUX_I2C_ADDR, SLAVE_ADC, true);
-    unsigned long duration = millis() - startTime;
-    CONSOLE.print("duration ");
-    CONSOLE.println(duration);
-
-    // ADC conversion
-    ioAdcStart(ADC_I2C_ADDR);
-
-    for (int idx=1; idx < 9; idx++){
-      ioAdcMux(idx);            
-      delay(50);
-      ioAdcTrigger(ADC_I2C_ADDR);
-      delay(500);
-      float v = ioAdc(ADC_I2C_ADDR);
-      CONSOLE.print("S");
-      CONSOLE.print(idx);
-      CONSOLE.print("=");
-      CONSOLE.println(v);   
-    }    
-  #endif
 }
 
 void MpuDriver::detect(){
