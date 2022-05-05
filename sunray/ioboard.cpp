@@ -81,7 +81,9 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin){
 
 
 // choose ADC multiplexer (DG408) channel  
+// adc: 1-8
 void ioAdcMux(uint8_t adc){
+  adc = adc - 1;
   ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_A0_PORT, EX1_ADC_A0_PIN, (adc & 1) != 0);
   ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_A1_PORT, EX1_ADC_A1_PIN, (adc & 2) != 0);
   ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_A2_PORT, EX1_ADC_A2_PIN, (adc & 4) != 0);
@@ -95,7 +97,7 @@ void ioAdcMux(uint8_t adc){
 // sr=1  ; 01 = 60 SPS (14 bits),
 // sr=2  ; 10 = 15 SPS (16 bits),
 // sr=3  ; 11 = 3.75 SPS (18 bits)
-#define ADC_SR 0
+#define ADC_SR 3
 
 // pga=  PGA Gain Selector 
 // 0 = 1 V/V,

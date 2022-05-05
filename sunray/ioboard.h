@@ -46,7 +46,7 @@ extern "C"{
 #define ADC_AD0      5   
 #define ADC_AD1      6
 #define ADC_AD2      7
-
+#define ADC_BAT      8   // battery voltage
 
 // choose I2C slave via I2C multiplexer (TCA9548A)
 void ioI2cMux(uint8_t addr, uint8_t slave, bool enable);
