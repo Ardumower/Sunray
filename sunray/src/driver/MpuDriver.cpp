@@ -31,15 +31,15 @@ void MpuDriver::selectChip(){
     CONSOLE.println(duration);
 
     // ADC conversion
-    ioAdcMux(ADC_NGP_PWR);    
     ioAdcStart(ADC_I2C_ADDR);
     
     startTime = millis();
+    ioAdcMux(ADC_NGP_PWR);        
     float v = ioAdc(ADC_I2C_ADDR);
     CONSOLE.print("ngpPWR=");
     CONSOLE.println(v);   
 
-    /*ioAdcMux(ADC_AD0); 
+    ioAdcMux(ADC_AD0); 
     v = ioAdc(ADC_I2C_ADDR);    
     CONSOLE.print("AD0=");
     CONSOLE.println(v);
@@ -47,7 +47,8 @@ void MpuDriver::selectChip(){
     ioAdcMux(ADC_BAT1); 
     v = ioAdc(ADC_I2C_ADDR);    
     CONSOLE.print("BAT1=");
-    CONSOLE.println(v);*/        
+    CONSOLE.println(v);
+            
     duration = millis() - startTime;
     CONSOLE.print("duration ");
     CONSOLE.println(duration);
