@@ -8,12 +8,10 @@
 // enable: true or false
 void ioI2cMux(uint8_t addr, uint8_t slave, bool enable){
   byte mask = (1 << slave);
-  Wire.beginTransmission(addr); // TCA9548A address 
-  Wire.write(0x00);    // control register    
-  Wire.endTransmission();
   Wire.requestFrom(addr, 1);
   uint8_t state = Wire.read();   // get current control register state
-
+  //CONSOLE.print("I2cMux control=");
+  //CONSOLE.println(state, BIN);
   Wire.beginTransmission(addr); // TCA9548A address  
   if (enable)
     Wire.write(state | mask);  // enable I2C device 

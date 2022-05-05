@@ -68,7 +68,7 @@ void MpuDriver::selectChip(){
 void MpuDriver::detect(){
   // detect MPUxxxx  
   uint8_t data = 0;
-  //selectChip();
+  selectChip();
   I2CreadFrom(MPU_ADDR, 0x75, 1, &data, 1); // whoami register
   CONSOLE.print(F("MPU ID=0x"));
   CONSOLE.println(data, HEX);     
@@ -101,7 +101,7 @@ void MpuDriver::detect(){
 
 bool MpuDriver::begin(){ 
     CONSOLE.println("using imu driver: MpuDriver");
-    selectChip();
+    //selectChip();
     if (mpu.begin() != INV_SUCCESS){
         return false;
     }
