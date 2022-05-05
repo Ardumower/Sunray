@@ -28,9 +28,14 @@ void MpuDriver::selectChip(){
 
     // ADC conversion
     ioAdcMux(ADC_NGP_PWR);
-    short v = ioAdc(ADC_I2C_ADDR);
-    CONSOLE.print("v=");
-    CONSOLE.println(v);
+    float v = ioAdc(ADC_I2C_ADDR);
+    CONSOLE.print("ngpPWR=");
+    CONSOLE.println(v);   
+
+    ioAdcMux(ADC_AD0); 
+    v = ioAdc(ADC_I2C_ADDR);    
+    CONSOLE.print("AD0=");
+    CONSOLE.println(v);    
   #endif
 }
 

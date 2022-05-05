@@ -61,7 +61,7 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin);
 void ioAdcMux(uint8_t adc);
 
 // ADC conversion (MCP3421)
-short ioAdc(uint8_t addr);
+float ioAdc(uint8_t addr);
 
 
 #ifdef __cplusplus

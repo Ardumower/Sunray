@@ -64,7 +64,7 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin){
   Wire.requestFrom(addr, 1);  
   state = Wire.read();   // get current output port
   Wire.endTransmission();
-  return (state & pin); 
+  return ((state & pin) != 0); 
 }
 
 
@@ -77,7 +77,7 @@ void ioAdcMux(uint8_t adc){
 }
 
 // ADC conversion (MCP3421)
-short ioAdc(uint8_t addr){
+float ioAdc(uint8_t addr){
   Wire.beginTransmission(addr); // MCP3421 address 
   Wire.write(0x00);    // conversion data    
   Wire.requestFrom(addr, 3);  
@@ -85,5 +85,6 @@ short ioAdc(uint8_t addr){
   uint8_t val2 = Wire.read();   // get conversion
   uint8_t val3 = Wire.read();   // get conversion    
   Wire.endTransmission();
-  return (val1 << 16) | (val2 << 8) | (val3);
+  float volt = (int(val1) << 16) | (int(val2) << 8) | (int(val3));
+  volt = volt * 0.000015625 / 2.0;
 }
