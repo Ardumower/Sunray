@@ -10,9 +10,9 @@ void ioI2cMux(uint8_t addr, uint8_t slave, bool enable){
   byte mask = (1 << slave);
   Wire.beginTransmission(addr); // TCA9548A address 
   Wire.write(0x00);    // control register    
+  Wire.endTransmission();
   Wire.requestFrom(addr, 1);
   uint8_t state = Wire.read();   // get current control register state
-  Wire.endTransmission();
 
   Wire.beginTransmission(addr); // TCA9548A address  
   if (enable)
@@ -30,9 +30,9 @@ void ioExpanderOut(uint8_t addr, uint8_t port, uint8_t pin, bool level){
   byte mask = (1 << pin);
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(6+port);    // configuration port    
+  Wire.endTransmission();
   Wire.requestFrom(addr, 1);  
   uint8_t state = Wire.read();   // get current configuration port
-  Wire.endTransmission();
 
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(6+port); // configuration port     
@@ -41,9 +41,9 @@ void ioExpanderOut(uint8_t addr, uint8_t port, uint8_t pin, bool level){
 
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(2+port);    // output port    
+  Wire.endTransmission();
   Wire.requestFrom(addr, 1);  
   state = Wire.read();   // get current output port
-  Wire.endTransmission();
 
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(2+port); // output port     
@@ -62,9 +62,9 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin){
   byte mask = (1 << pin);
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(6+port);    // configuration port    
+  Wire.endTransmission();
   Wire.requestFrom(addr, 1);  
   uint8_t state = Wire.read();   // get current configuration port
-  Wire.endTransmission();
 
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(6+port); // configuration port     
@@ -73,9 +73,9 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin){
 
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(0+port);    // input port    
+  Wire.endTransmission();
   Wire.requestFrom(addr, 1);  
   state = Wire.read();   // get current output port
-  Wire.endTransmission();
   return ((state & mask) != 0); 
 }
 
@@ -83,11 +83,12 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin){
 // choose ADC multiplexer (DG408) channel  
 // adc: 1-8
 void ioAdcMux(uint8_t adc){
-  adc = adc - 1;
-  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_A0_PORT, EX1_ADC_A0_PIN, (adc & 1) != 0);
-  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_A1_PORT, EX1_ADC_A1_PIN, (adc & 2) != 0);
-  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_A2_PORT, EX1_ADC_A2_PIN, (adc & 4) != 0);
-  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_EN_PORT, EX1_ADC_EN_PIN, true);
+  int idx = adc - 1;
+  //  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_MUX_EN_PORT, EX1_ADC_MUX_EN_PIN, false);
+  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_MUX_A0_PORT, EX1_ADC_MUX_A0_PIN, (idx & 1) != 0);
+  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_MUX_A1_PORT, EX1_ADC_MUX_A1_PIN, (idx & 2) != 0);
+  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_MUX_A2_PORT, EX1_ADC_MUX_A2_PIN, (idx & 4) != 0);
+  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_MUX_EN_PORT, EX1_ADC_MUX_EN_PIN, true);  
 }
 
 
