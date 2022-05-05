@@ -111,8 +111,9 @@ void ioAdcTrigger(uint8_t addr){
   cfg.bit.GAIN = eGain_x1;
   cfg.bit.SR   = eSR_18Bit;
   cfg.bit.OC   = 0; // 1=repeat, 0=single shot  
+  cfg.bit.RDY = 1;  // trigger conversion
   Wire.beginTransmission(addr); // MCP3421 address   
-  Wire.write(cfg.reg | 0x80);   // config register 
+  Wire.write(cfg.reg);   // config register 
   Wire.endTransmission();
 }
 
@@ -141,9 +142,9 @@ float ioAdc(uint8_t addr){
 
   Config cfg;
   cfg.reg = Wire.read();
-  Wire.endTransmission();
+  //Wire.endTransmission();
 
-  if (cfg.bit.RDY == 0) {    
+  if (cfg.bit.RDY == 1) {    
     CONSOLE.print("ioAdc not ready - config=");
     CONSOLE.println(cfg.reg, BIN);  
     return -1;
