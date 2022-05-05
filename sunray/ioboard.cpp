@@ -104,6 +104,7 @@ float ioAdcStart(uint8_t addr){
   Wire.endTransmission();
 }
 
+// trigger an ADC conversion (MCP3421)
 void ioAdcTrigger(uint8_t addr){
   Config cfg;
   cfg.reg      = 0x00;
@@ -116,7 +117,7 @@ void ioAdcTrigger(uint8_t addr){
 }
 
 
-// do conversion MCP3421
+// read ADC conversion (MCP3421)
 float ioAdc(uint8_t addr){
 
   uint8_t u8Data;
