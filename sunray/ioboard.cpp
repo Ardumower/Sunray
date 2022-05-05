@@ -135,6 +135,9 @@ float ioAdc(uint8_t addr){
   long l1;
   byte b2, b3, b4;
   float db1; 
+  Wire.beginTransmission(addr); // MCP3421 address   
+  Wire.write(0x00);   // config register %1000 1000
+
   if (sr < 3) {
     Wire.requestFrom(addr, 3);
     b2 = Wire.read();
