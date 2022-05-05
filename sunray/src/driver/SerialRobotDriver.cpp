@@ -462,9 +462,11 @@ void SerialBuzzerDriver::run(){
 }
 
 void SerialBuzzerDriver::noTone(){
+  ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, false);
 }
 
 void SerialBuzzerDriver::tone(int freq){
+  ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, true);
 }
 
 

@@ -33,10 +33,13 @@ extern "C"{
 
 // I/O port expander 2 channels (PCA9555) - a channel is identified by two numbers: port, pin
 #define EX2_I2C_ADDR     0x20
-#define EX2_SWRST_PORT   1          // SWRST      
-#define EX2_SWRST_PIN    7          // SWRST
-#define EX2_NRST_PORT    1          // NRST      
-#define EX2_NRST_PIN     6          // NRST
+#define EX2_BUZZER_PORT  1          // Buzzer
+#define EX2_BUZZER_PIN   1          // Buzzer
+#define EX2_SWRST_PORT   1          // SWRsT      
+#define EX2_SWRST_PIN    7          // SWRsT
+#define EX2_NRST_PORT    1          // NRsT      
+#define EX2_NRST_PIN     6          // NRsT
+
 
 // ADC multiplexer channels (DG408)
 #define ADC_BAT1     1   // battery cell1
