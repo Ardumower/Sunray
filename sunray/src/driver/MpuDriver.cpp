@@ -21,10 +21,10 @@ void MpuDriver::selectChip(){
     ioExpanderOut(EX1_I2C_ADDR, EX1_IMU_POWER_PORT, EX1_IMU_POWER_PIN, true);
 
     // select IMU via multiplexer TCA9548A 
-    ioI2cMux(MUX_I2C_ADDR, SLAVE_IMU_MPU);
+    ioI2cMux(MUX_I2C_ADDR, SLAVE_IMU_MPU, true);
 
     // select ADC via multiplexer TCA9548A 
-    ioI2cMux(MUX_I2C_ADDR, SLAVE_ADC);
+    ioI2cMux(MUX_I2C_ADDR, SLAVE_ADC, true);
 
     // ADC conversion
     ioAdcMux(ADC_NGP_PWR);

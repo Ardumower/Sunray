@@ -4,8 +4,10 @@
 
 
 // choose I2C slave via I2C multiplexer (TCA9548A)
-// slaves: bitmask of slave numbers
-void ioI2cMux(uint8_t addr, uint8_t slaves){
+// slave: slave number (0-7)
+// enable: true or false
+void ioI2cMux(uint8_t addr, uint8_t slave, bool enable){
+  byte mask = (1 << slave);
   Wire.beginTransmission(addr); // TCA9548A address 
   Wire.write(0x00);    // control register    
   Wire.requestFrom(addr, 1);
@@ -13,12 +15,19 @@ void ioI2cMux(uint8_t addr, uint8_t slaves){
   Wire.endTransmission();
 
   Wire.beginTransmission(addr); // TCA9548A address  
-  Wire.write(state | slaves);  // enable additional I2C devices 
+  if (enable)
+    Wire.write(state | mask);  // enable I2C device 
+  else 
+    Wire.write(state & (~mask) );  // disable I2C device   
   Wire.endTransmission();
 }
 
 // set I/O port expander (PCA9555) output
+// port: 0-7
+// pin: 0-7
+// level: true or false
 void ioExpanderOut(uint8_t addr, uint8_t port, uint8_t pin, bool level){
+  byte mask = (1 << pin);
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(6+port);    // configuration port    
   Wire.requestFrom(addr, 1);  
@@ -27,7 +36,7 @@ void ioExpanderOut(uint8_t addr, uint8_t port, uint8_t pin, bool level){
 
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(6+port); // configuration port     
-  Wire.write( state & (~pin) ); // enable pin as output 
+  Wire.write( state & (~mask) ); // enable pin as output 
   Wire.endTransmission();
 
   Wire.beginTransmission(addr); // PCA9555 address 
@@ -40,14 +49,17 @@ void ioExpanderOut(uint8_t addr, uint8_t port, uint8_t pin, bool level){
   Wire.write(2+port); // output port     
   // set additional pins to desired level
   if (level)
-    Wire.write( state | (pin) );    
+    Wire.write( state | (mask) );    
   else 
-    Wire.write( state & (~pin) );  
+    Wire.write( state & (~mask) );  
   Wire.endTransmission();
 }
 
 // read I/O port expander (PCA9555) input
+// port: 0-7
+// pin: 0-7
 bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin){
+  byte mask = (1 << pin);
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(6+port);    // configuration port    
   Wire.requestFrom(addr, 1);  
@@ -56,7 +68,7 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin){
 
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(6+port); // configuration port     
-  Wire.write( state | (pin) ); // enable pin as input 
+  Wire.write( state | (mask) ); // enable pin as input 
   Wire.endTransmission();
 
   Wire.beginTransmission(addr); // PCA9555 address 
@@ -64,7 +76,7 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin){
   Wire.requestFrom(addr, 1);  
   state = Wire.read();   // get current output port
   Wire.endTransmission();
-  return ((state & pin) != 0); 
+  return ((state & mask) != 0); 
 }
 
 
