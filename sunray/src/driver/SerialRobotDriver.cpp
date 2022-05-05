@@ -449,3 +449,23 @@ bool SerialLiftSensorDriver::triggered(){
   return (serialRobot.triggeredLift);
 }
 
+
+// ------------------------------------------------------------------------------------
+
+SerialBuzzerDriver::SerialBuzzerDriver(SerialRobotDriver &sr): serialRobot(sr){
+}
+
+void SerialBuzzerDriver::begin(){
+}
+
+void SerialBuzzerDriver::run(){
+}
+
+void SerialBuzzerDriver::noTone(){
+}
+
+void SerialBuzzerDriver::tone(int freq){
+}
+
+
+
