@@ -140,6 +140,8 @@ float ioAdc(uint8_t addr){
 	
 	Config cfg;
   cfg.reg = Wire.read();
+  Wire.endTransmission();
+
 	if (cfg.bit.RDY == 0) {    
     CONSOLE.print("ioAdc not ready - config=");
     CONSOLE.println(cfg.reg, BIN);  
