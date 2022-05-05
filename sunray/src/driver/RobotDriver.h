@@ -47,7 +47,6 @@ class BatteryDriver {
     virtual void keepPowerOn(bool flag) = 0;  	  		    
 };
 
-
 class BumperDriver {
   public:    
     virtual void begin() = 0;
@@ -96,6 +95,14 @@ class ImuDriver {
     virtual void resetData() = 0;        
 };
 
+class BuzzerDriver {
+  public:    
+    virtual void begin() = 0;
+    virtual void run() = 0;
+    virtual void noTone() = 0;  	  		      
+    virtual void tone(int freq) = 0;
+};
+
 class GpsDriver {
   public:
     unsigned long iTOW; //  An interval time of week (ITOW)
@@ -129,6 +136,7 @@ class GpsDriver {
     // should reboot receiver
     virtual void reboot() = 0;
 };
+
 
 
 #endif

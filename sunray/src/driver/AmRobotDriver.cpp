@@ -13,6 +13,12 @@
 
 #ifndef __linux__
 
+#if defined(_SAM3XA_)
+  #include "../due/DueTimer.h"
+#else
+  #include "../agcm4/Adafruit_ZeroTimer.h"    // __SAMD51__
+#endif
+
 
 volatile int odomTicksLeft  = 0;
 volatile int odomTicksRight = 0;
@@ -22,6 +28,24 @@ volatile unsigned long motorRightTicksTimeout = 0;
 
 volatile bool leftPressed = false;
 volatile bool rightPressed = false;
+
+
+volatile boolean tone_pin_state = false;
+
+
+void toneHandler(){  
+  digitalWrite(pinBuzzer, tone_pin_state= !tone_pin_state);  
+}
+
+
+#if defined(__SAMD51__)
+Adafruit_ZeroTimer zerotimer = Adafruit_ZeroTimer(3);
+
+void TC3_Handler() {
+  Adafruit_ZeroTimer::timerHandler(3);
+}
+#endif 
+
 
 
 
@@ -535,6 +559,55 @@ void AmLiftSensorDriver::run(){
 
 bool AmLiftSensorDriver::triggered(){
   return isLifted;
+}
+
+// ------------------------------------------------------------------------------------
+
+void AmBuzzerDriver::begin(){  
+  pinMode(pinBuzzer, OUTPUT);                
+  digitalWrite(pinBuzzer, LOW);
+}
+
+void AmBuzzerDriver::run(){  
+}
+
+void AmBuzzerDriver::noTone(){  
+  #ifdef _SAM3XA_
+    Timer1.stop();  
+    digitalWrite(pinBuzzer, LOW);
+  #elif __SAMD51__  // __SAMD51__
+    //::noTone(pinBuzzer);     
+    zerotimer.enable(false);
+    digitalWrite(pinBuzzer, LOW);
+  #endif     
+}
+
+void AmBuzzerDriver::tone(int freq){  
+  #ifdef _SAM3XA_
+    pinMode(pinBuzzer, OUTPUT);
+    Timer1.attachInterrupt(toneHandler).setFrequency(freq).start();   
+  #elif __SAMD51__      // __SAMD51__
+    //::tone(pinBuzzer, freq);    
+
+    // Set up the flexible divider/compare
+    uint8_t divider  = 1;
+    uint16_t compare = 0;
+    tc_clock_prescaler prescaler = TC_CLOCK_PRESCALER_DIV1;
+    
+    divider = 16;
+    prescaler = TC_CLOCK_PRESCALER_DIV16;
+    compare = (48000000/16)/freq;   
+    
+    zerotimer.enable(false);
+    zerotimer.configure(prescaler,       // prescaler
+            TC_COUNTER_SIZE_16BIT,       // bit width of timer/counter
+            TC_WAVE_GENERATION_MATCH_PWM // frequency or PWM mode
+            );
+
+    zerotimer.setCompare(0, compare);
+    zerotimer.setCallback(true, TC_CALLBACK_CC_CHANNEL0, toneHandler);
+    zerotimer.enable(true);
+  #endif     
 }
 
 #endif

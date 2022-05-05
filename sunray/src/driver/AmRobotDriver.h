@@ -144,6 +144,14 @@ class AmLiftSensorDriver: public LiftSensorDriver {
     bool isLifted;  	  		    
 };
 
+class AmBuzzerDriver: public BuzzerDriver {
+  public:    
+    void begin() override;
+    void run() override;
+    void noTone() override;
+    void tone(int freq) override;
+};
+
 #endif
 
 #endif

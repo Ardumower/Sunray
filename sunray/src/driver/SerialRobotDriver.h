@@ -120,5 +120,15 @@ class SerialLiftSensorDriver: public LiftSensorDriver {
     bool triggered() override;  
 };
 
+class SerialBuzzerDriver: public BuzzerDriver {
+  public:    
+    SerialRobotDriver &serialRobot;
+    SerialBuzzerDriver(SerialRobotDriver &sr);    
+    void begin() override;
+    void run() override;
+    void noTone() override;
+    void tone(int freq) override;  
+};
+
 
 #endif
