@@ -67,15 +67,23 @@ void AmRobotDriver::run(){
 void OdometryLeftISR(){			
   if (digitalRead(pinOdometryLeft) == LOW) return;
   if (millis() < motorLeftTicksTimeout) return; // eliminate spikes
-  motorLeftTicksTimeout = millis() + 1;    
-  odomTicksLeft++;    
+  motorLeftTicksTimeout = millis() + 1;
+  // wenn du 1ms wartest kann er wieder LOW sein, wenn es ein Spike ist
+  // und dann sollte der Pin bis kurz vor Signal Ende deaktiviert werden (daher 2. Zeit), damit Störungen im Signal nicht gezählt werden.
+  if (digitalRead(pinOdometryLeft) == HIGH){
+    odomTicksLeft++;    
+    motorLeftTicksTimeout = millis() + 3;
+  }  
 }
 
 void OdometryRightISR(){			
   if (digitalRead(pinOdometryRight) == LOW) return;
   if (millis() < motorRightTicksTimeout) return; // eliminate spikes
   motorRightTicksTimeout = millis() + 1;
-  odomTicksRight++;  
+  if (digitalRead(pinOdometryRight) == HIGH){
+    odomTicksRight++;        
+    motorRightTicksTimeout = millis() + 3;
+  }
   
   #ifdef TEST_PIN_ODOMETRY
     testValue = !testValue;
