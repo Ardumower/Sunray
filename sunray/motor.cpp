@@ -668,10 +668,10 @@ void Motor::plot(){
   int pwmRight = 0; 
   bool forward = true;
   unsigned long nextPlotTime = 0;
-  unsigned long stopTime = millis() + 3 * 60 * 1000;
+  unsigned long stopTime = millis() + 1 * 60 * 1000;
   unsigned long nextControlTime = 0;
 
-  while (millis() < stopTime){   // 30 seconds...
+  while (millis() < stopTime){   // 60 seconds...
     if (millis() > nextControlTime){
       nextControlTime = millis() + 20; 
 
