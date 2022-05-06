@@ -56,7 +56,12 @@ void SerialRobotDriver::begin(){
     CONSOLE.print("duration ");
     CONSOLE.println(duration);
 
-    // ADC conversion
+    // buzzer test
+    //ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, true);
+    //delay(500);
+    //ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, false);    
+
+    // ADC test
     ioAdcStart(ADC_I2C_ADDR);
 
     for (int idx=1; idx < 9; idx++){
@@ -70,6 +75,7 @@ void SerialRobotDriver::begin(){
       CONSOLE.print("=");
       CONSOLE.println(v);   
     }    
+    
   #endif
 }
 
