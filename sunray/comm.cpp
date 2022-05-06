@@ -103,6 +103,7 @@ void cmdControl(){
   int lastCommaIdx = 0;
   int mow=-1;          
   int op = -1;
+  bool restartRobot = false;
   float wayPerc = -1;  
   for (int idx=0; idx < cmd.length(); idx++){
     char ch = cmd[idx];
@@ -125,9 +126,15 @@ void cmdControl(){
       } else if (counter == 5){
           if (intValue >= 0) finishAndRestart = (intValue == 1);
       } else if (counter == 6){
-          if (floatValue >= 0) maps.setMowingPointPercent(floatValue);
+          if (floatValue >= 0) {
+            maps.setMowingPointPercent(floatValue);
+            restartRobot = true;
+          }
       } else if (counter == 7){
-          if (intValue > 0) maps.skipNextMowingPoint();
+          if (intValue > 0) {
+            maps.skipNextMowingPoint();
+            restartRobot = true;
+          }
       } else if (counter == 8){
           if (intValue >= 0) sonar.enabled = (intValue == 1);
       }
@@ -139,7 +146,15 @@ void cmdControl(){
   CONSOLE.print(linear);
   CONSOLE.print(" angular=");
   CONSOLE.println(angular);*/    
-  if (op >= 0) setOperation((OperationType)op, false, true);  // TESTME: should allow repeat operation?
+  OperationType oldStateOp = stateOp;
+  if (restartRobot){
+    // certain operations may require a start from IDLE state (https://github.com/Ardumower/Sunray/issues/66)
+    setOperation(OP_IDLE);    
+  }
+  if (op >= 0) setOperation((OperationType)op, false, true); // new operation by operator
+    else if (restartRobot){     // no operation given by operator, continue current operation from IDLE state
+      setOperation(oldStateOp);    
+    }  
   String s = F("C");
   cmdAnswer(s);
 }
