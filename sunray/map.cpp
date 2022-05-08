@@ -881,10 +881,12 @@ bool Map::retryDocking(float stateX, float stateY){
     CONSOLE.println("ERROR retryDocking: already retrying!");   
     return false;
   } 
+  if (dockPointsIdx > 0) dockPointsIdx--;    
   shouldRetryDock = true;
-  targetPoint.setXY(stateX, stateY); // ensures current target has been reached 
+  trackReverse = true;
   return true;
 }
+
 
 bool Map::startDocking(float stateX, float stateY){
   CONSOLE.println("Map::startDocking");
