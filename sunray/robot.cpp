@@ -1142,7 +1142,7 @@ void triggerObstacle(){
   if (driveReverseStopTime != 0) return;
   CONSOLE.println("triggerObstacle");      
   statMowObstacles++;      
-  if (maps.wayMode == WAY_DOCK) {    
+  if (maps.isDocking()) {    
     if (maps.retryDocking(stateX, stateY)) {
       driveReverseStopTime = millis() + 3000;                      
       return;
