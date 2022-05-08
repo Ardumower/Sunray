@@ -1020,7 +1020,7 @@ void computeRobotState(){
       && ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT))  )
   {
     gps.solutionAvail = false;        
-    stateGroundSpeed = 0.9 * stateGroundSpeed + 0.1 * gps.groundSpeed;    
+    stateGroundSpeed = 0.9 * stateGroundSpeed + 0.1 * abs(gps.groundSpeed);    
     //CONSOLE.println(stateGroundSpeed);
     float distGPS = sqrt( sq(posN-lastPosN)+sq(posE-lastPosE) );
     if ((distGPS > 0.3) || (resetLastPos)){
@@ -1139,11 +1139,18 @@ bool robotShouldBeInMotion(){
 
 // drive reverse if robot cannot move forward
 void triggerObstacle(){
-  CONSOLE.println("triggerObstacle");    
-  statMowObstacles++;    
+  if (driveReverseStopTime != 0) return;
+  CONSOLE.println("triggerObstacle");      
+  statMowObstacles++;      
+  if (maps.wayMode == WAY_DOCK) {    
+    if (maps.retryDocking(stateX, stateY)) {
+      driveReverseStopTime = millis() + 3000;                      
+      return;
+    }
+  } 
   if ((OBSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){    
     driveReverseStopTime = millis() + 3000;      
-  } else { 
+  } else {     
     stateSensor = SENS_OBSTACLE;
     setOperation(OP_ERROR);
     buzzer.sound(SND_ERROR, true);        
@@ -1443,7 +1450,7 @@ void trackLine(){
   }
 
   if ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT)){        
-    if (linear > 0.06) {
+    if (abs(linear) > 0.06) {
       if ((millis() > linearMotionStartTime + 5000) && (stateGroundSpeed < 0.03)){
         // if in linear motion and not enough ground speed => obstacle
         //if ( (GPS_SPEED_DETECTION) && (!maps.isUndocking()) ) { 
@@ -1696,11 +1703,16 @@ void run(){
               motor.stopImmediately(false); 
               detectLift();
               driveReverseStopTime = 0;
-              maps.addObstacle(stateX, stateY);
-              Point pt;
-              if (!maps.findObstacleSafeMowPoint(pt)){
-                setOperation(OP_DOCK, true); // dock if no more (valid) mowing points
-              } else setOperation(stateOp, true);    // continue current operation
+              if (maps.isDocking()){
+                CONSOLE.println("continue docking");
+                // continue without planner
+              } else {
+                maps.addObstacle(stateX, stateY);              
+                Point pt;
+                if (!maps.findObstacleSafeMowPoint(pt)){
+                  setOperation(OP_DOCK, true); // dock if no more (valid) mowing points
+                } else setOperation(stateOp, true);    // continue current operation
+              }
             }            
           } else if (driveForwardStopTime > 0){
             // rotate stuck avoidance

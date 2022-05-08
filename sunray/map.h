@@ -150,6 +150,7 @@ class Map
     int exclusionPointsCount;        
            
     bool shouldDock;  // start docking?
+    bool shouldRetryDock; // retry docking?
     bool shouldMow;  // start mowing?       
     
     long mapCRC;  // map data CRC
@@ -181,7 +182,9 @@ class Map
     void setRobotStatePosToDockingPos(float &x, float &y, float &delta);
     void setIsDocked(bool flag);
     bool isUndocking();
+    bool isDocking();
     bool startDocking(float stateX, float stateY);
+    bool retryDocking(float stateX, float stateY);
     bool startMowing(float stateX, float stateY);
     bool addObstacle(float stateX, float stateY);
     bool mowingCompleted();
