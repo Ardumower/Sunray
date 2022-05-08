@@ -1145,8 +1145,12 @@ bool Map::nextDockPoint(bool sim){
     if (dockPointsIdx+1 < dockPoints.numPoints){
       if (!sim) { 
         lastTargetPoint.assign(targetPoint);
-        if (dockPointsIdx == 0) shouldRetryDock=false;
+        if (dockPointsIdx == 0) {
+          CONSOLE.println("nextDockPoint: shouldRetryDock=false");
+          shouldRetryDock=false;
+        }
         if (shouldRetryDock) {
+          CONSOLE.println("nextDockPoint: shouldRetryDock=true");
           dockPointsIdx--;
           trackReverse = true;                    
         } else {
