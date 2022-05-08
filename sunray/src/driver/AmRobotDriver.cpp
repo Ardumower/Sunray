@@ -20,11 +20,20 @@
 #endif
 
 
+#define SUPER_SPIKE_ELIMINATOR 1  // advanced spike elimination  (experimental, comment out to disable)
+
+
 volatile int odomTicksLeft  = 0;
 volatile int odomTicksRight = 0;
 
 volatile unsigned long motorLeftTicksTimeout = 0;
 volatile unsigned long motorRightTicksTimeout = 0;
+
+volatile unsigned long motorLeftTransitionTime = 0;
+volatile unsigned long motorRightTransitionTime = 0;
+
+volatile float motorLeftDurationMax = 0;
+volatile float motorRightDurationMax = 0;
 
 volatile bool leftPressed = false;
 volatile bool rightPressed = false;
@@ -64,17 +73,33 @@ void AmRobotDriver::run(){
 
 // odometry signal change interrupt
 
-void OdometryLeftISR(){			
+void OdometryLeftISR(){			  
   if (digitalRead(pinOdometryLeft) == LOW) return;
-  if (millis() < motorLeftTicksTimeout) return; // eliminate spikes
-  motorLeftTicksTimeout = millis() + 1;
+  if (millis() < motorLeftTicksTimeout) return; // eliminate spikes  
+  #ifdef SUPER_SPIKE_ELIMINATOR
+    unsigned long duration = millis() - motorLeftTransitionTime;
+    if (duration > 5) duration = 0;
+    motorLeftTransitionTime = millis();
+    motorLeftDurationMax = 0.7 * max(motorLeftDurationMax, ((float)duration));
+    motorLeftTicksTimeout = millis() + motorLeftDurationMax;
+  #else
+    motorLeftTicksTimeout = millis() + 1;
+  #endif
   odomTicksLeft++;    
 }
 
 void OdometryRightISR(){			
-  if (digitalRead(pinOdometryRight) == LOW) return;
+  if (digitalRead(pinOdometryRight) == LOW) return;  
   if (millis() < motorRightTicksTimeout) return; // eliminate spikes
-  motorRightTicksTimeout = millis() + 1;
+  #ifdef SUPER_SPIKE_ELIMINATOR
+    unsigned long duration = millis() - motorRightTransitionTime;
+    if (duration > 5) duration = 0;  
+    motorRightTransitionTime = millis();
+    motorRightDurationMax = 0.7 * max(motorRightDurationMax, ((float)duration));  
+    motorRightTicksTimeout = millis() + motorRightDurationMax;
+  #else
+    motorRightTicksTimeout = millis() + 1;
+  #endif
   odomTicksRight++;        
   
   #ifdef TEST_PIN_ODOMETRY
@@ -82,6 +107,7 @@ void OdometryRightISR(){
     digitalWrite(pinKeyArea2, testValue);  
   #endif
 }
+
 
 AmMotorDriver::AmMotorDriver(){
 
