@@ -349,11 +349,13 @@ void SerialMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent,
 
 void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
   if (!serialRobot.receivedEncoders) {
+    //CONSOLE.println("getMotorEncoderTicks: no ticks!");    
     leftTicks = rightTicks = 0; mowTicks = 0;
     return;
   }
   if (serialRobot.resetMotorTicks){
     serialRobot.resetMotorTicks = false;
+    //CONSOLE.println("getMotorEncoderTicks: resetMotorTicks");
     lastEncoderTicksLeft = serialRobot.encoderTicksLeft;
     lastEncoderTicksRight = serialRobot.encoderTicksRight; 
   }
