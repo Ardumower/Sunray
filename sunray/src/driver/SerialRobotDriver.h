@@ -28,6 +28,7 @@ class SerialRobotDriver {
     float mowCurr;
     float motorLeftCurr;
     float motorRightCurr;
+    bool resetMotorTicks;
     float batteryTemp;
     bool triggeredLeftBumper;
     bool triggeredRightBumper;

@@ -23,6 +23,7 @@ void SerialRobotDriver::begin(){
   mowCurr = 0;
   motorLeftCurr = 0;
   motorRightCurr = 0;
+  resetMotorTicks = true;
   batteryTemp = 0;
   triggeredLeftBumper = false;
   triggeredRightBumper = false;
@@ -273,6 +274,11 @@ void SerialRobotDriver::run(){
   }
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;
+    if (cmdMotorResponseCounter == 0){
+      CONSOLE.println("WARN: resetting motor ticks");
+      resetMotorTicks = true;
+      receivedEncoders = false;
+    }    
     if ( (cmdMotorResponseCounter < 30) || (cmdSummaryResponseCounter == 0) ){
       CONSOLE.print("WARN: SerialRobot unmet communication frequency: motorFreq=");
       CONSOLE.print(cmdMotorCounter);
@@ -342,6 +348,15 @@ void SerialMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent,
 }
 
 void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
+  if (!serialRobot.receivedEncoders) {
+    leftTicks = rightTicks = 0; mowTicks = 0;
+    return;
+  }
+  if (serialRobot.resetMotorTicks){
+    serialRobot.resetMotorTicks = false;
+    lastEncoderTicksLeft = serialRobot.encoderTicksLeft;
+    lastEncoderTicksRight = serialRobot.encoderTicksRight; 
+  }
   leftTicks = serialRobot.encoderTicksLeft - lastEncoderTicksLeft;
   rightTicks = serialRobot.encoderTicksRight - lastEncoderTicksRight;
   if (leftTicks > 1000){
