@@ -39,6 +39,8 @@ extern "C"{
 #define EX2_SWRST_PIN    7          // SWRsT
 #define EX2_NRST_PORT    1          // NRsT      
 #define EX2_NRST_PIN     6          // NRsT
+#define EX2_CS6_PORT     0          // CS6      
+#define EX2_CS6_PIN      6          // CS6
 
 
 // ADC multiplexer channels (DG408)

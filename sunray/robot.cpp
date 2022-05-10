@@ -7,6 +7,7 @@
 #include <SD.h>
 
 #include "robot.h"
+#include "src/logic/states.h"
 #include "comm.h"
 #ifdef __linux__
   #include <BridgeClient.h>
