@@ -389,7 +389,9 @@ void SerialBatteryDriver::run(){
 
 float SerialBatteryDriver::getBatteryVoltage(){
   #ifdef __linux__
+    // detect if ngp PCB is switch-off
     if (nextADCTime == 0){    
+      // trigger ADC measurement (ngpPWR)
       ioAdcMux(ADC_NGP_PWR);
       ioAdcTrigger(ADC_I2C_ADDR);    
       nextADCTime = millis() + 1000;    
@@ -398,13 +400,14 @@ float SerialBatteryDriver::getBatteryVoltage(){
       nextADCTime = 0;
       float v = ioAdc(ADC_I2C_ADDR);
       if ((v >0) && (v < 0.4)){
+        // no ngpPWR, ngp PCB is probably switched off
         CONSOLE.print("ngpPWR=");
         CONSOLE.println(v);      
         CONSOLE.println("NGP PCB powered OFF!");
         ngpBoardPoweredOn = false;        
       } else ngpBoardPoweredOn = true;
     }
-    if (!ngpBoardPoweredOn) return 0; // return zero volt
+    if (!ngpBoardPoweredOn) return 0; // return zero volt if ngp PCB is switched-off (so we will be later requested to shutdown)
   #endif         
   return serialRobot.batteryVoltage;
 }
