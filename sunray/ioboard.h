@@ -11,14 +11,19 @@
 extern "C"{
 #endif
 
-// I2C multiplexer slaves (TCA9548A)
+// I2C multiplexer slaves (TCA9548A)  https://www.ti.com/lit/ds/symlink/tca9548a.pdf
 #define MUX_I2C_ADDR    0x70
 #define SLAVE_BUS0        0   // MPU6050 (Alfred dev PCB without buzzer)
 #define SLAVE_IMU_MPU     4   // MPU6050 (Alfred dev PCB with buzzer)
 #define SLAVE_ADC         6   // MCP3421
 #define SLAVE_IMU_BNO     7   // BNO055
+#define SLAVE_EEPROM      5   // BL24C256A
 
-// I/O port expander 1 channels (PCA9555) - a channel is identified by two numbers: port, pin
+// EEPROM (BL24C256A)  https://datasheet.lcsc.com/lcsc/1810111121_BL-Shanghai-Belling-BL24C256A-PARC_C90485.pdf
+#define EEPROM_I2C_ADDR     0x50  
+
+// I/O port expander 1 channels (PCA9555)   https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf
+// a channel is identified by two numbers: port, pin
 #define EX1_I2C_ADDR        0x21
 #define EX1_IMU_POWER_PORT  1        // MT9700 powers IMU      
 #define EX1_IMU_POWER_PIN   6        // MT9700 powers IMU
@@ -31,7 +36,8 @@ extern "C"{
 #define EX1_ADC_MUX_EN_PORT     1          
 #define EX1_ADC_MUX_EN_PIN      3   
 
-// I/O port expander 2 channels (PCA9555) - a channel is identified by two numbers: port, pin
+// I/O port expander 2 channels (PCA9555)  https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf
+// a channel is identified by two numbers: port, pin
 #define EX2_I2C_ADDR     0x20
 #define EX2_BUZZER_PORT  1          // Buzzer
 #define EX2_BUZZER_PIN   1          // Buzzer
@@ -39,7 +45,7 @@ extern "C"{
 #define EX2_CS6_PIN      6          // CS6
 
 
-// ADC multiplexer channels (DG408)
+// ADC multiplexer channels (DG408)   https://www.vishay.com/docs/70062/dg408.pdf
 #define ADC_BAT1     1   // battery cell1
 #define ADC_BAT2     2   // battery cell2
 #define ADC_BAT3     3   // battery cell3
@@ -49,7 +55,7 @@ extern "C"{
 #define ADC_AD2      7
 #define ADC_BAT      8   // battery voltage
 
-// ADC (MCP3421) config
+// ADC (MCP3421) config   http://ww1.microchip.com/downloads/en/devicedoc/22003e.pdf
 #define ADC_I2C_ADDR   0x68
 
 typedef union {
@@ -96,6 +102,10 @@ float ioAdcStart(uint8_t addr);
 // ADC conversion (MCP3421)
 void ioAdcTrigger(uint8_t addr);
 float ioAdc(uint8_t addr);
+
+// EEPROM (BL24C256A)
+void ioEepromWriteByte( uint8_t addr, unsigned int eeaddress, byte data );
+byte ioEepromReadByte( uint8_t addr, unsigned int eeaddress );
 
 
 #ifdef __cplusplus

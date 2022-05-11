@@ -155,3 +155,26 @@ float ioAdc(uint8_t addr){
   return ((float)s32Value) / 262143.0 * 2.048;
 }
   
+
+// write eeprom (BL24C256A)
+void ioEepromWriteByte( uint8_t addr, unsigned int eeaddress, byte data ) {
+  Wire.beginTransmission(addr);
+  Wire.write((int)(eeaddress >> 8)); // MSB
+  Wire.write((int)(eeaddress & 0xFF)); // LSB
+  Wire.write(data);
+  Wire.endTransmission();
+}
+
+// read eeprom (BL24C256A)
+byte ioEepromReadByte( uint8_t addr, unsigned int eeaddress ) {
+  byte rdata = 0xFF;
+  Wire.beginTransmission(addr);
+  Wire.write((int)(eeaddress >> 8)); // MSB
+  Wire.write((int)(eeaddress & 0xFF)); // LSB
+  Wire.endTransmission();
+  Wire.requestFrom(addr,1);
+  if (Wire.available()) rdata = Wire.read();
+  return rdata;
+}
+
+

@@ -44,27 +44,29 @@ void SerialRobotDriver::begin(){
   #ifdef __linux__    
     // IMU power-on code (Alfred-PCB-specific) 
     // switch-on IMU via port-expander PCA9555     
-    unsigned long startTime = millis();    
     ioExpanderOut(EX1_I2C_ADDR, EX1_IMU_POWER_PORT, EX1_IMU_POWER_PIN, true);
 
     // select IMU via multiplexer TCA9548A 
     ioI2cMux(MUX_I2C_ADDR, SLAVE_IMU_MPU, true);  // Alfred dev PCB with buzzer
     ioI2cMux(MUX_I2C_ADDR, SLAVE_BUS0, true); // Alfred dev PCB without buzzer    
 
+    // select EEPROM via multiplexer TCA9548A 
+    ioI2cMux(MUX_I2C_ADDR, SLAVE_EEPROM, true);  
+
     // select ADC via multiplexer TCA9548A 
     ioI2cMux(MUX_I2C_ADDR, SLAVE_ADC, true);
-    unsigned long duration = millis() - startTime;
-    CONSOLE.print("duration ");
-    CONSOLE.println(duration);
-
+    
     // buzzer test
-    //ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, true);
-    //delay(500);
-    //ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, false);    
+    if (false){
+      ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, true);
+      delay(500);
+      ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, false);    
+    }
 
-    // ADC test
+    // start ADC
     ioAdcStart(ADC_I2C_ADDR);
 
+    // ADC test    
     if (false){    
       for (int idx=1; idx < 9; idx++){
         ioAdcMux(idx);            
@@ -78,6 +80,15 @@ void SerialRobotDriver::begin(){
         CONSOLE.println(v);   
       }
     }    
+
+    // EEPROM test
+    if (true){
+      ioEepromWriteByte( EEPROM_I2C_ADDR, 0, 42);
+      delay(50);
+      int v = ioEepromReadByte( EEPROM_I2C_ADDR, 0);
+      CONSOLE.print("EEPROM=");
+      CONSOLE.println(v);
+    }
     
   #endif
 }
