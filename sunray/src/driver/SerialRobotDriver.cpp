@@ -82,7 +82,7 @@ void SerialRobotDriver::begin(){
     }    
 
     // EEPROM test
-    if (true){
+    if (false){
       ioEepromWriteByte( EEPROM_I2C_ADDR, 0, 42);
       delay(50);
       int v = ioEepromReadByte( EEPROM_I2C_ADDR, 0);

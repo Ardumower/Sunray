@@ -156,16 +156,7 @@ float ioAdc(uint8_t addr){
 }
   
 
-// write eeprom (BL24C256A)
-void ioEepromWriteByte( uint8_t addr, unsigned int eeaddress, byte data ) {
-  Wire.beginTransmission(addr);
-  Wire.write((int)(eeaddress >> 8)); // MSB
-  Wire.write((int)(eeaddress & 0xFF)); // LSB
-  Wire.write(data);
-  Wire.endTransmission();
-}
-
-// read eeprom (BL24C256A)
+// read eeprom byte (BL24C256A)
 byte ioEepromReadByte( uint8_t addr, unsigned int eeaddress ) {
   byte rdata = 0xFF;
   Wire.beginTransmission(addr);
@@ -175,6 +166,26 @@ byte ioEepromReadByte( uint8_t addr, unsigned int eeaddress ) {
   Wire.requestFrom(addr,1);
   if (Wire.available()) rdata = Wire.read();
   return rdata;
+}
+
+// write eeprom byte (BL24C256A)
+void ioEepromWriteByte( uint8_t addr, unsigned int eeaddress, byte data ) {
+  Wire.beginTransmission(addr);
+  Wire.write((int)(eeaddress >> 8)); // MSB
+  Wire.write((int)(eeaddress & 0xFF)); // LSB
+  Wire.write(data);
+  Wire.endTransmission();
+}
+
+// write eeprom page (BL24C256A)
+void ioEepromWritePage( uint8_t addr, unsigned int eeaddresspage, byte* data, byte length ) {
+  Wire.beginTransmission(addr);
+  Wire.write((int)(eeaddresspage >> 8)); // MSB
+  Wire.write((int)(eeaddresspage & 0xFF)); // LSB
+  byte c;
+  for ( c = 0; c < length; c++)
+    Wire.write(data[c]);
+  Wire.endTransmission();
 }
 
 

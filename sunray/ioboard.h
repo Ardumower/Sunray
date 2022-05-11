@@ -106,6 +106,7 @@ float ioAdc(uint8_t addr);
 // EEPROM (BL24C256A)
 void ioEepromWriteByte( uint8_t addr, unsigned int eeaddress, byte data );
 byte ioEepromReadByte( uint8_t addr, unsigned int eeaddress );
+void ioEepromWritePage( uint8_t addr, unsigned int eeaddresspage, byte* data, byte length );
 
 
 #ifdef __cplusplus
