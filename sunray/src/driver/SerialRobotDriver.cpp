@@ -420,17 +420,21 @@ float SerialBatteryDriver::getChargeCurrent(){
 void SerialBatteryDriver::enableCharging(bool flag){
 }
 
+
 void SerialBatteryDriver::keepPowerOn(bool flag){
   #ifdef __linux__
     if (flag){
       // keep power on
       linuxShutdownTime = 0;
     } else {
-      // shutdown linux
+      // shutdown linux - request could be for two reasons:
+      // 1. battery voltage sent by ngp-pcb seem to be too low 
+      // 2. ngp-pcb is powered-off 
       if (linuxShutdownTime == 0){
-        linuxShutdownTime = millis() + 5000;
+        linuxShutdownTime = millis() + 5000; // some timeout 
       }
       if (millis() > linuxShutdownTime){
+        linuxShutdownTime = millis() + 10000; // re-trigger linux command after 10 secs
         CONSOLE.println("LINUX will SHUTDOWN!");
         Process p;
         p.runShellCommand("shutdown now");
