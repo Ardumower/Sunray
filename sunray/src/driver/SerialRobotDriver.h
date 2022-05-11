@@ -72,9 +72,10 @@ class SerialMotorDriver: public MotorDriver {
 };
 
 class SerialBatteryDriver : public BatteryDriver {
-  protected:
+  public:   
+    bool ngpBoardPoweredOn;
     unsigned long nextADCTime;
-  public:    
+    unsigned long linuxShutdownTime;
     SerialRobotDriver &serialRobot;
     SerialBatteryDriver(SerialRobotDriver &sr);
     void begin() override;

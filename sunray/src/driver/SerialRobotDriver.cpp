@@ -376,7 +376,9 @@ void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, in
 // ------------------------------------------------------------------------------------
 
 SerialBatteryDriver::SerialBatteryDriver(SerialRobotDriver &sr) : serialRobot(sr){
+  ngpBoardPoweredOn = true;
   nextADCTime = 0;
+  linuxShutdownTime = 0;
 }
 
 void SerialBatteryDriver::begin(){
@@ -398,10 +400,11 @@ float SerialBatteryDriver::getBatteryVoltage(){
       if ((v >0) && (v < 0.4)){
         CONSOLE.print("ngpPWR=");
         CONSOLE.println(v);      
-        CONSOLE.println("NGP PCB switched OFF!");
-        return 0; // return zero volt
-      }
+        CONSOLE.println("NGP PCB powered OFF!");
+        ngpBoardPoweredOn = false;        
+      } else ngpBoardPoweredOn = true;
     }
+    if (!ngpBoardPoweredOn) return 0; // return zero volt
   #endif         
   return serialRobot.batteryVoltage;
 }
@@ -419,11 +422,20 @@ void SerialBatteryDriver::enableCharging(bool flag){
 
 void SerialBatteryDriver::keepPowerOn(bool flag){
   #ifdef __linux__
-    if (!flag){
-      CONSOLE.println("LINUX will SHUTDOWN!");    
-      //Process p;
-      //p.runShellCommand("shutdown now");
-    }
+    if (flag){
+      // keep power on
+      linuxShutdownTime = 0;
+    } else {
+      // shutdown linux
+      if (linuxShutdownTime == 0){
+        linuxShutdownTime = millis() + 5000;
+      }
+      if (millis() > linuxShutdownTime){
+        CONSOLE.println("LINUX will SHUTDOWN!");
+        Process p;
+        p.runShellCommand("shutdown now");
+      }
+    }   
   #endif  
 }
 
