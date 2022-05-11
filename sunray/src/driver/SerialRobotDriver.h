@@ -72,6 +72,8 @@ class SerialMotorDriver: public MotorDriver {
 };
 
 class SerialBatteryDriver : public BatteryDriver {
+  protected:
+    unsigned long nextADCTime;
   public:    
     SerialRobotDriver &serialRobot;
     SerialBatteryDriver(SerialRobotDriver &sr);

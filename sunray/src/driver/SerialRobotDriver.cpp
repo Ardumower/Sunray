@@ -376,6 +376,7 @@ void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, in
 // ------------------------------------------------------------------------------------
 
 SerialBatteryDriver::SerialBatteryDriver(SerialRobotDriver &sr) : serialRobot(sr){
+  nextADCTime = 0;
 }
 
 void SerialBatteryDriver::begin(){
@@ -385,6 +386,23 @@ void SerialBatteryDriver::run(){
 }    
 
 float SerialBatteryDriver::getBatteryVoltage(){
+  #ifdef __linux__
+    if (nextADCTime == 0){    
+      ioAdcMux(ADC_NGP_PWR);
+      ioAdcTrigger(ADC_I2C_ADDR);    
+      nextADCTime = millis() + 1000;    
+    } 
+    if (millis() > nextADCTime){
+      nextADCTime = 0;
+      float v = ioAdc(ADC_I2C_ADDR);
+      if ((v >0) && (v < 0.4)){
+        CONSOLE.print("ngpPWR=");
+        CONSOLE.println(v);      
+        CONSOLE.println("NGP PCB switched OFF!");
+        return 0; // return zero volt
+      }
+    }
+  #endif         
   return serialRobot.batteryVoltage;
 }
 
@@ -400,6 +418,13 @@ void SerialBatteryDriver::enableCharging(bool flag){
 }
 
 void SerialBatteryDriver::keepPowerOn(bool flag){
+  #ifdef __linux__
+    if (!flag){
+      CONSOLE.println("LINUX will SHUTDOWN!");    
+      //Process p;
+      //p.runShellCommand("shutdown now");
+    }
+  #endif  
 }
 
 
