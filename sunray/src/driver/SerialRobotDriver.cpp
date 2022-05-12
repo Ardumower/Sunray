@@ -70,9 +70,9 @@ void SerialRobotDriver::begin(){
     if (true){    
       for (int idx=1; idx < 9; idx++){
         ioAdcMux(idx);            
-        delay(10);
+        delay(1);
         ioAdcTrigger(ADC_I2C_ADDR);
-        delay(250);
+        delay(5);
         float v = ioAdc(ADC_I2C_ADDR);
         CONSOLE.print("S");
         CONSOLE.print(idx);
@@ -408,7 +408,7 @@ float SerialBatteryDriver::getBatteryVoltage(){
         ioAdcMux(ADC_NGP_PWR);
         ioAdcTrigger(ADC_I2C_ADDR);   
         adcTriggered = true; 
-        nextADCTime = millis() + 500;    
+        nextADCTime = millis() + 5;    
       } else {           
         nextADCTime = millis() + 1000;
         adcTriggered = false;

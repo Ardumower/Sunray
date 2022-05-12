@@ -96,7 +96,7 @@ float ioAdcStart(uint8_t addr, bool repeatMode){
   Config cfg;
   cfg.reg      = 0x00;
   cfg.bit.GAIN = eGain_x1;
-  cfg.bit.SR   = eSR_18Bit;
+  cfg.bit.SR   = eSR_12Bit;
   if (repeatMode)
     cfg.bit.OC = 1;  // 1=repeat, 0=single shot
   else 
@@ -111,7 +111,7 @@ void ioAdcTrigger(uint8_t addr){
   Config cfg;
   cfg.reg      = 0x00;
   cfg.bit.GAIN = eGain_x1;
-  cfg.bit.SR   = eSR_18Bit;
+  cfg.bit.SR   = eSR_12Bit;
   cfg.bit.OC   = 0; // 1=repeat, 0=single shot  
   cfg.bit.RDY = 1;  // trigger conversion
   Wire.beginTransmission(addr); // MCP3421 address   
@@ -124,7 +124,7 @@ void ioAdcTrigger(uint8_t addr){
 float ioAdc(uint8_t addr){
 
   uint8_t u8Data;
-  uint8_t u8Len = 4;
+  uint8_t u8Len = 3;
 
   //unsigned long startTime = millis();                
   if ((u8Len != Wire.requestFrom(addr, u8Len)) ||
@@ -155,7 +155,7 @@ float ioAdc(uint8_t addr){
     CONSOLE.println(cfg.reg, BIN);  
     return -1;
   }    
-  return ((float)s32Value) / 262143.0 * 2.048;
+  return ((float)s32Value) / 4096.0 * 2.048;
 }
   
 
