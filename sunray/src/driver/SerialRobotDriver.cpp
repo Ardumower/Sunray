@@ -401,33 +401,33 @@ void SerialBatteryDriver::run(){
 
 float SerialBatteryDriver::getBatteryVoltage(){
   #ifdef __linux__
-    if (serialRobot.ngpCommunicationLost){      
-      // detect if ngp PCB is switch-off
-      if (millis() > nextADCTime){
-        if (!adcTriggered){
-          // trigger ADC measurement (ngpPWR)
-          ioAdcMux(ADC_NGP_PWR);
-          ioAdcTrigger(ADC_I2C_ADDR);   
-          adcTriggered = true; 
-          nextADCTime = millis() + 500;    
-        } else {           
-          nextADCTime = millis() + 1000;
-          adcTriggered = false;
-          float v = ioAdc(ADC_I2C_ADDR);
-          ngpBoardPoweredOn = true;
-          if (v < 0){
-            CONSOLE.println("ERROR reading ADC channel ngpPWR!");
-          } else {
-            if ((v >0) && (v < 0.4)){
-              // no ngpPWR, ngp PCB is probably switched off
-              CONSOLE.print("ngpPWR=");
-              CONSOLE.println(v);      
-              CONSOLE.println("NGP PCB powered OFF!");
-              ngpBoardPoweredOn = false;        
-            }
+    // detect if ngp PCB is switched-off
+    if (millis() > nextADCTime){
+      if (!adcTriggered){
+        // trigger ADC measurement (ngpPWR)
+        ioAdcMux(ADC_NGP_PWR);
+        ioAdcTrigger(ADC_I2C_ADDR);   
+        adcTriggered = true; 
+        nextADCTime = millis() + 500;    
+      } else {           
+        nextADCTime = millis() + 1000;
+        adcTriggered = false;
+        float v = ioAdc(ADC_I2C_ADDR);
+        ngpBoardPoweredOn = true;
+        if (v < 0){
+          CONSOLE.println("ERROR reading ADC channel ngpPWR!");
+        } else {
+          if ((v >0) && (v < 0.4)){
+            // no ngpPWR, ngp PCB is probably switched off
+            CONSOLE.print("ngpPWR=");
+            CONSOLE.println(v);      
+            CONSOLE.println("NGP PCB powered OFF!");
+            ngpBoardPoweredOn = false;        
           }
         }
       }
+    }    
+    if (serialRobot.ngpCommunicationLost){      
       if (!ngpBoardPoweredOn) return 0; // return zero volt if ngp PCB is switched-off (so we will be later requested to shutdown)
     }
   #endif         
