@@ -74,7 +74,7 @@ void SerialRobotDriver::begin(){
         ioAdcTrigger(ADC_I2C_ADDR);
         delay(5);
         float v = ioAdc(ADC_I2C_ADDR);
-        CONSOLE.print("S");
+        CONSOLE.print("ADC S");
         CONSOLE.print(idx);
         CONSOLE.print("=");
         CONSOLE.println(v);   
