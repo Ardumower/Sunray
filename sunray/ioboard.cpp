@@ -155,7 +155,7 @@ float ioAdc(uint8_t addr){
     CONSOLE.println(cfg.reg, BIN);  
     return -1;
   }    
-  return ((float)s32Value) / 4096.0 * 2.048;
+  return ((float)s32Value) / 2048.0 * 2.048;
 }
   
 
