@@ -411,13 +411,18 @@ float SerialBatteryDriver::getBatteryVoltage(){
       if (millis() > nextADCTime){
         nextADCTime = 0;
         float v = ioAdc(ADC_I2C_ADDR);
-        if ((v >0) && (v < 0.4)){
-          // no ngpPWR, ngp PCB is probably switched off
-          CONSOLE.print("ngpPWR=");
-          CONSOLE.println(v);      
-          CONSOLE.println("NGP PCB powered OFF!");
-          ngpBoardPoweredOn = false;        
-        } else ngpBoardPoweredOn = true;
+        ngpBoardPoweredOn = true;
+        if (v < 0){
+          CONSOLE.println("ERROR reading ADC channel ngpPWR!");
+        } else {
+          if ((v >0) && (v < 0.4)){
+            // no ngpPWR, ngp PCB is probably switched off
+            CONSOLE.print("ngpPWR=");
+            CONSOLE.println(v);      
+            CONSOLE.println("NGP PCB powered OFF!");
+            ngpBoardPoweredOn = false;        
+          }
+        }
       }
       if (!ngpBoardPoweredOn) return 0; // return zero volt if ngp PCB is switched-off (so we will be later requested to shutdown)
     }
