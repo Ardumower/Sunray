@@ -75,6 +75,7 @@ class SerialBatteryDriver : public BatteryDriver {
   public:   
     bool ngpBoardPoweredOn;
     unsigned long nextADCTime;
+    bool adcTriggered;
     unsigned long linuxShutdownTime;
     SerialRobotDriver &serialRobot;
     SerialBatteryDriver(SerialRobotDriver &sr);
