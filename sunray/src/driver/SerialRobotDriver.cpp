@@ -416,7 +416,7 @@ float SerialBatteryDriver::getBatteryVoltage(){
         if (v < 0){
           CONSOLE.println("ERROR reading ADC channel ngpPWR!");
         } else {
-          if ((v >0) && (v < 0.4)){
+          if ((v >0) && (v < 0.8)){
             // no ngpPWR, ngp PCB is probably switched off
             CONSOLE.print("ngpPWR=");
             CONSOLE.println(v);      
