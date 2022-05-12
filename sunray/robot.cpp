@@ -1773,19 +1773,18 @@ void run(){
       }      
       
       // process button state
-      if (stateButton == 1){        
-        stateButton = 0;  // reset button state
-        if ((stateOp == OP_MOW) || (stateOp == OP_DOCK)) {
-          stateSensor = SENS_STOP_BUTTON;
-          setOperation(OP_IDLE, false, true);                     
-        } else {
-          stateSensor = SENS_STOP_BUTTON;
-          setOperation(OP_MOW, false, true);
-        }      
-      } else if (stateButton == 5){
+      if (stateButton == 5){
         stateButton = 0; // reset button state
         stateSensor = SENS_STOP_BUTTON;
         setOperation(OP_DOCK, false, true);
+      } else if (stateButton == 6){ 
+          stateSensor = SENS_STOP_BUTTON;
+          setOperation(OP_MOW, false, true);
+      } else if (stateButton > 0){
+        // stateButton 1 (or unknown button state)
+        stateButton = 0;  // reset button state
+        stateSensor = SENS_STOP_BUTTON;
+        setOperation(OP_IDLE, false, true);                             
       }
       
       

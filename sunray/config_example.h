@@ -396,7 +396,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // button control (turns on additional features via the POWER-ON button)
 #define BUTTON_CONTROL true      // additional features activated (press-and-hold button for specific beep count: 
-                                 //  1 beep=start/stop, 5 beeps=dock, 3 beeps=R/C mode ON/OFF)
+                                 //  1 beep=stop, 6 beeps=start, 5 beeps=dock, 3 beeps=R/C mode ON/OFF)
 //#define BUTTON_CONTROL false   // additional features deactivated
 
 //#define USE_TEMP_SENSOR   // only activate if temp sensor (htu21d) connected
