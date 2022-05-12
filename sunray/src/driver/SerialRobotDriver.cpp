@@ -70,7 +70,6 @@ void SerialRobotDriver::begin(){
     if (true){    
       for (int idx=1; idx < 9; idx++){
         ioAdcMux(idx);            
-        delay(1);
         ioAdcTrigger(ADC_I2C_ADDR);
         delay(5);
         float v = ioAdc(ADC_I2C_ADDR);
