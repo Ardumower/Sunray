@@ -31,7 +31,7 @@ void SerialRobotDriver::begin(){
   triggeredStopButton = false;
   triggeredLift = false;
   motorFault = false;
-  receivedEncoders = false;
+  ngpCommunicationLost = true;
   nextSummaryTime = 0;
   nextConsoleTime = 0;
   nextMotorTime = 0;
@@ -163,7 +163,7 @@ void SerialRobotDriver::motorResponse(){
     CONSOLE.println("STOPBUTTON");
   }
   cmdMotorResponseCounter++;
-  receivedEncoders=true;
+  ngpCommunicationLost=false;
 }
 
 
@@ -288,7 +288,7 @@ void SerialRobotDriver::run(){
     if (cmdMotorResponseCounter == 0){
       CONSOLE.println("WARN: resetting motor ticks");
       resetMotorTicks = true;
-      receivedEncoders = false;
+      ngpCommunicationLost = true;
     }    
     if ( (cmdMotorResponseCounter < 30) || (cmdSummaryResponseCounter == 0) ){
       CONSOLE.print("WARN: SerialRobot unmet communication frequency: motorFreq=");
@@ -359,7 +359,7 @@ void SerialMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent,
 }
 
 void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
-  if (!serialRobot.receivedEncoders) {
+  if (serialRobot.ngpCommunicationLost) {
     //CONSOLE.println("getMotorEncoderTicks: no ticks!");    
     leftTicks = rightTicks = 0; mowTicks = 0;
     return;
@@ -400,25 +400,27 @@ void SerialBatteryDriver::run(){
 
 float SerialBatteryDriver::getBatteryVoltage(){
   #ifdef __linux__
-    // detect if ngp PCB is switch-off
-    if (nextADCTime == 0){    
-      // trigger ADC measurement (ngpPWR)
-      ioAdcMux(ADC_NGP_PWR);
-      ioAdcTrigger(ADC_I2C_ADDR);    
-      nextADCTime = millis() + 1000;    
-    } 
-    if (millis() > nextADCTime){
-      nextADCTime = 0;
-      float v = ioAdc(ADC_I2C_ADDR);
-      if ((v >0) && (v < 0.4)){
-        // no ngpPWR, ngp PCB is probably switched off
-        CONSOLE.print("ngpPWR=");
-        CONSOLE.println(v);      
-        CONSOLE.println("NGP PCB powered OFF!");
-        ngpBoardPoweredOn = false;        
-      } else ngpBoardPoweredOn = true;
+    if (serialRobot.ngpCommunicationLost){      
+      // detect if ngp PCB is switch-off
+      if (nextADCTime == 0){    
+        // trigger ADC measurement (ngpPWR)
+        ioAdcMux(ADC_NGP_PWR);
+        ioAdcTrigger(ADC_I2C_ADDR);    
+        nextADCTime = millis() + 1000;    
+      } 
+      if (millis() > nextADCTime){
+        nextADCTime = 0;
+        float v = ioAdc(ADC_I2C_ADDR);
+        if ((v >0) && (v < 0.4)){
+          // no ngpPWR, ngp PCB is probably switched off
+          CONSOLE.print("ngpPWR=");
+          CONSOLE.println(v);      
+          CONSOLE.println("NGP PCB powered OFF!");
+          ngpBoardPoweredOn = false;        
+        } else ngpBoardPoweredOn = true;
+      }
+      if (!ngpBoardPoweredOn) return 0; // return zero volt if ngp PCB is switched-off (so we will be later requested to shutdown)
     }
-    if (!ngpBoardPoweredOn) return 0; // return zero volt if ngp PCB is switched-off (so we will be later requested to shutdown)
   #endif         
   return serialRobot.batteryVoltage;
 }

@@ -20,7 +20,7 @@ class SerialRobotDriver {
     unsigned long encoderTicksLeft;
     unsigned long encoderTicksRight;
     unsigned long encoderTicksMow;
-    bool receivedEncoders;
+    bool ngpCommunicationLost;
     bool motorFault;
     float batteryVoltage;
     float chargeVoltage;
