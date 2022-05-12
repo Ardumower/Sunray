@@ -91,19 +91,22 @@ void ioAdcMux(uint8_t adc){
 
 
 // configure ADC MCP3421
-float ioAdcStart(uint8_t addr){ 
+float ioAdcStart(uint8_t addr, bool repeatMode){ 
   // send config  
   Config cfg;
   cfg.reg      = 0x00;
   cfg.bit.GAIN = eGain_x1;
   cfg.bit.SR   = eSR_18Bit;
-  cfg.bit.OC   = 0; // 1=repeat, 0=single shot
+  if (repeatMode)
+    cfg.bit.OC = 1;  // 1=repeat, 0=single shot
+  else 
+    cfg.bit.OC = 0;
   Wire.beginTransmission(addr); // MCP3421 address   
   Wire.write(cfg.reg);   // config register 
   Wire.endTransmission();
 }
 
-// trigger an ADC conversion (MCP3421)
+// trigger a single ADC conversion (MCP3421)
 void ioAdcTrigger(uint8_t addr){
   Config cfg;
   cfg.reg      = 0x00;

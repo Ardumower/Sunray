@@ -60,11 +60,11 @@ extern "C"{
 
 typedef union {
     struct {
-    uint8_t GAIN : 2;
-    uint8_t SR   : 2;
+    uint8_t GAIN : 2; // bit 0
+    uint8_t SR   : 2; 
     uint8_t OC   : 1;
     uint8_t Cx   : 2;
-    uint8_t RDY  : 1;
+    uint8_t RDY  : 1; // bit 7
     } bit;
     uint8_t reg;
 } Config;
@@ -97,7 +97,7 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin);
 void ioAdcMux(uint8_t adc);
 
 // ADC start (MCP3421)
-float ioAdcStart(uint8_t addr);
+float ioAdcStart(uint8_t addr, bool repeatMode);
 
 // ADC conversion (MCP3421)
 void ioAdcTrigger(uint8_t addr);

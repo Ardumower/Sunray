@@ -64,15 +64,15 @@ void SerialRobotDriver::begin(){
     }
 
     // start ADC
-    ioAdcStart(ADC_I2C_ADDR);
+    ioAdcStart(ADC_I2C_ADDR, false);
 
     // ADC test    
-    if (false){    
+    if (true){    
       for (int idx=1; idx < 9; idx++){
         ioAdcMux(idx);            
-        delay(50);
+        delay(10);
         ioAdcTrigger(ADC_I2C_ADDR);
-        delay(500);
+        delay(250);
         float v = ioAdc(ADC_I2C_ADDR);
         CONSOLE.print("S");
         CONSOLE.print(idx);
