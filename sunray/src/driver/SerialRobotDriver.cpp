@@ -105,6 +105,13 @@ void SerialRobotDriver::sendRequest(String s){
 }
 
 
+void SerialRobotDriver::requestVersion(){
+  String req;
+  req += "AT+V";  
+  sendRequest(req);
+}
+
+
 void SerialRobotDriver::requestSummary(){
   String req;
   req += "AT+S";  
@@ -163,6 +170,32 @@ void SerialRobotDriver::motorResponse(){
   }
   cmdMotorResponseCounter++;
   ngpCommunicationLost=false;
+}
+
+
+void SerialRobotDriver::versionResponse(){
+  if (cmd.length()<6) return;  
+  int counter = 0;
+  int lastCommaIdx = 0;
+  for (int idx=0; idx < cmd.length(); idx++){
+    char ch = cmd[idx];
+    //Serial.print("ch=");
+    //Serial.println(ch);
+    if ((ch == ',') || (idx == cmd.length()-1)){
+      String s = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1);
+      if (counter == 1){                            
+        firmwareName = s;
+      } else if (counter == 2){
+        firmwareVersion = s;
+      } 
+      counter++;
+      lastCommaIdx = idx;
+    }    
+  }
+  CONSOLE.print("NGP FIRMWARE: ");
+  CONSOLE.print(firmwareName);
+  CONSOLE.print(",");
+  CONSOLE.println(firmwareVersion);
 }
 
 
@@ -249,6 +282,7 @@ void SerialRobotDriver::processResponse(bool checkCrc){
   }     
   if (cmd[0] == 'M') motorResponse();
   if (cmd[0] == 'S') summaryResponse();
+  if (cmd[0] == 'V') versionResponse();
 }
 
 
@@ -272,7 +306,7 @@ void SerialRobotDriver::processComm(){
 }
 
 
-void SerialRobotDriver::run(){
+void SerialRobotDriver::run(){  
   processComm();
   if (millis() > nextMotorTime){
     nextMotorTime = millis() + 20; // 50 hz
@@ -283,7 +317,12 @@ void SerialRobotDriver::run(){
     requestSummary();
   }
   if (millis() > nextConsoleTime){
-    nextConsoleTime = millis() + 1000;
+    nextConsoleTime = millis() + 1000;    
+    if (!ngpCommunicationLost){
+      if (firmwareName == ""){
+        requestVersion();
+      }
+    }    
     if (cmdMotorResponseCounter == 0){
       CONSOLE.println("WARN: resetting motor ticks");
       resetMotorTicks = true;

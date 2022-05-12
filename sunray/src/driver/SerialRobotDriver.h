@@ -14,6 +14,8 @@
 
 class SerialRobotDriver {
   public:
+    String firmwareName;
+    String firmwareVersion;
     int requestLeftPwm;
     int requestRightPwm;
     int requestMowPwm;        
@@ -39,6 +41,7 @@ class SerialRobotDriver {
     void run();
     void requestMotorPwm(int leftPwm, int rightPwm, int mowPwm);
     void requestSummary();
+    void requestVersion();
   protected:    
     String cmd;
     String cmdResponse;
@@ -54,6 +57,7 @@ class SerialRobotDriver {
     void processResponse(bool checkCrc);
     void motorResponse();
     void summaryResponse();
+    void versionResponse();
 };
 
 class SerialMotorDriver: public MotorDriver {
