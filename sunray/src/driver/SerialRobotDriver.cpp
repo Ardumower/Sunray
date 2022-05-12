@@ -31,7 +31,7 @@ void SerialRobotDriver::begin(){
   triggeredStopButton = false;
   triggeredLift = false;
   motorFault = false;
-  ngpCommunicationLost = true;
+  mcuCommunicationLost = true;
   nextSummaryTime = 0;
   nextConsoleTime = 0;
   nextMotorTime = 0;
@@ -169,7 +169,7 @@ void SerialRobotDriver::motorResponse(){
     CONSOLE.println("STOPBUTTON");
   }
   cmdMotorResponseCounter++;
-  ngpCommunicationLost=false;
+  mcuCommunicationLost=false;
 }
 
 
@@ -192,7 +192,7 @@ void SerialRobotDriver::versionResponse(){
       lastCommaIdx = idx;
     }    
   }
-  CONSOLE.print("NGP FIRMWARE: ");
+  CONSOLE.print("MCU FIRMWARE: ");
   CONSOLE.print(firmwareName);
   CONSOLE.print(",");
   CONSOLE.println(firmwareVersion);
@@ -318,7 +318,7 @@ void SerialRobotDriver::run(){
   }
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;    
-    if (!ngpCommunicationLost){
+    if (!mcuCommunicationLost){
       if (firmwareName == ""){
         requestVersion();
       }
@@ -326,7 +326,7 @@ void SerialRobotDriver::run(){
     if (cmdMotorResponseCounter == 0){
       CONSOLE.println("WARN: resetting motor ticks");
       resetMotorTicks = true;
-      ngpCommunicationLost = true;
+      mcuCommunicationLost = true;
     }    
     if ( (cmdMotorResponseCounter < 30) || (cmdSummaryResponseCounter == 0) ){
       CONSOLE.print("WARN: SerialRobot unmet communication frequency: motorFreq=");
@@ -397,7 +397,7 @@ void SerialMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent,
 }
 
 void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
-  if (serialRobot.ngpCommunicationLost) {
+  if (serialRobot.mcuCommunicationLost) {
     //CONSOLE.println("getMotorEncoderTicks: no ticks!");    
     leftTicks = rightTicks = 0; mowTicks = 0;
     return;
@@ -425,7 +425,7 @@ void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, in
 // ------------------------------------------------------------------------------------
 
 SerialBatteryDriver::SerialBatteryDriver(SerialRobotDriver &sr) : serialRobot(sr){
-  ngpBoardPoweredOn = true;
+  mcuBoardPoweredOn = true;
   nextADCTime = 0;
   adcTriggered = false;
   linuxShutdownTime = 0;
@@ -439,11 +439,11 @@ void SerialBatteryDriver::run(){
 
 float SerialBatteryDriver::getBatteryVoltage(){
   #ifdef __linux__
-    // detect if ngp PCB is switched-off
+    // detect if MCU PCB is switched-off
     if (millis() > nextADCTime){
       if (!adcTriggered){
-        // trigger ADC measurement (ngpPWR)
-        ioAdcMux(ADC_NGP_PWR);
+        // trigger ADC measurement (mcuAna)
+        ioAdcMux(ADC_MCU_ANA);
         ioAdcTrigger(ADC_I2C_ADDR);   
         adcTriggered = true; 
         nextADCTime = millis() + 5;    
@@ -451,22 +451,22 @@ float SerialBatteryDriver::getBatteryVoltage(){
         nextADCTime = millis() + 1000;
         adcTriggered = false;
         float v = ioAdc(ADC_I2C_ADDR);
-        ngpBoardPoweredOn = true;
+        mcuBoardPoweredOn = true;
         if (v < 0){
-          CONSOLE.println("ERROR reading ADC channel ngpPWR!");
+          CONSOLE.println("ERROR reading ADC channel mcuAna!");
         } else {
           if ((v >0) && (v < 0.8)){
-            // no ngpPWR, ngp PCB is probably switched off
-            CONSOLE.print("ngpPWR=");
+            // no mcuAna, MCU PCB is probably switched off
+            CONSOLE.print("mcuAna=");
             CONSOLE.println(v);      
-            CONSOLE.println("NGP PCB powered OFF!");
-            ngpBoardPoweredOn = false;        
+            CONSOLE.println("MCU PCB powered OFF!");
+            mcuBoardPoweredOn = false;        
           }
         }
       }
     }    
-    if (serialRobot.ngpCommunicationLost){      
-      if (!ngpBoardPoweredOn) return 0; // return zero volt if ngp PCB is switched-off (so we will be later requested to shutdown)
+    if (serialRobot.mcuCommunicationLost){      
+      if (!mcuBoardPoweredOn) return 0; // return zero volt if MCU PCB is switched-off (so we will be later requested to shutdown)
     }
   #endif         
   return serialRobot.batteryVoltage;
@@ -491,8 +491,8 @@ void SerialBatteryDriver::keepPowerOn(bool flag){
       linuxShutdownTime = 0;
     } else {
       // shutdown linux - request could be for two reasons:
-      // 1. battery voltage sent by ngp-pcb seem to be too low 
-      // 2. ngp-pcb is powered-off 
+      // 1. battery voltage sent by MUC-PCB seem to be too low 
+      // 2. MCU-PCB is powered-off 
       if (linuxShutdownTime == 0){
         linuxShutdownTime = millis() + 5000; // some timeout 
       }

@@ -22,7 +22,7 @@ class SerialRobotDriver {
     unsigned long encoderTicksLeft;
     unsigned long encoderTicksRight;
     unsigned long encoderTicksMow;
-    bool ngpCommunicationLost;
+    bool mcuCommunicationLost;
     bool motorFault;
     float batteryVoltage;
     float chargeVoltage;
@@ -77,7 +77,7 @@ class SerialMotorDriver: public MotorDriver {
 
 class SerialBatteryDriver : public BatteryDriver {
   public:   
-    bool ngpBoardPoweredOn;
+    bool mcuBoardPoweredOn;
     unsigned long nextADCTime;
     bool adcTriggered;
     unsigned long linuxShutdownTime;

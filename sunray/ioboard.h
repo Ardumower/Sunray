@@ -49,7 +49,7 @@ extern "C"{
 #define ADC_BAT1     1   // battery cell1
 #define ADC_BAT2     2   // battery cell2
 #define ADC_BAT3     3   // battery cell3
-#define ADC_NGP_PWR  4   // ngpPWR
+#define ADC_MCU_ANA  4   // mcuAna
 #define ADC_AD0      5   
 #define ADC_AD1      6
 #define ADC_AD2      7
