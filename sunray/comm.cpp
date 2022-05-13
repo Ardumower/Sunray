@@ -387,17 +387,17 @@ void cmdVersion(){
   #else 
     s += "XX";
   #endif
-  s += F(",");
   String id = "";
   String mcuFwName = "";
   String mcuFwVer = ""; 
   robotDriver.getRobotID(id);
   robotDriver.getMcuFirmwareVersion(mcuFwName, mcuFwVer);
-  s += id;
-  s += ",";
+  s += F(",");  
   s += mcuFwName;
-  s += ",";
+  s += F(",");
   s += mcuFwVer;
+  s += F(",");  
+  s += id;
   CONSOLE.print("sending encryptMode=");
   CONSOLE.print(encryptMode);
   CONSOLE.print(" encryptChallenge=");  
