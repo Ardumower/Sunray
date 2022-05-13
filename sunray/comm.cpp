@@ -706,7 +706,7 @@ void cmdFirmwareUpdate(){
     CONSOLE.print("applying firmware update: ");
     CONSOLE.println(fileURL);
     Process p;
-    p.runShellCommand("/home/pi/sunray_install/update.sh --apply --url &" + fileURL);
+    p.runShellCommandAsynchronously("/home/pi/sunray_install/update.sh --apply --url &" + fileURL);
   #endif  
   cmdAnswer(s);
 }
