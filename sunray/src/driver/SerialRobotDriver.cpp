@@ -40,8 +40,16 @@ void SerialRobotDriver::begin(){
   cmdMotorCounter = 0;
   cmdSummaryCounter = 0;
   requestLeftPwm = requestRightPwm = requestMowPwm = 0;
+  robotID = "XX";
 
-  #ifdef __linux__    
+  #ifdef __linux__
+    Process p;
+    p.runShellCommand("ip link show eth0 | grep link/ether | awk '{print $2}'");
+	  robotID = p.readString();    
+    robotID.trim();
+    
+    CONSOLE.println("ioboard init");
+
     // IMU power-on code (Alfred-PCB-specific) 
     // switch-on IMU via port-expander PCA9555     
     ioExpanderOut(EX1_I2C_ADDR, EX1_IMU_POWER_PORT, EX1_IMU_POWER_PIN, true);
@@ -93,7 +101,7 @@ void SerialRobotDriver::begin(){
 }
 
 bool SerialRobotDriver::getRobotID(String &id){
-  id = "XX";
+  id = robotID;
   return true;
 }
 

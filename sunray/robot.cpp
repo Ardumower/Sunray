@@ -895,6 +895,10 @@ void start(){
   CONSOLE.println(BOARD);
   
   robotDriver.begin();
+  CONSOLE.print("robot id: ");
+  String rid = "";
+  robotDriver.getRobotID(rid);
+  CONSOLE.println(rid);
   motorDriver.begin();
   rainDriver.begin();
   liftDriver.begin();  
