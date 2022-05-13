@@ -686,7 +686,7 @@ void cmdWiFiStatus(){
 
 // request firmware update
 void cmdFirmwareUpdate(){
-  String s = F("U1,");  
+  String s = F("U1");  
   #ifdef __linux__
     if (cmd.length()<6) return;  
     int counter = 0;
