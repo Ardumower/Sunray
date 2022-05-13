@@ -705,8 +705,8 @@ void cmdFirmwareUpdate(){
     }          
     CONSOLE.print("applying firmware update: ");
     CONSOLE.println(fileURL);
-    //Process p;
-    //p.runShellCommand("./update.sh --apply --url " + fileURL);
+    Process p;
+    p.runShellCommand("./update.sh --apply --url " + fileURL);
   #endif  
   cmdAnswer(s);
 }
