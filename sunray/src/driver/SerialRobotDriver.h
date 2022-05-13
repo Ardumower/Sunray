@@ -12,10 +12,10 @@
 #include "RobotDriver.h"
 
 
-class SerialRobotDriver {
+class SerialRobotDriver: public RobotDriver {
   public:
-    String firmwareName;
-    String firmwareVersion;
+    String mcuFirmwareName;
+    String mcuFirmwareVersion;
     int requestLeftPwm;
     int requestRightPwm;
     int requestMowPwm;        
@@ -37,8 +37,10 @@ class SerialRobotDriver {
     bool triggeredLift;
     bool triggeredRain;
     bool triggeredStopButton;           
-    void begin();
-    void run();
+    void begin() override;
+    void run() override;
+    bool getRobotID(String &id) override;
+    bool getMcuFirmwareVersion(String &name, String &ver) override;
     void requestMotorPwm(int leftPwm, int rightPwm, int mowPwm);
     void requestSummary();
     void requestVersion();

@@ -11,6 +11,14 @@
 #include "../../gps.h"
 #include <Client.h>
 
+class RobotDriver {
+  public:    
+    virtual void begin() = 0;
+    virtual void run() = 0;
+    virtual bool getRobotID(String &id) = 0;
+    virtual bool getMcuFirmwareVersion(String &name, String &ver) = 0;    
+};
+
 class MotorDriver {
   public:    
     virtual void begin() = 0;

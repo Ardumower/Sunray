@@ -379,6 +379,25 @@ void cmdVersion(){
   s += encryptChallenge;
   s += F(",");
   s += BOARD;
+  s += F(",");
+  #ifdef DRV_SERIAL_ROBOT
+    s += "SR";
+  #elif DRV_ARDUMOWER
+    s += "AM";
+  #else 
+    s += "XX";
+  #endif
+  s += F(",");
+  String id = "";
+  String mcuFwName = "";
+  String mcuFwVer = ""; 
+  robotDriver.getRobotID(id);
+  robotDriver.getMcuFirmwareVersion(mcuFwName, mcuFwVer);
+  s += id;
+  s += ",";
+  s += mcuFwName;
+  s += ",";
+  s += mcuFwVer;
   CONSOLE.print("sending encryptMode=");
   CONSOLE.print(encryptMode);
   CONSOLE.print(" encryptChallenge=");  

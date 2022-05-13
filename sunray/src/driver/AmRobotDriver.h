@@ -50,10 +50,12 @@ struct DriverChip {
 };
 
 
-class AmRobotDriver {
+class AmRobotDriver: public RobotDriver {
   public:
-    void begin();
-    void run();
+    void begin() override;
+    void run() override;
+    bool getRobotID(String &id) override;    
+    bool getMcuFirmwareVersion(String &name, String &ver) override;
 };
 
 

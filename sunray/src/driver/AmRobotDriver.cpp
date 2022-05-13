@@ -68,6 +68,18 @@ void AmRobotDriver::run(){
 }
 
 
+bool AmRobotDriver::getRobotID(String &id){
+  id = "XX";
+  return true;
+}
+
+bool AmRobotDriver::getMcuFirmwareVersion(String &name, String &ver){
+  name = "XX";
+  ver = "XX";
+  return true;
+}
+
+
 // ------------------------------------------------------------------------------------
 
 

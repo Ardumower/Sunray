@@ -92,6 +92,18 @@ void SerialRobotDriver::begin(){
   #endif
 }
 
+bool SerialRobotDriver::getRobotID(String &id){
+  id = "XX";
+  return true;
+}
+
+bool SerialRobotDriver::getMcuFirmwareVersion(String &name, String &ver){
+  name = mcuFirmwareName;
+  ver = mcuFirmwareVersion;
+  return true;
+}
+
+
 void SerialRobotDriver::sendRequest(String s){
   byte crc = 0;
   for (int i=0; i < s.length(); i++) crc += s[i];
@@ -184,18 +196,18 @@ void SerialRobotDriver::versionResponse(){
     if ((ch == ',') || (idx == cmd.length()-1)){
       String s = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1);
       if (counter == 1){                            
-        firmwareName = s;
+        mcuFirmwareName = s;
       } else if (counter == 2){
-        firmwareVersion = s;
+        mcuFirmwareVersion = s;
       } 
       counter++;
       lastCommaIdx = idx;
     }    
   }
   CONSOLE.print("MCU FIRMWARE: ");
-  CONSOLE.print(firmwareName);
+  CONSOLE.print(mcuFirmwareName);
   CONSOLE.print(",");
-  CONSOLE.println(firmwareVersion);
+  CONSOLE.println(mcuFirmwareVersion);
 }
 
 
@@ -319,7 +331,7 @@ void SerialRobotDriver::run(){
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;    
     if (!mcuCommunicationLost){
-      if (firmwareName == ""){
+      if (mcuFirmwareName == ""){
         requestVersion();
       }
     }    
