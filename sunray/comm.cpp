@@ -691,20 +691,22 @@ void cmdFirmwareUpdate(){
     if (cmd.length()<6) return;  
     int counter = 0;
     int lastCommaIdx = 0;    
-    String url = "";
+    String fileURL = "";
     for (int idx=0; idx < cmd.length(); idx++){
       char ch = cmd[idx];
       if ((ch == ',') || (idx == cmd.length()-1)){
         String str = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1);
         if (counter == 1){                            
-            url = str;
+            fileURL = str;
         } 
         counter++;
         lastCommaIdx = idx;
       }    
     }          
-    Process p;
-    p.runShellCommand("./update.sh --apply --url " + url);
+    CONSOLE.print("applying firmware update: ");
+    CONSOLE.println(fileURL);
+    //Process p;
+    //p.runShellCommand("./update.sh --apply --url " + fileURL);
   #endif  
   cmdAnswer(s);
 }
