@@ -179,6 +179,24 @@ AmMotorDriver::AmMotorDriver(){
   A4931.adcVoltToAmpScale = 7.57;
   A4931.adcVoltToAmpPow = 1.0; 
 
+  // ACT-8015A brushless driver 
+  BLDC8015A.driverName = "BLDC8015A";    // just a name for your driver
+  BLDC8015A.forwardPwmInvert = false; // invert PWM signal for forward? (false or true)
+  BLDC8015A.forwardDirLevel = LOW;    // logic level for forward (LOW or HIGH)
+  BLDC8015A.reversePwmInvert = false; // invert PWM signal for reverse? (false or true)
+  BLDC8015A.reverseDirLevel = HIGH;   // logic level for reverse (LOW or HIGH)
+  BLDC8015A.usePwmRamp = false;       // use a ramp to get to PWM value?    
+  BLDC8015A.faultActive = LOW;        // fault active level (LOW or HIGH)
+  BLDC8015A.resetFaultByToggleEnable = false; // reset a fault by toggling enable? 
+  BLDC8015A.enableActive = HIGH;       // enable active level (LOW or HIGH)
+  BLDC8015A.disableAtPwmZeroSpeed = false;  // disable driver at PWM zero speed? (brake function)
+  BLDC8015A.keepPwmZeroSpeed = true;  // keep PWM zero value (disregard minPwmSpeed at zero speed)?
+  BLDC8015A.minPwmSpeed = 0;          // minimum PWM speed your driver can operate
+  BLDC8015A.pwmFreq = PWM_FREQ_29300;  // choose between PWM_FREQ_3900 and PWM_FREQ_29300 here   
+  BLDC8015A.adcVoltToAmpOfs = 1.65;      // ADC voltage to amps (offset)
+  BLDC8015A.adcVoltToAmpScale = 7.57; // ADC voltage to amps (scale)
+  BLDC8015A.adcVoltToAmpPow = 1.0;    // ADC voltage to amps (power of number)
+
   // your custom brushed/brushless driver (ACT-8015A, JYQD_V7.3E3, etc.)
   CUSTOM.driverName = "CUSTOM";    // just a name for your driver
   CUSTOM.forwardPwmInvert = false; // invert PWM signal for forward? (false or true)
@@ -216,6 +234,8 @@ void AmMotorDriver::begin(){
       mowDriverChip.keepPwmZeroSpeed = true;
       mowDriverChip.disableAtPwmZeroSpeed = true;  
       mowDriverChip.usePwmRamp = false;
+    #elif MOTOR_DRIVER_BRUSHLESS_MOW_BLDC8015A 
+      mowDriverChip = BLDC8015A;    
     #else 
       mowDriverChip = CUSTOM;
     #endif
@@ -224,6 +244,8 @@ void AmMotorDriver::begin(){
       gearsDriverChip = DRV8308;                         
     #elif MOTOR_DRIVER_BRUSHLESS_GEARS_A4931 
       gearsDriverChip = A4931;
+    #elif MOTOR_DRIVER_BRUSHLESS_GEARS_BLDC8015A
+      gearsDriverChip = BLDC8015A;    
     #else 
       gearsDriverChip = CUSTOM;
     #endif

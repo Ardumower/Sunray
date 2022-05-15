@@ -79,6 +79,7 @@ class AmMotorDriver: public MotorDriver {
     DriverChip MC33926;
     DriverChip DRV8308;
     DriverChip A4931;
+    DriverChip BLDC8015A;
     DriverChip CUSTOM;
     DriverChip mowDriverChip;
     DriverChip gearsDriverChip;
