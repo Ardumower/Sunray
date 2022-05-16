@@ -13,6 +13,8 @@
 
 unsigned long nextInfoTime = 0;
 bool triggerWatchdog = false;
+bool bleConnected = false;
+unsigned long bleConnectedTimeout = 0;
 
 int encryptMode = 0; // 0=off, 1=encrypt
 int encryptPass = PASS; 
@@ -829,6 +831,8 @@ void processBLE(){
   char ch;   
   if (BLE.available()){
     battery.resetIdle();  
+    bleConnected = true;
+    bleConnectedTimeout = millis() + 5000;
     while ( BLE.available() ){    
       ch = BLE.read();      
       if ((ch == '\r') || (ch == '\n')) {   
@@ -841,6 +845,10 @@ void processBLE(){
         cmd += ch;
       }
     }    
+  } else {
+    if (millis() > bleConnectedTimeout){
+      bleConnected = false;
+    }
   }  
 }  
 
@@ -1052,9 +1060,11 @@ void processWifiMqttClient()
 void processComm(){
   processConsole();     
   processBLE();     
-  processWifiAppServer();
-  processWifiRelayClient();
-  processWifiMqttClient();
+  if (!bleConnected){
+    processWifiAppServer();
+    processWifiRelayClient();
+    processWifiMqttClient();
+  }
   if (triggerWatchdog) {
     CONSOLE.println("hang test - watchdog should trigger and perform a reset");
     while (true){
