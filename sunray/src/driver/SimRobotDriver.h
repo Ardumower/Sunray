@@ -18,7 +18,6 @@ class SimRobotDriver: public RobotDriver {
     void run() override;
     bool getRobotID(String &id) override;
     bool getMcuFirmwareVersion(String &name, String &ver) override;
-    void requestMotorPwm(int leftPwm, int rightPwm, int mowPwm);
   protected:    
 };
 
