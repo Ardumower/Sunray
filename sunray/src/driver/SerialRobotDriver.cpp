@@ -72,7 +72,7 @@ void SerialRobotDriver::begin(){
     }
 
     // start ADC
-    ioAdcStart(ADC_I2C_ADDR, false);
+    ioAdcStart(ADC_I2C_ADDR, false, true);
 
     // ADC test    
     if (true){    
@@ -474,6 +474,8 @@ float SerialBatteryDriver::getBatteryVoltage(){
         mcuBoardPoweredOn = true;
         if (v < 0){
           CONSOLE.println("ERROR reading ADC channel mcuAna!");
+          // reset ADC
+          ioAdcStart(ADC_I2C_ADDR, false, true);
         } else {
           if ((v >0) && (v < 0.8)){
             // no mcuAna, MCU PCB is probably switched off

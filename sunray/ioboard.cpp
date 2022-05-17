@@ -91,7 +91,7 @@ void ioAdcMux(uint8_t adc){
 
 
 // configure ADC MCP3421
-float ioAdcStart(uint8_t addr, bool repeatMode){ 
+float ioAdcStart(uint8_t addr, bool repeatMode, bool reset){ 
   // send config  
   Config cfg;
   cfg.reg      = 0x00;
@@ -103,6 +103,9 @@ float ioAdcStart(uint8_t addr, bool repeatMode){
     cfg.bit.OC = 0;
   Wire.beginTransmission(addr); // MCP3421 address   
   Wire.write(cfg.reg);   // config register 
+  //The general call reset occurs if the second byte is
+  //‘00000110’ (06h).
+  if (reset) Wire.write(0x06);
   Wire.endTransmission();
 }
 
