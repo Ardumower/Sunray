@@ -261,6 +261,7 @@ void SimImuDriver::resetData(){
 
 SimGpsDriver::SimGpsDriver(SimRobotDriver &sr): simRobot(sr){
   nextSolutionTime = 0;
+  solutionAvail = false;
 }
 
 void SimGpsDriver::begin(Client &client, char *host, uint16_t port){
@@ -272,12 +273,14 @@ void SimGpsDriver::begin(HardwareSerial& bus,uint32_t baud){
 
     
 void SimGpsDriver::run(){
-  if (millis() > nextSolutionTime){
-    nextSolutionTime = millis() + 200; // 5 hz
-    relPosE = simRobot.simX;
-    relPosN = simRobot.simY;
-    solution = SOL_FIXED;
-    solutionAvail = true;
+  if (false){
+    if (millis() > nextSolutionTime){
+      nextSolutionTime = millis() + 200; // 5 hz
+      relPosE = simRobot.simX;
+      relPosN = simRobot.simY;
+      solution = SOL_FIXED;
+      solutionAvail = true;
+    }
   }
 }
     
