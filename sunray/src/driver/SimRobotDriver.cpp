@@ -73,8 +73,18 @@ void SimMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   } 
   lastSampleTime = millis();
 
-  simRobot.simTicksLeft += simRobot.leftSpeed / (PI * ((float)WHEEL_DIAMETER) / 1000.0) * ((float)TICKS_PER_REVOLUTION) * deltaT;
-  simRobot.simTicksRight += simRobot.rightSpeed / (PI * ((float)WHEEL_DIAMETER) / 1000.0) * ((float)TICKS_PER_REVOLUTION) * deltaT;
+  int leftDeltaTicks = simRobot.leftSpeed / (PI * ((float)WHEEL_DIAMETER) / 1000.0) * ((float)TICKS_PER_REVOLUTION) * deltaT;
+  int rightDeltaTicks = simRobot.rightSpeed / (PI * ((float)WHEEL_DIAMETER) / 1000.0) * ((float)TICKS_PER_REVOLUTION) * deltaT;
+  
+  if (leftPwm >= 0)
+    simRobot.simTicksLeft += leftDeltaTicks;
+  else
+    simRobot.simTicksLeft -= leftDeltaTicks;
+
+  if (rightPwm >= 0)
+    simRobot.simTicksRight += rightDeltaTicks;
+  else 
+    simRobot.simTicksRight -= rightDeltaTicks; 
 
   simRobot.linearSpeed = (simRobot.rightSpeed + simRobot.leftSpeed) / 2.0;
   float wheelBase = ((float)WHEEL_BASE_CM) / 100.0; 
@@ -106,9 +116,9 @@ void SimMotorDriver::resetMotorFaults(){
 }
 
 void SimMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) {  
-  leftCurrent = simRobot.leftSpeed / 2.0;
-  rightCurrent = simRobot.rightSpeed / 2.0;
-  mowCurrent = simRobot.mowSpeed;
+  leftCurrent = abs(simRobot.leftSpeed) / 2.0;
+  rightCurrent = abs(simRobot.rightSpeed) / 2.0;
+  mowCurrent = abs(simRobot.mowSpeed);
 }
 
 void SimMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
@@ -268,6 +278,7 @@ void SimImuDriver::run(){
 
 
 bool SimImuDriver::isDataAvail(){
+  return false;
   if (millis() > nextSampleTime){
     nextSampleTime = millis() + 200; // 5 hz
     roll = 0;
@@ -304,7 +315,16 @@ void SimGpsDriver::run(){
       nextSolutionTime = millis() + 200; // 5 hz
       relPosE = simRobot.simX;
       relPosN = simRobot.simY;
+      relPosD = 100;
       solution = SOL_FIXED;
+      lon = relPosE;
+      lat =relPosN;
+      height = relPosD;
+      accuracy = 0.01;
+      hAccuracy = accuracy;
+      vAccuracy = accuracy;
+      dgpsAge = 1.0;
+      groundSpeed = simRobot.linearSpeed;
       solutionAvail = true;
     }
   }
