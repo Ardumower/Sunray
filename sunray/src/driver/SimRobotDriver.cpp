@@ -60,6 +60,13 @@ void SimMotorDriver::run(){
 
 void SimMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  
 
+  float deltaT = 0;
+  if (lastSampleTime != 0){
+    deltaT = ((float)(millis() - lastSampleTime)) / 1000.0;
+    if (deltaT < 0.2) return;
+  } 
+  lastSampleTime = millis();
+
   leftPwm = -leftPwm;
 
   float maxSpeed = 0.7;  // m/s  (pwm=255)
@@ -67,12 +74,7 @@ void SimMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   simRobot.rightSpeed = ((float)rightPwm) / 255.0 * maxSpeed;
   simRobot.mowSpeed = ((float)mowPwm) / 255.0;
 
-  float deltaT = 0;
-  if (lastSampleTime != 0){
-    deltaT = ((float)(millis() - lastSampleTime)) / 1000.0;
-  } 
-  lastSampleTime = millis();
-
+  
   int leftDeltaTicks = simRobot.leftSpeed / (PI * ((float)WHEEL_DIAMETER) / 1000.0) * ((float)TICKS_PER_REVOLUTION) * deltaT;
   int rightDeltaTicks = simRobot.rightSpeed / (PI * ((float)WHEEL_DIAMETER) / 1000.0) * ((float)TICKS_PER_REVOLUTION) * deltaT;
   
@@ -105,7 +107,7 @@ void SimMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   CONSOLE.print("  pos ");
   CONSOLE.print(simRobot.simX);
   CONSOLE.print(",");
-  CONSOLE.println(simRobot.simY);   */
+  CONSOLE.println(simRobot.simY); */  
 }
 
 void SimMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &mowFault){
@@ -310,7 +312,7 @@ void SimGpsDriver::begin(HardwareSerial& bus,uint32_t baud){
 
     
 void SimGpsDriver::run(){
-  if (false){
+  if (true){
     if (millis() > nextSolutionTime){
       nextSolutionTime = millis() + 200; // 5 hz
       relPosE = simRobot.simX;
