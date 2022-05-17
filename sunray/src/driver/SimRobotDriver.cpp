@@ -310,7 +310,7 @@ void SimGpsDriver::begin(HardwareSerial& bus,uint32_t baud){
 
     
 void SimGpsDriver::run(){
-  if (true){
+  if (false){
     if (millis() > nextSolutionTime){
       nextSolutionTime = millis() + 200; // 5 hz
       relPosE = simRobot.simX;
@@ -323,7 +323,7 @@ void SimGpsDriver::run(){
       accuracy = 0.01;
       hAccuracy = accuracy;
       vAccuracy = accuracy;
-      dgpsAge = 1.0;
+      dgpsAge = millis();
       groundSpeed = simRobot.linearSpeed;
       solutionAvail = true;
     }
