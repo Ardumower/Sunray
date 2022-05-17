@@ -13,6 +13,8 @@ void SimRobotDriver::begin(){
   CONSOLE.println("using robot driver: SimRobotDriver");
   simTicksLeft = simTicksRight = 0;  
   simX = simY = simDelta = 0;
+  linearSpeed = angularSpeed = 0;
+  leftSpeed = rightSpeed = mowSpeed = 0;
 }
 
 bool SimRobotDriver::getRobotID(String &id){
@@ -36,6 +38,7 @@ void SimRobotDriver::run(){
 
 SimMotorDriver::SimMotorDriver(SimRobotDriver &sr): simRobot(sr){
   lastEncoderTicksLeft = lastEncoderTicksLeft = 0;
+  lastSampleTime = 0;
 } 
 
 void SimMotorDriver::begin(){
@@ -56,33 +59,56 @@ void SimMotorDriver::run(){
 //      omega = (VR - VL) / L       =>  VL = V - omega * L/2
 
 void SimMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  
-  
+
+  leftPwm = -leftPwm;
+
   float maxSpeed = 0.7;  // m/s  (pwm=255)
-  float leftSpeed = ((float)leftPwm) / 255.0 * maxSpeed; 
-  float rightSpeed = ((float)rightPwm) / 255.0 * maxSpeed;
+  simRobot.leftSpeed = ((float)leftPwm) / 255.0 * maxSpeed; 
+  simRobot.rightSpeed = ((float)rightPwm) / 255.0 * maxSpeed;
+  simRobot.mowSpeed = ((float)mowPwm) / 255.0;
 
-  simRobot.simTicksLeft += leftSpeed / (PI * WHEEL_DIAMETER / 1000.0) * TICKS_PER_REVOLUTION;
-  simRobot.simTicksLeft += rightSpeed / (PI * WHEEL_DIAMETER / 1000.0) * TICKS_PER_REVOLUTION;
+  float deltaT = 0;
+  if (lastSampleTime != 0){
+    deltaT = ((float)(millis() - lastSampleTime)) / 1000.0;
+  } 
+  lastSampleTime = millis();
 
-  float speed = (rightSpeed + leftSpeed) / 2.0;
-  float wheelBase = WHEEL_BASE_CM / 100.0; 
-  float omega = (rightSpeed - leftSpeed) / wheelBase;
+  simRobot.simTicksLeft += simRobot.leftSpeed / (PI * ((float)WHEEL_DIAMETER) / 1000.0) * ((float)TICKS_PER_REVOLUTION) * deltaT;
+  simRobot.simTicksRight += simRobot.rightSpeed / (PI * ((float)WHEEL_DIAMETER) / 1000.0) * ((float)TICKS_PER_REVOLUTION) * deltaT;
 
-  simRobot.simX += cos(simRobot.simDelta) * speed;
-  simRobot.simY += sin(simRobot.simDelta) * speed; 
-  simRobot.simDelta += omega;
+  simRobot.linearSpeed = (simRobot.rightSpeed + simRobot.leftSpeed) / 2.0;
+  float wheelBase = ((float)WHEEL_BASE_CM) / 100.0; 
+  simRobot.angularSpeed = (simRobot.rightSpeed - simRobot.leftSpeed) / wheelBase;
+
+  simRobot.simX += cos(simRobot.simDelta) * simRobot.linearSpeed * deltaT;
+  simRobot.simY += sin(simRobot.simDelta) * simRobot.linearSpeed * deltaT; 
+  simRobot.simDelta += simRobot.angularSpeed * deltaT;
+
+  /*CONSOLE.print("simRobot speed ");
+  CONSOLE.print(simRobot.leftSpeed);
+  CONSOLE.print(",");
+  CONSOLE.print(simRobot.rightSpeed);
+  CONSOLE.print("  ticks ");
+  CONSOLE.print(simRobot.simTicksLeft);
+  CONSOLE.print(",");
+  CONSOLE.print(simRobot.simTicksRight);
+  CONSOLE.print("  pos ");
+  CONSOLE.print(simRobot.simX);
+  CONSOLE.print(",");
+  CONSOLE.println(simRobot.simY);   */
 }
 
 void SimMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &mowFault){
+  leftFault = rightFault = mowFault = false;
 }
 
 void SimMotorDriver::resetMotorFaults(){
 }
 
 void SimMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) {  
-  leftCurrent = 0;
-  rightCurrent = 0;
-  mowCurrent = 0;
+  leftCurrent = simRobot.leftSpeed / 2.0;
+  rightCurrent = simRobot.rightSpeed / 2.0;
+  mowCurrent = simRobot.mowSpeed;
 }
 
 void SimMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
@@ -273,7 +299,7 @@ void SimGpsDriver::begin(HardwareSerial& bus,uint32_t baud){
 
     
 void SimGpsDriver::run(){
-  if (false){
+  if (true){
     if (millis() > nextSolutionTime){
       nextSolutionTime = millis() + 200; // 5 hz
       relPosE = simRobot.simX;

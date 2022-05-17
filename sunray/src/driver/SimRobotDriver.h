@@ -17,6 +17,11 @@ class SimRobotDriver: public RobotDriver {
     float simX;  // robot x
     float simY;  // robot y
     float simDelta; // robot yaw        
+    float leftSpeed; // left tire speed
+    float rightSpeed;  // right tire speed
+    float mowSpeed;    // mow motor speed
+    float linearSpeed;  // linear speed 
+    float angularSpeed;  // angular speed    
     unsigned long simTicksLeft; // robot left encoder 
     unsigned long simTicksRight;  // robot right encoder
     void begin() override;
@@ -38,6 +43,7 @@ class SimMotorDriver: public MotorDriver {
     void getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) override;
     void getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks) override;
   protected:
+    unsigned long lastSampleTime;
     unsigned long lastEncoderTicksLeft;
     unsigned long lastEncoderTicksRight;     
 };
