@@ -62,6 +62,15 @@ File stateFile;
   SerialRainSensorDriver rainDriver(robotDriver);
   SerialLiftSensorDriver liftDriver(robotDriver);
   SerialBuzzerDriver buzzerDriver(robotDriver);
+#elif DRV_SIM_ROBOT
+  SimRobotDriver robotDriver;
+  SimMotorDriver motorDriver(robotDriver);
+  SimBatteryDriver batteryDriver(robotDriver);
+  SimBumperDriver bumper(robotDriver);
+  SimStopButtonDriver stopButton(robotDriver);
+  SimRainSensorDriver rainDriver(robotDriver);
+  SimLiftSensorDriver liftDriver(robotDriver);
+  SimBuzzerDriver buzzerDriver(robotDriver);
 #else
   AmRobotDriver robotDriver;
   AmMotorDriver motorDriver;

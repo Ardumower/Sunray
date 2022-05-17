@@ -13,6 +13,7 @@
 #include "config.h"
 #include "src/driver/AmRobotDriver.h"
 #include "src/driver/SerialRobotDriver.h"
+#include "src/driver/SimRobotDriver.h"
 #include "battery.h"
 #include "ble.h"
 #include "pinman.h"
@@ -130,6 +131,14 @@ extern bool wifiFound;
   extern SerialStopButtonDriver stopButton;
   extern SerialRainSensorDriver rainDriver;
   extern SerialBuzzerDriver buzzerDriver;
+#elif DRV_SIM_ROBOT
+  extern SimRobotDriver robotDriver;
+  extern SimMotorDriver motorDriver;
+  extern SimBatteryDriver batteryDriver;
+  extern SimBumperDriver bumper;
+  extern SimStopButtonDriver stopButton;
+  extern SimRainSensorDriver rainDriver;
+  extern SimBuzzerDriver buzzerDriver;
 #else
   extern AmRobotDriver robotDriver;
   extern AmMotorDriver motorDriver;
