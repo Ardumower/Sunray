@@ -5,8 +5,8 @@
 
 // Alfred mower: external robot (with motor drivers, battery, bumper etc.) connected and controlled via serial line
 
-#ifndef AM_SERIAL_ROBOT_DRIVER_H
-#define AM_SERIAL_ROBOT_DRIVER_H
+#ifndef SERIAL_ROBOT_DRIVER_H
+#define SERIAL_ROBOT_DRIVER_H
 
 #include <Arduino.h>
 #include "RobotDriver.h"

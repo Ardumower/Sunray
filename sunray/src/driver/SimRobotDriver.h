@@ -5,8 +5,8 @@
 
 // robot mower simulation (with simulated motor drivers, battery, bumper etc.) 
 
-#ifndef AM_SIM_ROBOT_DRIVER_H
-#define AM_SIM_ROBOT_DRIVER_H
+#ifndef SIM_ROBOT_DRIVER_H
+#define SIM_ROBOT_DRIVER_H
 
 #include <Arduino.h>
 #include "RobotDriver.h"
