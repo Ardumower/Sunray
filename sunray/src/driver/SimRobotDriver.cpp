@@ -213,6 +213,31 @@ bool SimImuDriver::isDataAvail(){
 void SimImuDriver::resetData(){
 }
 
+// -------------------------------------------------------------------------------------
+
+
+SimGpsDriver::SimGpsDriver(SimRobotDriver &sr): simRobot(sr){
+}
+
+void SimGpsDriver::begin(Client &client, char *host, uint16_t port){
+}
+    
+    
+void SimGpsDriver::begin(HardwareSerial& bus,uint32_t baud){
+}
+
+    
+void SimGpsDriver::run(){
+}
+    
+    
+bool SimGpsDriver::configure(){  
+}
+    
+    
+void SimGpsDriver::reboot(){
+}
+
 
 
 

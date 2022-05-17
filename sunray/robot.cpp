@@ -86,7 +86,9 @@ File stateFile;
 Motor motor;
 Battery battery;
 PinManager pinMan;
-#ifdef GPS_SKYTRAQ
+#ifdef DRV_SIM_ROBOT
+  SimGpsDriver gps(robotDriver);
+#elif GPS_SKYTRAQ
   SKYTRAQ gps;
 #else 
   UBLOX gps;

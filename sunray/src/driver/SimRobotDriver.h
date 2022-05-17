@@ -106,4 +106,15 @@ class SimImuDriver: public ImuDriver {
 };
 
 
+class SimGpsDriver : public GpsDriver {
+  public:    
+    SimRobotDriver &simRobot;
+    SimGpsDriver(SimRobotDriver &sr);
+    void begin(Client &client, char *host, uint16_t port) override;
+    void begin(HardwareSerial& bus,uint32_t baud) override;
+    void run() override;
+    bool configure() override;  
+    void reboot() override;
+};
+
 #endif

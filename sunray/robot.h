@@ -157,7 +157,9 @@ extern Sonar sonar;
 extern VL53L0X tof;
 extern PinManager pinMan;
 extern Map maps;
-#ifdef GPS_SKYTRAQ
+#ifdef DRV_SIM_ROBOT
+  extern SimGpsDriver gps;
+#elif GPS_SKYTRAQ
   extern SKYTRAQ gps;
 #else
   extern UBLOX gps;
