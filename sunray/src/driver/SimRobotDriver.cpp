@@ -276,6 +276,7 @@ void SimGpsDriver::run(){
     nextSolutionTime = millis() + 200; // 5 hz
     relPosE = simRobot.simX;
     relPosN = simRobot.simY;
+    solution = SOL_FIXED;
     solutionAvail = true;
   }
 }
