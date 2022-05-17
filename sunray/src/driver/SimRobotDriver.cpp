@@ -189,6 +189,10 @@ void SimBuzzerDriver::tone(int freq){
 SimImuDriver::SimImuDriver(SimRobotDriver &sr): simRobot(sr){    
 }
 
+void SimImuDriver::detect(){  
+}
+   
+
 bool SimImuDriver::begin(){ 
     CONSOLE.println("using imu driver: SimImuDriver");
     return true;

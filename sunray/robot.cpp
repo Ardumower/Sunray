@@ -48,8 +48,8 @@ const signed char orientationMatrix[9] = {
 };
 
 File stateFile;
-#ifdef DRV_SERIAL_ROBOT
-  SimImuDriver imuDriver;
+#ifdef DRV_SIM_ROBOT
+  SimImuDriver imuDriver(robotDriver);
 #elif BNO055
   BnoDriver imuDriver;  
 #else
