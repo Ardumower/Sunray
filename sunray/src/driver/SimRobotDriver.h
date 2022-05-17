@@ -111,6 +111,8 @@ class SimImuDriver: public ImuDriver {
     void run() override;
     bool isDataAvail() override;         
     void resetData() override;        
+  protected:
+    unsigned long nextSampleTime;
 };
 
 

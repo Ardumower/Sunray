@@ -224,6 +224,7 @@ void SimBuzzerDriver::tone(int freq){
 
 
 SimImuDriver::SimImuDriver(SimRobotDriver &sr): simRobot(sr){    
+  nextSampleTime = 0;
 }
 
 void SimImuDriver::detect(){  
@@ -241,10 +242,15 @@ void SimImuDriver::run(){
 
 
 bool SimImuDriver::isDataAvail(){
+  if (millis() > nextSampleTime){
+    nextSampleTime = millis() + 200; // 5 hz
     roll = 0;
     pitch = 0;
-    yaw = 0;    
+    yaw = simRobot.simDelta;    
     return true;
+  } else {
+    return false;
+  }
 }         
     
 void SimImuDriver::resetData(){
