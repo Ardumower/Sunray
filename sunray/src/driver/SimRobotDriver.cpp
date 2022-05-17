@@ -262,16 +262,17 @@ void SimBuzzerDriver::tone(int freq){
 
 
 SimImuDriver::SimImuDriver(SimRobotDriver &sr): simRobot(sr){    
-  nextSampleTime = 0;
+  nextSampleTime = 0;  
 }
 
 void SimImuDriver::detect(){  
+  imuFound = true;
 }
    
 
 bool SimImuDriver::begin(){ 
-    CONSOLE.println("using imu driver: SimImuDriver");
-    return true;
+  CONSOLE.println("using imu driver: SimImuDriver");
+  return true;
 }
 
 
@@ -280,7 +281,6 @@ void SimImuDriver::run(){
 
 
 bool SimImuDriver::isDataAvail(){
-  return false;
   if (millis() > nextSampleTime){
     nextSampleTime = millis() + 200; // 5 hz
     roll = 0;
