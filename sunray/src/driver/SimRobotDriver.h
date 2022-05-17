@@ -14,10 +14,15 @@
 
 class SimRobotDriver: public RobotDriver {
   public:
+    float simX;  // robot x
+    float simY;  // robot y
+    float simDelta; // robot yaw        
+    unsigned long simTicksLeft; // robot left encoder 
+    unsigned long simTicksRight;  // robot right encoder
     void begin() override;
     void run() override;
     bool getRobotID(String &id) override;
-    bool getMcuFirmwareVersion(String &name, String &ver) override;
+    bool getMcuFirmwareVersion(String &name, String &ver) override;    
   protected:    
 };
 
@@ -32,6 +37,9 @@ class SimMotorDriver: public MotorDriver {
     void resetMotorFaults()  override;
     void getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) override;
     void getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks) override;
+  protected:
+    unsigned long lastEncoderTicksLeft;
+    unsigned long lastEncoderTicksRight;     
 };
 
 class SimBatteryDriver : public BatteryDriver {
@@ -107,7 +115,7 @@ class SimImuDriver: public ImuDriver {
 
 
 class SimGpsDriver : public GpsDriver {
-  public:    
+  public:        
     SimRobotDriver &simRobot;
     SimGpsDriver(SimRobotDriver &sr);
     void begin(Client &client, char *host, uint16_t port) override;
@@ -115,6 +123,8 @@ class SimGpsDriver : public GpsDriver {
     void run() override;
     bool configure() override;  
     void reboot() override;
+  protected:
+    unsigned long nextSolutionTime;
 };
 
 #endif
