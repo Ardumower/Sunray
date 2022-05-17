@@ -94,5 +94,16 @@ class SimBuzzerDriver: public BuzzerDriver {
     void tone(int freq) override;  
 };
 
+class SimImuDriver: public ImuDriver {    
+  public:    
+    SimRobotDriver &simRobot;
+    SimImuDriver(SimRobotDriver &sr);    
+    void detect() override;
+    bool begin() override;    
+    void run() override;
+    bool isDataAvail() override;         
+    void resetData() override;        
+};
+
 
 #endif

@@ -183,5 +183,33 @@ void SimBuzzerDriver::noTone(){
 void SimBuzzerDriver::tone(int freq){
 }
 
+// ------------------------------------------------------------------------------------
+
+
+SimImuDriver::SimImuDriver(SimRobotDriver &sr): simRobot(sr){    
+}
+
+bool SimImuDriver::begin(){ 
+    CONSOLE.println("using imu driver: SimImuDriver");
+    return true;
+}
+
+
+void SimImuDriver::run(){
+}
+
+
+bool SimImuDriver::isDataAvail(){
+    roll = 0;
+    pitch = 0;
+    yaw = 0;    
+    return true;
+}         
+    
+void SimImuDriver::resetData(){
+}
+
+
+
 
 
