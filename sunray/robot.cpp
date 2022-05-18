@@ -1718,8 +1718,8 @@ void run(){
             if (millis() > driveReverseStopTime){
               CONSOLE.println("driveReverseStopTime");
               motor.stopImmediately(false); 
-              if (detectLift()) return;
               driveReverseStopTime = 0;
+              if (detectLift()) return;              
               if (maps.isDocking()){
                 CONSOLE.println("continue docking");
                 // continue without planner
