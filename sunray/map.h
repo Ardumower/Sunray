@@ -15,7 +15,7 @@
 enum WayType {WAY_PERIMETER, WAY_EXCLUSION, WAY_DOCK, WAY_MOW, WAY_FREE};
 typedef enum WayType WayType;
 
-
+// a point on the map
 class Point
 {
   public:
@@ -33,7 +33,7 @@ class Point
     bool write(File &file);
 };
 
-
+// a closed loop of points
 class Polygon
 {
   public:
@@ -51,6 +51,7 @@ class Polygon
     bool write(File &file);
 };
 
+// a list of polygons
 class PolygonList // owns polygons!
 {
    public:
@@ -85,7 +86,7 @@ class Node   // nodes just hold references to points and other nodes
     void dealloc();
 };
 
-
+// a list of nodes
 class NodeList  // owns nodes!
 {
   public:
