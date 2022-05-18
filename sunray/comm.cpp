@@ -212,6 +212,7 @@ void cmdSensorTest(){
 
 
 // request waypoint
+// W,startidx,x,y,x,y,x,y,x,y,...
 void cmdWaypoint(){
   if (cmd.length()<6) return;  
   int counter = 0;
@@ -265,6 +266,7 @@ void cmdWaypoint(){
 
 
 // request waypoints count
+// N,#peri,#excl,#dock,#mow,#free
 void cmdWayCount(){
   if (cmd.length()<6) return;  
   int counter = 0;
@@ -298,6 +300,7 @@ void cmdWayCount(){
 
 
 // request exclusion count
+// X,startidx,cnt,cnt,cnt,cnt,...
 void cmdExclusionCount(){
   if (cmd.length()<6) return;  
   int counter = 0;
