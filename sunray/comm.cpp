@@ -211,7 +211,7 @@ void cmdSensorTest(){
 }
 
 
-// request waypoint (perim,excl,dock,free)
+// request waypoint (perim,excl,dock,mow,free)
 // W,startidx,x,y,x,y,x,y,x,y,...
 void cmdWaypoint(){
   if (cmd.length()<6) return;  
