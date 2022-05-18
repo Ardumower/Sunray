@@ -1797,8 +1797,9 @@ void run(){
       } else if (stateButton == 6){ 
           stateSensor = SENS_STOP_BUTTON;
           setOperation(OP_MOW, false, true);
-      } else if (stateButton > 0){
-        // stateButton 1 (or unknown button state)
+      } 
+      //else if (stateButton > 0){  // stateButton 1 (or unknown button state)        
+      else if (stateButton == 1){  // stateButton 1                   
         stateButton = 0;  // reset button state
         stateSensor = SENS_STOP_BUTTON;
         setOperation(OP_IDLE, false, true);                             
