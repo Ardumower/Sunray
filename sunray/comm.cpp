@@ -11,6 +11,8 @@
 #endif
 #include "RingBuffer.h"
 
+//#define VERBOSE 1
+
 unsigned long nextInfoTime = 0;
 bool triggerWatchdog = false;
 bool bleConnected = false;
@@ -734,8 +736,10 @@ void processCmd(bool checkCrc, bool decrypt){
             cmd[i] = char(code);  
           }
         }
-        CONSOLE.print("decrypt:");
-        CONSOLE.println(cmd);
+        #ifdef VERBOSE
+          CONSOLE.print("decrypt:");
+          CONSOLE.println(cmd);
+        #endif
       }
     } 
   }
@@ -934,7 +938,9 @@ void processWifiAppServer()
   if (client){
     if (stopClientTime != 0) {
       if (millis() > stopClientTime){
-        CONSOLE.println("app stopping client");
+        #ifdef VERBOSE 
+          CONSOLE.println("app stopping client");
+        #endif
         client.stop();
         stopClientTime = 0;                   
       }
@@ -946,7 +952,9 @@ void processWifiAppServer()
     client = server.available();      
   }
   if (client) {                               // if you get a client,
-    CONSOLE.println("New client");             // print a message out the serial port
+    #ifdef VERBOSE
+      CONSOLE.println("New client");             // print a message out the serial port
+    #endif
     battery.resetIdle();
     buf.init();                               // initialize the circular buffer
     unsigned long timeout = millis() + 50;
@@ -965,8 +973,10 @@ void processWifiAppServer()
             cmd = cmd + ch;
             gps.run();
           }
-          CONSOLE.print("WIF:");
-          CONSOLE.println(cmd);
+          #ifdef VERBOSE
+            CONSOLE.print("WIF:");
+            CONSOLE.println(cmd);
+          #endif
           if (client.connected()) {
             processCmd(true,true);
             client.print(

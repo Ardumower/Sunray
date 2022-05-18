@@ -1718,12 +1718,13 @@ void run(){
             if (millis() > driveReverseStopTime){
               CONSOLE.println("driveReverseStopTime");
               motor.stopImmediately(false); 
-              detectLift();
+              if (detectLift()) return;
               driveReverseStopTime = 0;
               if (maps.isDocking()){
                 CONSOLE.println("continue docking");
                 // continue without planner
               } else {
+                CONSOLE.println("continue operation with virtual obstacle");
                 maps.addObstacle(stateX, stateY);              
                 Point pt;
                 if (!maps.findObstacleSafeMowPoint(pt)){
@@ -1759,21 +1760,22 @@ void run(){
           stateSensor = SENS_BAT_UNDERVOLTAGE;
           setOperation(OP_IDLE);
           //buzzer.sound(SND_OVERCURRENT, true);        
-        } 
-        if (battery.shouldGoHome()){
-          if (DOCKING_STATION){
-            setOperation(OP_DOCK);
-          }
-        }
-        if (RAIN_ENABLE){
-          if (rainDriver.triggered()){
-            if (DOCKING_STATION){
-              stateSensor = SENS_RAIN;
-              dockReasonRainTriggered = true;
-              setOperation(OP_DOCK);              
+        } else {
+          if (RAIN_ENABLE){
+            if (rainDriver.triggered()){
+              if (DOCKING_STATION){
+                stateSensor = SENS_RAIN;
+                dockReasonRainTriggered = true;
+                setOperation(OP_DOCK);              
+              }
             }
           }
-        }        
+          if (battery.shouldGoHome()){
+            if (DOCKING_STATION){
+              setOperation(OP_DOCK);
+            }
+          }
+        }                         
       }
       else if (stateOp == OP_CHARGE){      
         if (battery.chargerConnected()){
