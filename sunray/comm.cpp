@@ -748,7 +748,7 @@ void processCmd(bool checkCrc, bool decrypt){
   int idx = cmd.lastIndexOf(',');
   if (idx < 1){
     if (checkCrc){
-      CONSOLE.println("CRC ERROR");
+      CONSOLE.println("COMM CRC ERROR");
       return;
     }
   } else {
