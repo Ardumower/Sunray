@@ -109,7 +109,7 @@ Polygon::~Polygon(){
 
 bool Polygon::alloc(short aNumPoints){
   if (aNumPoints == numPoints) return true;
-  if ((aNumPoints < 0) || (aNumPoints > 5000)) {
+  if ((aNumPoints < 0) || (aNumPoints > 10000)) {
     CONSOLE.println("ERROR Polygon::alloc invalid number");    
     return false;
   }
