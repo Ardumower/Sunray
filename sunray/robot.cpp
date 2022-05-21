@@ -1433,7 +1433,8 @@ void trackLine(){
     
     //Mapping of Stanley Control Parameters in relation to actual Setpoint value of speed
     //Values need to be multiplied, because map() function does not work well with small range decimals
-    float CurrSpeed = motor.linearSpeedSet * 1000;                                                    
+    float CurrSpeed = motor.linearSpeedSet * 1000; 
+    CurrSpeed = abs(CurrSpeed);
     float k = map(CurrSpeed, 100, 400, STANLEY_CONTROL_K_SLOW*1000, STANLEY_CONTROL_K_NORMAL*1000);  //Value 100 and 400 is in mm/s 
     float p = map(CurrSpeed, 100, 400, STANLEY_CONTROL_P_SLOW*1000, STANLEY_CONTROL_P_NORMAL*1000);  //Value 100 and 400 is in mm/s 
     k = k / 1000;                                                                                     
