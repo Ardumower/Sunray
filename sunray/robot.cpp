@@ -1430,12 +1430,15 @@ void trackLine(){
       if (sonar.nearObstacle()) linear = 0.1; // slow down near obstacles
     }      
     //angula                                    r = 3.0 * trackerDiffDelta + 3.0 * lateralError;       // correct for path errors 
-    float k = stanleyTrackingNormalK; // STANLEY_CONTROL_K_NORMAL;
-    float p = stanleyTrackingNormalP; // STANLEY_CONTROL_P_NORMAL;    
-    if (maps.trackSlow) {
-      k = stanleyTrackingSlowK; //STANLEY_CONTROL_K_SLOW;   
-      p = stanleyTrackingSlowP; //STANLEY_CONTROL_P_SLOW;          
-    }
+    
+    //Mapping of Stanley Control Parameters in relation to actual Setpoint value of speed
+    //Values need to be multiplied, because map() function does not work well with small range decimals
+    float CurrSpeed = motor.linearSpeedSet * 1000;                                                    
+    float k = map(CurrSpeed, 100, 400, STANLEY_CONTROL_K_SLOW*1000, STANLEY_CONTROL_K_NORMAL*1000);  //Value 100 and 400 is in mm/s 
+    float p = map(CurrSpeed, 100, 400, STANLEY_CONTROL_P_SLOW*1000, STANLEY_CONTROL_P_NORMAL*1000);  //Value 100 and 400 is in mm/s 
+    k = k / 1000;                                                                                     
+    p = p / 1000;                                                                                     
+    
     angular =  p * trackerDiffDelta + atan2(k * lateralError, (0.001 + fabs(motor.linearSpeedSet)));       // correct for path errors           
     /*pidLine.w = 0;              
     pidLine.x = lateralError;
