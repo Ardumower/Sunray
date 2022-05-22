@@ -224,7 +224,6 @@ float stateDeltaSpeedIMU = 0;
 float stateDeltaSpeedWheels = 0;
 float diffIMUWheelYawSpeed = 0;
 float diffIMUWheelYawSpeedLP = 0;
-bool dockReasonRainTriggered = false;
 
 
 RunningMedian<unsigned int,3> tofMeasurements;
@@ -1587,6 +1586,7 @@ void run(){
     else {      
       if (RAIN_ENABLE){
         if (rainDriver.triggered()){
+          CONSOLE.println("RAIN TRIGGERED");
           activeOp->onRainTriggered();
         }
       }    

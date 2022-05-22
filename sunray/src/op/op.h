@@ -138,7 +138,8 @@ class DockOp: public Op {
     virtual void onChargingCompleted() override;
     virtual void onNoFurtherWaypoints() override;              
     virtual void onGpsNoSignal() override;
-    virtual void onKidnapped(bool state) override;   
+    virtual void onKidnapped(bool state) override;
+    virtual void onChargerConnected() override;   
 };
 
 // charging op

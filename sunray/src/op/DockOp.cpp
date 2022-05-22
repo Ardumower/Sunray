@@ -123,6 +123,10 @@ void DockOp::onObstacleRotation(){
 }
 
 void DockOp::onObstacle(){
+    if (battery.chargerConnected()) {
+      CONSOLE.print("triggerObstacle: ignoring, because charger connected");      
+      return;
+    }
     CONSOLE.println("triggerObstacle");      
     statMowObstacles++;      
     if (maps.isDocking()) {    
@@ -138,6 +142,11 @@ void DockOp::onObstacle(){
         changeOp(errorOp);                
     }
 }
+
+void DockOp::onChargerConnected(){            
+  changeOp(chargeOp);
+}
+
 
 void DockOp::onChargingCompleted(){
     if ((DOCKING_STATION) && (!dockingInitiatedByOperator)) {
