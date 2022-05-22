@@ -227,7 +227,7 @@ void SimBatteryDriver::run(){
 
   if ((robotIsAtDockingPoint) || (simChargerConnected)){
     // quickly charge robot :-)
-    batteryDriver.setSimFullyChargedVoltage(true);    
+    setSimFullyChargedVoltage(true);    
   }
 }    
 
