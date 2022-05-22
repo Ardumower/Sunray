@@ -1,6 +1,7 @@
 #include "comm.h"
 #include "config.h"
 #include "robot.h"
+#include "src/op/op.h"
 #include "reset.h"
 #ifdef __linux__
   #include <BridgeClient.h>
@@ -1114,7 +1115,8 @@ void outputConsole(){
     controlLoops=0;    
     CONSOLE.print (statControlCycleTime);        
     CONSOLE.print (" op=");    
-    CONSOLE.print (stateOp);
+    CONSOLE.print (activeOp->getOpChain());    
+    //CONSOLE.print (stateOp);
     CONSOLE.print (" freem=");
     CONSOLE.print (freeMemory ());
     #ifndef __linux__

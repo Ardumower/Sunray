@@ -1,0 +1,235 @@
+// Ardumower Sunray 
+// Copyright (c) 2013-2020 by Alexander Grau, Grau GmbH
+// Licensed GPLv3 for open source use
+// or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
+
+
+#ifndef OPS_H
+#define OPS_H
+
+#include <Arduino.h>
+#include "../../robot.h"
+#include "../../map.h"
+
+
+// operations
+
+class Op {
+  public:     
+    virtual String name();
+    // -------- transitions ----------------------------------       
+    // op inititated by operator?
+    bool initiatedbyOperator;
+    // op start time
+    unsigned long startTime;
+    // previous op
+    Op *previousOp;
+    // next op to call after op exit
+    Op *nextOp; 
+
+    // returns chained op's as a string (starting with active op, going until goal op) 
+    // (example: "ImuCalibration->GpsWaitFix->Mow")
+    String getOpChain();
+
+    // op's can be chained, this returns the current goal op:
+    // examples:    
+    // ImuCalibrationOp (active)-->GpsWaitFixOp-->mowOp            -->  mowOp    
+    // ImuCalibrationOp (active)-->dockOp                          -->  dockOp
+    Op* getGoalOp();
+
+    Op();
+    // trigger op exit (optionally allow returning back on called operation exit, e.g. generate an op chain)
+    virtual void changeOp(Op &anOp, bool initiatedbyOperatorFlag = false, bool returnBackOnExit = false);
+
+    // trigger op exit (optionally allow returning back on called operation exit, e.g. generate an op chain)
+    virtual void changeOperationType(OperationType op, bool initiatedbyOperatorFlag = false);
+    virtual OperationType getGoalOperationType();
+
+    // op entry code
+    virtual void begin();
+    // op run code
+    virtual void run();
+    // op exit code
+    virtual void end();    
+    // --------- events --------------------------------------
+    virtual void onImuCalibration();
+    virtual void onGpsNoSignal();
+    virtual void onGpsFixTimeout();
+    virtual void onRainTriggered();
+    virtual void onLiftTriggered();
+    virtual void onOdometryError();
+    virtual void onMotorOverload();
+    virtual void onMotorError();
+    virtual void onObstacle();
+    virtual void onObstacleRotation();
+    virtual void onNoFurtherWaypoints();    
+    virtual void onTargetReached();
+    virtual void onKidnapped(bool state);
+    virtual void onBatteryUndervoltage();
+    virtual void onBatteryLowShouldDock();    
+    virtual void onChargerDisconnected();
+    virtual void onChargerConnected();    
+    virtual void onChargingCompleted();              
+};
+
+
+class IdleOp: public Op {
+  public:        
+    virtual String name() override;
+    virtual void begin() override;
+    virtual void end() override;
+    virtual void run() override;
+};
+
+class ImuCalibrationOp: public Op {
+  public:        
+    unsigned long nextImuCalibrationSecond;
+    int imuCalibrationSeconds;
+    virtual String name() override;
+    virtual void changeOp(Op &anOp, bool initiatedbyOperatorFlag = false, bool returnBackOnExit = false) override;
+    virtual void begin() override;
+    virtual void end() override;
+    virtual void run() override;
+};
+
+class MowOp: public Op {
+  public:
+    bool lastMapRoutingFailed;
+    int mapRoutingFailedCounter;
+    MowOp();
+    virtual String name() override;
+    virtual void begin() override;
+    virtual void end() override;
+    virtual void run() override;
+    virtual void onGpsNoSignal() override;
+    virtual void onGpsFixTimeout() override;
+    virtual void onOdometryError() override;
+    virtual void onMotorOverload() override; 
+    virtual void onMotorError() override;
+    virtual void onRainTriggered() override;
+    virtual void onBatteryLowShouldDock() override;
+    virtual void onObstacle() override;
+    virtual void onObstacleRotation() override;
+    virtual void onTargetReached() override;    
+    virtual void onKidnapped(bool state) override;   
+    virtual void onNoFurtherWaypoints() override;     
+};
+
+
+class DockOp: public Op {
+  public:        
+    bool dockingInitiatedByOperator;            
+    bool dockReasonRainTriggered;
+    bool lastMapRoutingFailed;
+    int mapRoutingFailedCounter;
+    DockOp();
+    virtual String name() override;
+    virtual void begin() override;
+    virtual void end() override;
+    virtual void run() override;
+    virtual void onObstacle() override;
+    virtual void onObstacleRotation() override;
+    virtual void onTargetReached() override;    
+    virtual void onGpsFixTimeout() override;
+    virtual void onChargingCompleted() override;
+    virtual void onNoFurtherWaypoints() override;              
+    virtual void onGpsNoSignal() override;
+    virtual void onKidnapped(bool state) override;   
+};
+
+
+class ChargeOp: public Op {
+  public:        
+    virtual String name() override;
+    virtual void begin() override;
+    virtual void end() override;
+    virtual void run() override;
+    virtual void onChargerDisconnected() override;
+};
+
+class KidnapWaitOp: public Op {
+  public:
+    unsigned long recoverGpsTime;
+    int recoverGpsCounter;
+    virtual String name() override;
+    virtual void begin() override;
+    virtual void end() override;
+    virtual void run() override;
+    virtual void onKidnapped(bool state) override;
+    virtual void onGpsNoSignal() override;    
+};
+
+class GpsRebootRecoveryOp: public Op {
+  public:
+    unsigned long retryOperationTime;
+    virtual String name() override;
+    virtual void begin() override;
+    virtual void end() override;
+    virtual void run() override;
+};
+
+class GpsWaitFixOp: public Op {
+  public:
+    virtual String name() override;
+    virtual void begin() override;
+    virtual void end() override;
+    virtual void run() override;
+};
+
+
+class GpsWaitFloatOp: public Op {
+  public:
+    virtual String name() override;
+    virtual void begin() override;
+    virtual void end() override;
+    virtual void run() override;
+};
+
+
+class EscapeReverseOp: public Op {
+  public:        
+    unsigned long driveReverseStopTime;
+    virtual String name() override;
+    virtual void begin() override;
+    virtual void end() override;
+    virtual void run() override;
+};
+
+
+class EscapeForwardOp: public Op {
+  public:        
+    unsigned long driveForwardStopTime;
+    virtual String name() override;
+    virtual void begin() override;
+    virtual void end() override;
+    virtual void run() override;
+};
+
+class ErrorOp: public Op {
+  public:        
+    virtual String name() override;
+    virtual void begin() override;
+    virtual void end() override;
+    virtual void run() override;
+};
+
+
+extern ChargeOp chargeOp;
+extern ErrorOp errorOp;
+extern DockOp dockOp;
+extern IdleOp idleOp;
+extern MowOp mowOp;
+extern EscapeReverseOp escapeReverseOp;
+extern EscapeForwardOp escapeForwardOp;
+extern KidnapWaitOp kidnapWaitOp;
+extern GpsWaitFixOp gpsWaitFixOp;
+extern GpsWaitFloatOp gpsWaitFloatOp;
+extern GpsRebootRecoveryOp gpsRebootRecoveryOp;
+extern ImuCalibrationOp imuCalibrationOp;
+
+// active op
+extern Op *activeOp;
+
+#endif
+
+

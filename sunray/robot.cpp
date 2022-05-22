@@ -8,6 +8,7 @@
 
 #include "robot.h"
 #include "comm.h"
+#include "src/op/op.h"
 #ifdef __linux__
   #include <BridgeClient.h>
 #else
@@ -36,6 +37,7 @@
 #include "reset.h"
 #include "cpu.h"
 #include "i2c.h"
+#include "src/test/test.h"
 
 
 // #define I2C_SPEED  10000
@@ -121,6 +123,7 @@ float stateDeltaIMU = 0;
 float stateGroundSpeed = 0; // m/s
 float stateTemp = 0; // degreeC
 float stateHumidity = 0; // percent
+bool stateKidnapped = false;
 bool stateInMotionLP = false; // robot is in angular or linear motion? (with motion low-pass filtering)
 unsigned long stateInMotionLastTime = 0;
 float setSpeed = 0.1; // linear speed (m/s)
@@ -224,8 +227,6 @@ float diffIMUWheelYawSpeed = 0;
 float diffIMUWheelYawSpeedLP = 0;
 bool dockReasonRainTriggered = false;
 
-unsigned long recoverGpsTime = 0;
-int recoverGpsCounter = 0;
 
 RunningMedian<unsigned int,3> tofMeasurements;
 
@@ -973,6 +974,11 @@ void start(){
   buzzer.sound(SND_READY);  
   battery.resetIdle();        
   loadState();
+
+  #ifdef DRV_SIM_ROBOT
+    robotDriver.setSimRobotPosState(stateX, stateY, stateDelta);
+    sessionTest.begin();
+  #endif
 }
 
 
@@ -1156,22 +1162,7 @@ bool robotShouldBeInMotion(){
 
 // drive reverse if robot cannot move forward
 void triggerObstacle(){
-  if (driveReverseStopTime != 0) return;
-  CONSOLE.println("triggerObstacle");      
-  statMowObstacles++;      
-  if (maps.isDocking()) {    
-    if (maps.retryDocking(stateX, stateY)) {
-      driveReverseStopTime = millis() + 3000;                      
-      return;
-    }
-  } 
-  if ((OBSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){    
-    driveReverseStopTime = millis() + 3000;      
-  } else {     
-    stateSensor = SENS_OBSTACLE;
-    setOperation(OP_ERROR);
-    buzzer.sound(SND_ERROR, true);        
-  }
+  activeOp->onObstacle();
 }
 
 
@@ -1180,38 +1171,21 @@ void detectSensorMalfunction(){
   if (ENABLE_ODOMETRY_ERROR_DETECTION){
     if (motor.odometryError){
       CONSOLE.println("odometry error!");    
-      stateSensor = SENS_ODOMETRY_ERROR;
-      setOperation(OP_ERROR);
-      buzzer.sound(SND_ERROR, true); 
+      activeOp->onOdometryError();
       return;      
     }
   }
   if (ENABLE_OVERLOAD_DETECTION){
     if (motor.motorOverloadDuration > 20000){
       CONSOLE.println("overload!");    
-      stateSensor = SENS_OVERLOAD;
-      setOperation(OP_ERROR);
-      buzzer.sound(SND_ERROR, true);        
+      activeOp->onMotorOverload();
       return;
     }  
   }
   if (ENABLE_FAULT_OBSTACLE_AVOIDANCE){
     if (motor.motorError){
-      // this is the molehole situation: motor error will permanently trigger on molehole => we try obstacle avoidance (molehole avoidance strategy)
-      motor.motorError = false; // reset motor error flag
-      motorErrorCounter++;       
-      if (maps.wayMode != WAY_DOCK){
-        if (motorErrorCounter < 5){ 
-          //stateSensor = SENS_MOTOR_ERROR;
-          triggerObstacle();     // trigger obstacle avoidance 
-          return;
-        }
-      }
-      // obstacle avoidance failed with too many motor errors (it was probably not a molehole situation)
       CONSOLE.println("motor error!");
-      stateSensor = SENS_MOTOR_ERROR;
-      setOperation(OP_ERROR);
-      buzzer.sound(SND_ERROR, true);       
+      activeOp->onMotorError();
       return;      
     }  
   }
@@ -1222,12 +1196,7 @@ void detectSensorMalfunction(){
 bool detectLift(){  
   #ifdef ENABLE_LIFT_DETECTION
     if (liftDriver.triggered()) {
-      if (stateOp != OP_ERROR){        
-        stateSensor = SENS_LIFT;
-        CONSOLE.println("ERROR LIFT");        
-        setOperation(OP_ERROR);
-        return true;
-      }      
+      return true;            
     }  
   #endif 
   return false;
@@ -1307,19 +1276,7 @@ bool detectObstacle(){
 
 // stuck rotate avoidance (drive forward if robot cannot rotate)
 void triggerObstacleRotation(){
-  CONSOLE.println("triggerObstacleRotation");    
-  statMowObstacles++;   
-  if ((OBSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){    
-    if (FREEWHEEL_IS_AT_BACKSIDE){    
-      driveForwardStopTime = millis() + 2000;      
-    } else {
-      driveReverseStopTime = millis() + 3000;
-    }
-  } else { 
-    stateSensor = SENS_OBSTACLE;
-    setOperation(OP_ERROR);
-    buzzer.sound(SND_ERROR, true);        
-  }
+  activeOp->onObstacleRotation();
 }
 
 // stuck rotate detection (e.g. robot cannot due to an obstacle outside of robot rotation point)
@@ -1361,7 +1318,7 @@ bool detectObstacleRotation(){
 // control robot velocity (linear,angular) to track line to next waypoint (target)
 // uses a stanley controller for line tracking
 // https://medium.com/@dingyan7361/three-methods-of-vehicle-lateral-control-pure-pursuit-stanley-and-mpc-db8cc1d32081
-void trackLine(){  
+void trackLine(bool runControl){  
   Point target = maps.targetPoint;
   Point lastTarget = maps.lastTargetPoint;
   float linear = 1.0;  
@@ -1451,20 +1408,11 @@ void trackLine(){
     if (!SMOOTH_CURVES) angular = max(-PI/16, min(PI/16, angular)); // restrict steering angle for stanley
   }
   // check some pre-conditions that can make linear+angular speed zero
-  if (!maps.isUndocking()){
-    if (fixTimeout != 0){
-      if (millis() > lastFixTime + fixTimeout * 1000.0){
-        // stop on fix solution timeout 
-        linear = 0;
-        angular = 0;
-        mow = false; 
-        stateSensor = SENS_GPS_FIX_TIMEOUT;
-        //angular = 0.2;
-      } else {
-        //if (stateSensor == SENS_GPS_FIX_TIMEOUT) stateSensor = SENS_NONE; // clear fix timeout
-      }       
-    }     
-  }
+  if (fixTimeout != 0){
+    if (millis() > lastFixTime + fixTimeout * 1000.0){
+      activeOp->onGpsFixTimeout();        
+    }       
+  }     
 
   if ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT)){        
     if (abs(linear) > 0.06) {
@@ -1481,15 +1429,8 @@ void trackLine(){
   } else {
     // no gps solution
     if (REQUIRE_VALID_GPS){
-      if (!maps.isUndocking()) { 
-        CONSOLE.println("WARN: no gps solution!");
-        stateSensor = SENS_GPS_INVALID;
-        //setOperation(OP_ERROR);
-        //buzzer.sound(SND_STUCK, true);          
-        linear = 0;
-        angular = 0;      
-        mow = false;
-      } 
+      CONSOLE.println("WARN: no gps solution!");
+      activeOp->onGpsNoSignal();
     }
   }
 
@@ -1498,26 +1439,15 @@ void trackLine(){
     float allowedPathTolerance = KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE;     
     if ( maps.isUndocking() ) allowedPathTolerance = 0.2;
     if (fabs(distToPath) > allowedPathTolerance){ // actually, this should not happen (except on false GPS fixes or robot being kidnapped...)
-      linear = 0;
-      angular = 0;        
-      mow = false;
-      stateSensor = SENS_KIDNAPPED;
-      if (millis() > recoverGpsTime){
-        CONSOLE.println("KIDNAP_DETECT");
-        recoverGpsTime = millis() + 30000;
-        recoverGpsCounter++;
-        if (recoverGpsCounter == 3){          
-          setOperation(OP_ERROR);
-          buzzer.sound(SND_ERROR, true);        
-          return;
-        }   
-        if (GPS_REBOOT_RECOVERY){           
-          gps.reboot();   // try to recover from false GPS fix     
-        }
-      }      
+      if (!stateKidnapped){
+        stateKidnapped = true;
+        activeOp->onKidnapped(stateKidnapped);
+      }            
     } else {
-      recoverGpsTime = millis() + 30000;
-      recoverGpsCounter = 0;
+      if (stateKidnapped) {
+        stateKidnapped = false;
+        activeOp->onKidnapped(stateKidnapped);        
+      }
     }
   }
    
@@ -1529,8 +1459,10 @@ void trackLine(){
     }
   }
 
-  motor.setLinearAngularSpeed(linear, angular);      
-  motor.setMowState(mow);
+  if (runControl){
+    motor.setLinearAngularSpeed(linear, angular);      
+    motor.setMowState(mow);
+  }
 
   if (targetReached){
     if (maps.wayMode == WAY_MOW){
@@ -1541,19 +1473,7 @@ void trackLine(){
     bool straight = maps.nextPointIsStraight();
     if (!maps.nextPoint(false)){
       // finish        
-      if (stateOp == OP_DOCK){
-        CONSOLE.println("docking finished!");
-        setOperation(OP_IDLE); 
-      } else {
-        CONSOLE.println("mowing finished!");
-        if (!finishAndRestart){             
-          if (DOCKING_STATION){
-            setOperation(OP_DOCK);               
-          } else {
-            setOperation(OP_IDLE); 
-          }
-        }                   
-      }
+      activeOp->onNoFurtherWaypoints();      
     } else {      
       // next waypoint          
       //if (!straight) angleToTargetFits = false;      
@@ -1568,6 +1488,9 @@ void run(){
   #ifdef ENABLE_NTRIP
     ntrip.run();
   #endif
+  #ifdef DRV_SIM_ROBOT
+    sessionTest.run();
+  #endif
   robotDriver.run();
   buzzer.run();
   buzzerDriver.run();
@@ -1581,7 +1504,7 @@ void run(){
   sonar.run();
   maps.run();  
   rcmodel.run();
-
+  
   // state saving
   if (millis() >= nextSaveTime){  
     nextSaveTime = millis() + 5000;
@@ -1612,21 +1535,7 @@ void run(){
     nextImuTime = millis() + 150;        
     //imu.resetFifo();    
     if (imuIsCalibrating) {
-      motor.stopImmediately(true);   
-      if (millis() > nextImuCalibrationSecond){
-        nextImuCalibrationSecond = millis() + 1000;  
-        imuCalibrationSeconds++;
-        CONSOLE.print("IMU gyro calibration (robot must be static)... ");        
-        CONSOLE.println(imuCalibrationSeconds);        
-        buzzer.sound(SND_PROGRESS, true);        
-        if (imuCalibrationSeconds >= 9){
-          imuIsCalibrating = false;
-          CONSOLE.println();                
-          lastIMUYaw = 0;          
-          imuDriver.resetData();
-          imuDataTimeout = millis() + 10000;
-        }
-      }       
+      activeOp->onImuCalibration();             
     } else {
       readIMU();    
     }
@@ -1662,154 +1571,62 @@ void run(){
       motor.stopImmediately(true);
       setOperation(stateOp, true);    // restart current operation
     }*/
-    if (retryOperationTime != 0) {
-      if (millis() > retryOperationTime){
-        // restart current operation from new position (restart path planning)
-        CONSOLE.println("restarting operation (retryOperationTime)");
-        retryOperationTime = 0;
-        motor.stopImmediately(true);
-        setOperation(stateOp, true);    // restart current operation
-      }
-    }
-
+    
     if (battery.chargerConnected() != stateChargerConnected) {    
       stateChargerConnected = battery.chargerConnected(); 
       if (stateChargerConnected){      
         // charger connected event        
-        setOperation(OP_CHARGE);                
+        activeOp->onChargerConnected();                
       } else {
-        // charger disconnected event
-        motor.enableTractionMotors(true); // allow traction motors to operate                       
-        if (stateOp == OP_CHARGE) setOperation(OP_IDLE);
-      }           
+        activeOp->onChargerDisconnected();
+      }            
     } 
 
+    if (battery.underVoltage()){
+      activeOp->onBatteryUndervoltage();
+    } 
+    else {      
+      if (RAIN_ENABLE){
+        if (rainDriver.triggered()){
+          activeOp->onRainTriggered();
+        }
+      }    
+      if (battery.shouldGoHome()){
+        if (DOCKING_STATION){
+           activeOp->onBatteryLowShouldDock();
+        }
+      }   
+       
+      if (battery.chargerConnected()){
+        if (battery.chargingHasCompleted()){
+          activeOp->onChargingCompleted();
+        }
+      }        
+    } 
 
-    // some things to do permanently while charger connected/not connected
-    if (battery.chargerConnected()){
-      if ((stateOp == OP_IDLE) || (stateOp == OP_CHARGE)){
-        maps.setIsDocked(true);               
-        // get robot position and yaw from map
-        // sensing charging contacts means we are in docking station - we use docking point coordinates to get rid of false fix positions in
-        // docking station
-        maps.setRobotStatePosToDockingPos(stateX, stateY, stateDelta);
-        // get robot yaw orientation from map 
-        //float tempX;
-        //float tempY;
-        //maps.setRobotStatePosToDockingPos(tempX, tempY, stateDelta);                       
-      }
-      battery.resetIdle();        
-    } else {
-      if ((stateOp == OP_IDLE) || (stateOp == OP_CHARGE)){
-        maps.setIsDocked(false);
-      }
-    }          
- 
-    
-    if (!imuIsCalibrating){     
-            
-      if ((stateOp == OP_MOW) ||  (stateOp == OP_DOCK)) {              
-        
-        if (retryOperationTime == 0){ // if path planning was successful 
-          if (driveReverseStopTime > 0){
-            // obstacle avoidance
-            motor.setLinearAngularSpeed(-0.1,0);
-            motor.setMowState(false);                        
-            if (millis() > driveReverseStopTime){
-              CONSOLE.println("driveReverseStopTime");
-              motor.stopImmediately(false); 
-              driveReverseStopTime = 0;
-              if (detectLift()) return;              
-              if (maps.isDocking()){
-                CONSOLE.println("continue docking");
-                // continue without planner
-              } else {
-                CONSOLE.println("continue operation with virtual obstacle");
-                maps.addObstacle(stateX, stateY);              
-                Point pt;
-                if (!maps.findObstacleSafeMowPoint(pt)){
-                  setOperation(OP_DOCK, true); // dock if no more (valid) mowing points
-                } else setOperation(stateOp, true);    // continue current operation
-              }
-            }            
-          } else if (driveForwardStopTime > 0){
-            // rotate stuck avoidance
-            motor.setLinearAngularSpeed(0.1,0);
-            motor.setMowState(false);            
-            if (millis() > driveForwardStopTime){
-              CONSOLE.println("driveForwardStopTime");
-              motor.stopImmediately(false);  
-              driveForwardStopTime = 0;
-              /*maps.addObstacle(stateX, stateY);
-              Point pt;
-              if (!maps.findObstacleSafeMowPoint(pt)){
-                setOperation(OP_DOCK, true); // dock if no more (valid) mowing points
-              } else*/ setOperation(stateOp, true);    // continue current operation              
-            }            
-          } else {          
-            // line tracking
-            trackLine();
-            detectSensorMalfunction();
-            if (!detectObstacle()){
-              detectObstacleRotation();                              
-            }   
-          }        
-        }        
-        battery.resetIdle();
-        if (battery.underVoltage()){
-          stateSensor = SENS_BAT_UNDERVOLTAGE;
-          setOperation(OP_IDLE);
-          //buzzer.sound(SND_OVERCURRENT, true);        
-        } else {
-          if (RAIN_ENABLE){
-            if (rainDriver.triggered()){
-              if (DOCKING_STATION){
-                stateSensor = SENS_RAIN;
-                dockReasonRainTriggered = true;
-                setOperation(OP_DOCK);              
-              }
-            }
-          }
-          if (battery.shouldGoHome()){
-            if (DOCKING_STATION){
-              setOperation(OP_DOCK);
-            }
-          }
-        }                         
-      }
-      else if (stateOp == OP_CHARGE){      
-        if (battery.chargerConnected()){
-          if (battery.chargingHasCompleted()){
-            if ((DOCKING_STATION) && (!dockingInitiatedByOperator)) {
-              if (maps.mowPointsIdx > 0){  // if mowing not completed yet
-                if ((DOCK_AUTO_START) && (!dockReasonRainTriggered)) { // automatic continue mowing allowed?
-                  setOperation(OP_MOW); // continue mowing
-                }
-              }
-            }
-          }
-        }        
-      }      
+    //CONSOLE.print("active:");
+    //CONSOLE.println(activeOp->name());
+    activeOp->run();     
       
-      // process button state
-      if (stateButton == 5){
-        stateButton = 0; // reset button state
-        stateSensor = SENS_STOP_BUTTON;
-        setOperation(OP_DOCK, false, true);
-      } else if (stateButton == 6){ 
-        stateButton = 0; // reset button state        
-        stateSensor = SENS_STOP_BUTTON;
-        setOperation(OP_MOW, false, true);
-      } 
-      //else if (stateButton > 0){  // stateButton 1 (or unknown button state)        
-      else if (stateButton == 1){  // stateButton 1                   
-        stateButton = 0;  // reset button state
-        stateSensor = SENS_STOP_BUTTON;
-        setOperation(OP_IDLE, false, true);                             
-      }
+    // process button state
+    if (stateButton == 5){
+      stateButton = 0; // reset button state
+      stateSensor = SENS_STOP_BUTTON;
+      setOperation(OP_DOCK, false, true);
+    } else if (stateButton == 6){ 
+      stateButton = 0; // reset button state        
+      stateSensor = SENS_STOP_BUTTON;
+      setOperation(OP_MOW, false, true);
+    } 
+    //else if (stateButton > 0){  // stateButton 1 (or unknown button state)        
+    else if (stateButton == 1){  // stateButton 1                   
+      stateButton = 0;  // reset button state
+      stateSensor = SENS_STOP_BUTTON;
+      setOperation(OP_IDLE, false, true);                             
+    }
       
-      
-    } // if (!imuIsCalibrating)        
+    stateOp = activeOp->getGoalOperationType();  
+    // if (!imuIsCalibrating)        
   }   // if (millis() >= nextControlTime)
     
   // ----- read serial input (BT/console) -------------
@@ -1841,116 +1658,13 @@ void run(){
 
 
 
-
 // set new robot operation
 void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){  
   if ((stateOp == op) && (!allowRepeat)) return;  
   CONSOLE.print("setOperation op=");
-  CONSOLE.print(op);
-  bool error = false;
-  bool routingFailed = false;    
-  switch (op){
-    case OP_IDLE:
-      CONSOLE.println(" OP_IDLE");      
-      motor.setLinearAngularSpeed(0,0);
-      motor.setMowState(false);
-      break;
-    case OP_DOCK:
-      CONSOLE.println(" OP_DOCK");
-      motor.setLinearAngularSpeed(0,0);
-      motor.setMowState(false);                
-      if ((initiatedbyOperator) || (lastMapRoutingFailed))  maps.clearObstacles();
-      if (initiatedbyOperator) {
-        dockingInitiatedByOperator = true;            
-        dockReasonRainTriggered = false;
-      }
-      if (maps.startDocking(stateX, stateY)){       
-        if (maps.nextPoint(true)) {
-          maps.repeatLastMowingPoint();
-          lastFixTime = millis();                
-          maps.setLastTargetPoint(stateX, stateY);        
-          //stateSensor = SENS_NONE;                  
-        } else {
-          error = true;
-          CONSOLE.println("error: no waypoints!");
-          //op = stateOp;                
-        }
-      } else error = true;
-      if (error){
-        stateSensor = SENS_MAP_NO_ROUTE;
-        //op = OP_ERROR;
-        routingFailed = true;        
-        motor.setMowState(false);
-      }
-      break;
-    case OP_MOW:      
-      CONSOLE.println(" OP_MOW");      
-      motor.enableTractionMotors(true); // allow traction motors to operate         
-      motor.setLinearAngularSpeed(0,0);      
-      dockingInitiatedByOperator = false;
-      dockReasonRainTriggered = false;
-      if ((initiatedbyOperator) || (lastMapRoutingFailed)) maps.clearObstacles();
-      if (maps.startMowing(stateX, stateY)){
-        if (maps.nextPoint(true)) {
-          lastFixTime = millis();                
-          maps.setLastTargetPoint(stateX, stateY);        
-          //stateSensor = SENS_NONE;
-          motor.setMowState(true);                
-        } else {
-          error = true;
-          CONSOLE.println("error: no waypoints!");
-          //op = stateOp;                
-        }
-      } else error = true;
-      if (error){
-        stateSensor = SENS_MAP_NO_ROUTE;
-        //op = OP_ERROR;
-        routingFailed = true;
-        motor.setMowState(false);
-      }
-      break;
-    case OP_CHARGE:
-      CONSOLE.println(" OP_CHARGE");
-      //motor.stopImmediately(true); // do not use PID to get to stop 
-      motor.setLinearAngularSpeed(0,0, false); 
-      motor.setMowState(false);     
-      //motor.enableTractionMotors(false); // keep traction motors off (motor drivers tend to generate some incorrect encoder values when stopped while not turning)                 
-      break;
-    case OP_ERROR:            
-      CONSOLE.println(" OP_ERROR"); 
-      if (stateOp == OP_CHARGE){
-        CONSOLE.println(" - ignoring because we are charging");
-        op = stateOp;
-      } else {        
-        motor.stopImmediately(true); // do not use PID to get to stop
-        //motor.setLinearAngularSpeed(0,0);
-        motor.setMowState(false);      
-      }  
-      break;
-  }
-
-  if (routingFailed){
-    // map routing failed (e.g. due to invalid GPS etc.), try another map routing after some seconds
-    lastMapRoutingFailed = true;
-    mapRoutingFailedCounter++;    
-    if (mapRoutingFailedCounter > 60){
-      op = OP_ERROR;  // too many map routing tries after 10 minutes
-      retryOperationTime = 0;
-    } else {
-      retryOperationTime = millis() + 10000; // try another map routing after 10 seconds
-      if (mapRoutingFailedCounter == 30){
-        // try GPS reboot after 5 minutes
-        if (GPS_REBOOT_RECOVERY){
-          gps.reboot();  // try to recover from false GPS fix
-        }
-        retryOperationTime = millis() + 30000; // wait 30 secs after reboot, then try another map routing
-      }     
-    }
-  } else { 
-    lastMapRoutingFailed = false;
-    mapRoutingFailedCounter = 0;
-    retryOperationTime = 0;
-  }  
+  CONSOLE.println(op);
   stateOp = op;  
+  activeOp->changeOperationType(stateOp, initiatedbyOperator);
   saveState();
 }
+

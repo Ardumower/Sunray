@@ -192,8 +192,8 @@ class Map
     bool nextPoint(bool sim);
     // next point is straight and not a sharp curve?   
     bool nextPointIsStraight();
-    // set robot state position to docking position
-    void setRobotStatePosToDockingPos(float &x, float &y, float &delta);
+    // get docking position and orientation
+    void getDockingPos(float &x, float &y, float &delta);
     
     // ------docking------------------------------------------
     void setIsDocked(bool flag);

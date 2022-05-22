@@ -14,6 +14,8 @@
 #include "src/driver/AmRobotDriver.h"
 #include "src/driver/SerialRobotDriver.h"
 #include "src/driver/SimRobotDriver.h"
+#include "src/driver/MpuDriver.h"
+#include "src/driver/BnoDriver.h"
 #include "battery.h"
 #include "ble.h"
 #include "pinman.h"
@@ -32,7 +34,7 @@
 #include "PubSubClient.h"
 
 
-#define VER "Sunray,1.0.259"
+#define VER "Sunray,1.0.260"
 
 // operation types
 enum OperationType {
@@ -121,7 +123,11 @@ extern bool hasClient;
 
 extern unsigned long controlLoops;
 extern bool imuIsCalibrating;
+extern unsigned long imuDataTimeout;
+extern float lastIMUYaw; 
 extern bool wifiFound;
+extern int motorErrorCounter;
+
 
 #ifdef DRV_SERIAL_ROBOT
   extern SerialRobotDriver robotDriver;
@@ -130,6 +136,7 @@ extern bool wifiFound;
   extern SerialBumperDriver bumper;
   extern SerialStopButtonDriver stopButton;
   extern SerialRainSensorDriver rainDriver;
+  extern SerialLiftSensorDriver liftDriver;  
   extern SerialBuzzerDriver buzzerDriver;
 #elif DRV_SIM_ROBOT
   extern SimRobotDriver robotDriver;
@@ -138,6 +145,7 @@ extern bool wifiFound;
   extern SimBumperDriver bumper;
   extern SimStopButtonDriver stopButton;
   extern SimRainSensorDriver rainDriver;
+  extern SimLiftSensorDriver liftDriver;
   extern SimBuzzerDriver buzzerDriver;
 #else
   extern AmRobotDriver robotDriver;
@@ -146,7 +154,16 @@ extern bool wifiFound;
   extern AmBumperDriver bumper;
   extern AmStopButtonDriver stopButton;
   extern AmRainSensorDriver rainDriver;
+  extern AmLiftSensorDriver liftDriver;
   extern AmBuzzerDriver buzzerDriver;
+#endif
+
+#ifdef DRV_SIM_ROBOT
+  extern SimImuDriver imuDriver;
+#elif BNO055
+  extern BnoDriver imuDriver;  
+#else
+  extern MpuDriver imuDriver;
 #endif
 
 extern Motor motor;
@@ -172,5 +189,12 @@ void setOperation(OperationType op, bool allowRepeat = false, bool initiatedbyOp
 void triggerObstacle();
 void sensorTest();
 void updateStateOpText();
+void trackLine(bool runControl);
+void detectSensorMalfunction();
+bool detectLift();
+bool detectObstacle();
+bool detectObstacleRotation();
+
+
 
 #endif

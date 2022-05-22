@@ -824,8 +824,8 @@ bool Map::nextPointIsStraight(){
 }
 
 
-// set robot state (x,y,delta) to final docking state (x,y,delta)
-void Map::setRobotStatePosToDockingPos(float &x, float &y, float &delta){
+// get docking position and orientation (x,y,delta)
+void Map::getDockingPos(float &x, float &y, float &delta){
   if (dockPoints.numPoints < 2) return;
   Point dockFinalPt;
   Point dockPrevPt;
@@ -1101,10 +1101,10 @@ void Map::findPathFinderSafeStartPoint(Point &src, Point &dst){
 // go to next point
 // sim=true: only simulate (do not change data)
 bool Map::nextPoint(bool sim){
-  CONSOLE.print("nextPoint sim=");
-  CONSOLE.print(sim);
-  CONSOLE.print(" wayMode=");
-  CONSOLE.println(wayMode);
+  //CONSOLE.print("nextPoint sim=");
+  //CONSOLE.print(sim);
+  //CONSOLE.print(" wayMode=");
+  //CONSOLE.println(wayMode);
   if (wayMode == WAY_DOCK){
     return (nextDockPoint(sim));
   } 

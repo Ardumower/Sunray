@@ -28,11 +28,18 @@ class SimRobotDriver: public RobotDriver {
     void run() override;
     bool getRobotID(String &id) override;
     bool getMcuFirmwareVersion(String &name, String &ver) override;    
+    // simulator specific
+    void setSimRobotPosState(float x, float y, float delta);
   protected:    
 };
 
 class SimMotorDriver: public MotorDriver {
   public:        
+    bool simOdometryError;
+    bool simMotorFault;
+    bool simMotorOverload;
+    bool simNoMotion;
+    bool simNoRobotYawRotation;
     SimRobotDriver &simRobot;
     SimMotorDriver(SimRobotDriver &sr);
     void begin() override;
@@ -42,6 +49,12 @@ class SimMotorDriver: public MotorDriver {
     void resetMotorFaults()  override;
     void getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) override;
     void getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks) override;
+    // ----- simulate errors, sensor triggers ----
+    void setSimOdometryError(bool flag);
+    void setSimMotorFault(bool flag);
+    void setSimMotorOverload(bool flag);
+    void setSimNoMotion(bool flag);
+    void setSimNoRobotYawRotation(bool flag);
   protected:
     unsigned long lastSampleTime;
     unsigned long lastEncoderTicksLeft;
@@ -50,6 +63,9 @@ class SimMotorDriver: public MotorDriver {
 
 class SimBatteryDriver : public BatteryDriver {
   public:   
+    bool robotIsAtDockingPoint;
+    bool simChargerConnected;
+    float simVoltage;
     SimRobotDriver &simRobot;
     SimBatteryDriver(SimRobotDriver &sr);
     void begin() override;
@@ -59,43 +75,60 @@ class SimBatteryDriver : public BatteryDriver {
     float getChargeCurrent() override;    
     virtual void enableCharging(bool flag) override;
     virtual void keepPowerOn(bool flag) override;
+    // ----- simulate errors, sensor triggers ----
+    void setSimUndervoltage(bool flag);
+    void setSimGoDockVoltage(bool flag);
+    void setSimFullyChargedVoltage(bool flag);
+    void setSimChargerConnected(bool flag);
 };
 
 class SimBumperDriver: public BumperDriver {
   public:    
+    bool simTriggered;
     SimRobotDriver &simRobot;
     SimBumperDriver(SimRobotDriver &sr);
     void begin() override;
     void run() override;
     bool obstacle() override;
     void getTriggeredBumper(bool &leftBumper, bool &rightBumper) override;  	  		    
+    // ----- simulate errors, sensor triggers ----
+    void setSimTriggered(bool flag);
 };
 
 class SimStopButtonDriver: public StopButtonDriver {
   public:    
+    bool simTriggered;
     SimRobotDriver &simRobot;
     SimStopButtonDriver(SimRobotDriver &sr);
     void begin() override;
     void run() override;
     bool triggered() override;  	  		    
+    // ----- simulate errors, sensor triggers ----
+    void setSimTriggered(bool flag);
 };
 
 class SimRainSensorDriver: public RainSensorDriver {
   public:    
+    bool simTriggered;
     SimRobotDriver &simRobot;
     SimRainSensorDriver(SimRobotDriver &sr);    
     void begin() override;
     void run() override;
-    bool triggered() override;  
+    bool triggered() override;
+    // ----- simulate errors, sensor triggers ----
+    void setSimTriggered(bool flag);  
 };
 
 class SimLiftSensorDriver: public LiftSensorDriver {
   public:    
+    bool simTriggered;
     SimRobotDriver &simRobot;
     SimLiftSensorDriver(SimRobotDriver &sr);    
     void begin() override;
     void run() override;
     bool triggered() override;  
+    // ----- simulate errors, sensor triggers ----
+    void setSimTriggered(bool flag);
 };
 
 class SimBuzzerDriver: public BuzzerDriver {
@@ -110,13 +143,16 @@ class SimBuzzerDriver: public BuzzerDriver {
 
 class SimImuDriver: public ImuDriver {    
   public:    
+    bool simNoData;
     SimRobotDriver &simRobot;
     SimImuDriver(SimRobotDriver &sr);    
     void detect() override;
     bool begin() override;    
     void run() override;
     bool isDataAvail() override;         
-    void resetData() override;        
+    void resetData() override;       
+    // ----- simulate errors, sensor triggers ----
+    void setSimNoData(bool flag);
   protected:
     unsigned long nextSampleTime;
 };
@@ -124,6 +160,7 @@ class SimImuDriver: public ImuDriver {
 
 class SimGpsDriver : public GpsDriver {
   public:        
+    bool simGpsJump;
     SimRobotDriver &simRobot;
     SimGpsDriver(SimRobotDriver &sr);
     void begin(Client &client, char *host, uint16_t port) override;
@@ -131,6 +168,9 @@ class SimGpsDriver : public GpsDriver {
     void run() override;
     bool configure() override;  
     void reboot() override;
+    // ----- simulate errors, sensor triggers ----
+    void setSimSolution(SolType sol);
+    bool setSimGpsJump(bool flag);
   protected:
     unsigned long nextSolutionTime;
 };
