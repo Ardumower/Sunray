@@ -174,8 +174,11 @@ class Map
     long calcMapCRC();
 
     // -------mowing operation--------------------------------------
+    // call to inform mapping to start mowing  
     bool startMowing(float stateX, float stateY);    
+    // has mowing completed?
     bool mowingCompleted();    
+    // given some point, check and modify it to get obstacle-safe mowing point
     bool findObstacleSafeMowPoint(Point &findPathToPoint);    
     // choose progress (0..100%) in mowing point list    
     void setMowingPointPercent(float perc);
@@ -196,10 +199,15 @@ class Map
     bool getDockingPos(float &x, float &y, float &delta);
     
     // ------docking------------------------------------------
+    // if docked manually, call this to inform mapping that robot has been docked
     void setIsDocked(bool flag);
+    // is robot on docking points and undocking?
     bool isUndocking();
+    // is robot on docking points and docking?
     bool isDocking();
+    // call this to inform mapping to start docking
     bool startDocking(float stateX, float stateY);
+    // retry docking (have robot drive back to first docking point)
     bool retryDocking(float stateX, float stateY);
     
     // -----virtual obstacles----------------------------------

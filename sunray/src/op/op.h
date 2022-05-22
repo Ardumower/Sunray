@@ -183,7 +183,7 @@ class GpsWaitFixOp: public Op {
     virtual void run() override;
 };
 
-// for for gps signal (float or fix)
+// wait for gps signal (float or fix)
 class GpsWaitFloatOp: public Op {
   public:
     virtual String name() override;
