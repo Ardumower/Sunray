@@ -16,6 +16,7 @@ void IdleOp::begin(){
     CONSOLE.println("OP_IDLE");          
     motor.setLinearAngularSpeed(0,0);
     motor.setMowState(false);
+    maps.setIsDocked(false);
 }
 
 
@@ -23,9 +24,9 @@ void IdleOp::end(){
 
 }
 
-void IdleOp::run(){
+void IdleOp::run(){    
     if (battery.chargerConnected()){        
         changeOp(chargeOp);
-    }
+    }    
 }
 

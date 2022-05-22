@@ -842,6 +842,8 @@ bool Map::getDockingPos(float &x, float &y, float &delta){
 
 // mower has been docked
 void Map::setIsDocked(bool flag){
+  //CONSOLE.print("Map::setIsDocked ");
+  //CONSOLE.println(flag);
   if (flag){
     if (dockPoints.numPoints < 2) return; // keep current wayMode (not enough docking points for docking wayMode)  
     wayMode = WAY_DOCK;
