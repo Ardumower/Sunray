@@ -12,8 +12,9 @@
 #include "../../map.h"
 
 
-// operations
+// operations - the robot starts in operation 'IdleOp' and (depending on events) enters new operations (MowOp, EscapeReverseOp, GpsWaitFixOp etc.)
 
+// base class for all operations (op's)
 class Op {
   public:     
     virtual String name();
@@ -73,6 +74,7 @@ class Op {
 };
 
 
+// idle op
 class IdleOp: public Op {
   public:        
     virtual String name() override;
@@ -81,6 +83,7 @@ class IdleOp: public Op {
     virtual void run() override;
 };
 
+// IMU calibration op
 class ImuCalibrationOp: public Op {
   public:        
     unsigned long nextImuCalibrationSecond;
@@ -92,6 +95,7 @@ class ImuCalibrationOp: public Op {
     virtual void run() override;
 };
 
+// mowing op (optionally, also undocking dock points)
 class MowOp: public Op {
   public:
     bool lastMapRoutingFailed;
@@ -115,7 +119,7 @@ class MowOp: public Op {
     virtual void onNoFurtherWaypoints() override;     
 };
 
-
+// dock op (driving to first dock point and following dock points until charging point)
 class DockOp: public Op {
   public:        
     bool dockingInitiatedByOperator;            
@@ -137,7 +141,7 @@ class DockOp: public Op {
     virtual void onKidnapped(bool state) override;   
 };
 
-
+// charging op
 class ChargeOp: public Op {
   public:        
     virtual String name() override;
@@ -147,6 +151,7 @@ class ChargeOp: public Op {
     virtual void onChargerDisconnected() override;
 };
 
+// wait for undo kidnap (gps jump) 
 class KidnapWaitOp: public Op {
   public:
     unsigned long recoverGpsTime;
@@ -159,6 +164,7 @@ class KidnapWaitOp: public Op {
     virtual void onGpsNoSignal() override;    
 };
 
+// reboot gps recovery
 class GpsRebootRecoveryOp: public Op {
   public:
     unsigned long retryOperationTime;
@@ -168,6 +174,7 @@ class GpsRebootRecoveryOp: public Op {
     virtual void run() override;
 };
 
+// wait for gps fix
 class GpsWaitFixOp: public Op {
   public:
     virtual String name() override;
@@ -176,7 +183,7 @@ class GpsWaitFixOp: public Op {
     virtual void run() override;
 };
 
-
+// for for gps signal (float or fix)
 class GpsWaitFloatOp: public Op {
   public:
     virtual String name() override;
@@ -186,6 +193,7 @@ class GpsWaitFloatOp: public Op {
 };
 
 
+// escape obstacle (drive backwards)
 class EscapeReverseOp: public Op {
   public:        
     unsigned long driveReverseStopTime;
@@ -195,7 +203,7 @@ class EscapeReverseOp: public Op {
     virtual void run() override;
 };
 
-
+// escape obstacle (drive forward)
 class EscapeForwardOp: public Op {
   public:        
     unsigned long driveForwardStopTime;
@@ -205,6 +213,7 @@ class EscapeForwardOp: public Op {
     virtual void run() override;
 };
 
+// error op
 class ErrorOp: public Op {
   public:        
     virtual String name() override;
