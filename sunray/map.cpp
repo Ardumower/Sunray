@@ -828,8 +828,8 @@ bool Map::nextPointIsStraight(){
 
 
 // get docking position and orientation (x,y,delta)
-void Map::getDockingPos(float &x, float &y, float &delta){
-  if (dockPoints.numPoints < 2) return;
+bool Map::getDockingPos(float &x, float &y, float &delta){
+  if (dockPoints.numPoints < 2) return false;
   Point dockFinalPt;
   Point dockPrevPt;
   dockFinalPt.assign(dockPoints.points[ dockPoints.numPoints-1]);  
@@ -837,6 +837,7 @@ void Map::getDockingPos(float &x, float &y, float &delta){
   x = dockFinalPt.x();
   y = dockFinalPt.y();
   delta = pointsAngle(dockPrevPt.x(), dockPrevPt.y(), dockFinalPt.x(), dockFinalPt.y());  
+  return true;
 }             
 
 // mower has been docked

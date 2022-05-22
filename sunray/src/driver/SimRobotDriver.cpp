@@ -207,6 +207,7 @@ void SimMotorDriver::setSimNoRobotYawRotation(bool flag){
 SimBatteryDriver::SimBatteryDriver(SimRobotDriver &sr) : simRobot(sr){
   simVoltage = 27.0;
   simChargerConnected = false;
+  robotIsAtDockingPoint = false;
 }
 
 void SimBatteryDriver::begin(){
@@ -216,10 +217,11 @@ void SimBatteryDriver::run(){
 // docking point reached => connect charger  
   float dockX = 0;
   float dockY = 0;
-  float dockDelta = 0;
-  maps.getDockingPos(dockX, dockY, dockDelta);
-  float dist = distance(simRobot.simX, simRobot.simY, dockX, dockY);  
-  robotIsAtDockingPoint = (dist < 0.5);
+  float dockDelta = 0;  
+  if (maps.getDockingPos(dockX, dockY, dockDelta)){
+    float dist = distance(simRobot.simX, simRobot.simY, dockX, dockY);  
+    robotIsAtDockingPoint = (dist < 0.5);
+  }
 
   if ((robotIsAtDockingPoint) || (simChargerConnected)){
     // quickly charge robot :-)

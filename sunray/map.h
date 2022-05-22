@@ -193,7 +193,7 @@ class Map
     // next point is straight and not a sharp curve?   
     bool nextPointIsStraight();
     // get docking position and orientation
-    void getDockingPos(float &x, float &y, float &delta);
+    bool getDockingPos(float &x, float &y, float &delta);
     
     // ------docking------------------------------------------
     void setIsDocked(bool flag);
