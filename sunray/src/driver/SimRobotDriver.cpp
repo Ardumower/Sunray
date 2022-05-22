@@ -221,6 +221,8 @@ void SimBatteryDriver::run(){
   if (maps.getDockingPos(dockX, dockY, dockDelta)){
     float dist = distance(simRobot.simX, simRobot.simY, dockX, dockY);  
     robotIsAtDockingPoint = (dist < 0.5);
+  } else {
+    robotIsAtDockingPoint = false;
   }
 
   if ((robotIsAtDockingPoint) || (simChargerConnected)){
