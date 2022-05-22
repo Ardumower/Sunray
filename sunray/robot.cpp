@@ -214,7 +214,6 @@ PubSubClient mqttClient(espClient);
 
 float dockSignal = 0;
 float dockAngularSpeed = 0.1;
-bool dockingInitiatedByOperator = false;
 bool gpsJump = false;
 int motorErrorCounter = 0;
 float trackerDiffDelta = 0;

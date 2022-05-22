@@ -18,7 +18,6 @@ String MowOp::name(){
     return "Mow";
 }
 
-
 void MowOp::begin(){
     bool error = false;
     bool routingFailed = false;      
@@ -28,42 +27,42 @@ void MowOp::begin(){
     motor.setLinearAngularSpeed(0,0);      
     motor.setMowState(false);                
 
-    if  (maps.wayMode != WAY_DOCK){  
-        //dockingInitiatedByOperator = false;
-        //dockReasonRainTriggered = false;
-        if ((initiatedbyOperator) || (lastMapRoutingFailed)) maps.clearObstacles();
-        if (maps.startMowing(stateX, stateY)){
-            if (maps.nextPoint(true)) {
-                lastFixTime = millis();                
-                maps.setLastTargetPoint(stateX, stateY);        
-                //stateSensor = SENS_NONE;
-                motor.setMowState(true);                
-            } else {
-                error = true;
-                CONSOLE.println("error: no waypoints!");
-                //op = stateOp;                
-            }
-        } else error = true;
+    // plan route to next target point 
 
-        if (error){
-            stateSensor = SENS_MAP_NO_ROUTE;
-            //op = OP_ERROR;
-            routingFailed = true;
-            motor.setMowState(false);
-        }
-
-        if (routingFailed){
-            lastMapRoutingFailed = true; 
-            mapRoutingFailedCounter++;    
-            if (mapRoutingFailedCounter > 60){
-                changeOp(errorOp);      
-            } else {    
-            changeOp(gpsRebootRecoveryOp, true);
-            }
+    //dockingInitiatedByOperator = false;
+    //dockReasonRainTriggered = false;
+    if ((initiatedbyOperator) || (lastMapRoutingFailed)) maps.clearObstacles();
+    if (maps.startMowing(stateX, stateY)){
+        if (maps.nextPoint(true)) {
+            lastFixTime = millis();                
+            maps.setLastTargetPoint(stateX, stateY);        
+            //stateSensor = SENS_NONE;
+            motor.setMowState(true);                
         } else {
-            lastMapRoutingFailed = false;
-            mapRoutingFailedCounter = 0;
+            error = true;
+            CONSOLE.println("error: no waypoints!");
+            //op = stateOp;                
         }
+    } else error = true;
+
+    if (error){
+        stateSensor = SENS_MAP_NO_ROUTE;
+        //op = OP_ERROR;
+        routingFailed = true;
+        motor.setMowState(false);
+    }
+
+    if (routingFailed){
+        lastMapRoutingFailed = true; 
+        mapRoutingFailedCounter++;    
+        if (mapRoutingFailedCounter > 60){
+            changeOp(errorOp);      
+        } else {    
+        changeOp(gpsRebootRecoveryOp, true);
+        }
+    } else {
+        lastMapRoutingFailed = false;
+        mapRoutingFailedCounter = 0;
     }
 }
 

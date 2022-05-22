@@ -468,6 +468,9 @@ void Map::begin(){
   mowPointsIdx = 0;
   freePointsIdx = 0;
   dockPointsIdx = 0;
+  shouldDock = false; 
+  shouldRetryDock = false; 
+  shouldMow = false;         
   mapCRC = 0;  
   CONSOLE.print("sizeof Point=");
   CONSOLE.println(sizeof(Point));  
@@ -888,7 +891,7 @@ bool Map::retryDocking(float stateX, float stateY){
 }
 
 
-bool Map::startDocking(float stateX, float stateY){
+bool Map::startDocking(float stateX, float stateY){  
   CONSOLE.println("Map::startDocking");
   if ((memoryCorruptions != 0) || (memoryAllocErrors != 0)){
     CONSOLE.println("ERROR startDocking: memory errors");
@@ -896,9 +899,13 @@ bool Map::startDocking(float stateX, float stateY){
   }  
   shouldDock = true;
   shouldRetryDock = false;
-  shouldMow = false;
+  shouldMow = false;    
   if (dockPoints.numPoints > 0){
-    // find valid path to docking point      
+    if (wayMode == WAY_DOCK) {
+      CONSOLE.println("skipping path planning to first docking point: already docking");    
+      return true;
+    }
+    // find valid path from robot to first docking point      
     //freePoints.alloc(0);
     Point src;
     Point dst;
@@ -932,7 +939,7 @@ bool Map::startMowing(float stateX, float stateY){
   shouldRetryDock = false;
   shouldMow = true;    
   if (mowPoints.numPoints > 0){
-    // find valid path to mowing point    
+    // find valid path from robot (or first docking point) to mowing point    
     //freePoints.alloc(0);
     Point src;
     Point dst;

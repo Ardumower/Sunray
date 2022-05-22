@@ -466,6 +466,7 @@ bool SimGpsDriver::configure(){
     
     
 void SimGpsDriver::reboot(){
+  CONSOLE.println("SimGpsDriver::reboot");
 }
 
 

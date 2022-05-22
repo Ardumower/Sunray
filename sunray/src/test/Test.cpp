@@ -38,9 +38,9 @@ void Test::speak(String text){
   #ifdef __linux__
     Process p;
     //String s = "say '" + text + "'";  // sudo apt-get install gnustep-gui-runtime
-    String s = "echo '" + text + "' | festival --tts";  // sudo apt-get install festival
-    //String s = "spd-say '" + text + "'";  // sudo apt-get install speech-dispatcher
-    //String s = "espeak '" + text + "'";  // sudo apt-get install espeak    
+    //String s = "echo '" + text + "' | festival --tts";  // sudo apt-get install festival
+    //String s = "spd-say '" + text + "'";  // sudo apt-get install speech-dispatcher    
+    String s = "espeak -vmb-en1 '" + text + "'";  // sudo apt-get install espeak, sudo apt-get install mbrola-en1    
     p.runShellCommand(s+ " &");    
   #endif
 }
@@ -70,7 +70,7 @@ void SessionTest::begin(){
 
 void SessionTest::run(){
 
-  Point target = maps.targetPoint;  
+  /*Point target = maps.targetPoint;  
   float dist = distance(currTargetX, currTargetY, target.x(), target.y());
   if (dist > 0){         
     currTargetX = target.x();
@@ -83,7 +83,8 @@ void SessionTest::run(){
       }
     }
     waypointCounter++;
-  }
+  }*/
+  
 
   /*if (millis() > nextBumperTime){
     nextBumperTime = millis() + 30000; 

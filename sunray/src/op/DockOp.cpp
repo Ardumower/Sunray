@@ -31,41 +31,44 @@ void DockOp::begin(){
   if (initiatedbyOperator) {
     dockingInitiatedByOperator = true;            
     dockReasonRainTriggered = false;
+  } else {
+    dockingInitiatedByOperator = false;
   }
 
-  if (maps.wayMode != WAY_DOCK){
-    if (maps.startDocking(stateX, stateY)){       
-      if (maps.nextPoint(true)) {
-        maps.repeatLastMowingPoint();
-        lastFixTime = millis();                
-        maps.setLastTargetPoint(stateX, stateY);        
-        //stateSensor = SENS_NONE;                  
-      } else {
-        error = true;
-        CONSOLE.println("error: no waypoints!");
-        //op = stateOp;                
-      }
-    } else error = true;
-    if (error){
-      stateSensor = SENS_MAP_NO_ROUTE;
-      //op = OP_ERROR;
-      routingFailed = true;        
-      motor.setMowState(false);
-    }
+  // plan route to next target point 
 
-    if (routingFailed){
-      lastMapRoutingFailed = true; 
-      mapRoutingFailedCounter++;    
-      if (mapRoutingFailedCounter > 60){
-        changeOp(errorOp);      
-      } else {    
-        changeOp(gpsRebootRecoveryOp, true);
-      }
+  if (maps.startDocking(stateX, stateY)){       
+    if (maps.nextPoint(true)) {
+      maps.repeatLastMowingPoint();
+      lastFixTime = millis();                
+      maps.setLastTargetPoint(stateX, stateY);        
+      //stateSensor = SENS_NONE;                  
     } else {
-      lastMapRoutingFailed = false;
-      mapRoutingFailedCounter = 0;
+      error = true;
+      CONSOLE.println("error: no waypoints!");
+      //op = stateOp;                
     }
+  } else error = true;
+  if (error){
+    stateSensor = SENS_MAP_NO_ROUTE;
+    //op = OP_ERROR;
+    routingFailed = true;        
+    motor.setMowState(false);
   }
+
+  if (routingFailed){
+    lastMapRoutingFailed = true; 
+    mapRoutingFailedCounter++;    
+    if (mapRoutingFailedCounter > 60){
+      changeOp(errorOp);      
+    } else {    
+      changeOp(gpsRebootRecoveryOp, true);
+    }
+  } else {
+    lastMapRoutingFailed = false;
+    mapRoutingFailedCounter = 0;
+  }
+
 }
 
 
@@ -140,6 +143,7 @@ void DockOp::onChargingCompleted(){
     if ((DOCKING_STATION) && (!dockingInitiatedByOperator)) {
       if (maps.mowPointsIdx > 0){  // if mowing not completed yet
         if ((DOCK_AUTO_START) && (!dockReasonRainTriggered)) { // automatic continue mowing allowed?
+          CONSOLE.println("DockOp::onChargingCompleted: DOCK_AUTO_START");
           changeOp(mowOp); // continue mowing
         }
       }

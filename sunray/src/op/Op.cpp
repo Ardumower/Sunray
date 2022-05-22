@@ -40,7 +40,7 @@ String Op::name(){
 
 void Op::changeOp(Op &anOp, bool returnBackOnExit, bool initiatedbyOperatorFlag){    
     if (&anOp == NULL){
-        CONSOLE.println("ERROR Op::changeOp: invalid op=NULL!");        
+        CONSOLE.println("  ERROR Op::changeOp: invalid op=NULL!");        
     }
     if (&anOp == activeOp) return;
     end();
@@ -50,7 +50,7 @@ void Op::changeOp(Op &anOp, bool returnBackOnExit, bool initiatedbyOperatorFlag)
     activeOp = &anOp;
     anOp.startTime = millis();
     anOp.initiatedbyOperator = initiatedbyOperatorFlag;
-    CONSOLE.print("changeOp:");
+    CONSOLE.print("   changeOp:");
     CONSOLE.println(activeOp->getOpChain());
     anOp.begin();          
 }
@@ -169,7 +169,6 @@ void Op::onImuCalibration(){
 }
 
 void Op::onChargerConnected(){            
-    // changeOp(chargeOp);
 }
 
 void Op::onBatteryUndervoltage(){
