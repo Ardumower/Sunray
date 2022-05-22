@@ -1,6 +1,9 @@
 #include "comm.h"
 #include "config.h"
 #include "robot.h"
+#include "StateEstimator.h"
+#include "LineTracker.h"
+#include "Stats.h"
 #include "src/op/op.h"
 #include "reset.h"
 #ifdef __linux__

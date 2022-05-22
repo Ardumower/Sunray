@@ -7,6 +7,10 @@
 #include <SD.h>
 
 #include "robot.h"
+#include "StateEstimator.h"
+#include "Storage.h"
+#include "Stats.h"
+#include "LineTracker.h"
 #include "comm.h"
 #include "src/op/op.h"
 #ifdef __linux__
@@ -28,12 +32,11 @@
 #include "gps.h"
 #include "src/ublox/ublox.h"
 #include "src/skytraq/skytraq.h"
+#include "helper.h"
 #include "buzzer.h"
 #include "rcmodel.h"
 #include "map.h"
 #include "config.h"
-#include "helper.h"
-#include "pid.h"
 #include "reset.h"
 #include "cpu.h"
 #include "i2c.h"
@@ -49,7 +52,6 @@ const signed char orientationMatrix[9] = {
   0, 0, 1
 };
 
-File stateFile;
 #ifdef DRV_SIM_ROBOT
   SimImuDriver imuDriver(robotDriver);
 #elif BNO055
@@ -102,91 +104,38 @@ VL53L0X tof(VL53L0X_ADDRESS_DEFAULT);
 Map maps;
 HTU21D myHumidity;
 RCModel rcmodel;
-PID pidLine(0.2, 0.01, 0); // not used
-PID pidAngle(2, 0.1, 0);  // not used
 
 int stateButton = 0;  
 int stateButtonTemp = 0;
 unsigned long stateButtonTimeout = 0;
+
 OperationType stateOp = OP_IDLE; // operation-mode
 Sensor stateSensor = SENS_NONE; // last triggered sensor
+
 unsigned long controlLoops = 0;
 String stateOpText = "";  // current operation as text
 String gpsSolText = ""; // current gps solution as text
-float stateX = 0;  // position-east (m)
-float stateY = 0;  // position-north (m)
-float stateDelta = 0;  // direction (rad)
-float stateRoll = 0;
-float statePitch = 0;
-float stateDeltaGPS = 0;
-float stateDeltaIMU = 0;
-float stateGroundSpeed = 0; // m/s
 float stateTemp = 0; // degreeC
 float stateHumidity = 0; // percent
-bool stateKidnapped = false;
-bool stateInMotionLP = false; // robot is in angular or linear motion? (with motion low-pass filtering)
 unsigned long stateInMotionLastTime = 0;
-float setSpeed = 0.1; // linear speed (m/s)
-unsigned long stateLeftTicks = 0;
-unsigned long stateRightTicks = 0;
+bool stateChargerConnected = false;
+bool stateInMotionLP = false; // robot is in angular or linear motion? (with motion low-pass filtering)
+
 unsigned long lastFixTime = 0;
 int fixTimeout = 0;
 bool absolutePosSource = false;
 double absolutePosSourceLon = 0;
 double absolutePosSourceLat = 0;
-bool finishAndRestart = false;
-bool resetLastPos = true;
-bool rotateLeft = false;
-bool rotateRight = false;
-bool angleToTargetFits = false;
-bool targetReached = false;
-bool stateChargerConnected = false;
-bool imuIsCalibrating = false;
-int imuCalibrationSeconds = 0;
-unsigned long nextImuCalibrationSecond = 0;
-float lateralError = 0; // lateral error
-float rollChange = 0;
-float pitchChange = 0;
 float lastGPSMotionX = 0;
 float lastGPSMotionY = 0;
 unsigned long nextGPSMotionCheckTime = 0;
-bool lastMapRoutingFailed = false;
-int mapRoutingFailedCounter = 0;
-unsigned long retryOperationTime = 0;
 
-SolType lastSolution = SOL_INVALID;    
-unsigned long nextStatTime = 0;
+bool finishAndRestart = false;
+
 unsigned long nextToFTime = 0;
-unsigned long statIdleDuration = 0; // seconds
-unsigned long statChargeDuration = 0; // seconds
-unsigned long statMowDurationInvalid = 0; // seconds
-unsigned long statMowDuration = 0; // seconds
-unsigned long statMowDurationFloat = 0; // seconds
-unsigned long statMowDurationFix = 0; // seconds
-unsigned long statMowFloatToFixRecoveries = 0; // counter
-unsigned long statMowInvalidRecoveries = 0; // counter
-unsigned long statImuRecoveries = 0; // counter
-unsigned long statMowObstacles = 0 ; // counter
-unsigned long statMowBumperCounter = 0; 
-unsigned long statMowSonarCounter = 0;
-unsigned long statMowLiftCounter = 0;
-unsigned long statMowGPSMotionTimeoutCounter = 0;
-unsigned long statGPSJumps = 0; // counter
-float statTempMin = 9999; 
-float statTempMax = -9999; 
-float statMowMaxDgpsAge = 0; // seconds
-float statMowDistanceTraveled = 0; // meter
-
-double stateCRC = 0;
-
-float lastPosN = 0;
-float lastPosE = 0;
-
 unsigned long linearMotionStartTime = 0;
 unsigned long angularMotionStartTime = 0;
 unsigned long overallMotionTimeout = 0;
-unsigned long driveReverseStopTime = 0;
-unsigned long driveForwardStopTime = 0;
 unsigned long nextControlTime = 0;
 unsigned long lastComputeTime = 0;
 
@@ -194,7 +143,6 @@ unsigned long nextImuTime = 0;
 unsigned long nextTempTime = 0;
 unsigned long imuDataTimeout = 0;
 unsigned long nextSaveTime = 0;
-float lastIMUYaw = 0; 
 
 bool wifiFound = false;
 char ssid[] = WIFI_SSID;      // your network SSID (name)
@@ -212,26 +160,11 @@ PubSubClient mqttClient(espClient);
   WiFiClient gpsClient; // GPS tcp client (optional)  
 #endif
 
-float dockSignal = 0;
-float dockAngularSpeed = 0.1;
-bool gpsJump = false;
 int motorErrorCounter = 0;
-float trackerDiffDelta = 0;
-float stateDeltaLast = 0;
-float stateDeltaSpeed = 0;
-float stateDeltaSpeedLP = 0;
-float stateDeltaSpeedIMU = 0;
-float stateDeltaSpeedWheels = 0;
-float diffIMUWheelYawSpeed = 0;
-float diffIMUWheelYawSpeedLP = 0;
 
 
 RunningMedian<unsigned int,3> tofMeasurements;
 
-float stanleyTrackingNormalK = STANLEY_CONTROL_K_NORMAL;
-float stanleyTrackingNormalP = STANLEY_CONTROL_P_NORMAL;    
-float stanleyTrackingSlowK = STANLEY_CONTROL_K_SLOW;
-float stanleyTrackingSlowP = STANLEY_CONTROL_P_SLOW;    
 
 // must be defined to override default behavior
 void watchdogSetup (void){} 
@@ -258,192 +191,7 @@ void updateGPSMotionCheckTime(){
 }
 
 
-void dumpState(){
-  CONSOLE.print("dumpState: ");
-  CONSOLE.print(" X=");
-  CONSOLE.print(stateX);
-  CONSOLE.print(" Y=");
-  CONSOLE.print(stateY);
-  CONSOLE.print(" delta=");
-  CONSOLE.print(stateDelta);
-  CONSOLE.print(" mapCRC=");
-  CONSOLE.print(maps.mapCRC);
-  CONSOLE.print(" mowPointsIdx=");
-  CONSOLE.print(maps.mowPointsIdx);
-  CONSOLE.print(" dockPointsIdx=");
-  CONSOLE.print(maps.freePointsIdx);
-  CONSOLE.print(" freePointsIdx=");
-  CONSOLE.print(maps.freePointsIdx);
-  CONSOLE.print(" wayMode=");
-  CONSOLE.print(maps.wayMode);
-  CONSOLE.print(" op=");
-  CONSOLE.print(stateOp);
-  CONSOLE.print(" sensor=");
-  CONSOLE.print(stateSensor);
-  CONSOLE.print(" sonar.enabled=");
-  CONSOLE.print(sonar.enabled);
-  CONSOLE.print(" fixTimeout=");
-  CONSOLE.print(fixTimeout);
-  CONSOLE.print(" absolutePosSource=");
-  CONSOLE.print(absolutePosSource);
-  CONSOLE.print(" lon=");
-  CONSOLE.print(absolutePosSourceLon);
-  CONSOLE.print(" lat=");
-  CONSOLE.println(absolutePosSourceLat);
-}
 
-void updateStateOpText(){
-  switch (stateOp){
-    case OP_IDLE: stateOpText = "idle"; break;
-    case OP_MOW: stateOpText = "mow"; break;
-    case OP_CHARGE: stateOpText = "charge"; break;
-    case OP_ERROR: 
-      stateOpText = "error (";
-      switch (stateSensor){
-        case SENS_NONE: stateOpText += "none)"; break;
-        case SENS_BAT_UNDERVOLTAGE: stateOpText += "unvervoltage)"; break;            
-        case SENS_OBSTACLE: stateOpText += "obstacle)"; break;      
-        case SENS_GPS_FIX_TIMEOUT: stateOpText += "fix timeout)"; break;
-        case SENS_IMU_TIMEOUT: stateOpText += "imu timeout)"; break;
-        case SENS_IMU_TILT: stateOpText += "imu tilt)"; break;
-        case SENS_KIDNAPPED: stateOpText += "kidnapped)"; break;
-        case SENS_OVERLOAD: stateOpText += "overload)"; break;
-        case SENS_MOTOR_ERROR: stateOpText += "motor error)"; break;
-        case SENS_GPS_INVALID: stateOpText += "gps invalid)"; break;
-        case SENS_ODOMETRY_ERROR: stateOpText += "odo error)"; break;
-        case SENS_MAP_NO_ROUTE: stateOpText += "no map route)"; break;
-        case SENS_MEM_OVERFLOW: stateOpText += "mem overflow)"; break;
-        case SENS_BUMPER: stateOpText += "bumper)"; break;
-        case SENS_SONAR: stateOpText += "sonar)"; break;
-        case SENS_LIFT: stateOpText += "lift)"; break;
-        case SENS_RAIN: stateOpText += "rain)"; break;
-        case SENS_STOP_BUTTON: stateOpText += "stop button)"; break;
-        default: stateOpText += "unknown)"; break;
-      }
-      break;
-    case OP_DOCK: stateOpText = "dock"; break;
-    default: stateOpText = "unknown"; break;
-  }
-  switch (gps.solution){
-    case SOL_INVALID: gpsSolText = "invalid"; break;
-    case SOL_FLOAT: gpsSolText = "float"; break;
-    case SOL_FIXED: gpsSolText ="fixed"; break;
-    default: gpsSolText = "unknown";      
-  }
-}
-
-double calcStateCRC(){
- return (stateOp *10 + maps.mowPointsIdx + maps.dockPointsIdx + maps.freePointsIdx + ((byte)maps.wayMode) 
-   + sonar.enabled + fixTimeout 
-   + ((byte)absolutePosSource) + absolutePosSourceLon + absolutePosSourceLat);
-}
-
-bool loadState(){
-#if defined(ENABLE_SD_RESUME)
-  CONSOLE.println("resuming is activated");
-  CONSOLE.print("state load... ");
-  if (!SD.exists("state.bin")) {
-    CONSOLE.println("no state file!");
-    return false;
-  }
-  stateFile = SD.open("state.bin", FILE_READ);
-  if (!stateFile){        
-    CONSOLE.println("ERROR opening file for reading");
-    return false;
-  }
-  uint32_t marker = 0;
-  stateFile.read((uint8_t*)&marker, sizeof(marker));
-  if (marker != 0x10001003){
-    CONSOLE.print("ERROR: invalid marker: ");
-    CONSOLE.println(marker, HEX);
-    return false;
-  }
-  long crc = 0;
-  stateFile.read((uint8_t*)&crc, sizeof(crc));
-  if (crc != maps.mapCRC){
-    CONSOLE.print("ERROR: non-matching map CRC:");
-    CONSOLE.print(crc);
-    CONSOLE.print(" expected: ");
-    CONSOLE.println(maps.mapCRC);
-    return false;
-  }
-  bool res = true;
-  OperationType savedOp;
-  res &= (stateFile.read((uint8_t*)&stateX, sizeof(stateX)) != 0);
-  res &= (stateFile.read((uint8_t*)&stateY, sizeof(stateY)) != 0);
-  res &= (stateFile.read((uint8_t*)&stateDelta, sizeof(stateDelta)) != 0);
-  res &= (stateFile.read((uint8_t*)&maps.mowPointsIdx, sizeof(maps.mowPointsIdx)) != 0);
-  res &= (stateFile.read((uint8_t*)&maps.dockPointsIdx, sizeof(maps.dockPointsIdx)) != 0);
-  res &= (stateFile.read((uint8_t*)&maps.freePointsIdx, sizeof(maps.freePointsIdx)) != 0);
-  res &= (stateFile.read((uint8_t*)&maps.wayMode, sizeof(maps.wayMode)) != 0);
-  res &= (stateFile.read((uint8_t*)&savedOp, sizeof(savedOp)) != 0);
-  res &= (stateFile.read((uint8_t*)&stateSensor, sizeof(stateSensor)) != 0);
-  res &= (stateFile.read((uint8_t*)&sonar.enabled, sizeof(sonar.enabled)) != 0);
-  res &= (stateFile.read((uint8_t*)&fixTimeout, sizeof(fixTimeout)) != 0);
-  res &= (stateFile.read((uint8_t*)&setSpeed, sizeof(setSpeed)) != 0);
-  res &= (stateFile.read((uint8_t*)&absolutePosSource, sizeof(absolutePosSource)) != 0);
-  res &= (stateFile.read((uint8_t*)&absolutePosSourceLon, sizeof(absolutePosSourceLon)) != 0);
-  res &= (stateFile.read((uint8_t*)&absolutePosSourceLat, sizeof(absolutePosSourceLat)) != 0); 
-  stateFile.close();  
-  CONSOLE.println("ok");
-  stateCRC = calcStateCRC();
-  dumpState();
-  if (getResetCause() == RST_WATCHDOG){
-    CONSOLE.println("resuming operation due to watchdog trigger");
-    stateOp = savedOp;
-    setOperation(stateOp, true, true);
-  }
-#endif
-  return true;
-}
-
-
-bool saveState(){   
-  bool res = true;
-#if defined(ENABLE_SD_RESUME)
-  double crc = calcStateCRC();
-  //CONSOLE.print("stateCRC=");
-  //CONSOLE.print(stateCRC);
-  //CONSOLE.print(" crc=");
-  //CONSOLE.println(crc);
-  if (crc == stateCRC) return true;
-  stateCRC = crc;
-  dumpState();
-  CONSOLE.print("save state... ");
-  stateFile = SD.open("state.bin",  FILE_CREATE); // O_WRITE | O_CREAT);
-  if (!stateFile){        
-    CONSOLE.println("ERROR opening file for writing");
-    return false;
-  }
-  uint32_t marker = 0x10001003;
-  res &= (stateFile.write((uint8_t*)&marker, sizeof(marker)) != 0); 
-  res &= (stateFile.write((uint8_t*)&maps.mapCRC, sizeof(maps.mapCRC)) != 0); 
-
-  res &= (stateFile.write((uint8_t*)&stateX, sizeof(stateX)) != 0);
-  res &= (stateFile.write((uint8_t*)&stateY, sizeof(stateY)) != 0);
-  res &= (stateFile.write((uint8_t*)&stateDelta, sizeof(stateDelta)) != 0);
-  res &= (stateFile.write((uint8_t*)&maps.mowPointsIdx, sizeof(maps.mowPointsIdx)) != 0);
-  res &= (stateFile.write((uint8_t*)&maps.dockPointsIdx, sizeof(maps.dockPointsIdx)) != 0);
-  res &= (stateFile.write((uint8_t*)&maps.freePointsIdx, sizeof(maps.freePointsIdx)) != 0);
-  res &= (stateFile.write((uint8_t*)&maps.wayMode, sizeof(maps.wayMode)) != 0);
-  res &= (stateFile.write((uint8_t*)&stateOp, sizeof(stateOp)) != 0);
-  res &= (stateFile.write((uint8_t*)&stateSensor, sizeof(stateSensor)) != 0);
-  res &= (stateFile.write((uint8_t*)&sonar.enabled, sizeof(sonar.enabled)) != 0);
-  res &= (stateFile.write((uint8_t*)&fixTimeout, sizeof(fixTimeout)) != 0);
-  res &= (stateFile.write((uint8_t*)&setSpeed, sizeof(setSpeed)) != 0);
-  res &= (stateFile.write((uint8_t*)&absolutePosSource, sizeof(absolutePosSource)) != 0);
-  res &= (stateFile.write((uint8_t*)&absolutePosSourceLon, sizeof(absolutePosSourceLon)) != 0);
-  res &= (stateFile.write((uint8_t*)&absolutePosSourceLat, sizeof(absolutePosSourceLat)) != 0);
-  if (res){
-    CONSOLE.println("ok");
-  } else {
-    CONSOLE.println("ERROR saving state");
-  }
-  stateFile.flush();
-  stateFile.close();
-#endif
-  return res; 
-}
 
 
 void sensorTest(){
@@ -559,133 +307,6 @@ void startWIFI(){
 }
 
 
-// https://learn.sparkfun.com/tutorials/9dof-razor-imu-m0-hookup-guide#using-the-mpu-9250-dmp-arduino-library
-// start IMU sensor and calibrate
-bool startIMU(bool forceIMU){    
-  // detect IMU
-  uint8_t data = 0;
-  int counter = 0;  
-  while ((forceIMU) || (counter < 1)){          
-     imuDriver.detect();
-     if (imuDriver.imuFound){
-       break;
-     }
-     I2Creset();  
-     Wire.begin();    
-     #ifdef I2C_SPEED
-       Wire.setClock(I2C_SPEED);   
-     #endif
-     counter++;
-     if (counter > 5){    
-       // no I2C recovery possible - this should not happen (I2C module error)
-       CONSOLE.println("ERROR IMU not found");
-       stateSensor = SENS_IMU_TIMEOUT;
-       setOperation(OP_ERROR);      
-       //buzzer.sound(SND_STUCK, true);            
-       return false;
-     }
-     watchdogReset();          
-  }  
-  if (!imuDriver.imuFound) return false;  
-  counter = 0;  
-  while (true){    
-    if (imuDriver.begin()) break;
-    CONSOLE.print("Unable to communicate with IMU.");
-    CONSOLE.print("Check connections, and try again.");
-    CONSOLE.println();
-    delay(1000);    
-    counter++;
-    if (counter > 5){
-      stateSensor = SENS_IMU_TIMEOUT;
-      setOperation(OP_ERROR);      
-      //buzzer.sound(SND_STUCK, true);            
-      return false;
-    }
-    watchdogReset();     
-  }              
-  imuIsCalibrating = true;   
-  nextImuCalibrationSecond = millis() + 1000;
-  imuCalibrationSeconds = 0;
-  return true;
-}
-
-
-// read IMU sensor (and restart if required)
-// I2C recovery: It can be minutes or hours, then there's an I2C error (probably due an spike on the 
-// SCL/SDA lines) and the I2C bus on the pcb1.3 (and the arduino library) hangs and communication is delayed. 
-// We check if the communication is significantly (10ms instead of 1ms) delayed, if so we restart the I2C 
-// bus (by clocking out any garbage on the I2C bus) and then restarting the IMU module.
-// https://learn.sparkfun.com/tutorials/9dof-razor-imu-m0-hookup-guide/using-the-mpu-9250-dmp-arduino-library
-void readIMU(){
-  if (!imuDriver.imuFound) return;
-  // Check for new data in the FIFO  
-  unsigned long startTime = millis();
-  bool avail = (imuDriver.isDataAvail());
-  // check time for I2C access : if too long, there's an I2C issue and we need to restart I2C bus...
-  unsigned long duration = millis() - startTime;    
-  //CONSOLE.print("duration:");
-  //CONSOLE.println(duration);  
-  if ((duration > 10) || (millis() > imuDataTimeout)) {
-    if (millis() > imuDataTimeout){
-      CONSOLE.println("ERROR IMU data timeout (check RTC battery if problem persists)");  
-    } else {
-      CONSOLE.print("ERROR IMU timeout: ");
-      CONSOLE.print(duration);     
-      CONSOLE.println(" (check RTC battery if problem persists)");          
-    }
-    stateSensor = SENS_IMU_TIMEOUT;
-    motor.stopImmediately(true);    
-    statImuRecoveries++;            
-    if (!startIMU(true)){ // restart I2C bus
-      return;
-    }    
-    return;
-  } 
-  
-  if (avail) {        
-    //CONSOLE.println("fifoAvailable");
-    // Use dmpUpdateFifo to update the ax, gx, mx, etc. values
-    #ifdef ENABLE_TILT_DETECTION
-      rollChange += (imuDriver.roll-stateRoll);
-      pitchChange += (imuDriver.pitch-statePitch);               
-      rollChange = 0.95 * rollChange;
-      pitchChange = 0.95 * pitchChange;
-      statePitch = imuDriver.pitch;
-      stateRoll = imuDriver.roll;        
-      //CONSOLE.print(rollChange/PI*180.0);
-      //CONSOLE.print(",");
-      //CONSOLE.println(pitchChange/PI*180.0);
-      if ( (fabs(scalePI(imuDriver.roll)) > 60.0/180.0*PI) || (fabs(scalePI(imuDriver.pitch)) > 100.0/180.0*PI)
-            || (fabs(rollChange) > 30.0/180.0*PI) || (fabs(pitchChange) > 60.0/180.0*PI)   )  {
-        CONSOLE.println("ERROR IMU tilt");
-        CONSOLE.print("imu ypr=");
-        CONSOLE.print(imuDriver.yaw/PI*180.0);
-        CONSOLE.print(",");
-        CONSOLE.print(imuDriver.pitch/PI*180.0);
-        CONSOLE.print(",");
-        CONSOLE.print(imuDriver.roll/PI*180.0);
-        CONSOLE.print(" rollChange=");
-        CONSOLE.print(rollChange/PI*180.0);
-        CONSOLE.print(" pitchChange=");
-        CONSOLE.println(pitchChange/PI*180.0);
-        stateSensor = SENS_IMU_TILT;
-        setOperation(OP_ERROR);
-      }           
-    #endif
-    motor.robotPitch = scalePI(imuDriver.pitch);
-    imuDriver.yaw = scalePI(imuDriver.yaw);
-    //CONSOLE.println(imuDriver.yaw / PI * 180.0);
-    lastIMUYaw = scalePI(lastIMUYaw);
-    lastIMUYaw = scalePIangles(lastIMUYaw, imuDriver.yaw);
-    stateDeltaIMU = -scalePI ( distancePI(imuDriver.yaw, lastIMUYaw) );  
-    //CONSOLE.print(imuDriver.yaw);
-    //CONSOLE.print(",");
-    //CONSOLE.print(stateDeltaIMU/PI*180.0);
-    //CONSOLE.println();
-    lastIMUYaw = imuDriver.yaw;      
-    imuDataTimeout = millis() + 10000;         
-  }     
-}
 
 // check for RTC module
 bool checkAT24C32() {
@@ -980,153 +601,6 @@ void start(){
 }
 
 
-// calculate statistics
-void calcStats(){
-  if (millis() >= nextStatTime){
-    nextStatTime = millis() + 1000;
-    switch (stateOp){
-      case OP_IDLE:
-        statIdleDuration++;
-        break;
-      case OP_MOW:      
-        statMowDuration++;
-        if (gps.solution == SOL_FIXED) statMowDurationFix++;
-          else if (gps.solution == SOL_FLOAT) statMowDurationFloat++;   
-          else if (gps.solution == SOL_INVALID) statMowDurationInvalid++;
-        if (gps.solution != lastSolution){      
-          if ((lastSolution == SOL_FLOAT) && (gps.solution == SOL_FIXED)) statMowFloatToFixRecoveries++;
-          if (lastSolution == SOL_INVALID) statMowInvalidRecoveries++;
-          lastSolution = gps.solution;
-        } 
-        statMowMaxDgpsAge = max(statMowMaxDgpsAge, (millis() - gps.dgpsAge)/1000.0);        
-        break;
-      case OP_CHARGE:
-        statChargeDuration++;
-        break;
-    }     
-  }   
-}
-
-
-// compute robot state (x,y,delta)
-// uses complementary filter ( https://gunjanpatel.wordpress.com/2016/07/07/complementary-filter-design/ )
-// to fusion GPS heading (long-term) and IMU heading (short-term)
-// with IMU: heading (stateDelta) is computed by gyro (stateDeltaIMU)
-// without IMU: heading (stateDelta) is computed by odometry (deltaOdometry)
-void computeRobotState(){  
-  long leftDelta = motor.motorLeftTicks-stateLeftTicks;
-  long rightDelta = motor.motorRightTicks-stateRightTicks;  
-  stateLeftTicks = motor.motorLeftTicks;
-  stateRightTicks = motor.motorRightTicks;    
-    
-  float distLeft = ((float)leftDelta) / ((float)motor.ticksPerCm);
-  float distRight = ((float)rightDelta) / ((float)motor.ticksPerCm);  
-  float distOdometry = (distLeft + distRight) / 2.0;
-  float deltaOdometry = -(distLeft - distRight) / motor.wheelBaseCm;    
-  
-  float posN = 0;
-  float posE = 0;
-  if (absolutePosSource){
-    relativeLL(absolutePosSourceLat, absolutePosSourceLon, gps.lat, gps.lon, posN, posE);    
-  } else {
-    posN = gps.relPosN;  
-    posE = gps.relPosE;     
-  }   
-  
-  if (fabs(motor.linearSpeedSet) < 0.001){       
-    resetLastPos = true;
-  }
-  
-  if ((gps.solutionAvail) 
-      && ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT))  )
-  {
-    gps.solutionAvail = false;        
-    stateGroundSpeed = 0.9 * stateGroundSpeed + 0.1 * abs(gps.groundSpeed);    
-    //CONSOLE.println(stateGroundSpeed);
-    float distGPS = sqrt( sq(posN-lastPosN)+sq(posE-lastPosE) );
-    if ((distGPS > 0.3) || (resetLastPos)){
-      if (distGPS > 0.3) {
-        gpsJump = true;
-        statGPSJumps++;
-        CONSOLE.print("GPS jump: ");
-        CONSOLE.println(distGPS);
-      }
-      resetLastPos = false;
-      lastPosN = posN;
-      lastPosE = posE;
-    } else if (distGPS > 0.1) {       
-      if ( (fabs(motor.linearSpeedSet) > 0) && (fabs(motor.angularSpeedSet) /PI *180.0 < 45) ) {  
-        stateDeltaGPS = scalePI(atan2(posN-lastPosN, posE-lastPosE));    
-        if (motor.linearSpeedSet < 0) stateDeltaGPS = scalePI(stateDeltaGPS + PI); // consider if driving reverse
-        //stateDeltaGPS = scalePI(2*PI-gps.heading+PI/2);
-        float diffDelta = distancePI(stateDelta, stateDeltaGPS);                 
-        if (    ((gps.solution == SOL_FIXED) && (maps.useGPSfixForDeltaEstimation ))
-             || ((gps.solution == SOL_FLOAT) && (maps.useGPSfloatForDeltaEstimation)) )
-        {   // allows planner to use float solution?         
-          if (fabs(diffDelta/PI*180) > 45){ // IMU-based heading too far away => use GPS heading
-            stateDelta = stateDeltaGPS;
-            stateDeltaIMU = 0;
-          } else {
-            // delta fusion (complementary filter, see above comment)
-            stateDeltaGPS = scalePIangles(stateDeltaGPS, stateDelta);
-            stateDelta = scalePI(fusionPI(0.9, stateDelta, stateDeltaGPS));               
-          }            
-        }
-      }
-      lastPosN = posN;
-      lastPosE = posE;
-    } 
-    if (gps.solution == SOL_FIXED) {
-      // fix
-      lastFixTime = millis();
-      if (maps.useGPSfixForPosEstimation) {
-        stateX = posE;
-        stateY = posN;
-      }        
-    } else {
-      // float
-      if (maps.useGPSfloatForPosEstimation){ // allows planner to use float solution?
-        stateX = posE;
-        stateY = posN;              
-      }
-    }
-  } 
-  
-  // odometry
-  stateX += distOdometry/100.0 * cos(stateDelta);
-  stateY += distOdometry/100.0 * sin(stateDelta);        
-  if (stateOp == OP_MOW) statMowDistanceTraveled += distOdometry/100.0;
-  
-  if ((imuDriver.imuFound) && (maps.useIMU)) {
-    // IMU available and should be used by planner
-    stateDelta = scalePI(stateDelta + stateDeltaIMU );          
-  } else {
-    // odometry
-    stateDelta = scalePI(stateDelta + deltaOdometry);  
-  }
-  if (imuDriver.imuFound){
-    stateDeltaSpeedIMU = 0.99 * stateDeltaSpeedIMU + 0.01 * stateDeltaIMU / 0.02; // IMU yaw rotation speed (20ms timestep)
-  }
-  stateDeltaSpeedWheels = 0.99 * stateDeltaSpeedWheels + 0.01 * deltaOdometry / 0.02; // wheels yaw rotation speed (20ms timestep) 
-  //CONSOLE.println(stateDelta / PI * 180.0);
-  stateDeltaIMU = 0;
-
-  // compute yaw rotation speed (delta speed)
-  stateDeltaSpeed = (stateDelta - stateDeltaLast) / 0.02;  // 20ms timestep
-  stateDeltaSpeedLP = stateDeltaSpeedLP * 0.95 + fabs(stateDeltaSpeed) * 0.05;     
-  stateDeltaLast = stateDelta;
-  //CONSOLE.println(stateDeltaSpeedLP/PI*180.0);
-
-  if (imuDriver.imuFound) {
-    // compute difference between IMU yaw rotation speed and wheels yaw rotation speed
-    diffIMUWheelYawSpeed = stateDeltaSpeedIMU - stateDeltaSpeedWheels;
-    diffIMUWheelYawSpeedLP = diffIMUWheelYawSpeedLP * 0.95 + fabs(diffIMUWheelYawSpeed) * 0.05;  
-    //CONSOLE.println(diffIMUWheelYawSpeedLP/PI*180.0);
-    //CONSOLE.print(stateDeltaSpeedIMU/PI*180.0);
-    //CONSOLE.print(",");
-    //CONSOLE.println(stateDeltaSpeedWheels/PI*180.0);
-  }
-}
 
 // should robot move?
 bool robotShouldMove(){
@@ -1313,171 +787,6 @@ bool detectObstacleRotation(){
   return false;
 }
 
-// control robot velocity (linear,angular) to track line to next waypoint (target)
-// uses a stanley controller for line tracking
-// https://medium.com/@dingyan7361/three-methods-of-vehicle-lateral-control-pure-pursuit-stanley-and-mpc-db8cc1d32081
-void trackLine(bool runControl){  
-  Point target = maps.targetPoint;
-  Point lastTarget = maps.lastTargetPoint;
-  float linear = 1.0;  
-  bool mow = true;
-  if (stateOp == OP_DOCK) mow = false;
-  float angular = 0;      
-  float targetDelta = pointsAngle(stateX, stateY, target.x(), target.y());      
-  if (maps.trackReverse) targetDelta = scalePI(targetDelta + PI);
-  targetDelta = scalePIangles(targetDelta, stateDelta);
-  trackerDiffDelta = distancePI(stateDelta, targetDelta);                         
-  lateralError = distanceLineInfinite(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
-  float distToPath = distanceLine(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
-  float targetDist = maps.distanceToTargetPoint(stateX, stateY);
-  
-  float lastTargetDist = maps.distanceToLastTargetPoint(stateX, stateY);  
-  if (SMOOTH_CURVES)
-    targetReached = (targetDist < 0.2);    
-  else 
-    targetReached = (targetDist < 0.05);    
-  
-  
-  if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
-    linear = 0.1;  
-  }   
-          
-  // allow rotations only near last or next waypoint or if too far away from path
-  if ( (targetDist < 0.5) || (lastTargetDist < 0.5) ||  (fabs(distToPath) > 0.5) ) {
-    if (SMOOTH_CURVES)
-      angleToTargetFits = (fabs(trackerDiffDelta)/PI*180.0 < 120);          
-    else     
-      angleToTargetFits = (fabs(trackerDiffDelta)/PI*180.0 < 20);   
-  } else angleToTargetFits = true;
-
-               
-  if (!angleToTargetFits){
-    // angular control (if angle to far away, rotate to next waypoint)
-    linear = 0;
-    angular = 29.0 / 180.0 * PI; //  29 degree/s (0.5 rad/s);               
-    if ((!rotateLeft) && (!rotateRight)){ // decide for one rotation direction (and keep it)
-      if (trackerDiffDelta < 0) rotateLeft = true;
-        else rotateRight = true;
-    }        
-    if (rotateLeft) angular *= -1;            
-    if (fabs(trackerDiffDelta)/PI*180.0 < 90){
-      rotateLeft = false;  // reset rotate direction
-      rotateRight = false;
-    }    
-  } 
-  else {
-    // line control (stanley)    
-    bool straight = maps.nextPointIsStraight();
-    if (maps.trackSlow) {
-      // planner forces slow tracking (e.g. docking etc)
-      linear = 0.1;           
-    } else if (     ((setSpeed > 0.2) && (maps.distanceToTargetPoint(stateX, stateY) < 0.5) && (!straight))   // approaching
-          || ((linearMotionStartTime != 0) && (millis() < linearMotionStartTime + 3000))                      // leaving  
-       ) 
-    {
-      linear = 0.1; // reduce speed when approaching/leaving waypoints          
-    } 
-    else {
-      if (gps.solution == SOL_FLOAT)        
-        linear = min(setSpeed, 0.1); // reduce speed for float solution
-      else
-        linear = setSpeed;         // desired speed
-      if (sonar.nearObstacle()) linear = 0.1; // slow down near obstacles
-    }      
-    //angula                                    r = 3.0 * trackerDiffDelta + 3.0 * lateralError;       // correct for path errors 
-    float k = stanleyTrackingNormalK; // STANLEY_CONTROL_K_NORMAL;
-    float p = stanleyTrackingNormalP; // STANLEY_CONTROL_P_NORMAL;    
-    if (maps.trackSlow) {
-      k = stanleyTrackingSlowK; //STANLEY_CONTROL_K_SLOW;   
-      p = stanleyTrackingSlowP; //STANLEY_CONTROL_P_SLOW;          
-    }
-    angular =  p * trackerDiffDelta + atan2(k * lateralError, (0.001 + fabs(motor.linearSpeedSet)));       // correct for path errors           
-    /*pidLine.w = 0;              
-    pidLine.x = lateralError;
-    pidLine.max_output = PI;
-    pidLine.y_min = -PI;
-    pidLine.y_max = PI;
-    pidLine.compute();
-    angular = -pidLine.y;   */
-    //CONSOLE.print(lateralError);        
-    //CONSOLE.print(",");        
-    //CONSOLE.println(angular/PI*180.0);            
-    if (maps.trackReverse) linear *= -1;   // reverse line tracking needs negative speed
-    if (!SMOOTH_CURVES) angular = max(-PI/16, min(PI/16, angular)); // restrict steering angle for stanley
-  }
-  // check some pre-conditions that can make linear+angular speed zero
-  if (fixTimeout != 0){
-    if (millis() > lastFixTime + fixTimeout * 1000.0){
-      activeOp->onGpsFixTimeout();        
-    }       
-  }     
-
-  if ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT)){        
-    if (abs(linear) > 0.06) {
-      if ((millis() > linearMotionStartTime + 5000) && (stateGroundSpeed < 0.03)){
-        // if in linear motion and not enough ground speed => obstacle
-        //if ( (GPS_SPEED_DETECTION) && (!maps.isUndocking()) ) { 
-        if (GPS_SPEED_DETECTION) {         
-          CONSOLE.println("gps no speed => obstacle!");
-          triggerObstacle();
-          return;
-        }
-      }
-    }  
-  } else {
-    // no gps solution
-    if (REQUIRE_VALID_GPS){
-      CONSOLE.println("WARN: no gps solution!");
-      activeOp->onGpsNoSignal();
-    }
-  }
-
-  // gps-jump/false fix check
-  if (KIDNAP_DETECT){
-    float allowedPathTolerance = KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE;     
-    if ( maps.isUndocking() ) allowedPathTolerance = 0.2;
-    if (fabs(distToPath) > allowedPathTolerance){ // actually, this should not happen (except on false GPS fixes or robot being kidnapped...)
-      if (!stateKidnapped){
-        stateKidnapped = true;
-        activeOp->onKidnapped(stateKidnapped);
-      }            
-    } else {
-      if (stateKidnapped) {
-        stateKidnapped = false;
-        activeOp->onKidnapped(stateKidnapped);        
-      }
-    }
-  }
-   
-  if (mow)  {  // wait until mowing motor is running
-    if (millis() < motor.motorMowSpinUpTime + 5000){
-      if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
-      linear = 0;
-      angular = 0;   
-    }
-  }
-
-  if (runControl){
-    motor.setLinearAngularSpeed(linear, angular);      
-    motor.setMowState(mow);
-  }
-
-  if (targetReached){
-    if (maps.wayMode == WAY_MOW){
-      maps.clearObstacles(); // clear obstacles if target reached
-      motorErrorCounter = 0; // reset motor error counter if target reached
-      stateSensor = SENS_NONE; // clear last triggered sensor
-    }
-    bool straight = maps.nextPointIsStraight();
-    if (!maps.nextPoint(false)){
-      // finish        
-      activeOp->onNoFurtherWaypoints();      
-    } else {      
-      // next waypoint          
-      //if (!straight) angleToTargetFits = false;      
-    }
-  }  
-}
 
 
 

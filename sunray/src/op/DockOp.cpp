@@ -6,6 +6,9 @@
 #include "op.h"
 #include <Arduino.h>
 #include "../../robot.h"
+#include "../../StateEstimator.h"
+#include "../../LineTracker.h"
+#include "../../Stats.h"
 #include "../../map.h"
 
 DockOp::DockOp(){

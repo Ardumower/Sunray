@@ -6,12 +6,15 @@
 #include "op.h"
 #include <Arduino.h>
 #include "../../robot.h"
+#include "../../StateEstimator.h"
+#include "../../LineTracker.h"
+#include "../../Stats.h"
 #include "../../map.h"
 
 
 MowOp::MowOp(){
-  lastMapRoutingFailed = false;
-  mapRoutingFailedCounter = 0;
+    lastMapRoutingFailed = false;
+    mapRoutingFailedCounter = 0;
 }
 
 String MowOp::name(){

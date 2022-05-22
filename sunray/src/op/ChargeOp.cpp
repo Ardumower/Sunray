@@ -6,6 +6,7 @@
 #include "op.h"
 #include <Arduino.h>
 #include "../../robot.h"
+#include "../../StateEstimator.h"
 #include "../../map.h"
 
 

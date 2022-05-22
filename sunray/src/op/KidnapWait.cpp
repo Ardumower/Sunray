@@ -6,6 +6,7 @@
 #include "op.h"
 #include <Arduino.h>
 #include "../../robot.h"
+#include "../../LineTracker.h"
 #include "../../map.h"
 
 String KidnapWaitOp::name(){
