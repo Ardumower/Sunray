@@ -133,5 +133,5 @@ void SessionTest::run(){
 void SessionTest::end(){
 }        
 
-#endif DRV_SIM_ROBOT
+#endif // DRV_SIM_ROBOT
 
