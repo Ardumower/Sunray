@@ -53,6 +53,9 @@ String SessionTest::name(){
 }
 
 void SessionTest::begin(){
+    waypointCounter = 0;
+    currTargetX = currTargetY = 0;
+
     nextBumperTime = millis() + 30000;
     bumperTimeout = 0;
 
@@ -66,7 +69,23 @@ void SessionTest::begin(){
 }
 
 void SessionTest::run(){
-  if (millis() > nextBumperTime){
+
+  Point target = maps.targetPoint;  
+  float dist = distance(currTargetX, currTargetY, target.x(), target.y());
+  if (dist > 0){         
+    currTargetX = target.x();
+    currTargetY = target.y();    
+    if (waypointCounter % 2 == 0){
+      float robotDist = distance(currTargetX, currTargetY, stateX, stateY);
+      if (robotDist > 1.0){
+        speak("obstacle");
+        robotDriver.setObstacle(currTargetX, currTargetY, 0.2);
+      }
+    }
+    waypointCounter++;
+  }
+
+  /*if (millis() > nextBumperTime){
     nextBumperTime = millis() + 30000; 
     bumperTimeout = millis() + 15000;
     CONSOLE.println("SIM: TRIGGER BUMPER");
@@ -78,7 +97,7 @@ void SessionTest::run(){
       bumper.setSimTriggered(false);
       motorDriver.setSimNoRobotYawRotation(false);
     }
-  }
+  }*/
 
   /*
   if (millis() > nextGpsJumpTime){

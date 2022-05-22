@@ -31,6 +31,10 @@ class Test {
 
 class SessionTest: public Test {
   public:        
+    int waypointCounter;
+    float currTargetX;
+    float currTargetY;
+    
     unsigned long nextBumperTime;
     unsigned long bumperTimeout;
     

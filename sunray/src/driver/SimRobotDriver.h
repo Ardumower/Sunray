@@ -22,6 +22,10 @@ class SimRobotDriver: public RobotDriver {
     float mowSpeed;    // mow motor speed
     float linearSpeed;  // linear speed 
     float angularSpeed;  // angular speed    
+    float simObstacleX; // obstacle x
+    float simObstacleY; // obstacle y
+    float simObstacleRadius; // obstacle radius    
+    bool robotIsBumpingIntoObstacle;
     unsigned long simTicksLeft; // robot left encoder 
     unsigned long simTicksRight;  // robot right encoder
     void begin() override;
@@ -30,6 +34,8 @@ class SimRobotDriver: public RobotDriver {
     bool getMcuFirmwareVersion(String &name, String &ver) override;    
     // simulator specific
     void setSimRobotPosState(float x, float y, float delta);
+    void setObstacle(float x, float y, float radius);
+    bool pointIsInsideObstacle(float x, float y);
   protected:    
 };
 

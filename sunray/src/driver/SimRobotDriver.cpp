@@ -18,6 +18,10 @@ void SimRobotDriver::begin(){
   simX = 0; 
   simY = 0;
   simDelta = 0;
+  simObstacleX = 0;
+  simObstacleY = 0;
+  simObstacleRadius = 0;
+  robotIsBumpingIntoObstacle = false;
 }
 
 bool SimRobotDriver::getRobotID(String &id){
@@ -40,6 +44,17 @@ void SimRobotDriver::setSimRobotPosState(float x, float y, float delta){
   simX = x;
   simY = y;
   simDelta = delta;
+}
+
+void SimRobotDriver::setObstacle(float x, float y, float radius){
+  simObstacleX = x;
+  simObstacleY = y;
+  simObstacleRadius = radius;
+}
+
+bool SimRobotDriver::pointIsInsideObstacle(float x, float y){
+  float dist = distance(simObstacleX, simObstacleY, x, y);  
+  return (dist < simObstacleRadius);
 }
 
 // ------------------------------------------------------------------------------------
@@ -107,8 +122,17 @@ void SimMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
 
   // if simulating no motion: tires turn but robot does not move 
   if (!simNoMotion){
-    simRobot.simX += cos(simRobot.simDelta) * simRobot.linearSpeed * deltaT;
-    simRobot.simY += sin(simRobot.simDelta) * simRobot.linearSpeed * deltaT; 
+    float x = simRobot.simX + cos(simRobot.simDelta) * simRobot.linearSpeed * deltaT;
+    float y = simRobot.simY + sin(simRobot.simDelta) * simRobot.linearSpeed * deltaT;     
+    // robot cannot move inside simulated obstacle
+    if (simRobot.pointIsInsideObstacle(x, y)){
+      //CONSOLE.println("SIM: robotIsBumpingIntoObstacle");      
+      simRobot.robotIsBumpingIntoObstacle = true;
+    } else {
+      simRobot.simX = x;
+      simRobot.simY = y;     
+      simRobot.robotIsBumpingIntoObstacle = false;
+    } 
     // if simulating no yaw rotation: tires turn but robot does not rotate
     if (!simNoRobotYawRotation) simRobot.simDelta += simRobot.angularSpeed * deltaT;
   }
@@ -194,7 +218,7 @@ void SimBatteryDriver::run(){
   float dockY = 0;
   float dockDelta = 0;
   maps.getDockingPos(dockX, dockY, dockDelta);
-  float dist = distance(robotDriver.simX, robotDriver.simY, dockX, dockY);  
+  float dist = distance(simRobot.simX, simRobot.simY, dockX, dockY);  
   robotIsAtDockingPoint = (dist < 0.5);
 
   if ((robotIsAtDockingPoint) || (simChargerConnected)){
@@ -259,12 +283,12 @@ void SimBumperDriver::run(){
 }
 
 bool SimBumperDriver::obstacle(){
-  return simTriggered;
+  return (simTriggered || simRobot.robotIsBumpingIntoObstacle);
 }
 
 void SimBumperDriver::getTriggeredBumper(bool &leftBumper, bool &rightBumper){
-  leftBumper = simTriggered;
-  rightBumper = simTriggered;
+  leftBumper = (simTriggered || simRobot.robotIsBumpingIntoObstacle);
+  rightBumper = (simTriggered || simRobot.robotIsBumpingIntoObstacle);
 }  	  		
 
 void SimBumperDriver::setSimTriggered(bool flag){
