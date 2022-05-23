@@ -52,7 +52,7 @@ void trackLine(bool runControl){
   if (SMOOTH_CURVES)
     targetReached = (targetDist < 0.2);    
   else 
-    targetReached = (targetDist < 0.05);    
+    targetReached = (targetDist < TARGET_REACHED_TOLERANCE);    
   
   
   if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
