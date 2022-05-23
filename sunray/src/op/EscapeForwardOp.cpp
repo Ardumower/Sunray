@@ -15,9 +15,7 @@ String EscapeForwardOp::name(){
 
 void EscapeForwardOp::begin(){
     // rotate stuck avoidance
-    motor.setLinearAngularSpeed(0.1,0);
-    motor.setMowState(false);                
-    driveForwardStopTime = millis() + 5000;  // 2000
+    driveForwardStopTime = millis() + 2000;
 }
 
 
@@ -27,6 +25,9 @@ void EscapeForwardOp::end(){
 
 void EscapeForwardOp::run(){
     battery.resetIdle();
+    motor.setLinearAngularSpeed(0.1,0);
+    motor.setMowState(false);                
+
     if (millis() > driveForwardStopTime){
         CONSOLE.println("driveForwardStopTime");
         motor.stopImmediately(false);  

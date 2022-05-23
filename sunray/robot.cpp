@@ -934,9 +934,10 @@ void run(){
       stateSensor = SENS_STOP_BUTTON;
       setOperation(OP_IDLE, false, true);                             
     }
-      
+
+    // update operation type      
     stateOp = activeOp->getGoalOperationType();  
-    // if (!imuIsCalibrating)        
+            
   }   // if (millis() >= nextControlTime)
     
   // ----- read serial input (BT/console) -------------
@@ -950,7 +951,10 @@ void run(){
       if (millis() > stateButtonTimeout){
         stateButtonTimeout = millis() + 1000;
         stateButtonTemp++; // next state
-        buzzer.sound(SND_READY, true);                                     
+        buzzer.sound(SND_READY, true);
+        CONSOLE.print("BUTTON ");
+        CONSOLE.print(stateButtonTemp);
+        CONSOLE.println("s");                                     
       }
                           
     } else {

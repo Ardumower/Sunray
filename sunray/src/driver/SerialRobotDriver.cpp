@@ -43,6 +43,7 @@ void SerialRobotDriver::begin(){
   robotID = "XX";
 
   #ifdef __linux__
+    CONSOLE.println("reading robot ID...");
     Process p;
     p.runShellCommand("ip link show eth0 | grep link/ether | awk '{print $2}'");
 	  robotID = p.readString();    
@@ -90,6 +91,7 @@ void SerialRobotDriver::begin(){
 
     // EEPROM test
     if (false){
+      CONSOLE.println("EEPROM test");
       ioEepromWriteByte( EEPROM_I2C_ADDR, 0, 42);
       delay(50);
       int v = ioEepromReadByte( EEPROM_I2C_ADDR, 0);
@@ -186,7 +188,7 @@ void SerialRobotDriver::motorResponse(){
     }    
   }
   if (triggeredStopButton){
-    CONSOLE.println("STOPBUTTON");
+    //CONSOLE.println("STOPBUTTON");
   }
   cmdMotorResponseCounter++;
   mcuCommunicationLost=false;
