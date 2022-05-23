@@ -33,7 +33,7 @@ void SerialRobotDriver::begin(){
   motorFault = false;
   mcuCommunicationLost = true;
   nextSummaryTime = 0;
-  nextConsoleTime = 0;
+  nextConsoleTime = 0; 
   nextMotorTime = 0;
   cmdMotorResponseCounter = 0;
   cmdSummaryResponseCounter = 0;
@@ -343,7 +343,7 @@ void SerialRobotDriver::run(){
         requestVersion();
       }
     }    
-    if (cmdMotorResponseCounter == 0){
+    if ((cmdMotorCounter > 0) && (cmdMotorResponseCounter == 0)){
       CONSOLE.println("WARN: resetting motor ticks");
       resetMotorTicks = true;
       mcuCommunicationLost = true;

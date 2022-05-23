@@ -25,6 +25,7 @@
 
 void Battery::begin()
 {
+  inStartupPhase = true;
   nextBatteryTime = 0;
   nextCheckTime = 0;
   nextEnableTime = 0;
@@ -74,10 +75,12 @@ bool Battery::chargingHasCompleted(){
  
 
 bool Battery::shouldGoHome(){
+  if (inStartupPhase) return false;  
   return (batteryVoltage < batGoHomeIfBelow);
 }
 
 bool Battery::underVoltage(){
+  if (inStartupPhase) return false;
   return (batteryVoltage < batSwitchOffIfBelow);
 }
 
@@ -91,6 +94,11 @@ void Battery::switchOff(){
 }
 
 void Battery::run(){  
+  if (inStartupPhase) {
+    // give some time to establish communication to external hardware etc.
+    nextBatteryTime = millis() + 2000;
+    inStartupPhase = false;
+  }
   if (millis() < nextBatteryTime) return;
   nextBatteryTime = millis() + 50;
   
