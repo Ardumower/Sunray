@@ -19,7 +19,7 @@ void EscapeReverseOp::begin(){
     // obstacle avoidance
     motor.setLinearAngularSpeed(-0.1,0);
     motor.setMowState(false);                                        
-    driveReverseStopTime = millis() + 3000;                            
+    driveReverseStopTime = millis() + 5000;  // 3000                           
 }
 
 

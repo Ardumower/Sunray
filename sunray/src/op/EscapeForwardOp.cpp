@@ -17,7 +17,7 @@ void EscapeForwardOp::begin(){
     // rotate stuck avoidance
     motor.setLinearAngularSpeed(0.1,0);
     motor.setMowState(false);                
-    driveForwardStopTime = millis() + 2000;
+    driveForwardStopTime = millis() + 5000;  // 2000
 }
 
 
