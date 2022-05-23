@@ -24,6 +24,7 @@ void ErrorOp::begin(){
     //motor.setLinearAngularSpeed(0,0);
     motor.setMowState(false);      
     //}  
+    buzzer.sound(SND_ERROR, true);
 }
 
 
@@ -31,6 +32,6 @@ void ErrorOp::end(){
 }
 
 void ErrorOp::run(){
-    buzzer.sound(SND_ERROR, true);
 }
+
 
