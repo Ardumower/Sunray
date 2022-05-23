@@ -63,6 +63,8 @@ void DockOp::begin(){
     lastMapRoutingFailed = true; 
     mapRoutingFailedCounter++;    
     if (mapRoutingFailedCounter > 60){
+      CONSOLE.println("error: too many routing errors!");
+      stateSensor = SENS_MAP_NO_ROUTE;
       changeOp(errorOp);      
     } else {    
       changeOp(gpsRebootRecoveryOp, true);
@@ -119,7 +121,7 @@ void DockOp::onKidnapped(bool state){
 
 
 void DockOp::onObstacleRotation(){
-    CONSOLE.println("triggerObstacleRotation");    
+    CONSOLE.println("error: rotation error due to obstacle!");    
     statMowObstacles++;   
     stateSensor = SENS_OBSTACLE;
     changeOp(errorOp);    
@@ -142,6 +144,7 @@ void DockOp::onObstacle(){
         changeOp(escapeReverseOp, true);      
     } else {     
         stateSensor = SENS_OBSTACLE;
+        CONSOLE.println("error: obstacle!");
         changeOp(errorOp);                
     }
 }

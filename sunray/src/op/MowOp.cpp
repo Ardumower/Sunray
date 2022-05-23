@@ -59,6 +59,8 @@ void MowOp::begin(){
         lastMapRoutingFailed = true; 
         mapRoutingFailedCounter++;    
         if (mapRoutingFailedCounter > 60){
+            CONSOLE.println("error: too many map routing errors!");
+            stateSensor = SENS_MAP_NO_ROUTE;
             changeOp(errorOp);      
         } else {    
         changeOp(gpsRebootRecoveryOp, true);
@@ -110,6 +112,7 @@ void MowOp::onObstacle(){
         changeOp(escapeReverseOp, true);      
     } else {     
         stateSensor = SENS_OBSTACLE;
+        CONSOLE.println("error: obstacle!");            
         changeOp(errorOp);                
     }
 }
@@ -125,6 +128,7 @@ void MowOp::onObstacleRotation(){
         }
     } else { 
         stateSensor = SENS_OBSTACLE;
+        CONSOLE.println("error: obstacle!");            
         changeOp(errorOp);
     }
 }
@@ -132,7 +136,7 @@ void MowOp::onObstacleRotation(){
 
 void MowOp::onOdometryError(){
     if (ENABLE_ODOMETRY_ERROR_DETECTION){
-        CONSOLE.println("odometry error!");    
+        CONSOLE.println("error: odometry error!");    
         stateSensor = SENS_ODOMETRY_ERROR;
         changeOp(errorOp);
     }
@@ -141,7 +145,7 @@ void MowOp::onOdometryError(){
 void MowOp::onMotorOverload(){
   if (ENABLE_OVERLOAD_DETECTION){
     if (motor.motorOverloadDuration > 20000){
-        CONSOLE.println("overload!");    
+        CONSOLE.println("error: motor overload!");    
         stateSensor = SENS_OVERLOAD;
         changeOp(errorOp);
         return;
@@ -163,7 +167,7 @@ void MowOp::onMotorError(){
                 }
             }
             // obstacle avoidance failed with too many motor errors (it was probably not a molehole situation)
-            CONSOLE.println("motor error!");
+            CONSOLE.println("error: motor error!");
             stateSensor = SENS_MOTOR_ERROR;
             changeOp(errorOp);
             return;      

@@ -34,6 +34,8 @@ void EscapeReverseOp::run(){
         motor.stopImmediately(false); 
         driveReverseStopTime = 0;
         if (detectLift()) {
+            CONSOLE.println("error: lift sensor!");
+            stateSensor = SENS_LIFT;
             changeOp(errorOp);
             return;
         }

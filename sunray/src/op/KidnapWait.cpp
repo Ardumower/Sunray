@@ -46,6 +46,8 @@ void KidnapWaitOp::run(){
     recoverGpsTime = millis() + 30000;
     recoverGpsCounter++;
     if (recoverGpsCounter == 3){          
+      CONSOLE.println("error: kidnapped!");
+      stateSensor = SENS_KIDNAPPED;
       changeOp(errorOp);
       return;
     }   
