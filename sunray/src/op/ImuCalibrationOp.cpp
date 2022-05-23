@@ -40,8 +40,10 @@ void ImuCalibrationOp::run(){
         imuCalibrationSeconds++;
         CONSOLE.print("IMU gyro calibration (robot must be static)... ");        
         CONSOLE.println(imuCalibrationSeconds);        
-        buzzer.sound(SND_PROGRESS, true);        
-        if (imuCalibrationSeconds >= 9){
+        buzzer.sound(SND_PROGRESS, true);
+        // TODO/FIXME: let's try more than 9 seconds: it seems in Alfred (Linux), MPU6050 sometimes takes more than 9 secs to work stable?                 
+        if (imuCalibrationSeconds >= 15){        
+        //if (imuCalibrationSeconds >= 9){
             imuIsCalibrating = false;
             CONSOLE.println();                
             lastIMUYaw = 0;          
