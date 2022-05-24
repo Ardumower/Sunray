@@ -41,6 +41,7 @@
 #include "cpu.h"
 #include "i2c.h"
 #include "src/test/test.h"
+#include "DHT.h"
 
 
 // #define I2C_SPEED  10000
@@ -102,7 +103,11 @@ Buzzer buzzer;
 Sonar sonar;
 VL53L0X tof(VL53L0X_ADDRESS_DEFAULT);
 Map maps;
-HTU21D myHumidity;
+#if TEMP_SENSOR_TYPE == HTU21D
+  HTU21D myHumidity;
+#elif TEMP_SENSOR_TYPE == DHT22 || TEMP_SENSOR_TYPE == DHT11
+  DHT dht(pinDHT, TEMP_SENSOR_TYPE);
+#endif
 RCModel rcmodel;
 
 int stateButton = 0;  
@@ -579,8 +584,14 @@ void start(){
 
   maps.begin();      
   //maps.clipperTest();
+  #ifdef TEMP_SENSOR_TYPE
+    #if TEMP_SENSOR_TYPE == HTU21D
+      myHumidity.begin();
+    #elif TEMP_SENSOR_TYPE == DHT22 || TEMP_SENSOR_TYPE == DHT11  
+      dht.begin();
+    #endif
+  #endif
   
-  myHumidity.begin();    
   
   // initialize ESP module
   startWIFI();
@@ -824,11 +835,18 @@ void run(){
   if (millis() > nextTempTime){
     nextTempTime = millis() + 60000;
     #ifdef USE_TEMP_SENSOR
-      // https://learn.sparkfun.com/tutorials/htu21d-humidity-sensor-hookup-guide
-      stateTemp = myHumidity.readTemperature();
-      statTempMin = min(statTempMin, stateTemp);
-      statTempMax = max(statTempMax, stateTemp);
-      stateHumidity = myHumidity.readHumidity();      
+      #if TEMP_SENSOR_TYPE == HTU21D
+        // https://learn.sparkfun.com/tutorials/htu21d-humidity-sensor-hookup-guide
+        stateTemp = myHumidity.readTemperature();
+        statTempMin = min(statTempMin, stateTemp);
+        statTempMax = max(statTempMax, stateTemp);
+        stateHumidity = myHumidity.readHumidity();      
+      #elif TEMP_SENSOR_TYPE == DHT22 || TEMP_SENSOR_TYPE == DHT11 
+        stateTemp = dht.readTemperature();
+        statTempMin = min(statTempMin, stateTemp);
+        statTempMax = max(statTempMax, stateTemp);
+        stateHumidity = dht.readHumidity();
+      #endif
       CONSOLE.print("temp=");
       CONSOLE.print(stateTemp,1);
       CONSOLE.print("  humidity=");
