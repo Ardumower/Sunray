@@ -99,7 +99,7 @@ float calcTemperature(uint16_t TP, uint16_t TC) {
 }
 
 
-void logCPUHealth(){
+void LogCPUHealth(){
   uint32_t valueRead;
   float voltage;
   
@@ -163,9 +163,52 @@ void logCPUHealth(){
   
 }
 
+float GetCPUTemperature(){
+  // ------ cpu temperature --------
+  // The voltage reference output is enabled/disabled by setting/clearing the Voltage Reference Output Enable bit in the
+  // Voltage Reference register (VREF.VREFOE).
+  // The temperature sensor is enabled/disabled by setting/clearing the Temperature Sensor Enable bit in the Voltage
+  // Reference register (VREF.TSEN).
+  // Note: When VREF.ONDEMAND=0, it is not recommended to enable both voltage reference output and temperature
+  // sensor at the same time - only the voltage reference output will be present at both ADC inputs.
+  
+  // If the SUPC is not in on-demand mode (SUPC.VREF.ONDEMAND=0), and if SUPC.VREF.TSEN=1 and
+  // SUPC.VREF.VREFOE=0, the temperature sensor is selected by writing to the Temperature Sensor Channel
+  // Selection bit in the Voltage Reference System Control register (SUPC.VREF.TSSEL).
+  //
+  // If the SUPC is in on-demand mode in (SUPC.VREF.ONDEMAND=1) and SUPC.VREF.TSEN=1, the output will
+  // be automatically set to the sensor requested by the ADC, independent of SUPC.VREF.TSSEL.
+  // SUPC.VREF.VREFOE can also be set to '1'.
+    
+  //analogReference(AR_INTERNAL1V65);     // ref 1/2 VDDANA = 1.65
+  SUPC->VREF.bit.TSSEL = 0;      
+  SUPC->VREF.bit.TSEN = 1;        
+  uint32_t ptat = readADC(PTAT);        
+  SUPC->VREF.bit.TSEN = 0;     
+  
+  SUPC->VREF.bit.TSSEL = 1;    
+  SUPC->VREF.bit.TSEN = 1;  
+  uint32_t ctat = readADC(CTAT);      
+  SUPC->VREF.bit.TSEN = 0;    
+    
+  CONSOLE.print("PTAT=");      
+  CONSOLE.print(ptat);      
+  CONSOLE.print(" CTAT=");        
+  CONSOLE.print(ctat);     
+  
+  // cpu temperatures need translation by calibrated data
+  float temp = calcTemperature(ptat, ctat);  
+  //CONSOLE.print(" deg=");     
+  //CONSOLE.print(temp);     
+  return temp;
+}
 
 #else
-  void logCPUHealth(){}
+  void LogCPUHealth(){}
+  float GetCPUTemperature(){
+    return 0;
+  }
+
 #endif
 
 

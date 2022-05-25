@@ -9,6 +9,7 @@
 #include "../../helper.h"
 #include "../../robot.h"
 #include "../../pinman.h"
+#include "../../cpu.h"
 
 
 #ifndef __linux__
@@ -80,7 +81,7 @@ bool AmRobotDriver::getMcuFirmwareVersion(String &name, String &ver){
 }
 
 float AmRobotDriver::getCpuTemperature(){
-  return 0;
+  return GetCPUTemperature();  
 }
 
 

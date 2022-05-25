@@ -822,13 +822,12 @@ void run(){
     stateTemp = batteryDriver.getBatteryTemperature();
     statTempMin = min(statTempMin, stateTemp);
     statTempMax = max(statTempMax, stateTemp);
-    //stateHumidity = myHumidity.readHumidity();      
-    CONSOLE.print("temp=");
+    CONSOLE.print("batTemp=");
     CONSOLE.print(stateTemp,1);
-    //CONSOLE.print("  humidity=");
-    //CONSOLE.print(stateHumidity,0);    
-    CONSOLE.println();        
-    logCPUHealth();
+    float cpuTemp = robotDriver.getCpuTemperature();
+    CONSOLE.print("  cpuTemp=");
+    CONSOLE.print(cpuTemp,0);    
+    //logCPUHealth();
     CONSOLE.println();
   }
   

@@ -1,6 +1,7 @@
 #ifndef CPU_H
 #define CPU_H
 
-void logCPUHealth();
+void LogCPUHealth();
+float GetCPUTemperature();
 
 #endif
