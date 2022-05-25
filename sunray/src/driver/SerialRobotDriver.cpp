@@ -118,9 +118,11 @@ bool SerialRobotDriver::getMcuFirmwareVersion(String &name, String &ver){
 }
 
 float SerialRobotDriver::getCpuTemperature(){
-  Process p;
-  p.runShellCommand("cat /sys/class/thermal/thermal_zone0/temp");  
-  return p.readString().toFloat() / 1000.0;    
+  #ifdef __linux__
+    Process p;
+    p.runShellCommand("cat /sys/class/thermal/thermal_zone0/temp");  
+    return p.readString().toFloat() / 1000.0;    
+  #endif
 }
 
 void SerialRobotDriver::sendRequest(String s){
@@ -469,9 +471,11 @@ void SerialBatteryDriver::run(){
 }    
 
 float SerialBatteryDriver::getBatteryTemperature(){
-  Process p;
-  p.runShellCommand("cat /sys/class/thermal/thermal_zone1/temp");  
-  return p.readString().toFloat() / 1000.0;    
+  #ifdef __linux__
+    Process p;
+    p.runShellCommand("cat /sys/class/thermal/thermal_zone1/temp");  
+    return p.readString().toFloat() / 1000.0;    
+  #endif
 }
 
 float SerialBatteryDriver::getBatteryVoltage(){
