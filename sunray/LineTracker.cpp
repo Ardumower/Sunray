@@ -176,7 +176,7 @@ void trackLine(bool runControl){
 
   if (runControl){
     motor.setLinearAngularSpeed(linear, angular);      
-    if (detectLift) mow = false; // in any case, turn off mower motor if lifted 
+    if (detectLift()) mow = false; // in any case, turn off mower motor if lifted 
     motor.setMowState(mow);    
   }
 
