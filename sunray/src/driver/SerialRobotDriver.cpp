@@ -51,9 +51,13 @@ void SerialRobotDriver::begin(){
     
     CONSOLE.println("ioboard init");
 
-    // IMU power-on code (Alfred-PCB-specific) 
+    // IMU/fan power-on code (Alfred-PCB-specific) 
+
     // switch-on IMU via port-expander PCA9555     
     ioExpanderOut(EX1_I2C_ADDR, EX1_IMU_POWER_PORT, EX1_IMU_POWER_PIN, true);
+    
+    // switch-on fan via port-expander PCA9555     
+    ioExpanderOut(EX1_I2C_ADDR, EX1_FAN_POWER_PORT, EX1_FAN_POWER_PIN, true);
 
     // select IMU via multiplexer TCA9548A 
     ioI2cMux(MUX_I2C_ADDR, SLAVE_IMU_MPU, true);  // Alfred dev PCB with buzzer

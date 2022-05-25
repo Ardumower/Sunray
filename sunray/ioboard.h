@@ -25,8 +25,10 @@ extern "C"{
 // I/O port expander 1 channels (PCA9555)   https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf
 // a channel is identified by two numbers: port, pin
 #define EX1_I2C_ADDR        0x21
-#define EX1_IMU_POWER_PORT  1        // MT9700 powers IMU      
-#define EX1_IMU_POWER_PIN   6        // MT9700 powers IMU
+#define EX1_IMU_POWER_PORT  1        // IO1.6  MT9700 powers IMU      
+#define EX1_IMU_POWER_PIN   6        // IO1.6  MT9700 powers IMU
+#define EX1_FAN_POWER_PORT  1        // IO1.7  MT9700 powers fan      
+#define EX1_FAN_POWER_PIN   7        // IO1.7  MT9700 powers fan
 #define EX1_ADC_MUX_A0_PORT     1                
 #define EX1_ADC_MUX_A0_PIN      0   
 #define EX1_ADC_MUX_A1_PORT     1                
