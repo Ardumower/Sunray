@@ -79,6 +79,10 @@ bool AmRobotDriver::getMcuFirmwareVersion(String &name, String &ver){
   return true;
 }
 
+float AmRobotDriver::getCpuTemperature(){
+  return 0;
+}
+
 
 // ------------------------------------------------------------------------------------
 
@@ -498,6 +502,7 @@ void AmBatteryDriver::begin(){
   pinMode(pinBatteryVoltage, INPUT);
   pinMode(pinChargeVoltage, INPUT);
   pinMode(pinChargeCurrent, INPUT);  
+  myHumidity.begin();      
 }
 
 
@@ -519,6 +524,16 @@ float AmBatteryDriver::getChargeVoltage(){
 float AmBatteryDriver::getChargeCurrent(){    
   float amps = ((float)ADC2voltage(analogRead(pinChargeCurrent))) * currentFactor;    
 	return amps;
+}
+
+float AmBatteryDriver::getBatteryTemperature(){
+  #ifdef USE_TEMP_SENSOR
+    // https://learn.sparkfun.com/tutorials/htu21d-humidity-sensor-hookup-guide
+    return(batteryDriver.getBatteryTemperature());
+    //float humidity = myHumidity.readHumidity();                  
+  #else
+    return 0;
+  #endif
 }
 
 void AmBatteryDriver::enableCharging(bool flag){

@@ -17,6 +17,7 @@ class RobotDriver {
     virtual void run() = 0;
     virtual bool getRobotID(String &id) = 0;
     virtual bool getMcuFirmwareVersion(String &name, String &ver) = 0;    
+    virtual float getCpuTemperature() = 0;
 };
 
 class MotorDriver {
@@ -45,6 +46,8 @@ class BatteryDriver {
     
     // read battery voltage
     virtual float getBatteryVoltage() = 0;
+    // read battery temperature (degC) 
+    virtual float getBatteryTemperature() = 0;
     // read charge voltage
     virtual float getChargeVoltage() = 0;
     // read charge current (amps)

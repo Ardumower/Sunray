@@ -10,6 +10,7 @@
 
 #include <Arduino.h>
 #include "RobotDriver.h"
+#include "../../SparkFunHTU21D.h"
 
 
 #ifndef __linux__
@@ -56,6 +57,7 @@ class AmRobotDriver: public RobotDriver {
     void run() override;
     bool getRobotID(String &id) override;    
     bool getMcuFirmwareVersion(String &name, String &ver) override;
+    float getCpuTemperature() override;
 };
 
 
@@ -88,6 +90,7 @@ class AmMotorDriver: public MotorDriver {
 
 class AmBatteryDriver : public BatteryDriver {
   public:    
+    HTU21D myHumidity;    
     void begin() override;
     void run() override;
     
@@ -97,6 +100,7 @@ class AmBatteryDriver : public BatteryDriver {
     float getChargeVoltage() override;
     // read charge current
     float getChargeCurrent() override;    
+    float getBatteryTemperature() override;
     // enable battery charging
     virtual void enableCharging(bool flag) override;
     // keep system on or power-off

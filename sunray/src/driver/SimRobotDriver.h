@@ -32,6 +32,7 @@ class SimRobotDriver: public RobotDriver {
     void run() override;
     bool getRobotID(String &id) override;
     bool getMcuFirmwareVersion(String &name, String &ver) override;    
+    float getCpuTemperature() override;
     // simulator specific
     void setSimRobotPosState(float x, float y, float delta);
     void setObstacle(float x, float y, float radius);
@@ -79,6 +80,7 @@ class SimBatteryDriver : public BatteryDriver {
     float getBatteryVoltage() override;
     float getChargeVoltage() override;
     float getChargeCurrent() override;    
+    float getBatteryTemperature() override;
     virtual void enableCharging(bool flag) override;
     virtual void keepPowerOn(bool flag) override;
     // ----- simulate errors, sensor triggers ----

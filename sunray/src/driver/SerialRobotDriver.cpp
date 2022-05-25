@@ -117,6 +117,9 @@ bool SerialRobotDriver::getMcuFirmwareVersion(String &name, String &ver){
   return true;
 }
 
+float SerialRobotDriver::getCpuTemperature(){
+  return 0;
+}
 
 void SerialRobotDriver::sendRequest(String s){
   byte crc = 0;
@@ -462,6 +465,10 @@ void SerialBatteryDriver::begin(){
 
 void SerialBatteryDriver::run(){
 }    
+
+float SerialBatteryDriver::getBatteryTemperature(){
+  return 0;
+}
 
 float SerialBatteryDriver::getBatteryVoltage(){
   #ifdef __linux__

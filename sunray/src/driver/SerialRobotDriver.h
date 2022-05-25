@@ -42,6 +42,7 @@ class SerialRobotDriver: public RobotDriver {
     void run() override;
     bool getRobotID(String &id) override;
     bool getMcuFirmwareVersion(String &name, String &ver) override;
+    float getCpuTemperature() override;
     void requestMotorPwm(int leftPwm, int rightPwm, int mowPwm);
     void requestSummary();
     void requestVersion();
@@ -91,6 +92,7 @@ class SerialBatteryDriver : public BatteryDriver {
     float getBatteryVoltage() override;
     float getChargeVoltage() override;
     float getChargeCurrent() override;    
+    float getBatteryTemperature() override;    
     virtual void enableCharging(bool flag) override;
     virtual void keepPowerOn(bool flag) override;
 };

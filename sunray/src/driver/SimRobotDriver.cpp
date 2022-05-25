@@ -36,6 +36,10 @@ bool SimRobotDriver::getMcuFirmwareVersion(String &name, String &ver){
 }
 
 
+float SimRobotDriver::getCpuTemperature(){
+  return 65.0;
+}  
+
 void SimRobotDriver::run(){  
   
 }
@@ -243,6 +247,10 @@ float SimBatteryDriver::getChargeVoltage(){
 float SimBatteryDriver::getChargeCurrent(){
   if (simChargerConnected) return 1.0;
     else return 0.15;
+} 
+
+float SimBatteryDriver::getBatteryTemperature(){
+  return 50.0;
 } 
 
 void SimBatteryDriver::enableCharging(bool flag){
