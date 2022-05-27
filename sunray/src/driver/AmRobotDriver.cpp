@@ -202,6 +202,24 @@ AmMotorDriver::AmMotorDriver(){
   BLDC8015A.adcVoltToAmpScale = 7.57; // ADC voltage to amps (scale)
   BLDC8015A.adcVoltToAmpPow = 1.0;    // ADC voltage to amps (power of number)
 
+  // JYQD brushless driver 
+  JYQD.driverName = "JYQD";    // just a name for your driver
+  JYQD.forwardPwmInvert = false; // invert PWM signal for forward? (false or true)
+  JYQD.forwardDirLevel = LOW;    // logic level for forward (LOW or HIGH)
+  JYQD.reversePwmInvert = false; // invert PWM signal for reverse? (false or true)
+  JYQD.reverseDirLevel = HIGH;   // logic level for reverse (LOW or HIGH)
+  JYQD.usePwmRamp = false;       // use a ramp to get to PWM value?    
+  JYQD.faultActive = LOW;        // fault active level (LOW or HIGH)
+  JYQD.resetFaultByToggleEnable = true; // reset a fault by toggling enable? 
+  JYQD.enableActive = HIGH;       // enable active level (LOW or HIGH)
+  JYQD.disableAtPwmZeroSpeed = false;  // disable driver at PWM zero speed? (brake function)
+  JYQD.keepPwmZeroSpeed = false;  // keep PWM zero value (disregard minPwmSpeed at zero speed)?
+  JYQD.minPwmSpeed = 0;          // minimum PWM speed your driver can operate
+  JYQD.pwmFreq = PWM_FREQ_3900;  // choose between PWM_FREQ_3900 and PWM_FREQ_29300 here   
+  JYQD.adcVoltToAmpOfs = -1.65;      // ADC voltage to amps (offset)
+  JYQD.adcVoltToAmpScale = 7.57; // ADC voltage to amps (scale)
+  JYQD.adcVoltToAmpPow = 1.0;    // ADC voltage to amps (power of number)
+
   // your custom brushed/brushless driver (ACT-8015A, JYQD_V7.3E3, etc.)
   CUSTOM.driverName = "CUSTOM";    // just a name for your driver
   CUSTOM.forwardPwmInvert = false; // invert PWM signal for forward? (false or true)
@@ -241,6 +259,8 @@ void AmMotorDriver::begin(){
       mowDriverChip.usePwmRamp = false;
     #elif MOTOR_DRIVER_BRUSHLESS_MOW_BLDC8015A 
       mowDriverChip = BLDC8015A;    
+    #elif MOTOR_DRIVER_BRUSHLESS_MOW_JYQD
+      mowDriverChip = JYQD;
     #else 
       mowDriverChip = CUSTOM;
     #endif
