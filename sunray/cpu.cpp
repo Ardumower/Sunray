@@ -191,10 +191,10 @@ float GetCPUTemperature(){
   uint32_t ctat = readADC(CTAT);      
   SUPC->VREF.bit.TSEN = 0;    
     
-  CONSOLE.print("PTAT=");      
-  CONSOLE.print(ptat);      
-  CONSOLE.print(" CTAT=");        
-  CONSOLE.print(ctat);     
+  //CONSOLE.print("PTAT=");      
+  //CONSOLE.print(ptat);      
+  //CONSOLE.print(" CTAT=");        
+  //CONSOLE.print(ctat);     
   
   // cpu temperatures need translation by calibrated data
   float temp = calcTemperature(ptat, ctat);  
