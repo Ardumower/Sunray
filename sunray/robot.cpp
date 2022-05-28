@@ -210,7 +210,7 @@ PubSubClient mqttClient(espClient);
 #endif
 
 float dockSignal = 0;
-float dockAngularSpeed = 0.1;
+float dockAngularSpeed = DOCKANGULARSPEED;
 bool dockingInitiatedByOperator = false;
 bool gpsJump = false;
 int motorErrorCounter = 0;
@@ -1384,7 +1384,7 @@ void trackLine(){
   
   
   if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
-    linear = 0.1;  
+    linear = OVERLOADSPEED;  
   }   
           
   // allow rotations only near last or next waypoint or if too far away from path
@@ -1399,7 +1399,7 @@ void trackLine(){
   if (!angleToTargetFits){
     // angular control (if angle to far away, rotate to next waypoint)
     linear = 0;
-    angular = 29.0 / 180.0 * PI; //  29 degree/s (0.5 rad/s);               
+    angular = ROTATETOTARGETSPEED; //29.0 / 180.0 * PI; //  29 degree/s (0.5 rad/s);               
     if ((!rotateLeft) && (!rotateRight)){ // decide for one rotation direction (and keep it)
       if (trackerDiffDelta < 0) rotateLeft = true;
         else rotateRight = true;
@@ -1415,19 +1415,19 @@ void trackLine(){
     bool straight = maps.nextPointIsStraight();
     if (maps.trackSlow) {
       // planner forces slow tracking (e.g. docking etc)
-      linear = 0.1;           
+      linear = TRACKSLOWSPEED;           
     } else if (     ((setSpeed > 0.2) && (maps.distanceToTargetPoint(stateX, stateY) < 0.5) && (!straight))   // approaching
           || ((linearMotionStartTime != 0) && (millis() < linearMotionStartTime + 3000))                      // leaving  
        ) 
     {
-      linear = 0.1; // reduce speed when approaching/leaving waypoints          
+      linear = APPROACHWAYPOINTSPEED; // reduce speed when approaching/leaving waypoints          
     } 
     else {
       if (gps.solution == SOL_FLOAT)        
-        linear = min(setSpeed, 0.1); // reduce speed for float solution
+        linear = min(setSpeed, FLOATSPEED); // reduce speed for float solution
       else
         linear = setSpeed;         // desired speed
-      if (sonar.nearObstacle()) linear = 0.1; // slow down near obstacles
+      if (sonar.nearObstacle()) linear = SONARSPEED; // slow down near obstacles
     }      
     //angula                                    r = 3.0 * trackerDiffDelta + 3.0 * lateralError;       // correct for path errors 
     
@@ -1526,7 +1526,7 @@ void trackLine(){
   }
    
   if (mow)  {  // wait until mowing motor is running
-    if (millis() < motor.motorMowSpinUpTime + 5000){
+    if (millis() < motor.motorMowSpinUpTime + MOW_SPINUPTIME){
       if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
       linear = 0;
       angular = 0;   
@@ -1717,7 +1717,7 @@ void run(){
         if (retryOperationTime == 0){ // if path planning was successful 
           if (driveReverseStopTime > 0){
             // obstacle avoidance
-            motor.setLinearAngularSpeed(-0.1,0);
+            motor.setLinearAngularSpeed(OBSTACLEAVOIDANCESPEED*-1,0);
             motor.setMowState(false);                        
             if (millis() > driveReverseStopTime){
               CONSOLE.println("driveReverseStopTime");
@@ -1738,7 +1738,7 @@ void run(){
             }            
           } else if (driveForwardStopTime > 0){
             // rotate stuck avoidance
-            motor.setLinearAngularSpeed(0.1,0);
+            motor.setLinearAngularSpeed(OBSTACLEAVOIDANCESPEED,0);
             motor.setMowState(false);            
             if (millis() > driveForwardStopTime){
               CONSOLE.println("driveForwardStopTime");
