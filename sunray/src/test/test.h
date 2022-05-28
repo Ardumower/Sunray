@@ -19,8 +19,8 @@
 
   
 /* test cases:
-1) obstacle avoidance (bumper): if bumper triggered, robot should reach next or next but one target point (perform obstacle avoidance)
-2) gps no-motion: robot should reach next or next but one target point (perform obstacle avoidance)
+1) obstacle avoidance (bumper): if bumper triggered, robot should reach next (or next but one) target point (perform obstacle avoidance)
+2) gps no-motion: robot should reach next (or next but one) target point (perform obstacle avoidance)
 3) gps signal loss : robot should stop (also mow motor) and continue after gps signal is available again
 4) gps fix timeout: robot should stop (also mow motor) and continue after gps fix solution is available again
 5) kidnap: robot should reboot gps and continue after undo kidnap
