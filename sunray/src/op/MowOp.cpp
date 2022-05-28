@@ -76,12 +76,12 @@ void MowOp::end(){
 }
 
 void MowOp::run(){
-    // line tracking
-    trackLine(true); 
-    detectSensorMalfunction();
     if (!detectObstacle()){
         detectObstacleRotation();                              
     }        
+    // line tracking
+    trackLine(true); 
+    detectSensorMalfunction();    
     battery.resetIdle();
 }
 
@@ -183,16 +183,21 @@ void MowOp::onTargetReached(){
 
 
 void MowOp::onGpsFixTimeout(){
-    if (!maps.isUndocking()){
-        stateSensor = SENS_GPS_FIX_TIMEOUT;
-        changeOp(gpsWaitFixOp, true);
+    // no gps solution
+    if (REQUIRE_VALID_GPS){
+        if (!maps.isUndocking()){
+            stateSensor = SENS_GPS_FIX_TIMEOUT;
+            changeOp(gpsWaitFixOp, true);
+        }
     }
 }
 
 void MowOp::onGpsNoSignal(){
-    if (!maps.isUndocking()){
-        stateSensor = SENS_GPS_INVALID;
-        changeOp(gpsWaitFloatOp, true);
+    if (REQUIRE_VALID_GPS){
+        if (!maps.isUndocking()){
+            stateSensor = SENS_GPS_INVALID;
+            changeOp(gpsWaitFloatOp, true);
+        }
     }
 }
 

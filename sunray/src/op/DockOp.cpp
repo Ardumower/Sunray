@@ -82,12 +82,12 @@ void DockOp::end(){
 }
 
 void DockOp::run(){
-    // line tracking
-    trackLine(true);       
-    detectSensorMalfunction();
     if (!detectObstacle()){
         detectObstacleRotation();                              
     }
+    // line tracking
+    trackLine(true);       
+    detectSensorMalfunction(); 
     battery.resetIdle();
 }
 
@@ -100,13 +100,17 @@ void DockOp::onTargetReached(){
 
 
 void DockOp::onGpsFixTimeout(){
-    changeOp(gpsWaitFixOp, true);
+    if (REQUIRE_VALID_GPS){    
+      changeOp(gpsWaitFixOp, true);
+    }
 }
 
 void DockOp::onGpsNoSignal(){
-    if (!maps.isUndocking()){
-        stateSensor = SENS_GPS_INVALID;
-        changeOp(gpsWaitFloatOp, true);
+    if (REQUIRE_VALID_GPS){   
+      if (!maps.isUndocking()){
+          stateSensor = SENS_GPS_INVALID;
+          changeOp(gpsWaitFloatOp, true);
+      }
     }
 }
 

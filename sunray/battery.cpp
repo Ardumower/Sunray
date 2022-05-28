@@ -25,7 +25,7 @@
 
 void Battery::begin()
 {
-  inStartupPhase = true;
+  startupPhase = 0;
   nextBatteryTime = 0;
   nextCheckTime = 0;
   nextEnableTime = 0;
@@ -75,12 +75,12 @@ bool Battery::chargingHasCompleted(){
  
 
 bool Battery::shouldGoHome(){
-  if (inStartupPhase) return false;  
+  if (startupPhase < 2) return false;  
   return (batteryVoltage < batGoHomeIfBelow);
 }
 
 bool Battery::underVoltage(){
-  if (inStartupPhase) return false;
+  if (startupPhase < 2) return false;
   return (batteryVoltage < batSwitchOffIfBelow);
 }
 
@@ -94,14 +94,16 @@ void Battery::switchOff(){
 }
 
 void Battery::run(){  
-  if (inStartupPhase) {
+  if (startupPhase == 0) {
     // give some time to establish communication to external hardware etc.
     nextBatteryTime = millis() + 2000;
-    inStartupPhase = false;
+    startupPhase++;
+    return;
   }
-  if (millis() < nextBatteryTime) return;
+  if (millis() < nextBatteryTime) return;    
   nextBatteryTime = millis() + 50;
-  
+  if (startupPhase == 1) startupPhase = 2;
+
   float voltage = batteryDriver.getChargeVoltage();
   if (abs(chargingVoltage-voltage) > 10) chargingVoltage = voltage;  
   chargingVoltage = 0.9 * chargingVoltage + 0.1* voltage;  

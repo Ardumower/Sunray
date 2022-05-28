@@ -34,7 +34,7 @@
 #include "PubSubClient.h"
 
 
-#define VER "Sunray,1.0.264"
+#define VER "Sunray,1.0.266"
 
 // operation types
 enum OperationType {

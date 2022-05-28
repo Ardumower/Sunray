@@ -31,6 +31,7 @@ Op::Op(){
     initiatedbyOperator = false;
     previousOp = NULL;
     nextOp = NULL;
+    shouldStop = false;
 }
 
 String Op::name(){
@@ -43,20 +44,23 @@ void Op::changeOp(Op &anOp, bool returnBackOnExit, bool initiatedbyOperatorFlag)
         CONSOLE.println("==> ERROR Op::changeOp: invalid op=NULL!");        
     }
     if (&anOp == activeOp) return;
-    end();
-    if (returnBackOnExit)
-        anOp.nextOp = this;
+    nextOp = &anOp;
+
+    if (returnBackOnExit) {
+      anOp.nextOp = this;
+    }
     anOp.previousOp = this;
-    activeOp = &anOp;
-    anOp.startTime = millis();
-    anOp.initiatedbyOperator = initiatedbyOperatorFlag;
-    CONSOLE.print("==> changeOp:");
-    CONSOLE.println(activeOp->getOpChain());
-    anOp.begin();          
+    anOp.initiatedbyOperator = initiatedbyOperatorFlag;         
+
+    shouldStop = true;              
 }
 
 
 void Op::changeOperationType(OperationType op, bool initiatedbyOperatorFlag){
+  if (activeOp == NULL){
+    CONSOLE.println("ERROR Op::changeOperationType - activeOp=NULL");
+    return;
+  }
   switch (op){
     case OP_IDLE:
       activeOp->changeOp(idleOp);
@@ -92,17 +96,33 @@ OperationType Op::getGoalOperationType(){
 
 Op* Op::getGoalOp(){
     Op *goalOp = this;
-    while (goalOp->nextOp != NULL) goalOp = goalOp->nextOp;
+    int chainCounter = 0;    
+    while (goalOp->nextOp != NULL) {
+      goalOp = goalOp->nextOp;
+      if (goalOp == this) break; // avoid infinite loops if same op as this
+      chainCounter++;
+      if (chainCounter > 10){
+          CONSOLE.println("ERROR Op::getGoalOp: invalid op chain (infinity)");
+          break;
+      }      
+    }
     return goalOp; 
 }
 
 String Op::getOpChain(){
     String opChain = name();
     Op *goalOp = this;
+    int chainCounter = 0;
     while (goalOp->nextOp != NULL) {
         goalOp = goalOp->nextOp;
+        if (goalOp == this) break; // avoid infinite loops if same op as this
         opChain += "->";
         opChain += goalOp->name();
+        chainCounter++;
+        if (chainCounter > 10){
+          CONSOLE.println("ERROR Op::getOpChain: invalid op chain (infinity)");
+          break;
+        }
     }
     return opChain; 
 }
@@ -116,8 +136,24 @@ void Op::end(){
 
 }
 
-void Op::run(){
+void Op::checkStop(){
+    if (shouldStop){
+      if (nextOp == NULL){
+        CONSOLE.println("ERROR Op::checkStop: invalid nextOp=NULL");
+        return;
+      }
+      end();      
+      activeOp = nextOp;
+      nextOp = NULL;
+      activeOp->startTime = millis();
+      CONSOLE.print("==> changeOp:");
+      CONSOLE.println(activeOp->getOpChain());
+      activeOp->shouldStop = false;
+      activeOp->begin();
+    }
+}
 
+void Op::run(){
 }
 
 void Op::onKidnapped(bool state){

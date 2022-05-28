@@ -34,8 +34,8 @@ class Battery {
     bool underVoltage();
     void resetIdle();
     void switchOff();
-  protected:   
-    bool inStartupPhase;    
+  protected:       
+    int startupPhase;    
     unsigned long nextBatteryTime ;
     bool switchOffByOperator;    
     unsigned long timeMinutes;

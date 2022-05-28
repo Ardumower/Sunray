@@ -917,6 +917,7 @@ void run(){
 
     //CONSOLE.print("active:");
     //CONSOLE.println(activeOp->name());
+    activeOp->checkStop();
     activeOp->run();     
       
     // process button state

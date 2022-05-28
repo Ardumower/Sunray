@@ -1,6 +1,8 @@
 // Copyright © Luiz Henrique Cassettari. All rights reserved.
 // Licensed under the MIT license.
 
+#ifndef __linux__
+
 #include "ArduinoUniqueID.h"
 
 ArduinoUniqueID::ArduinoUniqueID()
@@ -194,3 +196,5 @@ ArduinoUniqueID::ArduinoUniqueID()
 }
 
 ArduinoUniqueID _UniqueID;
+
+#endif  // #ifndef __linux__

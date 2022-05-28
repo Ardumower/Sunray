@@ -474,6 +474,7 @@ void SimGpsDriver::run(){
 }    
     
 bool SimGpsDriver::configure(){  
+  return true;
 }
     
     

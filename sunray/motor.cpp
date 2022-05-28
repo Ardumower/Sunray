@@ -264,6 +264,8 @@ void Motor::enableTractionMotors(bool enable){
 
 
 void Motor::setMowState(bool switchOn){
+  //CONSOLE.print("Motor::setMowState ");
+  //CONSOLE.println(switchOn);
   if ((enableMowMotor) && (switchOn)){
     if (abs(motorMowPWMSet) > 0) return; // mowing motor already switch ON
     motorMowSpinUpTime = millis();

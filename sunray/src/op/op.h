@@ -21,6 +21,8 @@ class Op {
     // -------- transitions ----------------------------------       
     // op inititated by operator?
     bool initiatedbyOperator;
+    // should this operation stop?
+    bool shouldStop;
     // op start time
     unsigned long startTime;
     // previous op
@@ -45,13 +47,15 @@ class Op {
     // trigger op exit (optionally allow returning back on called operation exit, e.g. generate an op chain)
     virtual void changeOperationType(OperationType op, bool initiatedbyOperatorFlag = false);
     virtual OperationType getGoalOperationType();
-
+    
     // op entry code
     virtual void begin();
-    // op run code
-    virtual void run();
+    // checks if active operation should stop and if so, makes transition to new one
+    virtual void checkStop();
+    // op run code 
+    virtual void run();    
     // op exit code
-    virtual void end();    
+    virtual void end();        
     // --------- events --------------------------------------
     virtual void onImuCalibration();
     virtual void onGpsNoSignal();

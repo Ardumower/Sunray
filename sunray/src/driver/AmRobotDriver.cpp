@@ -4,6 +4,8 @@
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
 
+#ifndef __linux__
+
 #include "AmRobotDriver.h"
 #include "../../config.h"
 #include "../../helper.h"
@@ -11,9 +13,6 @@
 #include "../../pinman.h"
 #include "../../cpu.h"
 #include "../../ArduinoUniqueID.h"
-
-
-#ifndef __linux__
 
 #if defined(_SAM3XA_)
   #include "../due/DueTimer.h"
@@ -713,5 +712,5 @@ void AmBuzzerDriver::tone(int freq){
   #endif     
 }
 
-#endif
+#endif  // #ifndef __linux__
 

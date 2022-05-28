@@ -9,25 +9,20 @@
 #include "../../map.h"
 
 String GpsWaitFixOp::name(){
-  return "GpsWaitFix";
+    return "GpsWaitFix";
 }
 
 void GpsWaitFixOp::begin(){
-    // no gps solution
-    if (REQUIRE_VALID_GPS){
-      if (!maps.isUndocking()) { 
-        CONSOLE.println("WARN: no gps solution!");
-        stateSensor = SENS_GPS_INVALID;
-        //setOperation(OP_ERROR);
-        //buzzer.sound(SND_STUCK, true);          
-        
-        //linear = 0;
-        //angular = 0;      
-        //mow = false;
-        motor.setLinearAngularSpeed(0,0, false); 
-        motor.setMowState(false);     
-      } 
-    }
+    CONSOLE.println("WARN: no gps solution!");
+    stateSensor = SENS_GPS_INVALID;
+    //setOperation(OP_ERROR);
+    //buzzer.sound(SND_STUCK, true);          
+    
+    //linear = 0;
+    //angular = 0;      
+    //mow = false;
+    motor.setLinearAngularSpeed(0,0, false); 
+    motor.setMowState(false);     
 }
 
 
