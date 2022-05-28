@@ -3,6 +3,8 @@
 // Licensed GPLv3 for open source use
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
+// test cases
+
 
 #ifndef TEST_H
 #define TEST_H
@@ -15,9 +17,22 @@
 #include "../../robot.h"
 #include "../../map.h"
 
-    
+  
+/* test cases:
+1) obstacle avoidance (bumper): if bumper triggered, robot should reach next or next but one target point (perform obstacle avoidance)
+2) gps no-motion: robot should reach next or next but one target point (perform obstacle avoidance)
+3) gps signal loss : robot should stop (also mow motor) and continue after gps signal is available again
+4) gps fix timeout: robot should stop (also mow motor) and continue after gps fix solution is available again
+5) kidnap: robot should reboot gps and continue after undo kidnap
+6) imu no-rotation: robot should drive backwards/forwards
+7) motor overload timeout: robot should go into error
+8) undervoltage: robot should stop
+9) dock-voltage: robot should reach charging point
+10) docking (bumper): robot should retry (restart) docking 
+11) ...
 
-// tests
+*/
+
 
 class Test {
   public:         
