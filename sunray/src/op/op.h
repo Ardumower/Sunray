@@ -150,6 +150,7 @@ class ChargeOp: public Op {
     virtual void end() override;
     virtual void run() override;
     virtual void onChargerDisconnected() override;
+    virtual void onBatteryUndervoltage() override;    
 };
 
 // wait for undo kidnap (gps jump) 

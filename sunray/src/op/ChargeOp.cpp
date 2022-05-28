@@ -58,3 +58,7 @@ void ChargeOp::onChargerDisconnected(){
     changeOp(idleOp);
 };
 
+void ChargeOp::onBatteryUndervoltage(){    
+    stateSensor = SENS_BAT_UNDERVOLTAGE;
+}
+
