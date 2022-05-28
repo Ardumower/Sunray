@@ -61,6 +61,19 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DRV_ARDUMOWER     1   // keep this for Ardumower
 //#define DRV_SIM_ROBOT     1   // simulation
 
+//Speeds of operations
+#define MOW_SPINUPTIME 5000               //Adds time to rotate mowingblades before starting moving (ms) 
+#define OVERLOADSPEED 0.10                //m/s
+#define ROTATETOTARGETSPEED 0.7           //0.5=29degree/sec
+#define TRACKSLOWSPEED 0.10               //m/s
+#define APPROACHWAYPOINTSPEED 0.10        //m/s   
+#define FLOATSPEED 0.10                   //m/s
+#define SONARSPEED 0.10                   //m/s
+#define DOCKANGULARSPEED 0.1              //rad/s
+#define OBSTACLEAVOIDANCESPEED 0.10       //m/s
+#define MINSPEED 0.08                     //m/s (has an offset, 0.08 m/s will already be like 0.05 m/s)
+#define MAXSPEED 0.60                     //m/s
+
 
 // ------- Bluetooth4.0/BLE module -----------------------------------
 // see Wiki on how to install the BLE module and configure the jumpers:
