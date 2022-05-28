@@ -10,6 +10,7 @@
 #include "../../robot.h"
 #include "../../pinman.h"
 #include "../../cpu.h"
+#include "../../ArduinoUniqueID.h"
 
 
 #ifndef __linux__
@@ -70,7 +71,13 @@ void AmRobotDriver::run(){
 
 
 bool AmRobotDriver::getRobotID(String &id){
-  id = "XX";
+  id = "";
+  for(size_t i = 0; i < UniqueIDsize; i++){
+      byte v = UniqueID[i];
+      if (v <= 0xF) id += F("0");
+      id += String(v, HEX);  
+      if (i + 1 < UniqueIDsize) id += ":";
+  }
   return true;
 }
 
