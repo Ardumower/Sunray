@@ -10,14 +10,25 @@
 #include "test.h"
 #include <Arduino.h>
 #include "../../robot.h"
+#include "../../StateEstimator.h"
+#include "../../LineTracker.h"
 #include "../../map.h"
 #include "../../helper.h"
 #ifdef __linux__  
   #include <Process.h>
 #endif
 
+ObstacleAvoidanceTest obstacleAvoidanceTest;
 SessionTest sessionTest;
+Tester tester;
 
+
+Test::Test(){
+  started = false;
+  shouldStop = false;
+  succeeded = false;
+  startTime = 0;
+}
 
 String Test::name(){
     return "Test";
@@ -31,6 +42,17 @@ void Test::run(){
 
 }
 
+
+float Test::duration(){
+  return (float(millis() - startTime)) / 1000.0;
+}
+
+void Test::setSucceeded(bool flag){
+  shouldStop = true;
+  succeeded = flag;
+}
+
+
 void Test::end(){
 }        
 
@@ -40,12 +62,62 @@ void Test::speak(String text){
     //String s = "say '" + text + "'";  // sudo apt-get install gnustep-gui-runtime
     //String s = "echo '" + text + "' | festival --tts";  // sudo apt-get install festival
     //String s = "spd-say '" + text + "'";  // sudo apt-get install speech-dispatcher    
-    String s = "espeak -vmb-en1 '" + text + "'";  // sudo apt-get install espeak, sudo apt-get install mbrola-en1    
+    String s = "espeak -s 150 -p 30 -vmb-en1 '" + text + "'";  // sudo apt-get install espeak, sudo apt-get install mbrola-en1    
     p.runShellCommand(s+ " &");    
   #endif
 }
+// ---------------------------------------------
 
-// --------- SessionTest ---------------------
+
+String ObstacleAvoidanceTest::name(){
+  return "ObstacleAvoidanceTest";
+}
+
+void ObstacleAvoidanceTest::begin(){  
+  //speak("Obstacle Avoidance Test");
+  targetX = targetY = 99999;
+}
+
+void ObstacleAvoidanceTest::end(){
+}
+ 
+void ObstacleAvoidanceTest::run(){  
+  if (robotDriver.simObstacleRadius < 0.01){
+    // set obstacle at target if far away from target
+    Point target = maps.targetPoint;  
+    targetX = target.x();
+    targetY = target.y();    
+    float robotDist = distance(targetX, targetY, stateX, stateY);
+    if (robotDist > 2.0){        
+      robotDriver.setObstacle(targetX + (stateX-targetX)/2, targetY + (stateY-targetY)/2, 0.2);
+      speak("Obstacle Avoidance Test");
+      startTime = millis();
+    }
+  } else {
+    // check if target reached
+    float robotDist = distance(targetX, targetY, stateX, stateY);
+    if (robotDist < 0.25){        
+      speak("succeeded");
+      setSucceeded(true);
+    }
+  }
+  if (robotDriver.robotIsBumpingIntoObstacle){
+    if (!bumper.simTriggered){
+      speak("trigger bumper");
+      bumper.setSimTriggered(true);
+      startTime = millis();
+    }
+  } else {
+    bumper.setSimTriggered(false);
+  }
+  if (duration() > 60.0) {
+    speak("failed");
+    setSucceeded(false);
+  }
+}
+
+
+// --------------------------------------------
 
 
 String SessionTest::name(){
@@ -132,6 +204,27 @@ void SessionTest::run(){
 
 void SessionTest::end(){
 }        
+
+// ----------------------------------
+
+void Tester::begin(){
+  obstacleAvoidanceTest.begin();
+}
+
+void Tester::run(){
+  if (obstacleAvoidanceTest.started){
+    if (obstacleAvoidanceTest.shouldStop){ 
+       
+    } else {
+      obstacleAvoidanceTest.run();
+    }
+  } else {
+    obstacleAvoidanceTest.startTime = millis();
+    obstacleAvoidanceTest.shouldStop = false;
+    obstacleAvoidanceTest.started = true;
+  } 
+}
+
 
 #endif // DRV_SIM_ROBOT
 

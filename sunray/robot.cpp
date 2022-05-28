@@ -603,7 +603,7 @@ void start(){
 
   #ifdef DRV_SIM_ROBOT
     robotDriver.setSimRobotPosState(stateX, stateY, stateDelta);
-    sessionTest.begin();
+    tester.begin();
   #endif
 }
 
@@ -803,7 +803,7 @@ void run(){
     ntrip.run();
   #endif
   #ifdef DRV_SIM_ROBOT
-    sessionTest.run();
+    tester.run();
   #endif
   robotDriver.run();
   buzzer.run();

@@ -36,11 +36,28 @@
 
 class Test {
   public:         
+    bool started;
+    bool shouldStop;
+    bool succeeded;  
+    unsigned long startTime;  
+    Test();
     virtual String name();
     virtual void begin();
     virtual void run();
-    virtual void end();  
+    virtual void end();
+    virtual float duration();
+    virtual void setSucceeded(bool flag);    
     virtual void speak(String text);      
+};
+
+class ObstacleAvoidanceTest: public Test {
+  public:
+    float targetX;
+    float targetY;
+    virtual String name() override;
+    virtual void begin() override;
+    virtual void end() override;
+    virtual void run() override;
 };
 
 
@@ -67,7 +84,13 @@ class SessionTest: public Test {
     virtual void run() override;
 };
 
-extern SessionTest sessionTest;
+class Tester {
+  public:
+    virtual void begin();
+    virtual void run();
+};
+
+extern Tester tester;
 
 
 #endif // #ifdef DRV_SIM_ROBOT
