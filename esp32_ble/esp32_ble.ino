@@ -122,7 +122,7 @@ String notifyData;
 #endif
 
 //WiFiServer server(80);
-WiFiClient client;
+//WiFiClient client;
 // We declare some handler functions (definition at the end of the file)
 void handleRoot(HTTPRequest * req, HTTPResponse * res);
 ResourceNode * nodeRoot      = new ResourceNode("/", "POST", &handleRoot);
