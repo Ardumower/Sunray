@@ -512,7 +512,11 @@ void start(){
       #endif
     } else break;
   }  
-  delay(1500);
+  
+  // give Arduino IDE users some time to open serial console to actually see very first console messages
+  #ifndef __linux__
+    delay(1500);
+  #endif
     
   #if defined(ENABLE_SD)
     #ifdef __linux__
