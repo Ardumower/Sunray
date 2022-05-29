@@ -1,6 +1,11 @@
 #ifndef _ARDUMOWER_ADAPTER_H
 #define _ARDUMOWER_ADAPTER_H
 
+#include "../config.h"
+
+#ifdef USE_MQTT
+
+
 #include <list>
 #include <functional>
 #include <ArduinoJson.h>
@@ -130,5 +135,6 @@ class Adapter {
 
 };
 
+#endif
 
 #endif

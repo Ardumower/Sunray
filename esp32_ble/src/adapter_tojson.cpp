@@ -1,4 +1,8 @@
 #include "adapter.h"
+#include "../config.h"
+
+#ifdef USE_MQTT
+
 
 
 String ArduMower::Properties::toJson() {
@@ -53,3 +57,4 @@ JsonObject ArduMower::State::Position::toJsonObject() {
   return doc.as<JsonObject>();
 }
 
+#endif

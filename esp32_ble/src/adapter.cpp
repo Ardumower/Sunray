@@ -1,5 +1,9 @@
 
 #include "adapter.h"
+#include "../config.h"
+
+#ifdef USE_MQTT
+
 
 
 void ArduMower::Adapter::loop(uint32_t now) {
@@ -215,4 +219,6 @@ void ArduMower::Adapter::sendCommand(String cmd) {
   
   free(buf);
 }
+
+#endif
 
