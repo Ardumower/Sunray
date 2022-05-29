@@ -14,8 +14,8 @@
      6. Choose Port (Windows NOTE: if the port is not shown you may have to install drivers: https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers)
      7. Choose "Tools->Manager Libraries..."
      8. Add library "ESP32_HTTPS_Server 1.0.0 by Frank Hessel"  
-     9. Add library "ArduinoJson 6.18.5 by Benoit Blanchon" and "ThingsOfValue SDK for Arduino 1.0.0 by Kyuseok Oh"
-     10. Add library "NimBLE-Arduino 1.3.1 by h2zero"  (requires less memory - only used if activated 'USE_NIM_BLE')
+     9. Add library "ArduinoJson 6.18.5 by Benoit Blanchon" and "ThingsOfValue SDK for Arduino 1.0.0 by Kyuseok Oh" (only required if activated 'USE_MQTT')
+     10. Add library "NimBLE-Arduino 1.3.1 by h2zero"  (requires less memory - only required if activated 'USE_NIM_BLE')
      11. Copy this file into 'config.h'     
      12. Configure the options below and finally compile and upload this project.
      
