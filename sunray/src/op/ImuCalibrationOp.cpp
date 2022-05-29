@@ -45,7 +45,6 @@ void ImuCalibrationOp::run(){
         if (imuCalibrationSeconds >= 15){        
         //if (imuCalibrationSeconds >= 9){
             imuIsCalibrating = false;
-            CONSOLE.println();                
             lastIMUYaw = 0;          
             imuDriver.resetData();
             imuDataTimeout = millis() + 10000;
