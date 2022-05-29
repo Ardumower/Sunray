@@ -4,7 +4,7 @@
      2. WiFi UART bridge (HTTP server UART)
 
 
-  Steps to install ESP32 for Arduino IDE:
+  Steps to install ESP32 for Arduino IDE 1.8.13:
      1. Arduino IDE: File->Preferences:  Add to board manager URLs: ",https://dl.espressif.com/dl/package_esp32_index.json"
      2. Choose "Tools->Board->Boards Manager"
      3. Add board "esp32" (IMPORTANT!!! choose v1.0.4, latest v1.0.6 does not seem to connect to WiFi access point! )
@@ -13,9 +13,9 @@
     (also see: https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md )
      6. Choose Port (Windows NOTE: if the port is not shown you may have to install drivers: https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers)
      7. Choose "Tools->Manager Libraries..."
-     8. Add library "ESP32_HTTPS_Server by Frank Hessel"  
-     9. Add library "ArduinoJson by Benoit Blanchon" and "ThingsOfValue SDK for Arduino"
-     10. Add library "NimBLE-Arduino by h2zero"  (requires less memory - only used if activated 'USE_NIM_BLE')
+     8. Add library "ESP32_HTTPS_Server 1.0.0 by Frank Hessel"  
+     9. Add library "ArduinoJson 6.18.5 by Benoit Blanchon" and "ThingsOfValue SDK for Arduino 1.0.0 by Kyuseok Oh"
+     10. Add library "NimBLE-Arduino 1.3.1 by h2zero"  (requires less memory - only used if activated 'USE_NIM_BLE')
      11. Copy this file into 'config.h'     
      12. Configure the options below and finally compile and upload this project.
      
