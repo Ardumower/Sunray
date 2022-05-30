@@ -91,7 +91,7 @@ void ioAdcMux(uint8_t adc){
 
 
 // configure ADC MCP3421
-float ioAdcStart(uint8_t addr, bool repeatMode, bool reset){ 
+void ioAdcStart(uint8_t addr, bool repeatMode, bool reset){ 
   // send config  
   Config cfg;
   cfg.reg      = 0x00;

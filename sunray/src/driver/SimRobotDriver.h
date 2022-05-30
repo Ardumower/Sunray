@@ -178,7 +178,7 @@ class SimGpsDriver : public GpsDriver {
     void reboot() override;
     // ----- simulate errors, sensor triggers ----
     void setSimSolution(SolType sol);
-    bool setSimGpsJump(bool flag);
+    void setSimGpsJump(bool flag);
   protected:
     unsigned long nextSolutionTime;
 };

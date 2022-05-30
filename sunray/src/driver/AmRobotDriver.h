@@ -31,7 +31,7 @@
 // 8) the PWM frequency it can work with
 
 struct DriverChip {
-    char *driverName;       // name of driver (MC33926 etc.)
+    char const *driverName;       // name of driver (MC33926 etc.)
     bool forwardPwmInvert;  // forward pin uses inverted pwm?
     bool forwardDirLevel;   // forward pin level
     bool reversePwmInvert;  // reverse pin uses inverted pwm?

@@ -488,7 +488,7 @@ void SimGpsDriver::setSimSolution(SolType sol){
 }
 
 
-bool SimGpsDriver::setSimGpsJump(bool flag){
+void SimGpsDriver::setSimGpsJump(bool flag){
   simGpsJump = flag;
 }
 

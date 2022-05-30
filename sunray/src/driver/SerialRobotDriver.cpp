@@ -122,6 +122,8 @@ float SerialRobotDriver::getCpuTemperature(){
     Process p;
     p.runShellCommand("cat /sys/class/thermal/thermal_zone0/temp");  
     return p.readString().toFloat() / 1000.0;    
+  #else
+    return 0;
   #endif
 }
 
@@ -475,6 +477,8 @@ float SerialBatteryDriver::getBatteryTemperature(){
     Process p;
     p.runShellCommand("cat /sys/class/thermal/thermal_zone1/temp");  
     return p.readString().toFloat() / 1000.0;    
+  #else
+    return 0;
   #endif
 }
 

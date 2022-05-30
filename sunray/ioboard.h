@@ -99,7 +99,7 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin);
 void ioAdcMux(uint8_t adc);
 
 // ADC start (MCP3421)
-float ioAdcStart(uint8_t addr, bool repeatMode, bool reset);
+void ioAdcStart(uint8_t addr, bool repeatMode, bool reset);
 
 // ADC conversion (MCP3421)
 void ioAdcTrigger(uint8_t addr);
