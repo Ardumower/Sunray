@@ -19,7 +19,7 @@ void processWifiMqttClient();
 void processConsole();
 void processBLE();
 void mqttCallback(char* topic, byte* payload, unsigned int length);
-
+void cmdSwitchOffRobot();
 
 
 #endif

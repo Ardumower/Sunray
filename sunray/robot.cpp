@@ -939,6 +939,10 @@ void run(){
       stateButton = 0;  // reset button state
       stateSensor = SENS_STOP_BUTTON;
       setOperation(OP_IDLE, false, true);                             
+    } else if (stateButton == 9){
+      stateButton = 0;  // reset button state
+      stateSensor = SENS_STOP_BUTTON;
+      cmdSwitchOffRobot();
     }
 
     // update operation type      
