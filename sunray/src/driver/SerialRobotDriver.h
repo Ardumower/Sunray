@@ -46,6 +46,7 @@ class SerialRobotDriver: public RobotDriver {
     void requestMotorPwm(int leftPwm, int rightPwm, int mowPwm);
     void requestSummary();
     void requestVersion();
+    void updatePanelLEDs();
   protected:    
     String cmd;
     String cmdResponse;

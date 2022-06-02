@@ -340,6 +340,10 @@ void SerialRobotDriver::processComm(){
   }     
 }
 
+void SerialRobotDriver::updatePanelLEDs(){
+  //ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_PORT, EX3_LED1_PIN, true);
+
+}
 
 void SerialRobotDriver::run(){  
   processComm();

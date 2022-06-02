@@ -24,6 +24,7 @@ extern "C"{
 
 // I/O port expander 1 channels (PCA9555)   https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf
 // a channel is identified by two numbers: port, pin
+// (IMU power, fan power, adc mux)
 #define EX1_I2C_ADDR        0x21
 #define EX1_IMU_POWER_PORT  1        // IO1.6  MT9700 powers IMU      
 #define EX1_IMU_POWER_PIN   6        // IO1.6  MT9700 powers IMU
@@ -40,12 +41,29 @@ extern "C"{
 
 // I/O port expander 2 channels (PCA9555)  https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf
 // a channel is identified by two numbers: port, pin
+// (buzzer, swd-prog port switching)
 #define EX2_I2C_ADDR     0x20
 #define EX2_BUZZER_PORT  1          // Buzzer
 #define EX2_BUZZER_PIN   1          // Buzzer
-#define EX2_CS6_PORT     0          // CS6      
-#define EX2_CS6_PIN      6          // CS6
+#define EX2_CS6_PORT     0          // CS6  (SWD prog. port switching)    
+#define EX2_CS6_PIN      6          // CS6  (SWD prog. port switching)
 
+// I/O port expander 3 channels (PCA9555)  https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf
+// a channel is identified by two numbers: port, pin
+// (panel LEDs)
+#define EX3_I2C_ADDR     0x20
+#define EX3_LED1_PORT    0          // LED1
+#define EX3_LED1_PIN     0          
+#define EX3_LED2_PORT    0          // LED2
+#define EX3_LED2_PIN     1          
+#define EX3_LED3_PORT    0          // LED3
+#define EX3_LED3_PIN     2          
+#define EX3_LED4_PORT    0          // LED4
+#define EX3_LED4_PIN     3          
+#define EX3_LED5_PORT    0          // LED5
+#define EX3_LED5_PIN     4          
+#define EX3_LED6_PORT    0          // LED6
+#define EX3_LED6_PIN     5         
 
 // ADC multiplexer channels (DG408)   https://www.vishay.com/docs/70062/dg408.pdf
 #define ADC_BAT1     1   // battery cell1
