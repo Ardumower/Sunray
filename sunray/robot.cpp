@@ -137,6 +137,7 @@ unsigned long overallMotionTimeout = 0;
 unsigned long nextControlTime = 0;
 unsigned long lastComputeTime = 0;
 
+unsigned long nextLedTime = 0;
 unsigned long nextImuTime = 0;
 unsigned long nextTempTime = 0;
 unsigned long imuDataTimeout = 0;
@@ -854,7 +855,15 @@ void run(){
       readIMU();    
     }
   }
-  
+
+  // LED states
+  if (millis() > nextLedTime){
+    nextLedTime = millis() + 1000;
+    robotDriver.ledStateGpsFloat = (gps.solution == SOL_FLOAT);
+    robotDriver.ledStateGpsFix = (gps.solution == SOL_FIXED);
+    robotDriver.ledStateError = (stateOp == OP_ERROR);     
+  }
+
   gps.run();
     
   calcStats();  

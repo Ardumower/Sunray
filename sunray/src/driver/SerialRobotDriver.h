@@ -37,7 +37,7 @@ class SerialRobotDriver: public RobotDriver {
     bool triggeredRightBumper;
     bool triggeredLift;
     bool triggeredRain;
-    bool triggeredStopButton;           
+    bool triggeredStopButton;
     void begin() override;
     void run() override;
     bool getRobotID(String &id) override;

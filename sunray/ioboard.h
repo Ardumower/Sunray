@@ -55,18 +55,18 @@ extern "C"{
 // a channel is identified by two numbers: port, pin
 // (panel LEDs)
 #define EX3_I2C_ADDR     0x22
-#define EX3_LED1_PORT    0          // LED1
-#define EX3_LED1_PIN     0          
-#define EX3_LED2_PORT    0          // LED2
-#define EX3_LED2_PIN     1          
-#define EX3_LED3_PORT    0          // LED3
-#define EX3_LED3_PIN     2          
-#define EX3_LED4_PORT    0          // LED4
-#define EX3_LED4_PIN     3          
-#define EX3_LED5_PORT    0          // LED5
-#define EX3_LED5_PIN     4          
-#define EX3_LED6_PORT    0          // LED6
-#define EX3_LED6_PIN     5         
+#define EX3_LED1_GREEN_PORT    0          
+#define EX3_LED1_GREEN_PIN     0          
+#define EX3_LED1_RED_PORT      0          
+#define EX3_LED1_RED_PIN       1          
+#define EX3_LED2_GREEN_PORT    0          
+#define EX3_LED2_GREEN_PIN     2          
+#define EX3_LED2_RED_PORT      0          
+#define EX3_LED2_RED_PIN       3           
+#define EX3_LED3_GREEN_PORT    0          
+#define EX3_LED3_GREEN_PIN     4          
+#define EX3_LED3_RED_PORT      0          
+#define EX3_LED3_RED_PIN       5         
 
 // ADC multiplexer channels (DG408)   https://www.vishay.com/docs/70062/dg408.pdf
 #define ADC_BAT1     1   // battery cell1

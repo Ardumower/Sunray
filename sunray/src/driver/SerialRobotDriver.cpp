@@ -41,6 +41,11 @@ void SerialRobotDriver::begin(){
   cmdSummaryCounter = 0;
   requestLeftPwm = requestRightPwm = requestMowPwm = 0;
   robotID = "XX";
+  ledStateWifiConnected = false;
+  ledStateGpsFix = false;
+  ledStateGpsFloat = false;
+  ledStateShutdown = false;  
+  ledStateError = false;
 
   #ifdef __linux__
     CONSOLE.println("reading robot ID...");
@@ -108,11 +113,16 @@ void SerialRobotDriver::begin(){
       bool state = false;
       CONSOLE.println("LED test");
       for (int i=0 ;i < 5; i++){      
-        ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_PORT, EX3_LED1_PIN, state);
-        ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_PORT, EX3_LED3_PIN, state);    
-        ioExpanderOut(EX3_I2C_ADDR, EX3_LED5_PORT, EX3_LED5_PIN, state);          
+        ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, state);
+        ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, !state);        
+
+        ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, state);
+        ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, !state);        
+
+        ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, state);
+        ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, !state);        
         state = !state;
-        delay(2000);
+        delay(1000);
       }
     }
     
@@ -140,6 +150,7 @@ float SerialRobotDriver::getCpuTemperature(){
   #endif
 }
 
+// send serial request to MCU
 void SerialRobotDriver::sendRequest(String s){
   byte crc = 0;
   for (int i=0; i < s.length(); i++) crc += s[i];
@@ -153,6 +164,7 @@ void SerialRobotDriver::sendRequest(String s){
 }
 
 
+// request MCU SW version
 void SerialRobotDriver::requestVersion(){
   String req;
   req += "AT+V";  
@@ -160,6 +172,7 @@ void SerialRobotDriver::requestVersion(){
 }
 
 
+// request MCU summary
 void SerialRobotDriver::requestSummary(){
   String req;
   req += "AT+S";  
@@ -167,6 +180,8 @@ void SerialRobotDriver::requestSummary(){
   cmdSummaryCounter++;
 }
 
+
+// request MCU motor PWM
 void SerialRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   String req;
   req += "AT+M,";
@@ -354,11 +369,38 @@ void SerialRobotDriver::processComm(){
 }
 
 void SerialRobotDriver::updatePanelLEDs(){
-  //ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_PORT, EX3_LED1_PIN, true);
-
+  // idle/error status
+  if (ledStateError){
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, false); 
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, true);            
+  } else {
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, true);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, false);
+  }
+  // gps status
+  if (ledStateGpsFix){
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, true); 
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, false);            
+  } 
+  else if (ledStateGpsFloat) {
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, false);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, false);
+  } else {
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, false);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, true);    
+  }
+  // wifi status
+  if (ledStateWifiConnected){ 
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, true);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, false);
+  } else {
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, false);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, true);
+  }
 }
 
 void SerialRobotDriver::run(){  
+  updatePanelLEDs();  
   processComm();
   if (millis() > nextMotorTime){
     nextMotorTime = millis() + 20; // 50 hz
