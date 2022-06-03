@@ -49,6 +49,10 @@ void trackLine(bool runControl){
   float targetDist = maps.distanceToTargetPoint(stateX, stateY);
   
   float lastTargetDist = maps.distanceToLastTargetPoint(stateX, stateY);  
+
+  // limitation for setSpeed //SOew
+  if (setSpeed > MOTOR_MAX_SPEED) setSpeed = MOTOR_MAX_SPEED;
+
   if (SMOOTH_CURVES)
     targetReached = (targetDist < 0.2);    
   else 
