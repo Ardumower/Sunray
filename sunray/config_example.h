@@ -166,6 +166,13 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define MOTOR_LEFT_SWAP_DIRECTION 1  // uncomment to swap left motor direction
 //#define MOTOR_RIGHT_SWAP_DIRECTION 1  // uncomment to swap right motor direction
 
+// It is possible to navigate the mower by touch-joystick in sunray-app. In some cases it could be neccessary to navigate the mower very soften, especially when your connected by
+// wifi to the mower. If parameter is set to true, the speed value from app will be used for maximum speed by joystick control. To navigate soften, 
+// change the speed slider for example to 0.10. If you need to let the mower drive long distance without accurate positioning change the speed slider to higher values. 
+#define USE_SETSPEED_FOR_APPJOYSTICK true  // setting of setSpeed is used for maximum speed of mower control with joystick in sunray-app.
+//#define USE_SETSPEED_FOR_APPJOYSTICK false  // mower will drive at a maximum speed of 0.33m/sec by control with joystick in sunray-app.
+
+
 // ------------ dynamic gear motors speed ----------------
 // speed will be adjusted by the mowing motor current. If USE_MOWMOTOR_CURRENT_AVERAGE is set to false, the Speed 
 // will be changed if the mow Current is lower or higher than MOWMOTOR_CURRENT_FACTOR * MOW_OVERLOAD_CURRENT.
