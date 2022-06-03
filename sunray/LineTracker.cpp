@@ -116,8 +116,8 @@ void trackLine(bool runControl){
     //Values need to be multiplied, because map() function does not work well with small range decimals
     float CurrSpeed = motor.linearSpeedSet * 1000;                                                    
     CurrSpeed = abs(CurrSpeed);
-    float k = map(CurrSpeed, MINSPEED*1000, MAXSPEED*1000, STANLEY_CONTROL_K_SLOW*1000, STANLEY_CONTROL_K_NORMAL*1000);  //MINSPEED and MAXSPEED from config.h
-    float p = map(CurrSpeed, MINSPEED*1000, MAXSPEED*1000, STANLEY_CONTROL_P_SLOW*1000, STANLEY_CONTROL_P_NORMAL*1000);  //MINSPEED and MAXSPEED from config.h
+    float k = map(CurrSpeed, MOTOR_MIN_SPEED*1000, MOTOR_MAX_SPEED*1000, STANLEY_CONTROL_K_SLOW*1000, STANLEY_CONTROL_K_NORMAL*1000);  //MOTOR_MIN_SPEED and MOTOR_MAX_SPEED from config.h
+    float p = map(CurrSpeed, MOTOR_MIN_SPEED*1000, MOTOR_MAX_SPEED*1000, STANLEY_CONTROL_P_SLOW*1000, STANLEY_CONTROL_P_NORMAL*1000);  //MOTOR_MIN_SPEED and MOTOR_MAX_SPEED from config.h
     k = k / 1000;                                                                                     
     p = p / 1000;                                                
     
