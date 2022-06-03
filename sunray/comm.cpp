@@ -180,12 +180,22 @@ void cmdMotor(){
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){
       float value = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
-      if (counter == 1){                            
-          linear = value;
-      } else if (counter == 2){
-          angular = value;
-      } 
-      counter++;
+			if (counter == 1){
+				linear = value;
+				if (USE_SETSPEED_FOR_APPJOYSTICK) {	// Svol0 -> see description in config.h at "USE_SETSPEED_FOR_APPJOYSTICK"
+					// map the manual control value for linear speed from range 0.00 till 0.33 to the range of 0.00 till setSpeed but at least 0.10
+					linear = map((value*100),0,33,0,max(setSpeed*100,10));
+					linear = linear / 100;
+				}
+			} else if (counter == 2){
+				angular = value;
+				if (USE_SETSPEED_FOR_APPJOYSTICK) {
+					// map the manual control value for angular speed from range 0.00 till 0.50 to the range of 0.00 till setSpeed but at least 0.10
+					angular = map((value*100),0,50,0,max(setSpeed*151,15));
+					angular = angular / 100;
+				}
+			}
+			counter++;
       lastCommaIdx = idx;
     }    
   }      
