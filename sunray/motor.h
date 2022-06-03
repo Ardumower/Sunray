@@ -41,6 +41,7 @@ class Motor {
     bool pwmSpeedCurveDetection;
     unsigned long motorLeftTicks;
     unsigned long motorRightTicks;
+    unsigned long motorMowTicks;    
     float linearSpeedSet; // m/s
     float angularSpeedSet; // rad/s
     float motorLeftSense; // left motor current (amps)

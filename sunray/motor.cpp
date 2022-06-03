@@ -93,6 +93,7 @@ void Motor::begin() {
   nextSenseTime = 0;
   motorLeftTicks =0;  
   motorRightTicks =0;
+  motorMowTicks = 0;
   motorLeftTicksZero=0;
   motorRightTicksZero=0;
   motorLeftPWMCurr =0;    
@@ -602,6 +603,7 @@ void Motor::dumpOdoTicks(int seconds){
   motorDriver.getMotorEncoderTicks(ticksLeft, ticksRight, ticksMow);  
   motorLeftTicks += ticksLeft;
   motorRightTicks += ticksRight;
+  motorMowTicks += ticksMow;
   CONSOLE.print("t=");
   CONSOLE.print(seconds);
   CONSOLE.print("  ticks Left=");
@@ -661,13 +663,15 @@ void Motor::test(){
 
 
 void Motor::plot(){
-  CONSOLE.println("motor plot - NOTE: Start Arduino IDE Tools->Serial Plotter (CTRL+SHIFT+L)");
+  CONSOLE.println("motor plot (left,right,mow) - NOTE: Start Arduino IDE Tools->Serial Plotter (CTRL+SHIFT+L)");
   delay(5000);
-  CONSOLE.println("pwmLeft,pwmRight,ticksLeft,ticksRight");
+  CONSOLE.println("pwmLeft,pwmRight,pwmMow,ticksLeft,ticksRight,ticksMow");
   motorLeftTicks = 0;  
   motorRightTicks = 0;  
+  motorMowTicks = 0;
   int pwmLeft = 0;
   int pwmRight = 0; 
+  int pwmMow = 0;
   int cycles = 0;
   int acceleration = 1;
   bool forward = true;
@@ -685,22 +689,28 @@ void Motor::plot(){
       motorDriver.getMotorEncoderTicks(ticksLeft, ticksRight, ticksMow);  
       motorLeftTicks += ticksLeft;
       motorRightTicks += ticksRight;
+      motorMowTicks += ticksMow;
 
       if (millis() > nextPlotTime){ 
         nextPlotTime = millis() + 100;
-        CONSOLE.print(pwmLeft);
+        CONSOLE.print(300+pwmLeft);
         CONSOLE.print(",");  
-        CONSOLE.print(pwmRight);
+        CONSOLE.print(300+pwmRight);
         CONSOLE.print(",");
-        CONSOLE.print(motorLeftTicks);    
+        CONSOLE.print(pwmMow);
+        CONSOLE.print(",");        
+        CONSOLE.print(300+motorLeftTicks);    
         CONSOLE.print(",");
-        CONSOLE.print(motorRightTicks);
+        CONSOLE.print(300+motorRightTicks);
+        CONSOLE.print(",");
+        CONSOLE.print(motorMowTicks);        
         CONSOLE.println();
         motorLeftTicks = 0;
-        motorRightTicks = 0;      
+        motorRightTicks = 0;
+        motorMowTicks = 0;      
       }
 
-      speedPWM(pwmLeft, pwmRight, 0);
+      speedPWM(pwmLeft, pwmRight, pwmMow);
       if (pwmLeft >= 255){
         forward = false;
         cycles++; 
@@ -716,13 +726,16 @@ void Motor::plot(){
       }         
       if (forward){
         pwmLeft += acceleration;
-        pwmRight += acceleration;            
+        pwmRight += acceleration;
+        pwmMow += acceleration;
       } else {
         pwmLeft -= acceleration;
         pwmRight -= acceleration;
+        pwmMow -= acceleration;
       }
       pwmLeft = min(255, max(-255, pwmLeft));
       pwmRight = min(255, max(-255, pwmRight));          
+      pwmMow = min(255, max(-255, pwmMow));                
     }  
     //sense();
     //delay(10);
