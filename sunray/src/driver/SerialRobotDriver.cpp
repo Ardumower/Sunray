@@ -81,6 +81,16 @@ void SerialRobotDriver::begin(){
       ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, false);    
     }
 
+    // LEDs     
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, true);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, false);        
+
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, true);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, false);        
+
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, true);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, false);        
+  
     // start ADC
     ioAdcStart(ADC_I2C_ADDR, false, true);
 
@@ -107,25 +117,6 @@ void SerialRobotDriver::begin(){
       CONSOLE.print("EEPROM=");
       CONSOLE.println(v);
     }
-
-    // LED test    
-    if (false){
-      bool state = false;
-      CONSOLE.println("LED test");
-      for (int i=0 ;i < 5; i++){      
-        ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, state);
-        ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, !state);        
-
-        ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, state);
-        ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, !state);        
-
-        ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, state);
-        ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, !state);        
-        state = !state;
-        delay(1000);
-      }
-    }
-    
   #endif
 }
 
@@ -369,33 +360,34 @@ void SerialRobotDriver::processComm(){
 }
 
 void SerialRobotDriver::updatePanelLEDs(){
+  // panel led numbers (top-down): 2,3,1   
   // idle/error status
   if (ledStateError){
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, false); 
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, true);            
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, false); 
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, true);            
   } else {
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, true);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, false);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, true);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, false);
   }
   // gps status
   if (ledStateGpsFix){
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, true); 
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, false);            
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, true); 
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, false);            
   } 
   else if (ledStateGpsFloat) {
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, false);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, false);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, false);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, true);
   } else {
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, false);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, true);    
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, false);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, false);    
   }
   // wifi status
   if (ledStateWifiConnected){ 
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, true);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, false);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, true);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, false);
   } else {
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, false);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, true);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, false);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, true);
   }
 }
 
