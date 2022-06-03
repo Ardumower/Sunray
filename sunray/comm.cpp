@@ -127,8 +127,11 @@ void cmdControl(){
           }
       } else if (counter == 2){                                      
           if (intValue >= 0) op = intValue; 
-      } else if (counter == 3){                                      
-          if (floatValue >= 0) setSpeed = floatValue; 
+      } else if (counter == 3){
+				if (floatValue >= 0) {
+					setSpeed = floatValue; 
+					if (setSpeed > MOTOR_MAX_SPEED) setSpeed = MOTOR_MAX_SPEED;   // limitation for setSpeed (please see "MOTOR_MAX_SPEED" in config.h) //SOew
+				}
       } else if (counter == 4){                                      
           if (intValue >= 0) fixTimeout = intValue; 
       } else if (counter == 5){
