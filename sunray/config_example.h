@@ -151,6 +151,19 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define MOTOR_DRIVER_BRUSHLESS_GEARS_A4931  1    // uncomment for brushless A4931 driver and gear/traction motors
 //#define MOTOR_DRIVER_BRUSHLESS_GEARS_BLDC8015A 1   // uncomment for brushless BLDC8015A driver and gear/traction motors
 
+//Speeds/Time for different movement operations
+#define MOW_SPINUPTIME          5000 //Adds time to rotate mowingblades before starting moving (ms)
+#define OVERLOADSPEED           0.15 //m/s
+#define ROTATETOTARGETSPEED     1.0 //0.5=29degree/sec
+#define TRACKSLOWSPEED          0.10 //m/s
+#define APPROACHWAYPOINTSPEED   0.15 //m/s
+#define FLOATSPEED              0.15 //m/s
+#define SONARSPEED              0.10 //m/s
+#define DOCKANGULARSPEED        0.25 //rad/s
+#define OBSTACLEAVOIDANCESPEED  0.15 //m/s
+#define GOHOMESPEED             0.59 //m/s
+#define MOTOR_MAX_SPEED         0.50          // limitation for setSpeed value from Sunray-App (0,01 to 0,59m/sec are possible) to avoid to high speed setting by mistake   // SOEW_NEU
+#define MOTOR_MIN_SPEED         0.05          // minimal driving speed
 
 #define MOTOR_OVERLOAD_CURRENT 0.8    // gear motors overload current (amps)
 
