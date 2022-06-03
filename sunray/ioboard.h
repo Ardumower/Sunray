@@ -14,6 +14,9 @@ extern "C"{
 // I2C multiplexer slaves (TCA9548A)  https://www.ti.com/lit/ds/symlink/tca9548a.pdf
 #define MUX_I2C_ADDR    0x70
 #define SLAVE_BUS0        0   // MPU6050 (Alfred dev PCB without buzzer)
+#define SLAVE_BUS1        1   
+#define SLAVE_BUS2        2   
+#define SLAVE_BUS3        3   
 #define SLAVE_IMU_MPU     4   // MPU6050 (Alfred dev PCB with buzzer)
 #define SLAVE_ADC         6   // MCP3421
 #define SLAVE_IMU_BNO     7   // BNO055
@@ -51,7 +54,7 @@ extern "C"{
 // I/O port expander 3 channels (PCA9555)  https://www.nxp.com/docs/en/data-sheet/PCA9555.pdf
 // a channel is identified by two numbers: port, pin
 // (panel LEDs)
-#define EX3_I2C_ADDR     0x20
+#define EX3_I2C_ADDR     0x22
 #define EX3_LED1_PORT    0          // LED1
 #define EX3_LED1_PIN     0          
 #define EX3_LED2_PORT    0          // LED2
