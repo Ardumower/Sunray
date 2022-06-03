@@ -157,6 +157,12 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define USE_LINEAR_SPEED_RAMP  true      // use a speed ramp for the linear speed
 #define USE_LINEAR_SPEED_RAMP  false      // do not use a speed ramp 
 
+// It is possible to navigate the mower by touch-joystick in sunray-app. In some cases it could be neccessary to navigate the mower very soften, especially when your connected by
+// wifi to the mower. If parameter is set to true, the speed value from app will be used for maximum speed by joystick control. To navigate soften, 
+// change the speed slider for example to 0.10. If you need to let the mower drive long distance without accurate positioning change the speed slider to higher values. 
+#define USE_SETSPEED_FOR_APPJOYSTICK true  // setting of setSpeed is used for maximum speed of mower control with joystick in sunray-app.
+//#define USE_SETSPEED_FOR_APPJOYSTICK false  // mower will drive at a maximum speed of 0.33m/sec by control with joystick in sunray-app.
+
 // motor speed control (PID coefficients) - these values are tuned for Ardumower motors
 // general information about PID controllers: https://wiki.ardumower.de/index.php?title=PID_control
 #define MOTOR_PID_KP     2.0    // do not change 2.0 (for non-Ardumower motors or if the motor speed control is too fast you may try: KP=1.0, KI=0, KD=0)
@@ -311,7 +317,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Automatic_battery_switch_off
 #define BAT_SWITCH_OFF_IDLE  false         // switch off if idle (JP8 must be set to autom.)
 #define BAT_SWITCH_OFF_UNDERVOLTAGE  true  // switch off if undervoltage (JP8 must be set to autom.)
-#define BUMPER_MAX_TRIGGER_TIME 30  // if bumpersensor stays permanent triggered mower will stop with bumper error (time in seconds; 0 = disabled)
+#define BUMPER_MAX_TRIGGER_TIME 30         // if bumpersensor stays permanent triggered mower will stop with bumper error (time in seconds; 0 = disabled)
 
 
 // ------ GPS ------------------------------------------
