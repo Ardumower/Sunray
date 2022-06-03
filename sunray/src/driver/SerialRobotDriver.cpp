@@ -102,6 +102,19 @@ void SerialRobotDriver::begin(){
       CONSOLE.print("EEPROM=");
       CONSOLE.println(v);
     }
+
+    // LED test    
+    if (false){
+      bool state = false;
+      CONSOLE.println("LED test");
+      for (int i=0 ;i < 5; i++){      
+        ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_PORT, EX3_LED1_PIN, state);
+        ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_PORT, EX3_LED3_PIN, state);    
+        ioExpanderOut(EX3_I2C_ADDR, EX3_LED5_PORT, EX3_LED5_PIN, state);          
+        state = !state;
+        delay(2000);
+      }
+    }
     
   #endif
 }
@@ -340,6 +353,10 @@ void SerialRobotDriver::processComm(){
   }     
 }
 
+void SerialRobotDriver::updatePanelLEDs(){
+  //ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_PORT, EX3_LED1_PIN, true);
+
+}
 
 void SerialRobotDriver::run(){  
   processComm();
