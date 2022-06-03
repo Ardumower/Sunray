@@ -60,7 +60,7 @@ void trackLine(bool runControl){
   
   
   if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
-    linear = 0.1;  
+    linear = OVERLOADSPEED; // see config.h  
   }   
           
   // allow rotations only near last or next waypoint or if too far away from path
@@ -75,7 +75,12 @@ void trackLine(bool runControl){
   if (!angleToTargetFits){
     // angular control (if angle to far away, rotate to next waypoint)
     linear = 0;
-    angular = 29.0 / 180.0 * PI; //  29 degree/s (0.5 rad/s);               
+    //angular = 29.0 / 180.0 * PI; //  29 degree/s (0.5 rad/s);
+
+    // different angular speed by docking and undocking action
+    if ((maps.isDocking()) || (maps.isUndocking())) angular = DOCKANGULARSPEED;
+    else angular = ROTATETOTARGETSPEED;    
+    
     if ((!rotateLeft) && (!rotateRight)){ // decide for one rotation direction (and keep it)
       if (trackerDiffDelta < 0) rotateLeft = true;
         else rotateRight = true;
@@ -91,19 +96,19 @@ void trackLine(bool runControl){
     bool straight = maps.nextPointIsStraight();
     if (maps.trackSlow) {
       // planner forces slow tracking (e.g. docking etc)
-      linear = 0.1;           
+      linear = TRACKSLOWSPEED;  // see config.h           
     } else if (     ((setSpeed > 0.2) && (maps.distanceToTargetPoint(stateX, stateY) < 0.5) && (!straight))   // approaching
-          || ((linearMotionStartTime != 0) && (millis() < linearMotionStartTime + 3000))                      // leaving  
+          || ((linearMotionStartTime != 0) && (millis() < linearMotionStartTime + 1000))                      // leaving  
        ) 
     {
-      linear = 0.1; // reduce speed when approaching/leaving waypoints          
+      linear = APPROACHWAYPOINTSPEED; // reduce speed when approaching/leaving waypoints          
     } 
     else {
       if (gps.solution == SOL_FLOAT)        
-        linear = min(setSpeed, 0.1); // reduce speed for float solution
+        linear = min(setSpeed, FLOATSPEED); // reduce speed for float solution
       else
         linear = setSpeed;         // desired speed
-      if (sonar.nearObstacle()) linear = 0.1; // slow down near obstacles
+      if (sonar.nearObstacle()) linear = SONARSPEED; // slow down near obstacles
     }      
     //angula                                    r = 3.0 * trackerDiffDelta + 3.0 * lateralError;       // correct for path errors 
     
