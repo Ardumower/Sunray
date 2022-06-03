@@ -726,7 +726,22 @@ bool detectObstacle(){
       triggerObstacle();    
       return true;
     }
+    // check if bumper stays triggered for a long time periode (maybe blocked)
+    if (bumper.obstacle() && (BUMPER_MAX_TRIGGER_TIME > 0)){
+      if ((abs(motor.linearSpeedSet) >= MOTOR_MIN_SPEED) || (abs(motor.angularSpeedSet) >= MOTOR_MIN_SPEED)) { // if no movement, bumperStayActivTime paused
+        bumperStayActivTime = bumperStayActivTime + (millis()-lastCallBumperObstacle);
+      }
+      if ((bumperStayActivTime) > (BUMPER_MAX_TRIGGER_TIME * 1000)){ // maximum trigger time reached -> set error
+        if (stateOp != OP_ERROR){
+          stateSensor = SENS_BUMPER;
+          CONSOLE.println("ERROR BUMPER BLOCKED");
+          setOperation(OP_ERROR);
+        }
+      }
+    } else bumperStayActivTime = 0;
+    lastCallBumperObstacle = millis();
   }
+  
   if (sonar.obstacle() && (maps.wayMode != WAY_DOCK)){
     CONSOLE.println("sonar obstacle!");    
     statMowSonarCounter++;
