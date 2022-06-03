@@ -173,6 +173,7 @@ AmMotorDriver::AmMotorDriver(){
   DRV8308.adcVoltToAmpPow = 1.0; 
 
   // A4931 (https://www.allegromicro.com/en/Products/Motor-Driver-And-Interface-ICs/Brushless-DC-Motor-Drivers/~/media/Files/Datasheets/A4931-Datasheet.ashx) - PwmFreqMax=30 kHz
+  // alternatives: MS4931 (https://datasheet.lcsc.com/lcsc/1809131539_Hangzhou-Ruimeng-Tech-MS4931_C231944.pdf)
   A4931.driverName = "A4931";
   A4931.forwardPwmInvert = false;
   A4931.forwardDirLevel = HIGH;
