@@ -27,7 +27,7 @@ void EscapeReverseOp::end(){
 
 void EscapeReverseOp::run(){
     battery.resetIdle();
-    motor.setLinearAngularSpeed(-0.1,0);
+    motor.setLinearAngularSpeed(-OBSTACLEAVOIDANCESPEED,0);
     motor.setMowState(false);                                        
 
     if (millis() > driveReverseStopTime){
