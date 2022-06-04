@@ -1,4 +1,4 @@
-// Ardumower Sunray 
+// Ardumower Sunray V1.0.267 mit Joystickspeed und SpeedParameter installiert.
 // Copyright (c) 2013-2020 by Alexander Grau, Grau GmbH
 // Licensed GPLv3 for open source use
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
@@ -149,7 +149,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define SONARSPEED              0.10 //m/s
 #define DOCKANGULARSPEED        0.25 //rad/s
 #define OBSTACLEAVOIDANCESPEED  0.15 //m/s
-#define GOHOMESPEED             0.59 //m/s
 #define MOTOR_MAX_SPEED         0.50          // limitation for setSpeed value from Sunray-App (0,01 to 0,59m/sec are possible) to avoid to high speed setting by mistake   // SOEW_NEU
 #define MOTOR_MIN_SPEED         0.05          // minimal driving speed
 
