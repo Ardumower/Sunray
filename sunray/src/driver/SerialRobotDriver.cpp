@@ -41,6 +41,7 @@ void SerialRobotDriver::begin(){
   cmdSummaryCounter = 0;
   requestLeftPwm = requestRightPwm = requestMowPwm = 0;
   robotID = "XX";
+  ledStateWifiInactive = false;
   ledStateWifiConnected = false;
   ledStateGpsFix = false;
   ledStateGpsFloat = false;
@@ -138,6 +139,19 @@ float SerialRobotDriver::getCpuTemperature(){
     return p.readString().toFloat() / 1000.0;    
   #else
     return 0;
+  #endif
+}
+
+void SerialRobotDriver::getWifiConnectionState(bool &isWifiConnected, bool &isWifiInactive){
+  #ifdef __linux__
+    Process p;
+    p.runShellCommand("wpa_cli -i wlan0 status | grep wpa_state | cut -d '=' -f2");  
+    String s = p.readString();
+    // DISCONNECTED, SCANNING, INACTIVE, COMPLETED 
+    isWifiConnected = (s == "COMPLETED");
+    isWifiInactive = (s == "INACTIVE");           
+  #else
+    isWifiInactive = isWifiConnected = false;
   #endif
 }
 
@@ -385,9 +399,12 @@ void SerialRobotDriver::updatePanelLEDs(){
   if (ledStateWifiConnected){ 
     ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, true);
     ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, false);
-  } else {
+  } else if (ledStateWifiInactive) {
     ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, false);
     ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, true);
+  } else {
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, false);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, false);
   }
 }
 
@@ -403,7 +420,7 @@ void SerialRobotDriver::run(){
     requestSummary();
   }
   if (millis() > nextConsoleTime){
-    nextConsoleTime = millis() + 1000;    
+    nextConsoleTime = millis() + 1000;  // 1 hz    
     if (!mcuCommunicationLost){
       if (mcuFirmwareName == ""){
         requestVersion();
@@ -428,6 +445,7 @@ void SerialRobotDriver::run(){
       }
     }   
     cmdMotorCounter=cmdMotorResponseCounter=cmdSummaryCounter=cmdSummaryResponseCounter=0;
+    getWifiConnectionState(ledStateWifiConnected, ledStateWifiInactive);
   }
 }
 

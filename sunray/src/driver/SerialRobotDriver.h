@@ -63,6 +63,7 @@ class SerialRobotDriver: public RobotDriver {
     void motorResponse();
     void summaryResponse();
     void versionResponse();
+    void getWifiConnectionState(bool &isWifiConnected, bool &isWifiInactive);
 };
 
 class SerialMotorDriver: public MotorDriver {

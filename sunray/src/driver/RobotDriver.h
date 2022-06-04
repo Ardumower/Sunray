@@ -14,6 +14,7 @@
 class RobotDriver {
   public:    
     // ---- led states -----           
+    bool ledStateWifiInactive;
     bool ledStateWifiConnected;
     bool ledStateGpsFix;
     bool ledStateGpsFloat;
