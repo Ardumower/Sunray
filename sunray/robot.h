@@ -98,7 +98,7 @@ extern bool hasClient;
 extern unsigned long controlLoops;
 extern bool wifiFound;
 extern int motorErrorCounter;
-
+extern float stateTemp; // aktuelle Temperatur
 
 #ifdef DRV_SERIAL_ROBOT
   extern SerialRobotDriver robotDriver;
