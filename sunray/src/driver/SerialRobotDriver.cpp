@@ -671,6 +671,7 @@ void SerialBatteryDriver::keepPowerOn(bool flag){
     if (flag){
       // keep power on
       linuxShutdownTime = 0;
+      serialRobot.ledStateShutdown = false;
     } else {
       // shutdown linux - request could be for two reasons:
       // 1. battery voltage sent by MUC-PCB seem to be too low 
