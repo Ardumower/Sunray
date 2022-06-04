@@ -681,7 +681,7 @@ void SerialBatteryDriver::keepPowerOn(bool flag){
       if (millis() > linuxShutdownTime){
         linuxShutdownTime = millis() + 10000; // re-trigger linux command after 10 secs
         serialRobot.ledStateShutdown = true;
-        updatePanelLEDs();
+        serialRobot.updatePanelLEDs();
         CONSOLE.println("LINUX will SHUTDOWN!");
         Process p;
         p.runShellCommand("shutdown now");
