@@ -134,9 +134,10 @@ bool SerialRobotDriver::getMcuFirmwareVersion(String &name, String &ver){
 
 float SerialRobotDriver::getCpuTemperature(){
   #ifdef __linux__
-    Process p;
-    p.runShellCommand("cat /sys/class/thermal/thermal_zone0/temp");  
-    return p.readString().toFloat() / 1000.0;    
+    return 0;
+    //Process p;
+    //p.runShellCommand("cat /sys/class/thermal/thermal_zone0/temp");  
+    //return p.readString().toFloat() / 1000.0;    
   #else
     return 0;
   #endif
@@ -447,7 +448,7 @@ void SerialRobotDriver::run(){
       }
     }   
     cmdMotorCounter=cmdMotorResponseCounter=cmdSummaryCounter=cmdSummaryResponseCounter=0;
-    getWifiConnectionState(ledStateWifiConnected, ledStateWifiInactive);
+    //getWifiConnectionState(ledStateWifiConnected, ledStateWifiInactive);
   }
 }
 
@@ -545,9 +546,10 @@ void SerialBatteryDriver::run(){
 
 float SerialBatteryDriver::getBatteryTemperature(){
   #ifdef __linux__
-    Process p;
-    p.runShellCommand("cat /sys/class/thermal/thermal_zone1/temp");  
-    return p.readString().toFloat() / 1000.0;    
+    return 0;
+    //Process p;
+    //p.runShellCommand("cat /sys/class/thermal/thermal_zone1/temp");  
+    //return p.readString().toFloat() / 1000.0;    
   #else
     return 0;
   #endif
