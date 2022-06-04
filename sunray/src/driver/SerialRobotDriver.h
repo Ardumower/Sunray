@@ -10,6 +10,7 @@
 
 #include <Arduino.h>
 #include "RobotDriver.h"
+#include <Process.h>
 
 
 class SerialRobotDriver: public RobotDriver {
@@ -33,6 +34,7 @@ class SerialRobotDriver: public RobotDriver {
     float motorRightCurr;
     bool resetMotorTicks;
     float batteryTemp;
+    float cpuTemp;
     bool triggeredLeftBumper;
     bool triggeredRightBumper;
     bool triggeredLift;
@@ -47,12 +49,17 @@ class SerialRobotDriver: public RobotDriver {
     void requestSummary();
     void requestVersion();
     void updatePanelLEDs();
+    void updateCpuTemperature();
+    void updateWifiConnectionState();
   protected:    
+    Process cpuTempProcess;
+    Process wifiStatusProcess;    
     String cmd;
     String cmdResponse;
     unsigned long nextMotorTime;    
     unsigned long nextSummaryTime;
     unsigned long nextConsoleTime;
+    unsigned long nextTempTime;
     int cmdMotorCounter;
     int cmdSummaryCounter;
     int cmdMotorResponseCounter;
@@ -63,7 +70,6 @@ class SerialRobotDriver: public RobotDriver {
     void motorResponse();
     void summaryResponse();
     void versionResponse();
-    void getWifiConnectionState(bool &isWifiConnected, bool &isWifiInactive);
 };
 
 class SerialMotorDriver: public MotorDriver {
@@ -83,10 +89,13 @@ class SerialMotorDriver: public MotorDriver {
 
 class SerialBatteryDriver : public BatteryDriver {
   public:   
+    float batteryTemp;
     bool mcuBoardPoweredOn;
+    unsigned long nextTempTime;
     unsigned long nextADCTime;
     bool adcTriggered;
     unsigned long linuxShutdownTime;
+    Process batteryTempProcess;
     SerialRobotDriver &serialRobot;
     SerialBatteryDriver(SerialRobotDriver &sr);
     void begin() override;
@@ -97,6 +106,7 @@ class SerialBatteryDriver : public BatteryDriver {
     float getBatteryTemperature() override;    
     virtual void enableCharging(bool flag) override;
     virtual void keepPowerOn(bool flag) override;
+    void updateBatteryTemperature();
 };
 
 class SerialBumperDriver: public BumperDriver {

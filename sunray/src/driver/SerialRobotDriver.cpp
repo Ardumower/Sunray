@@ -20,6 +20,7 @@ void SerialRobotDriver::begin(){
   chargeVoltage = 0;
   chargeCurrent = 0;  
   batteryVoltage = 0;
+  cpuTemp = 0;
   mowCurr = 0;
   motorLeftCurr = 0;
   motorRightCurr = 0;
@@ -35,6 +36,7 @@ void SerialRobotDriver::begin(){
   nextSummaryTime = 0;
   nextConsoleTime = 0; 
   nextMotorTime = 0;
+  nextTempTime = 0;
   cmdMotorResponseCounter = 0;
   cmdSummaryResponseCounter = 0;
   cmdMotorCounter = 0;
@@ -118,6 +120,7 @@ void SerialRobotDriver::begin(){
       CONSOLE.print("EEPROM=");
       CONSOLE.println(v);
     }
+
   #endif
 }
 
@@ -133,28 +136,44 @@ bool SerialRobotDriver::getMcuFirmwareVersion(String &name, String &ver){
 }
 
 float SerialRobotDriver::getCpuTemperature(){
+  return cpuTemp;
+}
+
+void SerialRobotDriver::updateCpuTemperature(){
   #ifdef __linux__
-    return 0;
-    //Process p;
-    //p.runShellCommand("cat /sys/class/thermal/thermal_zone0/temp");  
-    //return p.readString().toFloat() / 1000.0;    
-  #else
-    return 0;
+    unsigned long startTime = millis();
+    String s;        
+    while (cpuTempProcess.available()) s+= (char)cpuTempProcess.read();
+    if (s.length() > 0) {
+      cpuTemp = s.toFloat() / 1000.0;    
+      CONSOLE.print("updateCpuTemperature cpuTemp=");
+      CONSOLE.println(cpuTemp);
+    }
+    cpuTempProcess.runShellCommand("cat /sys/class/thermal/thermal_zone0/temp");      
+    unsigned long duration = millis() - startTime;        
+    CONSOLE.print("updateCpuTemperature duration: ");
+    CONSOLE.println(duration);        
   #endif
 }
 
-void SerialRobotDriver::getWifiConnectionState(bool &isWifiConnected, bool &isWifiInactive){
+void SerialRobotDriver::updateWifiConnectionState(){
   #ifdef __linux__
-    Process p;
-    p.runShellCommand("wpa_cli -i wlan0 status | grep wpa_state | cut -d '=' -f2");  
-    String s = p.readString();
-    s.trim();
-    // DISCONNECTED, SCANNING, INACTIVE, COMPLETED 
-    //CONSOLE.println(s);
-    isWifiConnected = (s == "COMPLETED");
-    isWifiInactive = (s == "INACTIVE");           
-  #else
-    isWifiInactive = isWifiConnected = false;
+    unsigned long startTime = millis();   
+    String s; 
+    while (wifiStatusProcess.available()) s+= (char)wifiStatusProcess.read(); 
+    if (s.length() > 0){    
+      s.trim();
+      CONSOLE.print("updateWifiConnectionState state=");
+      CONSOLE.println(s);
+      // DISCONNECTED, SCANNING, INACTIVE, COMPLETED 
+      //CONSOLE.println(s);
+      ledStateWifiConnected = (s == "COMPLETED");
+      ledStateWifiInactive = (s == "INACTIVE");                   
+    }  
+    wifiStatusProcess.runShellCommand("wpa_cli -i wlan0 status | grep wpa_state | cut -d '=' -f2");  
+    unsigned long duration = millis() - startTime;        
+    CONSOLE.print("updateWifiConnectionState duration: ");
+    CONSOLE.println(duration);
   #endif
 }
 
@@ -412,7 +431,6 @@ void SerialRobotDriver::updatePanelLEDs(){
 }
 
 void SerialRobotDriver::run(){  
-  updatePanelLEDs();  
   processComm();
   if (millis() > nextMotorTime){
     nextMotorTime = millis() + 20; // 50 hz
@@ -446,9 +464,14 @@ void SerialRobotDriver::run(){
       if (cmdMotorResponseCounter == 0){
         // FIXME: maybe reset motor PID controls here?
       }
-    }   
+    }     
     cmdMotorCounter=cmdMotorResponseCounter=cmdSummaryCounter=cmdSummaryResponseCounter=0;
-    //getWifiConnectionState(ledStateWifiConnected, ledStateWifiInactive);
+    updatePanelLEDs();
+  }  
+  if (millis() > nextTempTime){
+    nextTempTime = millis() + 5000; // 5 sec
+    updateCpuTemperature();
+    updateWifiConnectionState();      
   }
 }
 
@@ -534,6 +557,8 @@ void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, in
 SerialBatteryDriver::SerialBatteryDriver(SerialRobotDriver &sr) : serialRobot(sr){
   mcuBoardPoweredOn = true;
   nextADCTime = 0;
+  nextTempTime = 0;
+  batteryTemp = 0;
   adcTriggered = false;
   linuxShutdownTime = 0;
 }
@@ -542,14 +567,33 @@ void SerialBatteryDriver::begin(){
 }
 
 void SerialBatteryDriver::run(){
+  if (millis() > nextTempTime){
+    nextTempTime = millis() + 5000;
+    updateBatteryTemperature();
+  }
 }    
+
+void SerialBatteryDriver::updateBatteryTemperature(){
+  #ifdef __linux__
+    unsigned long startTime = millis();
+    String s;        
+    while (batteryTempProcess.available()) s+= (char)batteryTempProcess.read();
+    if (s.length() > 0) {
+      batteryTemp = s.toFloat() / 1000.0;    
+      CONSOLE.print("updateBatteryTemperature batteryTemp=");
+      CONSOLE.println(batteryTemp);
+    }
+    batteryTempProcess.runShellCommand("cat /sys/class/thermal/thermal_zone1/temp");  
+    unsigned long duration = millis() - startTime;        
+    CONSOLE.print("updateBatteryTemperature duration: ");
+    CONSOLE.println(duration);        
+  #endif
+}
+
 
 float SerialBatteryDriver::getBatteryTemperature(){
   #ifdef __linux__
-    return 0;
-    //Process p;
-    //p.runShellCommand("cat /sys/class/thermal/thermal_zone1/temp");  
-    //return p.readString().toFloat() / 1000.0;    
+    return batteryTemp;
   #else
     return 0;
   #endif
