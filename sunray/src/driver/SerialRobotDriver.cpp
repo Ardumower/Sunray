@@ -677,11 +677,12 @@ void SerialBatteryDriver::keepPowerOn(bool flag){
       // 2. MCU-PCB is powered-off 
       if (linuxShutdownTime == 0){
         linuxShutdownTime = millis() + 5000; // some timeout 
+        // turn off panel LEDs
+        serialRobot.ledStateShutdown = true;
+        serialRobot.updatePanelLEDs();        
       }
       if (millis() > linuxShutdownTime){
         linuxShutdownTime = millis() + 10000; // re-trigger linux command after 10 secs
-        serialRobot.ledStateShutdown = true;
-        serialRobot.updatePanelLEDs();
         CONSOLE.println("LINUX will SHUTDOWN!");
         Process p;
         p.runShellCommand("shutdown now");
