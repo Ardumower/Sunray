@@ -51,6 +51,7 @@ void SerialRobotDriver::begin(){
   ledStateGpsFloat = false;
   ledStateShutdown = false;  
   ledStateError = false;
+  ledStateShutdown = false;
 
   #ifdef __linux__
     CONSOLE.println("reading robot ID...");
@@ -409,6 +410,12 @@ void SerialRobotDriver::processComm(){
 }
 
 void SerialRobotDriver::updatePanelLEDs(){
+  if (ledStateShutdown) {
+    setLedState(1, false, false);
+    setLedState(2, false, false);
+    setLedState(3, false, false);        
+    return;    
+  }
   // panel led numbers (top-down): 2,3,1   
   // idle/error status
   if (ledStateError){
@@ -673,9 +680,8 @@ void SerialBatteryDriver::keepPowerOn(bool flag){
       }
       if (millis() > linuxShutdownTime){
         linuxShutdownTime = millis() + 10000; // re-trigger linux command after 10 secs
-        serialRobot.setLedState(1, false, false);
-        serialRobot.setLedState(2, false, false);
-        serialRobot.setLedState(3, false, false);        
+        serialRobot.ledStateShutdown = true;
+        updatePanelLEDs();
         CONSOLE.println("LINUX will SHUTDOWN!");
         Process p;
         p.runShellCommand("shutdown now");
