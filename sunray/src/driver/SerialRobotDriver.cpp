@@ -147,7 +147,9 @@ void SerialRobotDriver::getWifiConnectionState(bool &isWifiConnected, bool &isWi
     Process p;
     p.runShellCommand("wpa_cli -i wlan0 status | grep wpa_state | cut -d '=' -f2");  
     String s = p.readString();
+    s.trim();
     // DISCONNECTED, SCANNING, INACTIVE, COMPLETED 
+    //CONSOLE.println(s);
     isWifiConnected = (s == "COMPLETED");
     isWifiInactive = (s == "INACTIVE");           
   #else
