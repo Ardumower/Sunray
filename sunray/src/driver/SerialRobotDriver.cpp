@@ -86,15 +86,10 @@ void SerialRobotDriver::begin(){
       ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, false);    
     }
 
-    // LEDs     
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, true);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, false);        
-
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, true);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, false);        
-
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, true);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, false);        
+    // LEDs
+    setLedState(1, true, false);
+    setLedState(2, true, false);
+    setLedState(3, true, false);
   
     // start ADC
     ioAdcStart(ADC_I2C_ADDR, false, true);
@@ -125,6 +120,22 @@ void SerialRobotDriver::begin(){
 
   #endif
 }
+
+void SerialRobotDriver::setLedState(int ledNumber, bool greenState, bool redState){
+  if (ledNumber == 1){
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, greenState);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, redState);        
+  }
+  else if (ledNumber == 2){
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, greenState);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, redState);        
+  }
+  else if (ledNumber == 3){
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, greenState);
+    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, redState);        
+  }
+}
+
 
 bool SerialRobotDriver::getRobotID(String &id){
   id = robotID;
@@ -401,34 +412,26 @@ void SerialRobotDriver::updatePanelLEDs(){
   // panel led numbers (top-down): 2,3,1   
   // idle/error status
   if (ledStateError){
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, false); 
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, true);            
+    setLedState(2, false, true);
   } else {
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, true);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, false);
+    setLedState(2, true, false);
   }
   // gps status
   if (ledStateGpsFix){
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, true); 
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, false);            
+    setLedState(3, true, false); 
   } 
   else if (ledStateGpsFloat) {
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, false);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, true);
+    setLedState(3, false, true);
   } else {
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, false);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, false);    
+    setLedState(3, false, false);    
   }
   // wifi status
   if (ledStateWifiConnected){ 
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, true);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, false);
+    setLedState(1, true, false);
   } else if (ledStateWifiInactive) {
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, false);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, true);
+    setLedState(1, false, true);
   } else {
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, false);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, false);
+    setLedState(1, false, false);
   }
 }
 
@@ -670,6 +673,9 @@ void SerialBatteryDriver::keepPowerOn(bool flag){
       }
       if (millis() > linuxShutdownTime){
         linuxShutdownTime = millis() + 10000; // re-trigger linux command after 10 secs
+        serialRobot.setLedState(1, false, false);
+        serialRobot.setLedState(2, false, false);
+        serialRobot.setLedState(3, false, false);        
         CONSOLE.println("LINUX will SHUTDOWN!");
         Process p;
         p.runShellCommand("shutdown now");
