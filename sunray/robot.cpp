@@ -771,6 +771,7 @@ bool detectObstacleRotation(){
   }  
   if (!OBSTACLE_DETECTION_ROTATION) return false; 
   if (millis() > angularMotionStartTime + 15000) { // too long rotation time (timeout), e.g. due to obstacle
+    CONSOLE.println("too long rotation time (timeout) for requested rotation => assuming obstacle");
     triggerObstacleRotation();
     return true;
   }
@@ -787,11 +788,13 @@ bool detectObstacleRotation(){
   if (imuDriver.imuFound){
     if (millis() > angularMotionStartTime + 3000) {                  
       if (fabs(stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s yaw speed, e.g. due to obstacle
+        CONSOLE.println("no IMU rotation speed detected for requested rotation => assuming obstacle");    
         triggerObstacleRotation();
         return true;      
       }
     }
     if (diffIMUWheelYawSpeedLP > 10.0/180.0 * PI) {  // yaw speed difference between wheels and IMU more than 8 degree/s, e.g. due to obstacle
+      CONSOLE.println("yaw difference between wheels and IMU for requested rotation => assuming obstacle");            
       triggerObstacleRotation();
       return true;            
     }    
