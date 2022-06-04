@@ -37,6 +37,8 @@ void SerialRobotDriver::begin(){
   nextConsoleTime = 0; 
   nextMotorTime = 0;
   nextTempTime = 0;
+  nextWifiTime = 0;
+  nextLedTime = 0;
   cmdMotorResponseCounter = 0;
   cmdSummaryResponseCounter = 0;
   cmdMotorCounter = 0;
@@ -465,13 +467,19 @@ void SerialRobotDriver::run(){
         // FIXME: maybe reset motor PID controls here?
       }
     }     
-    cmdMotorCounter=cmdMotorResponseCounter=cmdSummaryCounter=cmdSummaryResponseCounter=0;
-    updatePanelLEDs();
+    cmdMotorCounter=cmdMotorResponseCounter=cmdSummaryCounter=cmdSummaryResponseCounter=0;    
   }  
+  if (millis() > nextLedTime){
+    nextLedTime = millis() + 3000;  // 3 sec
+    updatePanelLEDs();
+  }
   if (millis() > nextTempTime){
-    nextTempTime = millis() + 5000; // 5 sec
-    updateCpuTemperature();
-    updateWifiConnectionState();      
+    nextTempTime = millis() + 23000; // 23 sec
+    updateCpuTemperature();          
+  }
+  if (millis() > nextWifiTime){
+    nextWifiTime = millis() + 7000; // 7 sec
+    updateWifiConnectionState();
   }
 }
 
@@ -568,7 +576,7 @@ void SerialBatteryDriver::begin(){
 
 void SerialBatteryDriver::run(){
   if (millis() > nextTempTime){
-    nextTempTime = millis() + 5000;
+    nextTempTime = millis() + 19000; // 19 sec
     updateBatteryTemperature();
   }
 }    

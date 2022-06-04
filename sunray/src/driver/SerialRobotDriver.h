@@ -60,6 +60,8 @@ class SerialRobotDriver: public RobotDriver {
     unsigned long nextSummaryTime;
     unsigned long nextConsoleTime;
     unsigned long nextTempTime;
+    unsigned long nextWifiTime;
+    unsigned long nextLedTime;
     int cmdMotorCounter;
     int cmdSummaryCounter;
     int cmdMotorResponseCounter;
