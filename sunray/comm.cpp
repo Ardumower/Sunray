@@ -555,6 +555,14 @@ void cmdSummary(){
   s += maps.mapCRC;
   s += ",";
   s += lateralError;
+  s += ",";
+  s += stateTemp; // Aktuelle Temperatur
+  s += ",";
+  s += motor.motorRightSenseLP; // Motorstrom Antriebsmotor rechts
+  s += ",";
+  s += motor.motorLeftSenseLP; // Motorstrom Antriebsmotor links
+  s += ",";
+  s += motor.motorMowSenseLP; // Motorstrom Mähmotor
   cmdAnswer(s);  
 }
 
