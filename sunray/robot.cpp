@@ -142,6 +142,9 @@ unsigned long nextTempTime = 0;
 unsigned long imuDataTimeout = 0;
 unsigned long nextSaveTime = 0;
 
+unsigned long bumperStayActivTime = 0;    // duration, the bumper stays triggered
+unsigned long lastCallBumperObstacle = 0; // last call for bumper.obstacle
+
 bool wifiFound = false;
 char ssid[] = WIFI_SSID;      // your network SSID (name)
 char pass[] = WIFI_PASS;        // your network password
@@ -1006,4 +1009,3 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
   activeOp->changeOperationType(stateOp, initiatedbyOperator);
   saveState();
 }
-
