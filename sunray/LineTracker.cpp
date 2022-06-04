@@ -180,7 +180,7 @@ void trackLine(bool runControl){
   }
    
   if (mow)  {  // wait until mowing motor is running
-    if (millis() < motor.motorMowSpinUpTime + 5000){
+    if (millis() < motor.motorMowSpinUpTime + MOW_SPINUPTIME){  // see config.h -> "MOW_SPINUPTIME"
       if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
       linear = 0;
       angular = 0;   
@@ -209,5 +209,3 @@ void trackLine(bool runControl){
     }
   }  
 }
-
-
