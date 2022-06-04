@@ -474,7 +474,7 @@ void SerialRobotDriver::run(){
     updatePanelLEDs();
   }
   if (millis() > nextTempTime){
-    nextTempTime = millis() + 23000; // 23 sec
+    nextTempTime = millis() + 59000; // 59 sec
     updateCpuTemperature();          
   }
   if (millis() > nextWifiTime){
@@ -576,7 +576,7 @@ void SerialBatteryDriver::begin(){
 
 void SerialBatteryDriver::run(){
   if (millis() > nextTempTime){
-    nextTempTime = millis() + 19000; // 19 sec
+    nextTempTime = millis() + 57000; // 57 sec
     updateBatteryTemperature();
   }
 }    
