@@ -782,14 +782,28 @@ void Map::run(){
     case WAY_DOCK:      
       if (dockPointsIdx < dockPoints.numPoints){
         targetPoint.assign( dockPoints.points[dockPointsIdx] );
+// Svol0:
+if ((dockPointsIdx+1) == dockPoints.numPoints){
+  if (DOCK_IGNORE_GPS == true) allowDockLastPointWithoutGPS = true;
+  if ((gps.solution == !SOL_FIXED) && (useGPSfixForPosEstimation == DOCK_IGNORE_GPS)){
+      useGPSfixForPosEstimation = !DOCK_IGNORE_GPS;
+      useGPSfixForDeltaEstimation = !DOCK_IGNORE_GPS;
+      CONSOLE.print("Map::run - gps.solution = ");
+      CONSOLE.print(gps.solution);
+      CONSOLE.print(" useGPSfixForPosEstimation = ");
+      CONSOLE.println(useGPSfixForPosEstimation);
+  }
+} else allowDockLastPointWithoutGPS = false;
       }
       break;
     case WAY_MOW:
+      allowDockLastPointWithoutGPS = false; // Svol0:
       if (mowPointsIdx < mowPoints.numPoints){
         targetPoint.assign( mowPoints.points[mowPointsIdx] );
       }
       break;
-    case WAY_FREE:      
+    case WAY_FREE:
+      allowDockLastPointWithoutGPS = false; // Svol0:      
       if (freePointsIdx < freePoints.numPoints){
         targetPoint.assign(freePoints.points[freePointsIdx]);
       }
@@ -1179,13 +1193,12 @@ bool Map::nextDockPoint(bool sim){
           // Svol0: only the last dockingpoints (value from "DOCK_SLOW_ONLY_LAST_POINTS") will be done with slow speed
           if ((dockPoints.numPoints > abs(DOCK_SLOW_ONLY_LAST_POINTS)) && 
           (dockPointsIdx < (dockPoints.numPoints - abs(DOCK_SLOW_ONLY_LAST_POINTS))) && (DOCK_SLOW_ONLY_LAST_POINTS != 0) ){
-            if (!sim) trackSlow = false;      
+            if (!sim) trackSlow = false;
           }
         }
-      }              
-      if (!sim) trackSlow = true;
+      }
       if (!sim) useGPSfixForPosEstimation = true;
-      if (!sim) useGPSfixForDeltaEstimation = true;      
+      if (!sim) useGPSfixForDeltaEstimation = true;
       if (!sim) useGPSfloatForPosEstimation = false;    
       if (!sim) useGPSfloatForDeltaEstimation = false;    
       if (!sim) useIMU = true;     // false      
@@ -1208,6 +1221,9 @@ bool Map::nextDockPoint(bool sim){
         if (!sim) trackSlow = true;      
         if (!sim) useGPSfixForPosEstimation = !DOCK_IGNORE_GPS;
         if (!sim) useGPSfixForDeltaEstimation = !DOCK_IGNORE_GPS;
+        if (!sim) useGPSfloatForPosEstimation = false;  
+        if (!sim) useGPSfloatForDeltaEstimation = false;
+
         // to avoid "gps no speed => obstacle!" error
         if ((dockGpsRebootState == 0) && (dockGpsRebootState != 10)){
           dockGpsRebootState  = 10;
@@ -1220,9 +1236,9 @@ bool Map::nextDockPoint(bool sim){
         if (!sim) trackSlow = false;
         if (!sim) useGPSfixForPosEstimation = true;
         if (!sim) useGPSfixForDeltaEstimation = true;                  
+        if (!sim) useGPSfloatForPosEstimation = true;  
+        if (!sim) useGPSfloatForDeltaEstimation = true;
       }
-      if (!sim) useGPSfloatForPosEstimation = false;  
-      if (!sim) useGPSfloatForDeltaEstimation = false;
       if (!sim) useIMU = true; // false
             
       // Svol0: activates gps-reboot by reaching specified dockingpoint (please see "DOCK_POINT_GPS_REBOOT" in config.h)

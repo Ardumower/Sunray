@@ -35,6 +35,8 @@ unsigned long dockGpsRebootTime;          // Svol0: retry timer for gps-fix afte
 unsigned long dockGpsRebootFixCounter;    // Svol0: waitingtime for fix after gps-reboot
 unsigned long dockGpsRebootFeedbackTimer; // Svol0: timer to generate acustic feedback
 bool dockGpsRebootDistGpsTrg = false;     // Svol0: trigger to check solid gps-fix position (no jump)
+bool allowDockLastPointWithoutGPS = false;  // Svol0: allow go on docking by loosing gps fix
+bool warnDockWithoutGpsTrg = false;            // Svol0: Trigger for warnmessage
 
 // control robot velocity (linear,angular) to track line to next waypoint (target)
 // uses a stanley controller for line tracking
@@ -84,7 +86,8 @@ void trackLine(bool runControl){
     //angular = 29.0 / 180.0 * PI; //  29 degree/s (0.5 rad/s);
 
     // different angular speed by docking and undocking action
-    if ((maps.isDocking()) || (maps.isUndocking())) angular = DOCKANGULARSPEED;
+    // Svol0: only use "DOCKANGULARSPEED" by docking and undocking if "trackSlow" is activ
+    if (((maps.isDocking()) || (maps.isUndocking())) && (maps.trackSlow)) angular = DOCKANGULARSPEED;
     else angular = ROTATETOTARGETSPEED;    
     
     if ((!rotateLeft) && (!rotateRight)){ // decide for one rotation direction (and keep it)
@@ -157,6 +160,7 @@ void trackLine(bool runControl){
   }     
 
   if ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT)){        
+    warnDockWithoutGpsTrg = false;    // Svol0: reset warnmessage trigger
     if (abs(linear) > 0.06) {
       if ((millis() > linearMotionStartTime + 5000) && (stateGroundSpeed < 0.03)){
         // if in linear motion and not enough ground speed => obstacle
@@ -171,8 +175,16 @@ void trackLine(bool runControl){
   } else {
     // no gps solution
     if (REQUIRE_VALID_GPS){
-      CONSOLE.println("WARN: no gps solution!");
-      activeOp->onGpsNoSignal();
+      // Svol0: continue docking if gps solution gets lost by driving to the last point (normal if dockingstation is under a roof)
+      if (allowDockLastPointWithoutGPS == true){
+        if (!warnDockWithoutGpsTrg){
+          CONSOLE.println("WARN: Continue docking with no gps solution!");
+          warnDockWithoutGpsTrg = true;
+        }
+      } else {
+        CONSOLE.println("WARN: no gps solution!");
+        activeOp->onGpsNoSignal();
+      }
     }
   }
 
