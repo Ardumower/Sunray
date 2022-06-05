@@ -24,23 +24,23 @@ void ioI2cMux(uint8_t addr, uint8_t slave, bool enable){
 // port: 0-7
 // pin: 0-7
 // level: true or false
-void ioExpanderOut(uint8_t addr, uint8_t port, uint8_t pin, bool level){
+bool ioExpanderOut(uint8_t addr, uint8_t port, uint8_t pin, bool level){
   byte mask = (1 << pin);
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(6+port);    // configuration port    
-  Wire.endTransmission();
-  Wire.requestFrom(addr, 1);  
+  if (Wire.endTransmission() != 0) return false;
+  if (Wire.requestFrom(addr, 1) != 1) return false;  
   uint8_t state = Wire.read();   // get current configuration port
 
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(6+port); // configuration port     
   Wire.write( state & (~mask) ); // enable pin as output 
-  Wire.endTransmission();
-
+  if (Wire.endTransmission() != 0) return false;
+  
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(2+port);    // output port    
-  Wire.endTransmission();
-  Wire.requestFrom(addr, 1);  
+  if (Wire.endTransmission() != 0) return false;
+  if (Wire.requestFrom(addr, 1) != 1) return false;  
   state = Wire.read();   // get current output port
 
   Wire.beginTransmission(addr); // PCA9555 address 
@@ -50,7 +50,8 @@ void ioExpanderOut(uint8_t addr, uint8_t port, uint8_t pin, bool level){
     Wire.write( state | (mask) );    
   else 
     Wire.write( state & (~mask) );  
-  Wire.endTransmission();
+  if (Wire.endTransmission() != 0) return false;
+  return true;
 }
 
 // read I/O port expander (PCA9555) input
@@ -60,19 +61,19 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin){
   byte mask = (1 << pin);
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(6+port);    // configuration port    
-  Wire.endTransmission();
-  Wire.requestFrom(addr, 1);  
+  if (Wire.endTransmission() != 0) return false;
+  if (Wire.requestFrom(addr, 1) != 1) return false;  
   uint8_t state = Wire.read();   // get current configuration port
 
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(6+port); // configuration port     
   Wire.write( state | (mask) ); // enable pin as input 
-  Wire.endTransmission();
+  if (Wire.endTransmission() != 0) return false;
 
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(0+port);    // input port    
-  Wire.endTransmission();
-  Wire.requestFrom(addr, 1);  
+  if (Wire.endTransmission() != 0) return false;
+  if (Wire.requestFrom(addr, 1) != 1) return false;  
   state = Wire.read();   // get current output port
   return ((state & mask) != 0); 
 }
@@ -80,18 +81,19 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin){
 
 // choose ADC multiplexer (DG408) channel  
 // adc: 1-8
-void ioAdcMux(uint8_t adc){
+bool ioAdcMux(uint8_t adc){
   int idx = adc - 1;
   //  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_MUX_EN_PORT, EX1_ADC_MUX_EN_PIN, false);
-  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_MUX_A0_PORT, EX1_ADC_MUX_A0_PIN, (idx & 1) != 0);
-  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_MUX_A1_PORT, EX1_ADC_MUX_A1_PIN, (idx & 2) != 0);
-  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_MUX_A2_PORT, EX1_ADC_MUX_A2_PIN, (idx & 4) != 0);
-  ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_MUX_EN_PORT, EX1_ADC_MUX_EN_PIN, true);  
+  if (!ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_MUX_A0_PORT, EX1_ADC_MUX_A0_PIN, (idx & 1) != 0)) return false;
+  if (!ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_MUX_A1_PORT, EX1_ADC_MUX_A1_PIN, (idx & 2) != 0)) return false;
+  if (!ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_MUX_A2_PORT, EX1_ADC_MUX_A2_PIN, (idx & 4) != 0)) return false;
+  if (!ioExpanderOut(EX1_I2C_ADDR, EX1_ADC_MUX_EN_PORT, EX1_ADC_MUX_EN_PIN, true)) return false;
+  return true;  
 }
 
 
 // configure ADC MCP3421
-void ioAdcStart(uint8_t addr, bool repeatMode, bool reset){ 
+bool ioAdcStart(uint8_t addr, bool repeatMode, bool reset){ 
   // send config  
   Config cfg;
   cfg.reg      = 0x00;
@@ -106,11 +108,12 @@ void ioAdcStart(uint8_t addr, bool repeatMode, bool reset){
   //The general call reset occurs if the second byte is
   //‘00000110’ (06h).
   if (reset) Wire.write(0x06);
-  Wire.endTransmission();
+  if (Wire.endTransmission() != 0) return false;
+  return true;
 }
 
 // trigger a single ADC conversion (MCP3421)
-void ioAdcTrigger(uint8_t addr){
+bool ioAdcTrigger(uint8_t addr){
   Config cfg;
   cfg.reg      = 0x00;
   cfg.bit.GAIN = eGain_x1;
@@ -119,7 +122,8 @@ void ioAdcTrigger(uint8_t addr){
   cfg.bit.RDY = 1;  // trigger conversion
   Wire.beginTransmission(addr); // MCP3421 address   
   Wire.write(cfg.reg);   // config register 
-  Wire.endTransmission();
+  if (Wire.endTransmission() != 0) return false;
+  return true;
 }
 
 
@@ -168,30 +172,32 @@ byte ioEepromReadByte( uint8_t addr, unsigned int eeaddress ) {
   Wire.beginTransmission(addr);
   Wire.write((int)(eeaddress >> 8)); // MSB
   Wire.write((int)(eeaddress & 0xFF)); // LSB
-  Wire.endTransmission();
-  Wire.requestFrom(addr,1);
+  if (Wire.endTransmission() != 0) return rdata;
+  if (Wire.requestFrom(addr,1) != 1) return rdata;
   if (Wire.available()) rdata = Wire.read();
   return rdata;
 }
 
 // write eeprom byte (BL24C256A)
-void ioEepromWriteByte( uint8_t addr, unsigned int eeaddress, byte data ) {
+bool ioEepromWriteByte( uint8_t addr, unsigned int eeaddress, byte data ) {
   Wire.beginTransmission(addr);
   Wire.write((int)(eeaddress >> 8)); // MSB
   Wire.write((int)(eeaddress & 0xFF)); // LSB
   Wire.write(data);
-  Wire.endTransmission();
+  if (Wire.endTransmission() != 0) return false;
+  return true;
 }
 
 // write eeprom page (BL24C256A)
-void ioEepromWritePage( uint8_t addr, unsigned int eeaddresspage, byte* data, byte length ) {
+bool ioEepromWritePage( uint8_t addr, unsigned int eeaddresspage, byte* data, byte length ) {
   Wire.beginTransmission(addr);
   Wire.write((int)(eeaddresspage >> 8)); // MSB
   Wire.write((int)(eeaddresspage & 0xFF)); // LSB
   byte c;
   for ( c = 0; c < length; c++)
     Wire.write(data[c]);
-  Wire.endTransmission();
+  if (Wire.endTransmission() != 0) return false;
+  return true;
 }
 
 

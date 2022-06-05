@@ -51,8 +51,9 @@ class SerialRobotDriver: public RobotDriver {
     void updatePanelLEDs();
     void updateCpuTemperature();
     void updateWifiConnectionState();
-    void setLedState(int ledNumber, bool greenState, bool redState);
+    bool setLedState(int ledNumber, bool greenState, bool redState);
   protected:    
+    bool ledPanelInstalled;
     Process cpuTempProcess;
     Process wifiStatusProcess;    
     String cmd;

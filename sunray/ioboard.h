@@ -111,25 +111,25 @@ enum ESampleRate {
 void ioI2cMux(uint8_t addr, uint8_t slave, bool enable);
 
 // set I/O port expander (PCA9555) output
-void ioExpanderOut(uint8_t addr, uint8_t port, uint8_t pin, bool level);
+bool ioExpanderOut(uint8_t addr, uint8_t port, uint8_t pin, bool level);
 
 // read I/O port expander (PCA9555) input
 bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin);
 
 // choose ADC multiplexer (DG408) channel  
-void ioAdcMux(uint8_t adc);
+bool ioAdcMux(uint8_t adc);
 
 // ADC start (MCP3421)
-void ioAdcStart(uint8_t addr, bool repeatMode, bool reset);
+bool ioAdcStart(uint8_t addr, bool repeatMode, bool reset);
 
 // ADC conversion (MCP3421)
-void ioAdcTrigger(uint8_t addr);
+bool ioAdcTrigger(uint8_t addr);
 float ioAdc(uint8_t addr);
 
 // EEPROM (BL24C256A)
-void ioEepromWriteByte( uint8_t addr, unsigned int eeaddress, byte data );
+bool ioEepromWriteByte( uint8_t addr, unsigned int eeaddress, byte data );
 byte ioEepromReadByte( uint8_t addr, unsigned int eeaddress );
-void ioEepromWritePage( uint8_t addr, unsigned int eeaddresspage, byte* data, byte length );
+bool ioEepromWritePage( uint8_t addr, unsigned int eeaddresspage, byte* data, byte length );
 
 
 #ifdef __cplusplus

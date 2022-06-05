@@ -39,6 +39,7 @@ void SerialRobotDriver::begin(){
   nextTempTime = 0;
   nextWifiTime = 0;
   nextLedTime = 0;
+  ledPanelInstalled = true;
   cmdMotorResponseCounter = 0;
   cmdSummaryResponseCounter = 0;
   cmdMotorCounter = 0;
@@ -82,17 +83,22 @@ void SerialRobotDriver::begin(){
     
     // buzzer test
     if (false){
+      CONSOLE.println("buzzer test");    
       ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, true);
       delay(500);
       ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, false);    
     }
 
     // LEDs
-    setLedState(1, true, false);
+    CONSOLE.println("turning LEDs green");
+    if (!setLedState(1, true, false)){
+      CONSOLE.println("LED panel communication failed - assuming no LED panel installed");
+    }
     setLedState(2, true, false);
     setLedState(3, true, false);
   
     // start ADC
+    CONSOLE.println("starting ADC");    
     ioAdcStart(ADC_I2C_ADDR, false, true);
 
     // ADC test    
@@ -122,19 +128,27 @@ void SerialRobotDriver::begin(){
   #endif
 }
 
-void SerialRobotDriver::setLedState(int ledNumber, bool greenState, bool redState){
+bool SerialRobotDriver::setLedState(int ledNumber, bool greenState, bool redState){
+  if (!ledPanelInstalled) return false;
   if (ledNumber == 1){
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, greenState);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, redState);        
+    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, greenState);
+    if (!ledPanelInstalled) return false;
+    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, redState);        
+    if (!ledPanelInstalled) return false;  
   }
   else if (ledNumber == 2){
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, greenState);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, redState);        
+    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, greenState);
+    if (!ledPanelInstalled) return false;    
+    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, redState);        
+    if (!ledPanelInstalled) return false;    
   }
   else if (ledNumber == 3){
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, greenState);
-    ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, redState);        
+    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, greenState);
+    if (!ledPanelInstalled) return false;    
+    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, redState);        
+    if (!ledPanelInstalled) return false;    
   }
+  return true;
 }
 
 
