@@ -105,10 +105,12 @@ void Motor::begin() {
   
   motorLeftRpmCurr=0;
   motorRightRpmCurr=0;
+  motorMowRpmCurr=0;  
   motorLeftRpmLast = 0;
   motorRightRpmLast = 0;
   motorLeftRpmCurrLP = 0;
   motorRightRpmCurrLP = 0;
+  motorMowRpmCurrLP = 0;
   
   setLinearAngularSpeedTimeoutActive = false;  
   setLinearAngularSpeedTimeout = 0;
@@ -400,6 +402,7 @@ void Motor::run() {
   if (motorRightPWMCurr < 0) ticksRight *= -1;
   motorLeftTicks += ticksLeft;
   motorRightTicks += ticksRight;
+  motorMowTicks += ticksMow;
 
   unsigned long currTime = millis();
   float deltaControlTimeSec =  ((float)(currTime - lastControlTime)) / 1000.0;
@@ -410,9 +413,11 @@ void Motor::run() {
   // 20 ticksPerRevolution: @ 30 rpm => 0.5 rps => 10 ticksPerSec
   motorLeftRpmCurr = 60.0 * ( ((float)ticksLeft) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
   motorRightRpmCurr = 60.0 * ( ((float)ticksRight) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
+  motorMowRpmCurr = 60.0 * ( ((float)ticksMow) / ((float)10.0) ) / deltaControlTimeSec;
   float lp = 0.9; // 0.995
   motorLeftRpmCurrLP = lp * motorLeftRpmCurrLP + (1.0-lp) * motorLeftRpmCurr;
   motorRightRpmCurrLP = lp * motorRightRpmCurrLP + (1.0-lp) * motorRightRpmCurr;
+  motorMowRpmCurrLP = lp * motorMowRpmCurrLP + (1.0-lp) * motorMowRpmCurr;
 
   if (ticksLeft == 0) {
     motorLeftTicksZero++;

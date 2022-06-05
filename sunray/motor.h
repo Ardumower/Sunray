@@ -67,8 +67,10 @@ class Motor {
     float motorRightRpmSet;   
     float motorLeftRpmCurr;
     float motorRightRpmCurr;
+    float motorMowRpmCurr;    
     float motorLeftRpmCurrLP;
     float motorRightRpmCurrLP;    
+    float motorMowRpmCurrLP;    
     float motorLeftRpmLast;
     float motorRightRpmLast;
     bool motorMowForwardSet; 
