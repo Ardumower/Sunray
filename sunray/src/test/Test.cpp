@@ -19,7 +19,9 @@
 #endif
 
 ObstacleAvoidanceTest obstacleAvoidanceTest;
+MotorFaultTest motorFaultTest;
 SessionTest sessionTest;
+Test &currentTest = motorFaultTest;
 Tester tester;
 
 
@@ -120,6 +122,26 @@ void ObstacleAvoidanceTest::run(){
 // --------------------------------------------
 
 
+String MotorFaultTest::name(){
+  return "MotorFaultTest";
+}
+
+void MotorFaultTest::begin(){  
+  //speak("Motor Fault Test");  
+}
+
+void MotorFaultTest::end(){
+}
+ 
+void MotorFaultTest::run(){  
+  if (duration() == 60) {
+    speak("Motor Fault Test");
+    motorDriver.setSimMotorFault(false, false, true);
+  }
+}
+
+// --------------------------------------------
+
 String SessionTest::name(){
     return "SessionTest";
 }
@@ -208,20 +230,20 @@ void SessionTest::end(){
 // ----------------------------------
 
 void Tester::begin(){
-  obstacleAvoidanceTest.begin();
+  currentTest.begin();
 }
 
 void Tester::run(){
-  if (obstacleAvoidanceTest.started){
-    if (obstacleAvoidanceTest.shouldStop){ 
+  if (currentTest.started){
+    if (currentTest.shouldStop){ 
        
     } else {
-      obstacleAvoidanceTest.run();
+      currentTest.run();
     }
   } else {
-    obstacleAvoidanceTest.startTime = millis();
-    obstacleAvoidanceTest.shouldStop = false;
-    obstacleAvoidanceTest.started = true;
+    currentTest.startTime = millis();
+    currentTest.shouldStop = false;
+    currentTest.started = true;
   } 
 }
 
