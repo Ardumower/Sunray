@@ -322,13 +322,17 @@ void Motor::run() {
   }
     
   sense();        
-  
+
+  // check for a motor driver fault signal and stop all motors if motor driver signals a fault   
   if ((!resetMotorFault) && (checkFault())) {
     stopImmediately(true);
     resetMotorFault = true;
     nextResetMotorFaultTime = millis() + 1000;
   }
 
+
+  // try to recover from a motor driver fault signal by resetting the motor driver fault
+  // if it fails, indicate a motor error to the robot control (so it can try an obstacle avoidance)  
   if (nextResetMotorFaultTime != 0){
     if (millis() > nextResetMotorFaultTime){
       if (resetMotorFault){
@@ -368,7 +372,8 @@ void Motor::run() {
          ||  ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (motorLeftSenseLP < 0.005))    
          ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (motorRightSenseLP < 0.005))  ){        
       // at least one motor is not consuming current      
-      if (!motorError){
+      // indicate a motor error to the robot control (so it can try an obstacle avoidance)    
+      if (!motorError){      
         CONSOLE.print("ERROR: motor malfunction pwm=");
         CONSOLE.print(motorLeftPWMCurr);
         CONSOLE.print(",");
