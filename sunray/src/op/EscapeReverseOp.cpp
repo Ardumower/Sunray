@@ -58,3 +58,14 @@ void EscapeReverseOp::run(){
 
 
 
+void EscapeReverseOp::onImuTilt(){
+    stateSensor = SENS_IMU_TILT;
+    changeOp(errorOp);
+}
+
+void EscapeReverseOp::onImuError(){
+    stateSensor = SENS_IMU_TIMEOUT;
+    changeOp(errorOp);
+}
+
+

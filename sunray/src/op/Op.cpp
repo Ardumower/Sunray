@@ -217,3 +217,8 @@ void Op::onBatteryLowShouldDock(){
 }
 
 
+void Op::onImuTilt(){
+}
+
+void Op::onImuError(){
+}
