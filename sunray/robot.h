@@ -164,7 +164,7 @@ void detectSensorMalfunction();
 bool detectLift();
 bool detectObstacle();
 bool detectObstacleRotation();
-
+void resetLinearMotionMeasurement();
 
 
 #endif

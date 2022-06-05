@@ -232,7 +232,7 @@ void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRam
    setLinearAngularSpeedTimeout = millis() + 1000;
    setLinearAngularSpeedTimeoutActive = true;
    if ((activateLinearSpeedRamp) && (useLinearRamp)) {
-     linearSpeedSet = 0.9 * linearSpeedSet + 0.1 * linear;
+     linearSpeedSet = 0.95 * linearSpeedSet + 0.05 * linear;
    } else {
      linearSpeedSet = linear;
    }

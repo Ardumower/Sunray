@@ -16,9 +16,11 @@ extern float stanleyTrackingNormalP;
 extern float stanleyTrackingSlowK;
 extern float stanleyTrackingSlowP;
 
+extern int dockGpsRebootState;          // Svol0: state for gps-reboot at specified docking point by undocking action
+extern bool dockGpsRebootDistGpsTrg;    // Svol0: trigger to check solid gps-fix position (no jump)
+extern bool blockKidnapByUndocking;     // Svol0: kidnap detection is blocked by undocking without gps
 
 void trackLine(bool runControl);  
 
 
 #endif
-

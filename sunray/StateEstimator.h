@@ -9,6 +9,7 @@
 
 
 #include <Arduino.h>
+#include "LineTracker.h"  // Svol0: included for gps-reboot at specified docking point by undocking action
 
 
 extern float stateX;  // position-east (m)
@@ -43,4 +44,3 @@ void computeRobotState();
 
 
 #endif
-

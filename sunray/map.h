@@ -9,7 +9,7 @@
 
 #include <Arduino.h>
 #include <SD.h>
-
+#include "LineTracker.h"  // Svol0: included for gps-reboot at specified docking point by undocking action
 
 // waypoint type
 enum WayType {WAY_PERIMETER, WAY_EXCLUSION, WAY_DOCK, WAY_MOW, WAY_FREE};

@@ -1157,6 +1157,7 @@ bool Map::nextDockPoint(bool sim){
     if (dockPointsIdx+1 < dockPoints.numPoints){
       if (!sim) { 
         lastTargetPoint.assign(targetPoint);
+        trackSlow = true; // Svol0:
         if (dockPointsIdx == 0) {
           CONSOLE.println("nextDockPoint: shouldRetryDock=false");
           shouldRetryDock=false;
@@ -1164,10 +1165,22 @@ bool Map::nextDockPoint(bool sim){
         if (shouldRetryDock) {
           CONSOLE.println("nextDockPoint: shouldRetryDock=true");
           dockPointsIdx--;
-          trackReverse = true;                    
+          trackReverse = true;
+          // Svol0: if dockingpoint for GPS-reboot is reached, the docking should start from here again
+          if (((dockPointsIdx + 2) == (dockPoints.numPoints - abs(DOCK_POINT_GPS_REBOOT)) && DOCK_POINT_GPS_REBOOT != 0)){
+//            dockGpsRebootState = 1;                    // activate gps-reboot in robot.cpp
+              CONSOLE.print("map: nextDockPoint: shouldRetryDock= false at point: ");
+              CONSOLE.println(dockPointsIdx);
+              shouldRetryDock=false;      
+          }
         } else {
           dockPointsIdx++; 
-          trackReverse = false;                            
+          trackReverse = false;
+          // Svol0: only the last dockingpoints (value from "DOCK_SLOW_ONLY_LAST_POINTS") will be done with slow speed
+          if ((dockPoints.numPoints > abs(DOCK_SLOW_ONLY_LAST_POINTS)) && 
+          (dockPointsIdx < (dockPoints.numPoints - abs(DOCK_SLOW_ONLY_LAST_POINTS))) && (DOCK_SLOW_ONLY_LAST_POINTS != 0) ){
+            if (!sim) trackSlow = false;      
+          }
         }
       }              
       if (!sim) trackSlow = true;
@@ -1185,9 +1198,40 @@ bool Map::nextDockPoint(bool sim){
     // should undock
     if (dockPointsIdx > 0){
       if (!sim) lastTargetPoint.assign(targetPoint);
-      if (!sim) dockPointsIdx--;              
-      if (!sim) trackReverse = true;              
-      if (!sim) trackSlow = true;      
+      if (!sim) dockPointsIdx--;
+
+      // Svol0: the mower will undock with slow speed and reverse, till the mower reached the pointnumber 
+      // (value from "DOCK_POINT_GPS_REBOOT" counted from the last dockingpoint (Dockingstation)).
+      // From there the mower will go on with normal speed, forward and with GPS-Support
+      if (((dockPointsIdx + 2) > (dockPoints.numPoints - abs(DOCK_POINT_GPS_REBOOT))) || (DOCK_POINT_GPS_REBOOT == 0)){                                                                 
+        if (!sim) trackReverse = true;              
+        if (!sim) trackSlow = true;      
+        if (!sim) useGPSfixForPosEstimation = !DOCK_IGNORE_GPS;
+        if (!sim) useGPSfixForDeltaEstimation = !DOCK_IGNORE_GPS;
+        // to avoid "gps no speed => obstacle!" error
+        if ((dockGpsRebootState == 0) && (dockGpsRebootState != 10)){
+          dockGpsRebootState  = 10;
+          CONSOLE.println("map: gps-reboot resetLinearMotionMeasurement");      
+        }
+        if ((DOCK_IGNORE_GPS) && (DOCK_POINT_GPS_REBOOT != 0)) blockKidnapByUndocking = true; // block Kidnap detection
+      }
+      else {
+        if (!sim) trackReverse = false;  
+        if (!sim) trackSlow = false;
+        if (!sim) useGPSfixForPosEstimation = true;
+        if (!sim) useGPSfixForDeltaEstimation = true;                  
+      }
+      if (!sim) useGPSfloatForPosEstimation = false;  
+      if (!sim) useGPSfloatForDeltaEstimation = false;
+      if (!sim) useIMU = true; // false
+            
+      // Svol0: activates gps-reboot by reaching specified dockingpoint (please see "DOCK_POINT_GPS_REBOOT" in config.h)
+      if (((dockPointsIdx + 2) == (dockPoints.numPoints - abs(DOCK_POINT_GPS_REBOOT)) && DOCK_POINT_GPS_REBOOT != 0)){
+        dockGpsRebootState = 1;                    // activate gps-reboot in robot.cpp
+        CONSOLE.print("map: gps-reboot by undocking at dockingpoint ");
+        CONSOLE.println(dockPointsIdx);
+      }
+            
       return true;
     } else {
       // finished undocking

@@ -216,6 +216,7 @@ void computeRobotState(){
     stateGroundSpeed = 0.9 * stateGroundSpeed + 0.1 * abs(gps.groundSpeed);    
     //CONSOLE.println(stateGroundSpeed);
     float distGPS = sqrt( sq(posN-lastPosN)+sq(posE-lastPosE) );
+    if (distGPS > 0.05) dockGpsRebootDistGpsTrg = true;  // Svol0: reset timer for solid gps-fix check (please see "dockGpsRebootState")
     if ((distGPS > 0.3) || (resetLastPos)){
       if (distGPS > 0.3) {
         gpsJump = true;
@@ -299,5 +300,3 @@ void computeRobotState(){
     //CONSOLE.println(stateDeltaSpeedWheels/PI*180.0);
   }
 }
-
-
