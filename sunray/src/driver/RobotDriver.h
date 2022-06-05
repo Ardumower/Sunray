@@ -13,6 +13,13 @@
 
 class RobotDriver {
   public:    
+    // ---- led states -----           
+    bool ledStateWifiInactive;
+    bool ledStateWifiConnected;
+    bool ledStateGpsFix;
+    bool ledStateGpsFloat;
+    bool ledStateShutdown;
+    bool ledStateError;
     virtual void begin() = 0;
     virtual void run() = 0;
     virtual bool getRobotID(String &id) = 0;

@@ -137,6 +137,7 @@ unsigned long overallMotionTimeout = 0;
 unsigned long nextControlTime = 0;
 unsigned long lastComputeTime = 0;
 
+unsigned long nextLedTime = 0;
 unsigned long nextImuTime = 0;
 unsigned long nextTempTime = 0;
 unsigned long imuDataTimeout = 0;
@@ -695,12 +696,14 @@ void detectSensorMalfunction(){
   }
   if (ENABLE_OVERLOAD_DETECTION){
     if (motor.motorOverloadDuration > 20000){
+      // one motor is taking too much current over a long time (too high gras etc.) and we should stop mowing
       CONSOLE.println("overload!");    
       activeOp->onMotorOverload();
       return;
     }  
   }
   if (ENABLE_FAULT_OBSTACLE_AVOIDANCE){
+    // there is a motor error (either unrecoverable fault signal or a malfunction) and we should try an obstacle avoidance
     if (motor.motorError){
       CONSOLE.println("motor error!");
       activeOp->onMotorError();
@@ -820,6 +823,7 @@ bool detectObstacleRotation(){
   }  
   if (!OBSTACLE_DETECTION_ROTATION) return false; 
   if (millis() > angularMotionStartTime + 15000) { // too long rotation time (timeout), e.g. due to obstacle
+    CONSOLE.println("too long rotation time (timeout) for requested rotation => assuming obstacle");
     triggerObstacleRotation();
     return true;
   }
@@ -836,11 +840,13 @@ bool detectObstacleRotation(){
   if (imuDriver.imuFound){
     if (millis() > angularMotionStartTime + 3000) {                  
       if (fabs(stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s yaw speed, e.g. due to obstacle
+        CONSOLE.println("no IMU rotation speed detected for requested rotation => assuming obstacle");    
         triggerObstacleRotation();
         return true;      
       }
     }
     if (diffIMUWheelYawSpeedLP > 10.0/180.0 * PI) {  // yaw speed difference between wheels and IMU more than 8 degree/s, e.g. due to obstacle
+      CONSOLE.println("yaw difference between wheels and IMU for requested rotation => assuming obstacle");            
       triggerObstacleRotation();
       return true;            
     }    
@@ -904,7 +910,15 @@ void run(){
       readIMU();    
     }
   }
-  
+
+  // LED states
+  if (millis() > nextLedTime){
+    nextLedTime = millis() + 1000;
+    robotDriver.ledStateGpsFloat = (gps.solution == SOL_FLOAT);
+    robotDriver.ledStateGpsFix = (gps.solution == SOL_FIXED);
+    robotDriver.ledStateError = (stateOp == OP_ERROR);     
+  }
+
   gps.run();
     
   calcStats();  

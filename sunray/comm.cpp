@@ -470,10 +470,6 @@ void cmdSwitchOffRobot(){
   cmdAnswer(s);  
   setOperation(OP_IDLE);
   battery.switchOff();
-  #ifdef __linux__
-    Process p;
-    p.runShellCommand("shutdown now");
-  #endif
 }
 
 // kidnap test (kidnap detection should trigger)

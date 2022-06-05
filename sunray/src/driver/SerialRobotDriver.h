@@ -10,6 +10,7 @@
 
 #include <Arduino.h>
 #include "RobotDriver.h"
+#include <Process.h>
 
 
 class SerialRobotDriver: public RobotDriver {
@@ -33,11 +34,12 @@ class SerialRobotDriver: public RobotDriver {
     float motorRightCurr;
     bool resetMotorTicks;
     float batteryTemp;
+    float cpuTemp;
     bool triggeredLeftBumper;
     bool triggeredRightBumper;
     bool triggeredLift;
     bool triggeredRain;
-    bool triggeredStopButton;           
+    bool triggeredStopButton;
     void begin() override;
     void run() override;
     bool getRobotID(String &id) override;
@@ -47,12 +49,21 @@ class SerialRobotDriver: public RobotDriver {
     void requestSummary();
     void requestVersion();
     void updatePanelLEDs();
+    void updateCpuTemperature();
+    void updateWifiConnectionState();
+    bool setLedState(int ledNumber, bool greenState, bool redState);
   protected:    
+    bool ledPanelInstalled;
+    Process cpuTempProcess;
+    Process wifiStatusProcess;    
     String cmd;
     String cmdResponse;
     unsigned long nextMotorTime;    
     unsigned long nextSummaryTime;
     unsigned long nextConsoleTime;
+    unsigned long nextTempTime;
+    unsigned long nextWifiTime;
+    unsigned long nextLedTime;
     int cmdMotorCounter;
     int cmdSummaryCounter;
     int cmdMotorResponseCounter;
@@ -82,10 +93,13 @@ class SerialMotorDriver: public MotorDriver {
 
 class SerialBatteryDriver : public BatteryDriver {
   public:   
+    float batteryTemp;
     bool mcuBoardPoweredOn;
+    unsigned long nextTempTime;
     unsigned long nextADCTime;
     bool adcTriggered;
     unsigned long linuxShutdownTime;
+    Process batteryTempProcess;
     SerialRobotDriver &serialRobot;
     SerialBatteryDriver(SerialRobotDriver &sr);
     void begin() override;
@@ -96,6 +110,7 @@ class SerialBatteryDriver : public BatteryDriver {
     float getBatteryTemperature() override;    
     virtual void enableCharging(bool flag) override;
     virtual void keepPowerOn(bool flag) override;
+    void updateBatteryTemperature();
 };
 
 class SerialBumperDriver: public BumperDriver {

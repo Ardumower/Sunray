@@ -26,15 +26,19 @@
 
 volatile int odomTicksLeft  = 0;
 volatile int odomTicksRight = 0;
+volatile int odomTicksMow = 0;
 
 volatile unsigned long motorLeftTicksTimeout = 0;
 volatile unsigned long motorRightTicksTimeout = 0;
+volatile unsigned long motorMowTicksTimeout = 0;
 
 volatile unsigned long motorLeftTransitionTime = 0;
 volatile unsigned long motorRightTransitionTime = 0;
+volatile unsigned long motorMowTransitionTime = 0;
 
 volatile float motorLeftDurationMax = 0;
 volatile float motorRightDurationMax = 0;
+volatile float motorMowDurationMax = 0;
 
 volatile bool leftPressed = false;
 volatile bool rightPressed = false;
@@ -95,6 +99,22 @@ float AmRobotDriver::getCpuTemperature(){
 
 
 // odometry signal change interrupt
+
+void OdometryMowISR(){			  
+  if (digitalRead(pinMotorMowRpm) == LOW) return;
+  if (millis() < motorMowTicksTimeout) return; // eliminate spikes  
+  #ifdef SUPER_SPIKE_ELIMINATOR
+    unsigned long duration = millis() - motorMowTransitionTime;
+    if (duration > 5) duration = 0;
+    motorMowTransitionTime = millis();
+    motorMowDurationMax = 0.7 * max(motorMowDurationMax, ((float)duration));
+    motorMowTicksTimeout = millis() + motorMowDurationMax;
+  #else
+    motorMowTicksTimeout = millis() + 1;
+  #endif
+  odomTicksMow++;    
+}
+
 
 void OdometryLeftISR(){			  
   if (digitalRead(pinOdometryLeft) == LOW) return;
@@ -307,7 +327,8 @@ void AmMotorDriver::begin(){
   pinMode(pinMotorMowDir, OUTPUT);
   pinMode(pinMotorMowPWM, OUTPUT);
   pinMode(pinMotorMowSense, INPUT);
-  //pinMode(pinMotorMowRpm, INPUT);
+  pinMode(pinMotorMowRpm, INPUT);
+  pinMode(pinMotorMowRpm, INPUT_PULLUP);  
   pinMode(pinMotorMowEnable, OUTPUT);
   digitalWrite(pinMotorMowEnable, mowDriverChip.enableActive);
   pinMode(pinMotorMowFault, INPUT);
@@ -324,6 +345,7 @@ void AmMotorDriver::begin(){
   // enable interrupts
   attachInterrupt(pinOdometryLeft, OdometryLeftISR, CHANGE);  
   attachInterrupt(pinOdometryRight, OdometryRightISR, CHANGE);  
+  attachInterrupt(pinMotorMowRpm, OdometryMowISR, CHANGE);  
     
 	//pinMan.setDebounce(pinOdometryLeft, 100);  // reject spikes shorter than usecs on pin
 	//pinMan.setDebounce(pinOdometryRight, 100);  // reject spikes shorter than usecs on pin	
@@ -485,9 +507,9 @@ void AmMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, flo
 void AmMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
   leftTicks = odomTicksLeft;
   rightTicks = odomTicksRight;  
-  mowTicks = 0;
+  mowTicks = odomTicksMow;
   // reset counters
-  odomTicksLeft = odomTicksRight = 0;
+  odomTicksLeft = odomTicksRight = odomTicksMow = 0;
 }    
 
 

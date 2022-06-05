@@ -221,3 +221,13 @@ void MowOp::onNoFurtherWaypoints(){
     }
 }
 
+void MowOp::onImuTilt(){
+    stateSensor = SENS_IMU_TILT;
+    changeOp(errorOp);
+}
+
+void MowOp::onImuError(){
+    stateSensor = SENS_IMU_TIMEOUT;
+    changeOp(errorOp);
+}
+

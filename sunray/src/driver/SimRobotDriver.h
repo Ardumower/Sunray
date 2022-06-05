@@ -43,8 +43,12 @@ class SimRobotDriver: public RobotDriver {
 class SimMotorDriver: public MotorDriver {
   public:        
     bool simOdometryError;
-    bool simMotorFault;
-    bool simMotorOverload;
+    bool simMotorLeftFault;
+    bool simMotorRightFault;
+    bool simMotorMowFault;
+    bool simMotorLeftOverload;
+    bool simMotorRightOverload;
+    bool simMotorMowOverload;
     bool simNoMotion;
     bool simNoRobotYawRotation;
     SimRobotDriver &simRobot;
@@ -58,10 +62,10 @@ class SimMotorDriver: public MotorDriver {
     void getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks) override;
     // ----- simulate errors, sensor triggers ----
     void setSimOdometryError(bool flag);
-    void setSimMotorFault(bool flag);
-    void setSimMotorOverload(bool flag);
+    void setSimMotorFault(bool leftFlag, bool rightFlag, bool mowFlag);
+    void setSimMotorOverload(bool leftFlag, bool rightFlag, bool mowFlag);
     void setSimNoMotion(bool flag);
-    void setSimNoRobotYawRotation(bool flag);
+    void setSimNoRobotYawRotation(bool flag);    
   protected:
     unsigned long lastSampleTime;
     unsigned long lastEncoderTicksLeft;
@@ -152,6 +156,7 @@ class SimBuzzerDriver: public BuzzerDriver {
 class SimImuDriver: public ImuDriver {    
   public:    
     bool simNoData;
+    bool simTilt;
     SimRobotDriver &simRobot;
     SimImuDriver(SimRobotDriver &sr);    
     void detect() override;
@@ -161,6 +166,7 @@ class SimImuDriver: public ImuDriver {
     void resetData() override;       
     // ----- simulate errors, sensor triggers ----
     void setSimNoData(bool flag);
+    void setSimTilt(bool flag);
   protected:
     unsigned long nextSampleTime;
 };

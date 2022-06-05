@@ -5,6 +5,7 @@
 
 #include <Arduino.h>
 #include "StateEstimator.h"
+#include "src/op/op.h"
 
 #include "config.h"
 #include "robot.h"
@@ -69,8 +70,9 @@ bool startIMU(bool forceIMU){
      if (counter > 5){    
        // no I2C recovery possible - this should not happen (I2C module error)
        CONSOLE.println("ERROR IMU not found");
-       stateSensor = SENS_IMU_TIMEOUT;
-       setOperation(OP_ERROR);      
+       //stateSensor = SENS_IMU_TIMEOUT;
+       activeOp->onImuError();
+       //setOperation(OP_ERROR);      
        //buzzer.sound(SND_STUCK, true);            
        return false;
      }
@@ -86,8 +88,9 @@ bool startIMU(bool forceIMU){
     delay(1000);    
     counter++;
     if (counter > 5){
-      stateSensor = SENS_IMU_TIMEOUT;
-      setOperation(OP_ERROR);      
+      //stateSensor = SENS_IMU_TIMEOUT;
+      activeOp->onImuError();
+      //setOperation(OP_ERROR);      
       //buzzer.sound(SND_STUCK, true);            
       return false;
     }
@@ -159,8 +162,9 @@ void readIMU(){
         CONSOLE.print(rollChange/PI*180.0);
         CONSOLE.print(" pitchChange=");
         CONSOLE.println(pitchChange/PI*180.0);
-        stateSensor = SENS_IMU_TILT;
-        setOperation(OP_ERROR);
+        activeOp->onImuTilt();
+        //stateSensor = SENS_IMU_TILT;
+        //setOperation(OP_ERROR);
       }           
     #endif
     motor.robotPitch = scalePI(imuDriver.pitch);

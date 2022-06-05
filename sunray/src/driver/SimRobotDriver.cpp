@@ -66,11 +66,11 @@ bool SimRobotDriver::pointIsInsideObstacle(float x, float y){
 SimMotorDriver::SimMotorDriver(SimRobotDriver &sr): simRobot(sr){
   lastEncoderTicksLeft = lastEncoderTicksLeft = 0;
   lastSampleTime = 0;
-  simMotorOverload = false;
   simOdometryError = false;
-  simMotorFault = false;
   simNoMotion = false;
   simNoRobotYawRotation = false;
+  simMotorLeftFault = simMotorRightFault = simMotorMowFault = false;
+  simMotorLeftOverload = simMotorRightOverload = simMotorMowOverload = false; 
 } 
 
 void SimMotorDriver::begin(){
@@ -156,17 +156,28 @@ void SimMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
 }
 
 void SimMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &mowFault){
-  leftFault = rightFault = mowFault = simMotorFault;
+  leftFault = simMotorLeftFault;
+  rightFault = simMotorRightFault;
+  mowFault = simMotorMowFault;  
 }
 
 void SimMotorDriver::resetMotorFaults(){
+  CONSOLE.println("SimMotorDriver::resetMotorFaults");
+  simMotorLeftFault = simMotorRightFault = simMotorMowFault = false;
 }
 
 void SimMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) {  
   leftCurrent = abs(simRobot.leftSpeed) / 2.0;
   rightCurrent = abs(simRobot.rightSpeed) / 2.0;
   mowCurrent = abs(simRobot.mowSpeed);
-  if (simMotorOverload) leftCurrent = rightCurrent = mowCurrent = 8.0;
+  // if overload, motor turns, but takes way more current
+  if (simMotorLeftOverload) leftCurrent = 8.0;
+  if (simMotorRightOverload) rightCurrent = 8.0;  
+  if (simMotorMowOverload) mowCurrent = 8.0;
+  // if fault, motor does not turn
+  if (simMotorLeftFault) leftCurrent = 0;
+  if (simMotorRightFault) rightCurrent = 0;
+  if (simMotorMowFault) mowCurrent = 0;
 }
 
 void SimMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
@@ -180,8 +191,12 @@ void SimMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &
   } 
   lastEncoderTicksLeft = simRobot.simTicksLeft;
   lastEncoderTicksRight = simRobot.simTicksRight;
-  mowTicks = 0;
+  mowTicks = 500;
   if (simOdometryError) leftTicks = rightTicks = mowTicks = 0;
+  // if fault, motor does not turn
+  if (simMotorLeftFault) leftTicks = 0;
+  if (simMotorRightFault) rightTicks = 0;
+  if (simMotorMowFault) mowTicks = 0;  
 }
 
 
@@ -189,13 +204,18 @@ void SimMotorDriver::setSimOdometryError(bool flag){
   simOdometryError = flag;
 }
 
-void SimMotorDriver::setSimMotorFault(bool flag){
-  simMotorFault = flag;
+void SimMotorDriver::setSimMotorFault(bool leftFlag, bool rightFlag, bool mowFlag){
+  simMotorLeftFault = leftFlag;
+  simMotorRightFault = rightFlag;
+  simMotorMowFault = mowFlag;
 }
 
-void SimMotorDriver::setSimMotorOverload(bool flag){
-  simMotorOverload = flag;
+void SimMotorDriver::setSimMotorOverload(bool leftFlag, bool rightFlag, bool mowFlag){
+  simMotorLeftOverload = leftFlag;
+  simMotorRightOverload = rightFlag;
+  simMotorMowOverload = mowFlag;
 }
+
 
 void SimMotorDriver::setSimNoMotion(bool flag){
   simNoMotion = flag;  
@@ -393,6 +413,7 @@ void SimBuzzerDriver::tone(int freq){
 SimImuDriver::SimImuDriver(SimRobotDriver &sr): simRobot(sr){    
   nextSampleTime = 0;  
   simNoData = false;
+  simTilt = false;
 }
 
 void SimImuDriver::detect(){  
@@ -416,6 +437,7 @@ bool SimImuDriver::isDataAvail(){
     nextSampleTime = millis() + 200; // 5 hz
     roll = 0;
     pitch = 0;
+    if (simTilt) pitch = PI/180.0 * 90;
     yaw = simRobot.simDelta;        
     return true;
   } else {
@@ -428,6 +450,10 @@ void SimImuDriver::resetData(){
 
 void SimImuDriver::setSimNoData(bool flag){
   simNoData = flag;
+}
+
+void SimImuDriver::setSimTilt(bool flag){
+  simTilt = flag;  
 }
 
 // -------------------------------------------------------------------------------------

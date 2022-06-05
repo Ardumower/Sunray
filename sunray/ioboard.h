@@ -55,18 +55,18 @@ extern "C"{
 // a channel is identified by two numbers: port, pin
 // (panel LEDs)
 #define EX3_I2C_ADDR     0x22
-#define EX3_LED1_PORT    0          // LED1
-#define EX3_LED1_PIN     0          
-#define EX3_LED2_PORT    0          // LED2
-#define EX3_LED2_PIN     1          
-#define EX3_LED3_PORT    0          // LED3
-#define EX3_LED3_PIN     2          
-#define EX3_LED4_PORT    0          // LED4
-#define EX3_LED4_PIN     3          
-#define EX3_LED5_PORT    0          // LED5
-#define EX3_LED5_PIN     4          
-#define EX3_LED6_PORT    0          // LED6
-#define EX3_LED6_PIN     5         
+#define EX3_LED1_GREEN_PORT    0          
+#define EX3_LED1_GREEN_PIN     0          
+#define EX3_LED1_RED_PORT      0          
+#define EX3_LED1_RED_PIN       1          
+#define EX3_LED2_GREEN_PORT    0          
+#define EX3_LED2_GREEN_PIN     2          
+#define EX3_LED2_RED_PORT      0          
+#define EX3_LED2_RED_PIN       3           
+#define EX3_LED3_GREEN_PORT    0          
+#define EX3_LED3_GREEN_PIN     4          
+#define EX3_LED3_RED_PORT      0          
+#define EX3_LED3_RED_PIN       5         
 
 // ADC multiplexer channels (DG408)   https://www.vishay.com/docs/70062/dg408.pdf
 #define ADC_BAT1     1   // battery cell1
@@ -111,25 +111,25 @@ enum ESampleRate {
 void ioI2cMux(uint8_t addr, uint8_t slave, bool enable);
 
 // set I/O port expander (PCA9555) output
-void ioExpanderOut(uint8_t addr, uint8_t port, uint8_t pin, bool level);
+bool ioExpanderOut(uint8_t addr, uint8_t port, uint8_t pin, bool level);
 
 // read I/O port expander (PCA9555) input
 bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin);
 
 // choose ADC multiplexer (DG408) channel  
-void ioAdcMux(uint8_t adc);
+bool ioAdcMux(uint8_t adc);
 
 // ADC start (MCP3421)
-void ioAdcStart(uint8_t addr, bool repeatMode, bool reset);
+bool ioAdcStart(uint8_t addr, bool repeatMode, bool reset);
 
 // ADC conversion (MCP3421)
-void ioAdcTrigger(uint8_t addr);
+bool ioAdcTrigger(uint8_t addr);
 float ioAdc(uint8_t addr);
 
 // EEPROM (BL24C256A)
-void ioEepromWriteByte( uint8_t addr, unsigned int eeaddress, byte data );
+bool ioEepromWriteByte( uint8_t addr, unsigned int eeaddress, byte data );
 byte ioEepromReadByte( uint8_t addr, unsigned int eeaddress );
-void ioEepromWritePage( uint8_t addr, unsigned int eeaddresspage, byte* data, byte length );
+bool ioEepromWritePage( uint8_t addr, unsigned int eeaddresspage, byte* data, byte length );
 
 
 #ifdef __cplusplus

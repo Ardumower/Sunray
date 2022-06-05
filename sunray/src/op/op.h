@@ -75,6 +75,8 @@ class Op {
     virtual void onChargerDisconnected();
     virtual void onChargerConnected();    
     virtual void onChargingCompleted();              
+    virtual void onImuTilt();
+    virtual void onImuError();
 };
 
 
@@ -121,6 +123,8 @@ class MowOp: public Op {
     virtual void onTargetReached() override;    
     virtual void onKidnapped(bool state) override;   
     virtual void onNoFurtherWaypoints() override;     
+    virtual void onImuTilt() override;
+    virtual void onImuError() override;
 };
 
 // dock op (driving to first dock point and following dock points until charging point)
@@ -207,6 +211,8 @@ class EscapeReverseOp: public Op {
     virtual void begin() override;
     virtual void end() override;
     virtual void run() override;
+    virtual void onImuTilt() override;
+    virtual void onImuError() override;
 };
 
 // escape obstacle (drive forward)
@@ -217,6 +223,8 @@ class EscapeForwardOp: public Op {
     virtual void begin() override;
     virtual void end() override;
     virtual void run() override;
+    virtual void onImuTilt() override;
+    virtual void onImuError() override;
 };
 
 // error op

@@ -60,6 +60,14 @@ class ObstacleAvoidanceTest: public Test {
     virtual void run() override;
 };
 
+class MotorFaultTest: public Test {
+  public:
+    virtual String name() override;
+    virtual void begin() override;
+    virtual void end() override;
+    virtual void run() override;
+};
+
 
 class SessionTest: public Test {
   public:        

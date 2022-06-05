@@ -32,6 +32,9 @@ void ErrorOp::end(){
 }
 
 void ErrorOp::run(){
+    if (battery.chargerConnected()){        
+        changeOp(chargeOp);
+    }    
 }
 
 
