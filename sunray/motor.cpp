@@ -400,6 +400,7 @@ void Motor::run() {
   
   if (motorLeftPWMCurr < 0) ticksLeft *= -1;
   if (motorRightPWMCurr < 0) ticksRight *= -1;
+  if (motorMowPWMCurr < 0) ticksMow *= -1;
   motorLeftTicks += ticksLeft;
   motorRightTicks += ticksRight;
   motorMowTicks += ticksMow;
