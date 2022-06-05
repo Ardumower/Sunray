@@ -661,12 +661,14 @@ void detectSensorMalfunction(){
   }
   if (ENABLE_OVERLOAD_DETECTION){
     if (motor.motorOverloadDuration > 20000){
+      // one motor is taking too much current over a long time (too high gras etc.) and we should stop mowing
       CONSOLE.println("overload!");    
       activeOp->onMotorOverload();
       return;
     }  
   }
   if (ENABLE_FAULT_OBSTACLE_AVOIDANCE){
+    // there is a motor error (either unrecoverable fault signal or a malfunction) and we should try an obstacle avoidance
     if (motor.motorError){
       CONSOLE.println("motor error!");
       activeOp->onMotorError();
