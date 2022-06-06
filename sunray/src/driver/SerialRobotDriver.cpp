@@ -17,6 +17,7 @@ void SerialRobotDriver::begin(){
   COMM.begin(ROBOT_BAUDRATE);
   encoderTicksLeft = 0;
   encoderTicksRight = 0;
+  encoderTicksMow = 0;
   chargeVoltage = 0;
   chargeCurrent = 0;  
   batteryVoltage = 0;
@@ -286,6 +287,7 @@ void SerialRobotDriver::motorResponse(){
   if (triggeredStopButton){
     //CONSOLE.println("STOPBUTTON");
   }
+  //CONSOLE.println(encoderTicksMow);
   cmdMotorResponseCounter++;
   mcuCommunicationLost=false;
 }
@@ -515,7 +517,8 @@ SerialMotorDriver::SerialMotorDriver(SerialRobotDriver &sr): serialRobot(sr){
 
 void SerialMotorDriver::begin(){
   lastEncoderTicksLeft=0;
-  lastEncoderTicksRight=0;         
+  lastEncoderTicksRight=0;
+  lastEncoderTicksMow=0;         
 }
 
 void SerialMotorDriver::run(){
@@ -568,19 +571,24 @@ void SerialMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, in
     serialRobot.resetMotorTicks = false;
     //CONSOLE.println("getMotorEncoderTicks: resetMotorTicks");
     lastEncoderTicksLeft = serialRobot.encoderTicksLeft;
-    lastEncoderTicksRight = serialRobot.encoderTicksRight; 
+    lastEncoderTicksRight = serialRobot.encoderTicksRight;
+    lastEncoderTicksMow = serialRobot.encoderTicksMow;
   }
   leftTicks = serialRobot.encoderTicksLeft - lastEncoderTicksLeft;
   rightTicks = serialRobot.encoderTicksRight - lastEncoderTicksRight;
+  mowTicks = serialRobot.encoderTicksMow - lastEncoderTicksMow;
   if (leftTicks > 1000){
     leftTicks = 0;
   }
   if (rightTicks > 1000){
     rightTicks = 0;
   } 
+  if (mowTicks > 1000){
+    mowTicks = 0;
+  }
   lastEncoderTicksLeft = serialRobot.encoderTicksLeft;
   lastEncoderTicksRight = serialRobot.encoderTicksRight;
-  mowTicks = 0;
+  lastEncoderTicksMow = serialRobot.encoderTicksMow;
 }
 
 
