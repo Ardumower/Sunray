@@ -60,9 +60,9 @@ void Motor::begin() {
   #endif
 
   motorError = false;
-  resetMotorFault = false;
-  resetMotorFaultCounter = 0;
-  nextResetMotorFaultTime = 0;
+  recoverMotorFault = false;
+  recoverMotorFaultCounter = 0;
+  nextRecoverMotorFaultTime = 0;
   enableMowMotor = true;
   tractionMotorsEnabled = true;
   
@@ -325,73 +325,62 @@ void Motor::run() {
     
   sense();        
 
-  // check for a motor driver fault signal and stop all motors if motor driver signals a fault   
-  if ((!resetMotorFault) && (checkFault())) {
+  // if motor driver indicates a fault signal, try a recovery   
+  if ((!recoverMotorFault) && (checkFault())) {
     stopImmediately(true);
-    resetMotorFault = true;
-    nextResetMotorFaultTime = millis() + 1000;
+    recoverMotorFault = true;
+    nextRecoverMotorFaultTime = millis() + 1000;
   }
 
+  // if motor driver uses too much current, try a recovery     
+  if ((!recoverMotorFault) && (checkCurrentTooHighError())){
+    stopImmediately(true);
+    recoverMotorFault = true;
+    nextRecoverMotorFaultTime = millis() + 1000;
+  }
+
+  if ((!recoverMotorFault) && (checkMowRpmFault())){
+    stopImmediately(true);
+    recoverMotorFault = true;
+    nextRecoverMotorFaultTime = millis() + 1000;
+  }   
+
+  if ((!recoverMotorFault) && (checkOdometryError())) {    
+    // if there is some error (odometry, too low current, rpm fault), try a recovery
+    stopImmediately(true);
+    recoverMotorFault = true;
+    nextRecoverMotorFaultTime = millis() + 1000;
+  }
+
+  if ((!recoverMotorFault) && (checkCurrentTooLowError())){
+    stopImmediately(true);
+    recoverMotorFault = true;
+    nextRecoverMotorFaultTime = millis() + 1000;
+  }
 
   // try to recover from a motor driver fault signal by resetting the motor driver fault
   // if it fails, indicate a motor error to the robot control (so it can try an obstacle avoidance)  
-  if (nextResetMotorFaultTime != 0){
-    if (millis() > nextResetMotorFaultTime){
-      if (resetMotorFault){
-        nextResetMotorFaultTime = millis() + 5000;
-        CONSOLE.print("resetMotorFaultCounter ");
-        CONSOLE.println(resetMotorFaultCounter);
-        resetMotorFaultCounter++;        
+  if (nextRecoverMotorFaultTime != 0){
+    if (millis() > nextRecoverMotorFaultTime){
+      if (recoverMotorFault){
+        nextRecoverMotorFaultTime = millis() + 10000;
+        recoverMotorFaultCounter++;                
+        CONSOLE.print("motor fault recover counter ");
+        CONSOLE.println(recoverMotorFaultCounter);
         motorDriver.resetMotorFaults();
-        resetMotorFault = false;  
-        if (resetMotorFaultCounter > 10){ // too many successive motor faults
+        recoverMotorFault = false;  
+        if (recoverMotorFaultCounter >= 3){ // too many successive motor faults
           //stopImmediately();
           CONSOLE.println("ERROR: motor recovery failed");
           motorError = true;
         }
       } else {
-        resetMotorFaultCounter = 0;
-        nextResetMotorFaultTime = 0;
+        CONSOLE.println("resetting recoverMotorFaultCounter");
+        recoverMotorFaultCounter = 0;
+        nextRecoverMotorFaultTime = 0;
       }        
     }
   }
-
-  if (nextResetMotorFaultTime == 0) {    
-    if  (   ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (abs(motorLeftRpmCurrLP) < 0.001))    
-        ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (abs(motorRightRpmCurrLP) < 0.001))  )
-    {               
-      if (!odometryError){
-        // odometry error
-        CONSOLE.print("ERROR: odometry error rpm=");
-        CONSOLE.print(motorLeftRpmCurrLP);
-        CONSOLE.print(",");
-        CONSOLE.println(motorRightRpmCurrLP);     
-        odometryError = true;
-      }      
-    } else odometryError = false;
-      
-    if  (    ( (abs(motorMowPWMCurr) > 100) && (abs(motorMowPWMCurrLP) > 100) && (motorMowSenseLP < 0.005)) 
-         ||  ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (motorLeftSenseLP < 0.005))    
-         ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (motorRightSenseLP < 0.005))  ){        
-      // at least one motor is not consuming current      
-      // indicate a motor error to the robot control (so it can try an obstacle avoidance)    
-      if (!motorError){      
-        CONSOLE.print("ERROR: motor malfunction pwm=");
-        CONSOLE.print(motorLeftPWMCurr);
-        CONSOLE.print(",");
-        CONSOLE.print(motorRightPWMCurr);
-        CONSOLE.print(",");
-        CONSOLE.print(motorMowPWMCurr);
-        CONSOLE.print("  sense=");
-        CONSOLE.print(motorLeftSenseLP);
-        CONSOLE.print(",");
-        CONSOLE.print(motorRightSenseLP);
-        CONSOLE.print(",");
-        CONSOLE.println(motorMowSenseLP);
-        motorError = true;
-      }
-    }
-  }   
   
   int ticksLeft;
   int ticksRight;
@@ -404,6 +393,7 @@ void Motor::run() {
   motorLeftTicks += ticksLeft;
   motorRightTicks += ticksRight;
   motorMowTicks += ticksMow;
+  //CONSOLE.println(motorMowTicks);
 
   unsigned long currTime = millis();
   float deltaControlTimeSec =  ((float)(currTime - lastControlTime)) / 1000.0;
@@ -414,12 +404,12 @@ void Motor::run() {
   // 20 ticksPerRevolution: @ 30 rpm => 0.5 rps => 10 ticksPerSec
   motorLeftRpmCurr = 60.0 * ( ((float)ticksLeft) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
   motorRightRpmCurr = 60.0 * ( ((float)ticksRight) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
-  motorMowRpmCurr = 60.0 * ( ((float)ticksMow) / ((float)10.0) ) / deltaControlTimeSec;
+  motorMowRpmCurr = 60.0 * ( ((float)ticksMow) / ((float)5.0) ) / deltaControlTimeSec; // assuming 5 ticks per revolution
   float lp = 0.9; // 0.995
   motorLeftRpmCurrLP = lp * motorLeftRpmCurrLP + (1.0-lp) * motorLeftRpmCurr;
   motorRightRpmCurrLP = lp * motorRightRpmCurrLP + (1.0-lp) * motorRightRpmCurr;
   motorMowRpmCurrLP = lp * motorMowRpmCurrLP + (1.0-lp) * motorMowRpmCurr;
-
+  
   if (ticksLeft == 0) {
     motorLeftTicksZero++;
     if (motorLeftTicksZero > 2) motorLeftRpmCurr = 0;
@@ -437,8 +427,54 @@ void Motor::run() {
 }  
 
 
+// check if motor current too high
+bool Motor::checkCurrentTooHighError(){
+  bool motorLeftFault = (motorLeftSense > MOTOR_FAULT_CURRENT);
+  bool motorRightFault = (motorRightSense > MOTOR_FAULT_CURRENT);
+  bool motorMowFault = (motorMowSense > MOW_FAULT_CURRENT);
+  if (motorLeftFault || motorRightFault || motorMowFault){
+    CONSOLE.print("ERROR motor current too high: ");
+    CONSOLE.print("  current=");
+    CONSOLE.print(motorLeftSense);
+    CONSOLE.print(",");
+    CONSOLE.print(motorRightSense);
+    CONSOLE.print(",");
+    CONSOLE.println(motorMowSense);
+    return true;
+  } 
+  return false; 
+}
 
-// check motor faults
+
+// check if motor current too low
+bool Motor::checkCurrentTooLowError(){
+  //CONSOLE.print(motorRightPWMCurr);
+  //CONSOLE.print(",");
+  //CONSOLE.println(motorRightSenseLP);
+  if  (    ( (abs(motorMowPWMCurr) > 100) && (abs(motorMowPWMCurrLP) > 100) && (motorMowSenseLP < 0.005)) 
+        ||  ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (motorLeftSenseLP < 0.005))    
+        ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (motorRightSenseLP < 0.005))  ){        
+    // at least one motor is not consuming current      
+    // first try reovery, then indicate a motor error to the robot control (so it can try an obstacle avoidance)    
+    CONSOLE.print("ERROR: motor current too low: pwm=");
+    CONSOLE.print(motorLeftPWMCurr);
+    CONSOLE.print(",");
+    CONSOLE.print(motorRightPWMCurr);
+    CONSOLE.print(",");
+    CONSOLE.print(motorMowPWMCurr);
+    CONSOLE.print("  sense=");
+    CONSOLE.print(motorLeftSenseLP);
+    CONSOLE.print(",");
+    CONSOLE.print(motorRightSenseLP);
+    CONSOLE.print(",");
+    CONSOLE.println(motorMowSenseLP);
+    return true;
+  }
+  return false;
+}
+
+
+// check motor driver (signal) faults
 bool Motor::checkFault() {
   bool fault = false;
   bool leftFault = false;
@@ -461,7 +497,69 @@ bool Motor::checkFault() {
   }
   return fault;
 }
-  
+
+
+// check odometry errors
+bool Motor::checkOdometryError() {
+  if (ENABLE_ODOMETRY_ERROR_DETECTION){
+    if  (   ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (abs(motorLeftRpmCurrLP) < 0.001))    
+        ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (abs(motorRightRpmCurrLP) < 0.001))  )
+    {               
+      // odometry error
+      CONSOLE.print("ERROR: odometry error rpm=");
+      CONSOLE.print(motorLeftRpmCurrLP);
+      CONSOLE.print(",");
+      CONSOLE.println(motorRightRpmCurrLP);     
+      return true;        
+    }
+  }
+  return false;
+}
+
+
+// check motor overload
+void Motor::checkOverload(){
+  motorLeftOverload = (motorLeftSenseLP > MOTOR_OVERLOAD_CURRENT);
+  motorRightOverload = (motorRightSenseLP > MOTOR_OVERLOAD_CURRENT);
+  motorMowOverload = (motorMowSenseLP > MOW_OVERLOAD_CURRENT);
+  if (motorLeftOverload || motorRightOverload || motorMowOverload){
+    if (motorOverloadDuration == 0){
+      CONSOLE.print("ERROR motor overload duration=");
+      CONSOLE.print(motorOverloadDuration);
+      CONSOLE.print("  current=");
+      CONSOLE.print(motorLeftSenseLP);
+      CONSOLE.print(",");
+      CONSOLE.print(motorRightSenseLP);
+      CONSOLE.print(",");
+      CONSOLE.println(motorMowSenseLP);
+    }
+    motorOverloadDuration += 20;     
+  } else {
+    motorOverloadDuration = 0;
+  }
+}
+
+
+// check mow rpm fault
+bool Motor::checkMowRpmFault(){
+  //CONSOLE.print(motorMowPWMCurr);
+  //CONSOLE.print(",");
+  //CONSOLE.print(motorMowPWMCurrLP);  
+  //CONSOLE.print(",");
+  //CONSOLE.println(motorMowRpmCurr);
+  if (ENABLE_RPM_FAULT_DETECTION){
+    if  ( (abs(motorMowPWMCurr) > 100) && (abs(motorMowPWMCurrLP) > 100) && (abs(motorMowRpmCurr) < 60.0)) {        
+      CONSOLE.print("ERROR: mow motor rpm fault: pwm=");
+      CONSOLE.print(motorMowPWMCurr);
+      CONSOLE.print("  pwmLP=");      
+      CONSOLE.print(motorMowPWMCurrLP);      
+      CONSOLE.print("  rpm=");
+      CONSOLE.println(motorMowRpmCurr);
+      return true;
+    }
+  }  
+  return false;
+}
 
 // measure motor currents
 void Motor::sense(){
@@ -475,6 +573,7 @@ void Motor::sense(){
   motorsSenseLP = motorRightSenseLP + motorLeftSenseLP + motorMowSenseLP;
   motorRightPWMCurrLP = lp * motorRightPWMCurrLP + (1.0-lp) * ((float)motorRightPWMCurr);
   motorLeftPWMCurrLP = lp * motorLeftPWMCurrLP + (1.0-lp) * ((float)motorLeftPWMCurr);
+  lp = 0.99;
   motorMowPWMCurrLP = lp * motorMowPWMCurrLP + (1.0-lp) * ((float)motorMowPWMCurr); 
  
   // compute normalized current (normalized to 1g gravity)
@@ -496,24 +595,7 @@ void Motor::sense(){
 		pitchfactor = 2.0-cosPitch; // increase by angle
   motorRightSenseLPNorm = abs(motorRightSenseLP) * robotMass * pitchfactor; 
 
-  motorLeftOverload = (motorLeftSenseLP > MOTOR_OVERLOAD_CURRENT);
-  motorRightOverload = (motorRightSenseLP > MOTOR_OVERLOAD_CURRENT);
-  motorMowOverload = (motorMowSenseLP > MOW_OVERLOAD_CURRENT);
-  if (motorLeftOverload || motorRightOverload || motorMowOverload){
-    if (motorOverloadDuration == 0){
-      CONSOLE.print("ERROR motor overload duration=");
-      CONSOLE.print(motorOverloadDuration);
-      CONSOLE.print("  current=");
-      CONSOLE.print(motorLeftSenseLP);
-      CONSOLE.print(",");
-      CONSOLE.print(motorRightSenseLP);
-      CONSOLE.print(",");
-      CONSOLE.println(motorMowSenseLP);
-    }
-    motorOverloadDuration += 20;     
-  } else {
-    motorOverloadDuration = 0;
-  }  
+  checkOverload();  
 }
 
 

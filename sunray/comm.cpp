@@ -844,8 +844,10 @@ void processBLE(){
     while ( BLE.available() ){    
       ch = BLE.read();      
       if ((ch == '\r') || (ch == '\n')) {   
-        CONSOLE.print("BLE:");     
-        CONSOLE.println(cmd);        
+        #ifdef VERBOSE
+          CONSOLE.print("BLE:");     
+          CONSOLE.println(cmd);        
+        #endif
         processCmd(true, true);              
         BLE.print(cmdResponse);    
         cmd = "";

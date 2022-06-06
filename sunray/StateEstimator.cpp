@@ -47,7 +47,7 @@ float pitchChange = 0;
 bool imuIsCalibrating = false;
 int imuCalibrationSeconds = 0;
 unsigned long nextImuCalibrationSecond = 0;
-
+unsigned long nextDumpTime = 0;
 
 
 // https://learn.sparkfun.com/tutorials/9dof-razor-imu-m0-hookup-guide#using-the-mpu-9250-dmp-arduino-library
@@ -103,6 +103,21 @@ bool startIMU(bool forceIMU){
 }
 
 
+void dumpImuTilt(){
+  if (millis() < nextDumpTime) return;
+  nextDumpTime = millis() + 10000;
+  CONSOLE.print("IMU tilt: ");
+  CONSOLE.print("ypr=");
+  CONSOLE.print(imuDriver.yaw/PI*180.0);
+  CONSOLE.print(",");
+  CONSOLE.print(imuDriver.pitch/PI*180.0);
+  CONSOLE.print(",");
+  CONSOLE.print(imuDriver.roll/PI*180.0);
+  CONSOLE.print(" rollChange=");
+  CONSOLE.print(rollChange/PI*180.0);
+  CONSOLE.print(" pitchChange=");
+  CONSOLE.println(pitchChange/PI*180.0);
+}
 
 // read IMU sensor (and restart if required)
 // I2C recovery: It can be minutes or hours, then there's an I2C error (probably due an spike on the 
@@ -151,17 +166,7 @@ void readIMU(){
       //CONSOLE.println(pitchChange/PI*180.0);
       if ( (fabs(scalePI(imuDriver.roll)) > 60.0/180.0*PI) || (fabs(scalePI(imuDriver.pitch)) > 100.0/180.0*PI)
             || (fabs(rollChange) > 30.0/180.0*PI) || (fabs(pitchChange) > 60.0/180.0*PI)   )  {
-        CONSOLE.println("ERROR IMU tilt");
-        CONSOLE.print("imu ypr=");
-        CONSOLE.print(imuDriver.yaw/PI*180.0);
-        CONSOLE.print(",");
-        CONSOLE.print(imuDriver.pitch/PI*180.0);
-        CONSOLE.print(",");
-        CONSOLE.print(imuDriver.roll/PI*180.0);
-        CONSOLE.print(" rollChange=");
-        CONSOLE.print(rollChange/PI*180.0);
-        CONSOLE.print(" pitchChange=");
-        CONSOLE.println(pitchChange/PI*180.0);
+        dumpImuTilt();
         activeOp->onImuTilt();
         //stateSensor = SENS_IMU_TILT;
         //setOperation(OP_ERROR);

@@ -83,9 +83,9 @@ class Motor {
     float motorRightPWMCurrLP;    
     unsigned long lastControlTime;    
     unsigned long nextSenseTime;            
-    bool resetMotorFault;
-    int resetMotorFaultCounter;
-    unsigned long nextResetMotorFaultTime;
+    bool recoverMotorFault;
+    int recoverMotorFaultCounter;
+    unsigned long nextRecoverMotorFaultTime;
     int motorLeftTicksZero;    
     int motorRightTicksZero;    
     PID motorLeftPID;
@@ -95,6 +95,11 @@ class Motor {
     void speedPWM ( int pwmLeft, int pwmRight, int pwmMow );
     void control();    
     bool checkFault();
+    void checkOverload();
+    bool checkOdometryError();
+    bool checkMowRpmFault();
+    bool checkCurrentTooHighError();    
+    bool checkCurrentTooLowError();
     void sense();
     void dumpOdoTicks(int seconds);    
 };

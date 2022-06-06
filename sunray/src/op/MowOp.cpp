@@ -172,6 +172,11 @@ void MowOp::onMotorError(){
             changeOp(errorOp);
             return;      
         }  
+    } else {
+        CONSOLE.println("no obstacle avoidance activated on motor errors, giving up");    
+        stateSensor = SENS_MOTOR_ERROR;
+        changeOp(errorOp);        
+        return;
     }
 }
 
