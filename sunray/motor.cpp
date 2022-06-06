@@ -372,6 +372,7 @@ void Motor::run() {
         if (recoverMotorFaultCounter >= 3){ // too many successive motor faults
           //stopImmediately();
           CONSOLE.println("ERROR: motor recovery failed");
+          recoverMotorFaultCounter = 0;
           motorError = true;
         }
       } else {
@@ -548,7 +549,7 @@ bool Motor::checkMowRpmFault(){
   //CONSOLE.print(",");
   //CONSOLE.println(motorMowRpmCurrLP);
   if (ENABLE_RPM_FAULT_DETECTION){
-    if  ( (abs(motorMowPWMCurr) > 100) && (abs(motorMowPWMCurrLP) > 100) && (abs(motorMowRpmCurrLP) < 300.0)) {        
+    if  ( (abs(motorMowPWMCurr) > 100) && (abs(motorMowPWMCurrLP) > 100) && (abs(motorMowRpmCurrLP) < 2000.0)) {        
       CONSOLE.print("ERROR: mow motor rpm fault: pwm=");
       CONSOLE.print(motorMowPWMCurr);
       CONSOLE.print("  pwmLP=");      
