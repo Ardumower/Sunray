@@ -298,6 +298,8 @@ void AmMotorDriver::begin(){
       gearsDriverChip = A4931;
     #elif MOTOR_DRIVER_BRUSHLESS_GEARS_BLDC8015A
       gearsDriverChip = BLDC8015A;    
+    #elif MOTOR_DRIVER_BRUSHLESS_GEARS_JYQD
+      gearsDriverChip = JYQD;
     #else 
       gearsDriverChip = CUSTOM;
     #endif
