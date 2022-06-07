@@ -80,6 +80,7 @@ class SerialMotorDriver: public MotorDriver {
   public:        
     unsigned long lastEncoderTicksLeft;
     unsigned long lastEncoderTicksRight; 
+    unsigned long lastEncoderTicksMow;     
     SerialRobotDriver &serialRobot;
     SerialMotorDriver(SerialRobotDriver &sr);
     void begin() override;
