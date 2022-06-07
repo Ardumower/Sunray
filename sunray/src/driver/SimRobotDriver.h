@@ -156,6 +156,7 @@ class SimBuzzerDriver: public BuzzerDriver {
 class SimImuDriver: public ImuDriver {    
   public:    
     bool simNoData;
+    bool simDataTimeout;
     bool simTilt;
     SimRobotDriver &simRobot;
     SimImuDriver(SimRobotDriver &sr);    
@@ -166,6 +167,7 @@ class SimImuDriver: public ImuDriver {
     void resetData() override;       
     // ----- simulate errors, sensor triggers ----
     void setSimNoData(bool flag);
+    void setSimDataTimeout(bool flag);
     void setSimTilt(bool flag);
   protected:
     unsigned long nextSampleTime;

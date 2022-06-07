@@ -21,7 +21,7 @@
 ObstacleAvoidanceTest obstacleAvoidanceTest;
 MotorFaultTest motorFaultTest;
 SessionTest sessionTest;
-Test &currentTest = motorFaultTest;
+Test &currentTest = obstacleAvoidanceTest; //motorFaultTest;
 Tester tester;
 
 
@@ -78,6 +78,7 @@ String ObstacleAvoidanceTest::name(){
 void ObstacleAvoidanceTest::begin(){  
   //speak("Obstacle Avoidance Test");
   targetX = targetY = 99999;
+  imuFailureTime = millis() + 600000;
 }
 
 void ObstacleAvoidanceTest::end(){
@@ -106,8 +107,9 @@ void ObstacleAvoidanceTest::run(){
   if (robotDriver.robotIsBumpingIntoObstacle){
     if (!bumper.simTriggered){
       speak("trigger bumper");
-      bumper.setSimTriggered(true);
+      bumper.setSimTriggered(true);      
       startTime = millis();
+      imuFailureTime = millis() + 200;      
     }
   } else {
     bumper.setSimTriggered(false);
@@ -115,6 +117,10 @@ void ObstacleAvoidanceTest::run(){
   if (duration() > 60.0) {
     speak("failed");
     setSucceeded(false);
+  }
+  if (millis() > imuFailureTime){
+    imuFailureTime = millis() + 600000;
+    imuDriver.setSimDataTimeout(true);
   }
 }
 

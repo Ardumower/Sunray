@@ -413,6 +413,7 @@ void SimBuzzerDriver::tone(int freq){
 SimImuDriver::SimImuDriver(SimRobotDriver &sr): simRobot(sr){    
   nextSampleTime = 0;  
   simNoData = false;
+  simDataTimeout = false;
   simTilt = false;
 }
 
@@ -423,6 +424,9 @@ void SimImuDriver::detect(){
 
 bool SimImuDriver::begin(){ 
   CONSOLE.println("using imu driver: SimImuDriver");
+  simNoData = false;
+  simDataTimeout = false;
+  simTilt = false;
   return true;
 }
 
@@ -433,6 +437,9 @@ void SimImuDriver::run(){
 
 bool SimImuDriver::isDataAvail(){
   if (simNoData) return false;
+  if (simDataTimeout) {
+    delay(100);    
+  }
   if (millis() > nextSampleTime){
     nextSampleTime = millis() + 200; // 5 hz
     roll = 0;
@@ -445,7 +452,11 @@ bool SimImuDriver::isDataAvail(){
   }
 }         
     
-void SimImuDriver::resetData(){
+void SimImuDriver::resetData(){  
+}
+
+void SimImuDriver::setSimDataTimeout(bool flag){
+  simDataTimeout = flag;
 }
 
 void SimImuDriver::setSimNoData(bool flag){

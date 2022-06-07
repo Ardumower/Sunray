@@ -26,6 +26,10 @@ ImuCalibrationOp imuCalibrationOp;
 // active op
 Op *activeOp = &idleOp;
 
+// new active operation to call
+Op *newActiveOp = NULL;
+
+
 
 Op::Op(){
     initiatedbyOperator = false;
@@ -44,7 +48,7 @@ void Op::changeOp(Op &anOp, bool returnBackOnExit, bool initiatedbyOperatorFlag)
         CONSOLE.println("==> ERROR Op::changeOp: invalid op=NULL!");        
     }
     if (&anOp == activeOp) return;
-    nextOp = &anOp;
+    newActiveOp = &anOp;
 
     if (returnBackOnExit) {
       anOp.nextOp = this;
@@ -138,13 +142,13 @@ void Op::end(){
 
 void Op::checkStop(){
     if (shouldStop){
-      if (nextOp == NULL){
-        CONSOLE.println("ERROR Op::checkStop: invalid nextOp=NULL");
+      if (newActiveOp == NULL){
+        CONSOLE.println("ERROR Op::checkStop: invalid newActiveOp=NULL");
         return;
       }
       end();      
-      activeOp = nextOp;
-      nextOp = NULL;
+      activeOp = newActiveOp;
+      newActiveOp = NULL;
       activeOp->startTime = millis();
       CONSOLE.print("==> changeOp:");
       CONSOLE.println(activeOp->getOpChain());

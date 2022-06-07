@@ -52,6 +52,7 @@ class Test {
 
 class ObstacleAvoidanceTest: public Test {
   public:
+    unsigned long imuFailureTime;
     float targetX;
     float targetY;
     virtual String name() override;
