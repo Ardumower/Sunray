@@ -63,6 +63,7 @@ class ObstacleAvoidanceTest: public Test {
 
 class MotorFaultTest: public Test {
   public:
+    unsigned long nextFaultTime;
     virtual String name() override;
     virtual void begin() override;
     virtual void end() override;

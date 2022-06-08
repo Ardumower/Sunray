@@ -162,14 +162,15 @@ void MowOp::onMotorError(){
             CONSOLE.print("MowOp::onMotorError motorErrorCounter=");       
             CONSOLE.println(motorErrorCounter);
             if (maps.wayMode != WAY_DOCK){
-                if (motorErrorCounter < 5){ 
+                if (motorErrorCounter < 3){                     
                     //stateSensor = SENS_MOTOR_ERROR;
                     changeOp(escapeReverseOp, true);     // trigger obstacle avoidance 
                     return;
                 }
             }
             // obstacle avoidance failed with too many motor errors (it was probably not a molehole situation)
-            CONSOLE.println("error: motor error!");
+            CONSOLE.println("error: motor error - giving up!");
+            motorErrorCounter = 0;
             stateSensor = SENS_MOTOR_ERROR;
             changeOp(errorOp);
             return;      

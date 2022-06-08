@@ -21,8 +21,9 @@
 ObstacleAvoidanceTest obstacleAvoidanceTest;
 MotorFaultTest motorFaultTest;
 SessionTest sessionTest;
-Test &currentTest = obstacleAvoidanceTest; //motorFaultTest;
 Tester tester;
+//Test &currentTest = obstacleAvoidanceTest; 
+Test &currentTest = motorFaultTest;
 
 
 Test::Test(){
@@ -134,15 +135,17 @@ String MotorFaultTest::name(){
 
 void MotorFaultTest::begin(){  
   //speak("Motor Fault Test");  
+  nextFaultTime = millis() + 60000;
+  speak("Motor Fault Test");
 }
 
 void MotorFaultTest::end(){
 }
  
-void MotorFaultTest::run(){  
-  if (duration() == 60) {
-    speak("Motor Fault Test");
-    motorDriver.setSimMotorFault(false, false, true);
+void MotorFaultTest::run(){    
+  if (millis() > nextFaultTime){
+    nextFaultTime = millis() + 500;
+    motorDriver.setSimMotorFault(false, false, true);  // left, right, mow
   }
 }
 
