@@ -158,7 +158,9 @@ void MowOp::onMotorError(){
         if (motor.motorError){
             // this is the molehole situation: motor error will permanently trigger on molehole => we try obstacle avoidance (molehole avoidance strategy)
             motor.motorError = false; // reset motor error flag
-            motorErrorCounter++;       
+            motorErrorCounter++;
+            CONSOLE.print("MowOp::onMotorError motorErrorCounter=");       
+            CONSOLE.println(motorErrorCounter);
             if (maps.wayMode != WAY_DOCK){
                 if (motorErrorCounter < 5){ 
                     //stateSensor = SENS_MOTOR_ERROR;
