@@ -188,7 +188,7 @@ AmMotorDriver::AmMotorDriver(){
   DRV8308.keepPwmZeroSpeed = false; // never go to zero PWM (driver requires a periodic signal)  
   DRV8308.minPwmSpeed = 2;
   DRV8308.pwmFreq = PWM_FREQ_29300;
-  DRV8308.adcVoltToAmpOfs = -1.65;
+  DRV8308.adcVoltToAmpOfs = -1.65;   // brushless-adapter: 0A=1.65V, resolution 132mV/A 
   DRV8308.adcVoltToAmpScale = 7.57; 
   DRV8308.adcVoltToAmpPow = 1.0; 
 
@@ -207,7 +207,7 @@ AmMotorDriver::AmMotorDriver(){
   A4931.keepPwmZeroSpeed = true;  
   A4931.minPwmSpeed = 0;    
   A4931.pwmFreq = PWM_FREQ_29300;   
-  A4931.adcVoltToAmpOfs = -1.65;
+  A4931.adcVoltToAmpOfs = -1.65;    // brushless-adapter: 0A=1.65V, resolution 132mV/A
   A4931.adcVoltToAmpScale = 7.57;
   A4931.adcVoltToAmpPow = 1.0; 
 
@@ -225,7 +225,7 @@ AmMotorDriver::AmMotorDriver(){
   BLDC8015A.keepPwmZeroSpeed = true;  // keep PWM zero value (disregard minPwmSpeed at zero speed)?
   BLDC8015A.minPwmSpeed = 0;          // minimum PWM speed your driver can operate
   BLDC8015A.pwmFreq = PWM_FREQ_29300;  // choose between PWM_FREQ_3900 and PWM_FREQ_29300 here   
-  BLDC8015A.adcVoltToAmpOfs = 1.65;      // ADC voltage to amps (offset)    // current (amps)= ((ADCvoltage + ofs)^pow) * scale
+  BLDC8015A.adcVoltToAmpOfs = -1.65;      // ADC voltage to amps (offset)    // brushless-adapter: 0A=1.65V, resolution 132mV/A  
   BLDC8015A.adcVoltToAmpScale = 7.57; // ADC voltage to amps (scale)
   BLDC8015A.adcVoltToAmpPow = 1.0;    // ADC voltage to amps (power of number)
 
@@ -243,7 +243,7 @@ AmMotorDriver::AmMotorDriver(){
   JYQD.keepPwmZeroSpeed = false;  // keep PWM zero value (disregard minPwmSpeed at zero speed)?
   JYQD.minPwmSpeed = 0;          // minimum PWM speed your driver can operate
   JYQD.pwmFreq = PWM_FREQ_3900;  // choose between PWM_FREQ_3900 and PWM_FREQ_29300 here   
-  JYQD.adcVoltToAmpOfs = -1.65;      // ADC voltage to amps (offset)   // current (amps)= ((ADCvoltage + ofs)^pow) * scale
+  JYQD.adcVoltToAmpOfs = -1.65;      // ADC voltage to amps (offset)   // brushless-adapter: 0A=1.65V, resolution 132mV/A
   JYQD.adcVoltToAmpScale = 7.57; // ADC voltage to amps (scale)
   JYQD.adcVoltToAmpPow = 1.0;    // ADC voltage to amps (power of number)
 
@@ -261,8 +261,8 @@ AmMotorDriver::AmMotorDriver(){
   CUSTOM.keepPwmZeroSpeed = true;  // keep PWM zero value (disregard minPwmSpeed at zero speed)?
   CUSTOM.minPwmSpeed = 0;          // minimum PWM speed your driver can operate
   CUSTOM.pwmFreq = PWM_FREQ_3900;  // choose between PWM_FREQ_3900 and PWM_FREQ_29300 here   
-  CUSTOM.adcVoltToAmpOfs = 0;      // ADC voltage to amps (offset)
-  CUSTOM.adcVoltToAmpScale = 1.00; // ADC voltage to amps (scale)
+  CUSTOM.adcVoltToAmpOfs = -1.65;      // ADC voltage to amps (offset)        // brushless-adapter: 0A=1.65V, resolution 132mV/A
+  CUSTOM.adcVoltToAmpScale = 7.57; // ADC voltage to amps (scale)
   CUSTOM.adcVoltToAmpPow = 1.0;    // ADC voltage to amps (power of number)
 }
     
