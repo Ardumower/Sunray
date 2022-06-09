@@ -238,7 +238,7 @@ AmMotorDriver::AmMotorDriver(){
   JYQD.usePwmRamp = false;       // use a ramp to get to PWM value?    
   JYQD.faultActive = LOW;        // fault active level (LOW or HIGH)
   JYQD.resetFaultByToggleEnable = true; // reset a fault by toggling enable? 
-  JYQD.enableActive = LOW;       // enable active level (LOW or HIGH)
+  JYQD.enableActive = HIGH;       // enable active level (LOW or HIGH)
   JYQD.disableAtPwmZeroSpeed = false;  // disable driver at PWM zero speed? (brake function)
   JYQD.keepPwmZeroSpeed = false;  // keep PWM zero value (disregard minPwmSpeed at zero speed)?
   JYQD.minPwmSpeed = 0;          // minimum PWM speed your driver can operate
