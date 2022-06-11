@@ -43,6 +43,7 @@ struct DriverChip {
     bool disableAtPwmZeroSpeed; // disable driver at PWM zero speed? (brake function)
     bool keepPwmZeroSpeed;  // keep zero PWM value (disregard minPwmSpeed at zero speed)?    
     int minPwmSpeed;        // minimum PWM speed to ensure     
+    int maxPwmSpeed;        // maximum PWM speed to ensure     
     byte pwmFreq;           // PWM frequency (PWM_FREQ_3900 or PWM_FREQ_29300)
     float adcVoltToAmpOfs;  // ADC voltage to amps (offset)     // current (amps)= ((ADCvoltage + ofs)^pow) * scale
     float adcVoltToAmpScale; // ADC voltage to amps (scale)
