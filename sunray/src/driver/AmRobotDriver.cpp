@@ -264,8 +264,8 @@ AmMotorDriver::AmMotorDriver(){
   CUSTOM.enableActive = LOW;       // enable active level (LOW or HIGH)
   CUSTOM.disableAtPwmZeroSpeed=false;  // disable driver at PWM zero speed? (brake function)
   CUSTOM.keepPwmZeroSpeed = false;  // keep PWM zero value (disregard minPwmSpeed at zero speed)?
-  CUSTOM.minPwmSpeed = 2;          // minimum PWM speed your driver can operate
-  CUSTOM.maxPwmSpeed = 253;          
+  CUSTOM.minPwmSpeed = 6;          // minimum PWM speed your driver can operate
+  CUSTOM.maxPwmSpeed = 249;          
   CUSTOM.pwmFreq = PWM_FREQ_3900;  // choose between PWM_FREQ_3900 and PWM_FREQ_29300 here   
   CUSTOM.adcVoltToAmpOfs = -1.65;      // ADC voltage to amps (offset)        // brushless-adapter: 0A=1.65V, resolution 132mV/A
   CUSTOM.adcVoltToAmpScale = 7.57; // ADC voltage to amps (scale)
