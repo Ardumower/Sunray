@@ -405,7 +405,7 @@ void Motor::run() {
   // 20 ticksPerRevolution: @ 30 rpm => 0.5 rps => 10 ticksPerSec
   motorLeftRpmCurr = 60.0 * ( ((float)ticksLeft) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
   motorRightRpmCurr = 60.0 * ( ((float)ticksRight) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
-  motorMowRpmCurr = 60.0 * ( ((float)ticksMow) / ((float)5.0) ) / deltaControlTimeSec; // assuming 5 ticks per revolution
+  motorMowRpmCurr = 60.0 * ( ((float)ticksMow) / ((float)6.0) ) / deltaControlTimeSec; // assuming 6 ticks per revolution
   float lp = 0.9; // 0.995
   motorLeftRpmCurrLP = lp * motorLeftRpmCurrLP + (1.0-lp) * motorLeftRpmCurr;
   motorRightRpmCurrLP = lp * motorRightRpmCurrLP + (1.0-lp) * motorRightRpmCurr;
@@ -549,7 +549,7 @@ bool Motor::checkMowRpmFault(){
   //CONSOLE.print(",");
   //CONSOLE.println(motorMowRpmCurrLP);
   if (ENABLE_RPM_FAULT_DETECTION){
-    if  ( (abs(motorMowPWMCurr) > 100) && (abs(motorMowPWMCurrLP) > 100) && (abs(motorMowRpmCurrLP) < 300.0)) {        
+    if  ( (abs(motorMowPWMCurr) > 100) && (abs(motorMowPWMCurrLP) > 100) && (abs(motorMowRpmCurrLP) < 10.0)) {        
       CONSOLE.print("ERROR: mow motor rpm fault: pwm=");
       CONSOLE.print(motorMowPWMCurr);
       CONSOLE.print("  pwmLP=");      
