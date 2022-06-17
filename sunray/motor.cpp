@@ -457,13 +457,13 @@ bool Motor::checkCurrentTooLowError(){
         ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (motorRightSenseLP < 0.005))  ){        
     // at least one motor is not consuming current      
     // first try reovery, then indicate a motor error to the robot control (so it can try an obstacle avoidance)    
-    CONSOLE.print("ERROR: motor current too low: pwm=");
+    CONSOLE.print("ERROR: motor current too low: pwm (left,right,mow)=");
     CONSOLE.print(motorLeftPWMCurr);
     CONSOLE.print(",");
     CONSOLE.print(motorRightPWMCurr);
     CONSOLE.print(",");
     CONSOLE.print(motorMowPWMCurr);
-    CONSOLE.print("  sense=");
+    CONSOLE.print("  average current amps (left,right,mow)=");
     CONSOLE.print(motorLeftSenseLP);
     CONSOLE.print(",");
     CONSOLE.print(motorRightSenseLP);
@@ -485,15 +485,15 @@ bool Motor::checkFault() {
     motorDriver.getMotorFaults(leftFault, rightFault, mowFault);
   }
   if (leftFault) {
-    CONSOLE.println("Error: motor left fault");
+    CONSOLE.println("Error: motor driver left signaled fault");
     fault = true;
   }
   if  (rightFault) {
-    CONSOLE.println("Error: motor right fault"); 
+    CONSOLE.println("Error: motor driver right signaled fault"); 
     fault = true;
   }
   if (mowFault) {
-    CONSOLE.println("Error: motor mow fault");
+    CONSOLE.println("Error: motor driver mow signaled fault");
     fault = true;
   }
   return fault;
@@ -507,7 +507,7 @@ bool Motor::checkOdometryError() {
         ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (abs(motorRightRpmCurrLP) < 0.001))  )
     {               
       // odometry error
-      CONSOLE.print("ERROR: odometry error rpm=");
+      CONSOLE.print("ERROR: odometry error - rpm too low (left, right)=");
       CONSOLE.print(motorLeftRpmCurrLP);
       CONSOLE.print(",");
       CONSOLE.println(motorRightRpmCurrLP);     
@@ -525,9 +525,9 @@ void Motor::checkOverload(){
   motorMowOverload = (motorMowSenseLP > MOW_OVERLOAD_CURRENT);
   if (motorLeftOverload || motorRightOverload || motorMowOverload){
     if (motorOverloadDuration == 0){
-      CONSOLE.print("ERROR motor overload duration=");
+      CONSOLE.print("ERROR motor overload (average current too high) - duration=");
       CONSOLE.print(motorOverloadDuration);
-      CONSOLE.print("  current=");
+      CONSOLE.print("  avg current amps (left,right,mow)=");
       CONSOLE.print(motorLeftSenseLP);
       CONSOLE.print(",");
       CONSOLE.print(motorRightSenseLP);
@@ -550,7 +550,7 @@ bool Motor::checkMowRpmFault(){
   //CONSOLE.println(motorMowRpmCurrLP);
   if (ENABLE_RPM_FAULT_DETECTION){
     if  ( (abs(motorMowPWMCurr) > 100) && (abs(motorMowPWMCurrLP) > 100) && (abs(motorMowRpmCurrLP) < 10.0)) {        
-      CONSOLE.print("ERROR: mow motor rpm fault: pwm=");
+      CONSOLE.print("ERROR: mow motor, average rpm too low: pwm=");
       CONSOLE.print(motorMowPWMCurr);
       CONSOLE.print("  pwmLP=");      
       CONSOLE.print(motorMowPWMCurrLP);      
