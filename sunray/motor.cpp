@@ -556,7 +556,7 @@ bool Motor::checkMowRpmFault(){
       CONSOLE.print(motorMowPWMCurrLP);      
       CONSOLE.print("  rpmLP=");
       CONSOLE.print(motorMowRpmCurrLP);
-      CONSOLE.println("  (NOTE: choose ENABLE_RPM_FAULT_DETECTION=false in config.h, if your mowing motor has no rpm sensor!");
+      CONSOLE.println("  (NOTE: choose ENABLE_RPM_FAULT_DETECTION=false in config.h, if your mowing motor has no rpm sensor!)");
       return true;
     }
   }  
