@@ -200,6 +200,7 @@ void sensorTest(){
   while (millis() < stopTime){
     sonar.run();
     bumper.run();
+	liftDriver.run();
     if (millis() > nextMeasureTime){
       nextMeasureTime = millis() + 1000;      
       if (SONAR_ENABLE){
@@ -228,7 +229,13 @@ void sensorTest(){
         CONSOLE.print(((int)bumper.obstacle()));
         CONSOLE.print("\t");
        
-      } 
+      }
+	#ifdef ENABLE_LIFT_DETECTION 
+        CONSOLE.print("lift sensor (triggered): ");		
+        CONSOLE.print(((int)liftDriver.triggered()));	
+        CONSOLE.print("\t");							            
+    #endif  
+	
       CONSOLE.println();  
       watchdogReset();
       robotDriver.run();   
