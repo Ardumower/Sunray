@@ -670,7 +670,7 @@ float SerialBatteryDriver::getBatteryVoltage(){
       }
     }    
     if (serialRobot.mcuCommunicationLost){      
-      if (!mcuBoardPoweredOn) return 0; // return zero volt if MCU PCB is switched-off (so we will be later requested to shutdown)
+      //if (!mcuBoardPoweredOn) return 0; // return zero volt if MCU PCB is switched-off (so we will be later requested to shutdown)
     }
   #endif         
   return serialRobot.batteryVoltage;
