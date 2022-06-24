@@ -934,7 +934,7 @@ void run(){
     else {      
       if (RAIN_ENABLE){
         if (rainDriver.triggered()){
-          CONSOLE.println("RAIN TRIGGERED");
+          //CONSOLE.println("RAIN TRIGGERED");
           activeOp->onRainTriggered();
         }
       }    

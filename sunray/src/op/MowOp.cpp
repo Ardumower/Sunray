@@ -87,6 +87,7 @@ void MowOp::run(){
 
 void MowOp::onRainTriggered(){
     if (DOCKING_STATION){
+        CONSOLE.println("RAIN TRIGGERED");
         stateSensor = SENS_RAIN;
         dockOp.dockReasonRainTriggered = true;
         changeOp(dockOp);              
