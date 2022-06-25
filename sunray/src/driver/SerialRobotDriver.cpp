@@ -67,11 +67,11 @@ void SerialRobotDriver::begin(){
     // IMU/fan power-on code (Alfred-PCB-specific) 
 
     // switch-on IMU via port-expander PCA9555     
-    ioExpanderOut(EX1_I2C_ADDR, EX1_IMU_POWER_PORT, EX1_IMU_POWER_PIN, true);
+    setImuPowerState(true);
     
     // switch-on fan via port-expander PCA9555     
-    ioExpanderOut(EX1_I2C_ADDR, EX1_FAN_POWER_PORT, EX1_FAN_POWER_PIN, true);
-
+    setFanPowerState(true);
+    
     // select IMU via multiplexer TCA9548A 
     ioI2cMux(MUX_I2C_ADDR, SLAVE_IMU_MPU, true);  // Alfred dev PCB with buzzer
     ioI2cMux(MUX_I2C_ADDR, SLAVE_BUS0, true); // Alfred dev PCB without buzzer    
@@ -152,6 +152,17 @@ bool SerialRobotDriver::setLedState(int ledNumber, bool greenState, bool redStat
   return true;
 }
 
+bool SerialRobotDriver::setFanPowerState(bool state){
+  CONSOLE.print("FAN POWER STATE ");
+  CONSOLE.println(state);
+  return ioExpanderOut(EX1_I2C_ADDR, EX1_FAN_POWER_PORT, EX1_FAN_POWER_PIN, state);
+}
+
+bool SerialRobotDriver::setImuPowerState(bool state){
+  CONSOLE.print("IMU POWER STATE ");
+  CONSOLE.println(state);  
+  ioExpanderOut(EX1_I2C_ADDR, EX1_IMU_POWER_PORT, EX1_IMU_POWER_PIN, state);
+}  
 
 bool SerialRobotDriver::getRobotID(String &id){
   id = robotID;
@@ -501,7 +512,12 @@ void SerialRobotDriver::run(){
   }
   if (millis() > nextTempTime){
     nextTempTime = millis() + 59000; // 59 sec
-    updateCpuTemperature();          
+    updateCpuTemperature();
+    if (cpuTemp < 65){      
+      setFanPowerState(false);
+    } else if (cpuTemp > 70){
+      setFanPowerState(true);
+    }
   }
   if (millis() > nextWifiTime){
     nextWifiTime = millis() + 7000; // 7 sec
@@ -712,7 +728,7 @@ void SerialBatteryDriver::keepPowerOn(bool flag){
         linuxShutdownTime = millis() + 10000; // re-trigger linux command after 10 secs
         CONSOLE.println("LINUX will SHUTDOWN!");
         // switch-off fan via port-expander PCA9555     
-        ioExpanderOut(EX1_I2C_ADDR, EX1_FAN_POWER_PORT, EX1_FAN_POWER_PIN, false);
+        setFanPowerState(false);
         Process p;
         p.runShellCommand("shutdown now");
       }

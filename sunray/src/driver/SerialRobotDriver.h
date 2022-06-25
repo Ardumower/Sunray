@@ -52,6 +52,8 @@ class SerialRobotDriver: public RobotDriver {
     void updateCpuTemperature();
     void updateWifiConnectionState();
     bool setLedState(int ledNumber, bool greenState, bool redState);
+    bool setFanPowerState(bool state);
+    bool setImuPowerState(bool state);
   protected:    
     bool ledPanelInstalled;
     Process cpuTempProcess;
