@@ -728,7 +728,7 @@ void SerialBatteryDriver::keepPowerOn(bool flag){
         linuxShutdownTime = millis() + 10000; // re-trigger linux command after 10 secs
         CONSOLE.println("LINUX will SHUTDOWN!");
         // switch-off fan via port-expander PCA9555     
-        setFanPowerState(false);
+        serialRobot.setFanPowerState(false);
         Process p;
         p.runShellCommand("shutdown now");
       }
