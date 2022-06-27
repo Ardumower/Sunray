@@ -5,6 +5,9 @@
 
 #include <Arduino.h>
 #include <SD.h>
+#ifdef __linux__
+  #include <WiFi.h>
+#endif
 
 #include "robot.h"
 #include "StateEstimator.h"
@@ -975,6 +978,12 @@ void run(){
       stateButton = 0;  // reset button state
       stateSensor = SENS_STOP_BUTTON;
       cmdSwitchOffRobot();
+    } else if (stateButton == 12){
+      stateButton = 0; // reset button state
+      stateSensor = SENS_STOP_BUTTON;
+      #ifdef __linux__
+        WiFi.startWifiProtectedSetup();
+      #endif
     }
 
     // update operation type      
