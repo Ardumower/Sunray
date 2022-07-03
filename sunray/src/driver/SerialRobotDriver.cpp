@@ -176,7 +176,11 @@ bool SerialRobotDriver::getMcuFirmwareVersion(String &name, String &ver){
 }
 
 float SerialRobotDriver::getCpuTemperature(){
-  return cpuTemp;
+  #ifdef __linux__
+    return cpuTemp;
+  #else
+    return -9999;
+  #endif
 }
 
 void SerialRobotDriver::updateCpuTemperature(){
@@ -649,9 +653,9 @@ void SerialBatteryDriver::updateBatteryTemperature(){
 
 float SerialBatteryDriver::getBatteryTemperature(){
   #ifdef __linux__
-    return batteryTemp;
+    return -9999; //batteryTemp; // linux reported bat temp not useful as seem to be constant 31 degree
   #else
-    return 0;
+    return -9999;
   #endif
 }
 

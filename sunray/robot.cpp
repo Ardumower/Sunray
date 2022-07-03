@@ -859,16 +859,21 @@ void run(){
   // temp
   if (millis() > nextTempTime){
     nextTempTime = millis() + 60000;    
-    stateTemp = batteryDriver.getBatteryTemperature();
-    statTempMin = min(statTempMin, stateTemp);
-    statTempMax = max(statTempMax, stateTemp);
+    float batTemp = batteryDriver.getBatteryTemperature();
+    float cpuTemp = robotDriver.getCpuTemperature();    
     CONSOLE.print("batTemp=");
-    CONSOLE.print(stateTemp,1);
-    float cpuTemp = robotDriver.getCpuTemperature();
+    CONSOLE.print(stateTemp,0);
     CONSOLE.print("  cpuTemp=");
     CONSOLE.print(cpuTemp,0);    
     //logCPUHealth();
-    CONSOLE.println();
+    CONSOLE.println();    
+    if (batTemp < -999){
+      stateTemp = cpuTemp;
+    } else {
+      stateTemp = batTemp;    
+    }
+    statTempMin = min(statTempMin, stateTemp);
+    statTempMax = max(statTempMax, stateTemp);    
   }
   
   // IMU
