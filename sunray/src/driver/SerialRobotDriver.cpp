@@ -161,7 +161,7 @@ bool SerialRobotDriver::setFanPowerState(bool state){
 bool SerialRobotDriver::setImuPowerState(bool state){
   CONSOLE.print("IMU POWER STATE ");
   CONSOLE.println(state);  
-  ioExpanderOut(EX1_I2C_ADDR, EX1_IMU_POWER_PORT, EX1_IMU_POWER_PIN, state);
+  return ioExpanderOut(EX1_I2C_ADDR, EX1_IMU_POWER_PORT, EX1_IMU_POWER_PIN, state);
 }  
 
 bool SerialRobotDriver::getRobotID(String &id){
