@@ -283,7 +283,7 @@ void AmMotorDriver::begin(){
     // example: mowDriverChip.minPwmSpeed = 40; 
 
     #ifdef MOTOR_DRIVER_BRUSHLESS_MOW_DRV8308  
-      mowDriverChip = DRV8308;                          
+      mowDriverChip = DRV8308;
     #elif MOTOR_DRIVER_BRUSHLESS_MOW_A4931 
       mowDriverChip = A4931;
       mowDriverChip.minPwmSpeed = 40;
@@ -503,15 +503,24 @@ void AmMotorDriver::resetMotorFaults(){
 
 void AmMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent){
   // current (amps)= ((ADCvoltage + ofs)^pow) * scale
+  float ValuePosCheck	= 0;
+  ValuePosCheck = (((float)ADC2voltage(analogRead(pinMotorLeftSense))) + gearsDriverChip.adcVoltToAmpOfs);
+  if (ValuePosCheck < 0) ValuePosCheck = 0;	// avoid negativ numbers
   leftCurrent = pow(
-      ((float)ADC2voltage(analogRead(pinMotorLeftSense))) + gearsDriverChip.adcVoltToAmpOfs, gearsDriverChip.adcVoltToAmpPow
+      ValuePosCheck, gearsDriverChip.adcVoltToAmpPow
       )  * gearsDriverChip.adcVoltToAmpScale;
+
+  ValuePosCheck = (((float)ADC2voltage(analogRead(pinMotorRightSense))) + gearsDriverChip.adcVoltToAmpOfs);
+  if (ValuePosCheck < 0) ValuePosCheck = 0;	// avoid negativ numbers
   rightCurrent = pow(
-      ((float)ADC2voltage(analogRead(pinMotorRightSense))) + gearsDriverChip.adcVoltToAmpOfs, gearsDriverChip.adcVoltToAmpPow
+      ValuePosCheck, gearsDriverChip.adcVoltToAmpPow
       )  * gearsDriverChip.adcVoltToAmpScale;
+
+  ValuePosCheck = (((float)ADC2voltage(analogRead(pinMotorMowSense))) + gearsDriverChip.adcVoltToAmpOfs);
+  if (ValuePosCheck < 0) ValuePosCheck = 0;	// avoid negativ numbers
   mowCurrent = pow(
-            ((float)ADC2voltage(analogRead(pinMotorMowSense))) + mowDriverChip.adcVoltToAmpOfs, mowDriverChip.adcVoltToAmpPow
-      )  * mowDriverChip.adcVoltToAmpScale; 
+            ValuePosCheck, mowDriverChip.adcVoltToAmpPow
+      )  * mowDriverChip.adcVoltToAmpScale;
 }
 
 void AmMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
