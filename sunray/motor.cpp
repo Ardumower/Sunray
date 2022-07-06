@@ -32,6 +32,15 @@ void Motor::begin() {
 
   //ticksPerRevolution = 1060/2;
   ticksPerRevolution = TICKS_PER_REVOLUTION;
+  
+  // check for MOW_TICKS_PER_REVOLUTION value
+  #ifdef MOW_TICKS_PER_REVOLUTION
+    ticksPerMowMotorRevolution = MOW_TICKS_PER_REVOLUTION;
+    if (ticksPerMowMotorRevolution == 0) ticksPerMowMotorRevolution = 1;
+  #else
+    ticksPerMowMotorRevolution = 1; // avoid div by zero
+  #endif
+	
 	wheelBaseCm = WHEEL_BASE_CM;    // wheel-to-wheel distance (cm) 36
   wheelDiameter = WHEEL_DIAMETER; // wheel diameter (mm)
   ticksPerCm         = ((float)ticksPerRevolution) / (((float)wheelDiameter)/10.0) / 3.1415;    // computes encoder ticks per cm (do not change)  
@@ -407,7 +416,7 @@ void Motor::run() {
   // 20 ticksPerRevolution: @ 30 rpm => 0.5 rps => 10 ticksPerSec
   motorLeftRpmCurr = 60.0 * ( ((float)ticksLeft) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
   motorRightRpmCurr = 60.0 * ( ((float)ticksRight) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
-  motorMowRpmCurr = 60.0 * ( ((float)ticksMow) / ((float)MOW_TICKS_PER_REVOLUTION) ) / deltaControlTimeSec;
+  motorMowRpmCurr = 60.0 * ( ((float)ticksMow) / ((float)ticksPerMowMotorRevolution) ) / deltaControlTimeSec;
   float lp = 0.9; // 0.995
   motorLeftRpmCurrLP = lp * motorLeftRpmCurrLP + (1.0-lp) * motorLeftRpmCurr;
   motorRightRpmCurrLP = lp * motorRightRpmCurrLP + (1.0-lp) * motorRightRpmCurr;
@@ -725,7 +734,7 @@ void Motor::dumpOdoMowTicks(){
   float deltaControlTimeSec =  ((float)(currTime - lastControlTime)) / 1000.0;
   lastControlTime = currTime;
 
-  motorMowRpmCurr = 60.0 * ( ((float)ticksMow) / ((float)MOW_TICKS_PER_REVOLUTION) ) / deltaControlTimeSec;
+  motorMowRpmCurr = 60.0 * ( ((float)ticksMow) / ((float)ticksPerMowMotorRevolution) ) / deltaControlTimeSec;
 
   float lp = 0.9; // 0.995
   motorMowRpmCurrLP = lp * motorMowRpmCurrLP + (1.0-lp) * motorMowRpmCurr;
