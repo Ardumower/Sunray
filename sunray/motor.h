@@ -57,6 +57,7 @@ class Motor {
     void begin();
     void run();      
     void test();
+    void testMow(); //Svol0 TestMowMotor
     void plot();
     void enableTractionMotors(bool enable);
     void setLinearAngularSpeed(float linear, float angular, bool useLinearRamp = true);
@@ -102,6 +103,7 @@ class Motor {
     bool checkCurrentTooLowError();
     void sense();
     void dumpOdoTicks(int seconds);    
+    void dumpOdoMowTicks();    
 };
 
 
