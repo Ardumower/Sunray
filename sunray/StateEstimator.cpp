@@ -134,7 +134,7 @@ void readIMU(){
   unsigned long duration = millis() - startTime;    
   //CONSOLE.print("duration:");
   //CONSOLE.println(duration);  
-  if ((duration > 10) || (millis() > imuDataTimeout)) {
+  if ((duration > 40) || (millis() > imuDataTimeout)) {
     if (millis() > imuDataTimeout){
       CONSOLE.println("ERROR IMU data timeout (check RTC battery if problem persists)");  
     } else {
