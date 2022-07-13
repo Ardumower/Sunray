@@ -91,6 +91,7 @@ void ArduMower::Adapter::processRxBuffer(uint32_t now) {
 
   if (responseType == "V") processATVResponse(now, remainder);
   else if (responseType == "S") processATSResponse(now, remainder);
+  else if (responseType == "T") processATTResponse(now, remainder);
 }
 
 void ArduMower::Adapter::decryptBuffer(String& buffer) {
@@ -186,6 +187,91 @@ void ArduMower::Adapter::processATSResponse(uint32_t now, String& res) {
   
   for (auto it : stateListeners) {
     it(state);
+  }
+}
+
+void ArduMower::Adapter::processATTResponse(uint32_t now, String& res) {
+  processCSVResponse(res, [ = ](int index, String & val) {
+    switch (index) {
+      case 0:
+        stats.statIdleDuration = val.toInt();
+        break;
+      case 1:
+        stats.statChargeDuration = val.toInt();
+        break;
+      case 2:
+        stats.statMowDuration = val.toInt();
+        break;
+      case 3:
+        stats.statMowDurationFloat = val.toInt();
+        break;
+      case 4:
+        stats.statMowDurationFix = val.toInt();
+        break;
+      case 5:
+        stats.statMowFloatToFixRecoveries = val.toInt();
+        break;
+      case 6:
+        stats.statMowDistanceTraveled = val.toInt();
+        break;
+      case 7:
+        stats.statMowMaxDgpsAge = val.toFloat();
+        break;
+      case 8:
+        stats.statImuRecoveries = val.toInt();
+        break;
+      case 9:
+        stats.statTempMin = val.toFloat();
+        break;
+      case 10:
+        stats.statTempMax = val.toFloat();
+        break;
+      case 11:
+        stats.chksumErrorCounter = val.toInt();
+        break;
+      case 12:
+        stats.dgpsChecksumErrorCounter = val.toInt();
+        break;
+      case 13:
+        stats.statMaxControlCycleTime = val.toFloat();
+        break;
+      case 14:
+        stats.serial_buffer_size = val.toInt();
+        break;
+      case 15:
+        stats.statMowDurationInvalid = val.toInt();
+        break;
+      case 16:
+        stats.statMowInvalidRecoveries = val.toInt();
+        break;
+      case 17:
+        stats.statMowObstacles = val.toInt();
+        break;
+      case 18:
+        stats.freeMemory = val.toInt();
+        break;
+      case 19:
+        stats.resetCause = val.toInt();
+        break;
+      case 20:
+        stats.statGpsJumps = val.toInt();
+        break;
+      case 21:
+        stats.statMowSonarCounter = val.toInt();
+        break;
+      case 22:
+        stats.statMowBumperCounter = val.toInt();
+        break;
+      case 23:
+        stats.statMowGpsMotionTimeoutCounter = val.toInt();
+        break;
+    }
+  });
+
+  timeAtt = now;
+  
+  for (auto it : statsListeners) {
+    it(stats);
   }
 }
 

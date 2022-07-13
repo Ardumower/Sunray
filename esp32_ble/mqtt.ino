@@ -26,20 +26,25 @@
 #define MQTT_MOWER_POLL_INTERVAL      1000
 #define MQTT_MOWER_POLL_BACKOFF       5000
 #define MQTT_MOWER_POLL_ATS           5000
+#define MQTT_MOWER_POLL_ATT           60000
 
 WiFiClient mqttNet;
 MQTTClient mqttClient(1024);
 bool mqttPendingPublishProps = false;
 bool mqttPendingPublishState = false;
+bool mqttPendingPublishStats = false;
 
 void mqtt_on_message(String &topic, String &payload);
-void mqtt_handle_command_start(DynamicJsonDocument& doc);
-void mqtt_handle_command_stop(DynamicJsonDocument& doc);
-void mqtt_handle_command_dock(DynamicJsonDocument& doc);
+void mqtt_handle_command_start();
+void mqtt_handle_command_stop();
+void mqtt_handle_command_dock();
+void mqtt_handle_command_reboot();
+void mqtt_handle_command_shutdown();
 void mqtt_poll_mower(uint32_t now);
 void mqtt_connect();
 void mqtt_publish_props();
 void mqtt_publish_state();
+void mqtt_publish_stats();
 
 
 String mqtt_topic(String postfix) {
@@ -57,6 +62,9 @@ void mqtt_setup() {
   mower.addPropertiesListeners([ = ](ArduMower::Properties & props) {
     mqttPendingPublishProps = true;
   });
+  mower.addStatsListeners([ = ](ArduMower::Stats & stats) {
+    mqttPendingPublishStats = true;
+  });
 
   mqttClient.begin(MQTT_HOSTNAME, MQTT_PORT, mqttNet);
   mqttClient.onMessage(mqtt_on_message);
@@ -68,6 +76,7 @@ void mqtt_loop() {
   mqttClient.loop();
   mqtt_publish_props();
   mqtt_publish_state();
+  mqtt_publish_stats();
 }
 
 void mqtt_poll_mower(uint32_t now) {
@@ -92,6 +101,15 @@ void mqtt_poll_mower(uint32_t now) {
       return;
     }
   }
+  
+  if (mower.ageAtt(now) >= MQTT_MOWER_POLL_ATT) {
+    static uint32_t last_time = 0;
+    if (now - last_time > MQTT_MOWER_POLL_BACKOFF) {
+      last_time = now;
+      mower.sendCommand("AT+T");
+      return;
+    }
+  }
 }
 
 void mqtt_connect() {
@@ -105,17 +123,23 @@ void mqtt_connect() {
 }
 
 void mqtt_on_message(String &topic, String &payload) {
-  DynamicJsonDocument doc(1024);
-  deserializeJson(doc, payload);
-
-  String command = doc["command"];
-
-  if (command == "start") {
-    mqtt_handle_command_start(doc);
-  } else if (command == "stop") {
-    mqtt_handle_command_stop(doc);
-  } else if (command == "dock") {
-    mqtt_handle_command_dock(doc);
+  CONSOLE.println(payload);
+  if (payload.startsWith("{"))
+  {
+    DynamicJsonDocument doc(1024);
+    deserializeJson(doc, payload);
+    const char *command = doc["command"];
+  }
+  if (payload == "start") {
+    mqtt_handle_command_start();
+  } else if (payload == "stop") {
+    mqtt_handle_command_stop();
+  } else if (payload == "dock") {
+    mqtt_handle_command_dock();
+  } else if (payload == "reboot") {
+    mqtt_handle_command_reboot();
+  } else if (payload == "shutdown") {
+    mqtt_handle_command_shutdown();
   }
 }
 
@@ -135,19 +159,33 @@ void mqtt_publish_state() {
   mqttPendingPublishState = false;
 }
 
-void mqtt_handle_command_start(DynamicJsonDocument& doc) {
+void mqtt_publish_stats() {
+  if (!mqttPendingPublishStats) return;
+
+  if (!mqttClient.publish(mqtt_topic("/stats").c_str(), mower.stats.toJson().c_str())) return;
+
+  mqttPendingPublishStats = false;
+}
+
+void mqtt_handle_command_start() {
   String at = "AT+C,-1,1,0.1,100,0,-1,-1,1";
   mower.sendCommand(at);
 }
 
-void mqtt_handle_command_stop(DynamicJsonDocument& doc) {
+void mqtt_handle_command_stop() {
   mower.sendCommand("AT+C,-1,0,-1,-1,-1,-1,-1,-1");
 }
 
-void mqtt_handle_command_dock(DynamicJsonDocument& doc) {
+void mqtt_handle_command_dock() {
   mower.sendCommand("AT+C,-1,4,-1,-1,-1,-1,-1,1");
 }
 
+void mqtt_handle_command_reboot() {
+  mower.sendCommand("AT+Y");
+}
+
+void mqtt_handle_command_shutdown() {
+  mower.sendCommand("AT+Y3");
+}
+
 #endif  // USE_MQTT
-
-

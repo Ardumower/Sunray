@@ -16,7 +16,7 @@
 
 #include "config.h"
 
-#define VERSION "ESP32 firmware V0.4.4,Bluetooth V4.0 LE"
+#define VERSION "ESP32 firmware V0.4.5,Bluetooth V4.0 LE"
 
 // watch dog timeout (WDT) in seconds
 #define WDT_TIMEOUT 60
@@ -136,6 +136,12 @@ void uartSend(String s) {
   CONSOLE.println(s);
   UART.print(s);
   UART.print("\r\n");
+  
+  #ifdef USE_MQTT
+    mower.tx(s);
+    String crlf = "\r\n";                     
+    mower.tx(crlf);
+  #endif               
 }
 
 // ------------------------------- BLE -----------------------------------------------------
@@ -413,12 +419,18 @@ void handleRoot(HTTPRequest * req, HTTPResponse * res) {
     UART.write(buffer, s);
     wifiCmd += String((char*)buffer);     
   }
+  #ifdef USE_MQTT
+    mower.tx(wifiCmd);
+  #endif
   CONSOLE.println();  
   String cmdResponse;
   unsigned long timeout = millis() + WIFI_TIMEOUT_FIRST_RESPONSE;
   while ( millis() < timeout) {
     if (UART.available()) {
       char ch = UART.read();
+      #ifdef USE_MQTT
+        mower.rx(ch);
+      #endif
       cmdResponse += ch;
       timeout = millis() + WIFI_TIMEOUT_RESPONSE;
     }
@@ -570,6 +582,9 @@ void setup() {
 
 
 void loop() {
+#ifdef USE_MQTT
+  mower.loop(millis());
+#endif
 #ifdef USE_BLE
   // -------- BLE -----------------------------
   // disconnecting
@@ -598,6 +613,9 @@ void loop() {
   // UART receive
   while (UART.available()) {
     char ch = UART.read();
+    #ifdef USE_MQTT
+      mower.rx(ch);
+    #endif    
     if (bleConnected) {
       // BLE client connected
       bleAnswerTimeout = millis() + 100;
@@ -631,6 +649,9 @@ void loop() {
     char ch = rxBuf[rxReadPos];
     bleReceivedCmd += ch;
     UART.write(ch);
+    #ifdef USE_MQTT
+      mower.tx(ch);
+    #endif    
     rxReadPos = (rxReadPos + 1) % BLE_BUF_SZ;
     num++;
   }
