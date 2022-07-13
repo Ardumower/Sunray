@@ -57,4 +57,42 @@ JsonObject ArduMower::State::Position::toJsonObject() {
   return doc.as<JsonObject>();
 }
 
+String ArduMower::Stats::toJson() {
+  String result = "";
+  DynamicJsonDocument doc(1024);
+  
+  doc["duration_idle"] = statIdleDuration;
+  doc["duration_charge"] = statChargeDuration;
+  doc["duration_mow"] = statMowDuration;
+  doc["duration_mow_invalid"] = statMowDurationInvalid;
+  doc["duration_mow_float"] = statMowDurationFloat;
+  doc["duration_mow_fix"] = statMowDurationFix;
+  
+  doc["distance_mow_traveled"] = statMowDistanceTraveled;
+  
+  doc["counter_gps_chk_sum_errors"] = chksumErrorCounter;
+  doc["counter_dgps_chk_sum_errors"] = dgpsChecksumErrorCounter;
+  doc["counter_invalid_recoveries"] = statMowInvalidRecoveries;
+  doc["counter_float_recoveries"] = statMowFloatToFixRecoveries;
+  doc["counter_gps_jumps"] = statGpsJumps;
+  doc["counter_gps_motion_timeout"] = statMowGpsMotionTimeoutCounter;
+  doc["counter_imu_triggered"] = statImuRecoveries;
+  doc["counter_sonar_triggered"] = statMowSonarCounter;
+  doc["counter_bumper_triggered"] = statMowBumperCounter;
+  doc["counter_obstacles"] = statMowObstacles;
+  
+  doc["time_max_cycle"] = statMaxControlCycleTime;
+  doc["time_max_dpgs_age"] = statMowMaxDgpsAge;
+  
+  doc["serial_buffer_size"] = serial_buffer_size;
+  doc["free_memory"] = freeMemory;
+  doc["reset_cause"] = resetCause;
+  
+  doc["temp_min"] = statTempMin;
+  doc["temp_max"] = statTempMax;
+  
+  serializeJson(doc, result);
+  
+  return result;
+}
 #endif
