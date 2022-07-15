@@ -692,9 +692,9 @@ float SerialBatteryDriver::getBatteryVoltage(){
     if (serialRobot.mcuCommunicationLost){
       // return 0 volt if MCU PCB is connected and powered-off (Linux will shutdown)
       //if (!mcuBoardPoweredOn) return 0;
-      // return 30 volts if MCU PCB is not connected (so Linux can be tested without MCU PCB 
+      // return 28 volts if MCU PCB is not connected (so Linux can be tested without MCU PCB 
       // and will not shutdown if mower is not connected)      
-      return 30;      
+      return 28;      
     }
   #endif         
   return serialRobot.batteryVoltage;

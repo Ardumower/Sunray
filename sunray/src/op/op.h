@@ -42,7 +42,7 @@ class Op {
 
     Op();
     // trigger op exit (optionally allow returning back on called operation exit, e.g. generate an op chain)
-    virtual void changeOp(Op &anOp, bool initiatedbyOperatorFlag = false, bool returnBackOnExit = false);
+    virtual void changeOp(Op &anOp, bool returnBackOnExit = false, bool initiatedbyOperatorFlag = false);
 
     // trigger op exit (optionally allow returning back on called operation exit, e.g. generate an op chain)
     virtual void changeOperationType(OperationType op, bool initiatedbyOperatorFlag = false);
