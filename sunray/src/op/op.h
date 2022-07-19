@@ -61,6 +61,7 @@ class Op {
     virtual void onGpsNoSignal();
     virtual void onGpsFixTimeout();
     virtual void onRainTriggered();
+    virtual void onTempOutOfRangeTriggered();
     virtual void onLiftTriggered();
     virtual void onOdometryError();
     virtual void onMotorOverload();
@@ -117,6 +118,7 @@ class MowOp: public Op {
     virtual void onMotorOverload() override; 
     virtual void onMotorError() override;
     virtual void onRainTriggered() override;
+    virtual void onTempOutOfRangeTriggered() override;    
     virtual void onBatteryLowShouldDock() override;
     virtual void onObstacle() override;
     virtual void onObstacleRotation() override;

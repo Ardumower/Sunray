@@ -94,6 +94,14 @@ void MowOp::onRainTriggered(){
     }
 }
 
+void MowOp::onTempOutOfRangeTriggered(){
+    if (DOCKING_STATION){
+        CONSOLE.println("TEMP OUT-OF-RANGE TRIGGERED");
+        stateSensor = SENS_TEMP_OUT_OF_RANGE;
+        dockOp.dockReasonRainTriggered = true;
+        changeOp(dockOp);              
+    }
+}
 
 void MowOp::onBatteryLowShouldDock(){    
     changeOp(dockOp);

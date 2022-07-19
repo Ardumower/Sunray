@@ -413,6 +413,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define BUTTON_CONTROL false   // additional features deactivated
 
 //#define USE_TEMP_SENSOR 1   // only activate if temp sensor (htu21d) connected
+#define DOCK_OVERHEAT_TEMP 90    // if temperature above this degreeC, mower will dock 
+#define DOCK_TOO_COLD_TEMP 5    // if temperature below this degreeC, mower will dock 
 
 // activate support for model R/C control?
 // use PCB pin 'mow' for R/C model control speed and PCB pin 'steering' for R/C model control steering, 

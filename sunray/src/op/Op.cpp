@@ -173,6 +173,9 @@ void Op::onGpsFixTimeout(){
 void Op::onRainTriggered(){
 }
 
+void Op::onTempOutOfRangeTriggered(){
+}
+
 void Op::onLiftTriggered(){
 }
 

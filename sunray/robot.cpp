@@ -116,7 +116,7 @@ Sensor stateSensor = SENS_NONE; // last triggered sensor
 unsigned long controlLoops = 0;
 String stateOpText = "";  // current operation as text
 String gpsSolText = ""; // current gps solution as text
-float stateTemp = 0; // degreeC
+float stateTemp = 20; // degreeC
 //float stateHumidity = 0; // percent
 unsigned long stateInMotionLastTime = 0;
 bool stateChargerConnected = false;
@@ -940,6 +940,14 @@ void run(){
       activeOp->onBatteryUndervoltage();
     } 
     else {      
+      if (USE_TEMP_SENSOR){
+        if (stateTemp > DOCK_OVERHEAT_TEMP){
+          activeOp->onTempOutOfRangeTriggered();
+        } 
+        else if (stateTemp < DOCK_TOO_COLD_TEMP){
+          activeOp->onTempOutOfRangeTriggered();
+        }
+      }
       if (RAIN_ENABLE){
         if (rainDriver.triggered()){
           //CONSOLE.println("RAIN TRIGGERED");
