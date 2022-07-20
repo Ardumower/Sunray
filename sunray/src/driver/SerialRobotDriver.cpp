@@ -20,8 +20,8 @@ void SerialRobotDriver::begin(){
   encoderTicksMow = 0;
   chargeVoltage = 0;
   chargeCurrent = 0;  
-  batteryVoltage = 0;
-  cpuTemp = 0;
+  batteryVoltage = 28;
+  cpuTemp = 30;
   mowCurr = 0;
   motorLeftCurr = 0;
   motorRightCurr = 0;
