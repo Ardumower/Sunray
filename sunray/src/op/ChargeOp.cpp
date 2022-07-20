@@ -44,6 +44,7 @@ void ChargeOp::run(){
             if ((DOCKING_STATION) && (!dockOp.dockingInitiatedByOperator)) {
                 if (maps.mowPointsIdx > 0){  // if mowing not completed yet
                     if ((DOCK_AUTO_START) && (!dockOp.dockReasonRainTriggered)) { // automatic continue mowing allowed?
+                        CONSOLE.println("DOCK_AUTO_START: will automatically continue mowing now");
                         changeOp(mowOp); // continue mowing
                     }
                 }

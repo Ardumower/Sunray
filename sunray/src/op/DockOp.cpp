@@ -14,6 +14,7 @@
 DockOp::DockOp(){
   lastMapRoutingFailed = false;
   mapRoutingFailedCounter = 0;
+  dockingInitiatedByOperator = true;
 }
 
 
@@ -26,7 +27,6 @@ void DockOp::begin(){
   bool error = false;
   bool routingFailed = false;      
   
-  CONSOLE.println("OP_DOCK");
   motor.setLinearAngularSpeed(0,0);
   motor.setMowState(false);                
 
@@ -37,6 +37,11 @@ void DockOp::begin(){
   } else {
     dockingInitiatedByOperator = false;
   }
+  CONSOLE.print("OP_DOCK");
+  CONSOLE.print(" dockingInitiatedByOperator=");
+  CONSOLE.print(dockingInitiatedByOperator);
+  CONSOLE.print(" dockReasonRainTriggered=");
+  CONSOLE.println(dockReasonRainTriggered);
 
   // plan route to next target point 
 
