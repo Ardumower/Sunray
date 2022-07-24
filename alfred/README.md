@@ -6,6 +6,7 @@ Run this on your Alfred:
 ```
 cd ~
 git clone https://github.com/Ardumower/Sunray.git
+cp ~/sunray_install/config_files/sunray/config.h ~/Sunray
 cd ~/Sunray/alfred/build
 rm -Rf *
 cmake ..
