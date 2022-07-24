@@ -38,6 +38,7 @@ SET(CMAKE_BUILD_TYPE Debug)
 
 # set(DL_LIB_DIR "/lib/arm-linux-gnueabihf") 
 
+message("CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}")
 message("Using firmware path ${FIRMWARE_PATH}")
 
 file(GLOB_RECURSE sunray_cpp ${FIRMWARE_PATH}/**.cpp)
@@ -76,6 +77,7 @@ set_source_files_properties(${FIRMWARE_PATH}/sunray.ino PROPERTIES COMPILE_FLAGS
 
 add_executable(sunray ${pi_sources} ${sunray_cpp} ${sunray_c} ${FIRMWARE_PATH}/sunray.ino)
 target_include_directories(sunray PRIVATE src ${FIRMWARE_PATH}/src)
+target_link_libraries(sunray "${CMAKE_SOURCE_DIR}/lib/libarduino_linux.a")
 
 # target_include_directories(sunray PUBLIC ${LIBNL_INCLUDE_DIR})
 # target_link_libraries(sunray ${LIBIW_LIB} ${LIBNL_LIB} ${LIBNL_GENL_LIB})
