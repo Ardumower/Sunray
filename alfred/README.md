@@ -1,7 +1,7 @@
 # Sunray for Alfred
 
 ## How to compile 'Sunray for Alred'
-Run this on Alfred:
+Run this on your Alfred:
 
 ```
 cd ~
