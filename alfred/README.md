@@ -4,7 +4,9 @@
 Run this on Alfred:
 
 ```
-cd build
+cd ~
+git clone https://github.com/Ardumower/Sunray.git
+cd ~/Sunray/alfred/build
 rm -Rf *
 cmake ..
 make
