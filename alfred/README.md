@@ -11,6 +11,10 @@ cd ~/Sunray/alfred/build
 rm -Rf *
 cmake ..
 make
+
+cp sunray ~/sunray_install/sunray
+cd ~/sunray_install
+sudo ./service.sh     (to stop and start sunray service)
 ```
 ## License
 Ardumower Sunray 
