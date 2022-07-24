@@ -3,10 +3,12 @@
 ## How to compile 'Sunray for Alred'
 Run this on Alfred:
 
-```cd build
+```
+cd build
 rm -Rf *
 cmake ..
-make```
+make
+```
 
 ## Download
 __WARNING__: Do not use the master version (via download button), that is 'code we work on' and it may be unstable - use one release version instead (click on 'releases' link below)!
