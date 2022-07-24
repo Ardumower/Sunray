@@ -4,14 +4,18 @@
 Run this on your Alfred:
 
 ```
+## clone repository ##
 cd ~
 git clone https://github.com/Ardumower/Sunray.git
+
+## compile sunray ##
 cp ~/sunray_install/config_files/sunray/config.h ~/Sunray
 cd ~/Sunray/alfred/build
 rm -Rf *
 cmake ..
 make
 
+## run new sunray executable ##
 cp sunray ~/sunray_install/sunray
 cd ~/sunray_install
 sudo ./service.sh     (to stop and start sunray service)
