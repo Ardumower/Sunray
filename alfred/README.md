@@ -15,7 +15,7 @@ rm -Rf *
 cmake ..
 make
 
-## run new sunray executable ##
+## install new sunray executable ##
 cp sunray ~/sunray_install/
 cd ~/sunray_install
 sudo ./service.sh     (to stop and start sunray service)
