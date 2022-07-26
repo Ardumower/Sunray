@@ -16,9 +16,9 @@ cmake ..
 make
 
 ## install new sunray executable ##
+sudo systemctl stop sunray
 cp sunray ~/sunray_install/
-cd ~/sunray_install
-sudo ./service.sh     (to stop and start sunray service)
+sudo systemctl start sunray
 ```
 ## License
 Ardumower Sunray 
