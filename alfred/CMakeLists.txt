@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 3.7)
 
 project(sunray)
 
-SET(FIRMWARE_PATH /home/$ENV{USER}/Sunray/sunray)
+SET(FIRMWARE_PATH ${CMAKE_SOURCE_DIR}/../sunray)
 
 set(CMAKE_CXX_STANDARD 14)
 SET(EXCLUDE_REGEX "agcm4|due|esp")
