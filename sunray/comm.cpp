@@ -1014,10 +1014,13 @@ void mqttReconnect() {
   if (!mqttClient.connected()) {
     CONSOLE.println("MQTT: Attempting connection...");
     // Create a random client ID
-    String clientId = "ESP8266Client-";
-    clientId += String(random(0xffff), HEX);
+    String clientId = "sunray-ardumower";
     // Attempt to connect
+#ifdef MQTT_USER
+    if (mqttClient.connect(clientId.c_str()), MQTT_USER, MQTT_PASS) {
+#else
     if (mqttClient.connect(clientId.c_str())) {
+#endif
       CONSOLE.println("MQTT: connected");
       // Once connected, publish an announcement...
       //mqttClient.publish("outTopic", "hello world");
