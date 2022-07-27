@@ -62,6 +62,9 @@ foreach (filename ${pi_sources})
     message(${filename})
 endforeach()
 
+message("--copy config.h to sunray source--")
+configure_file(${CMAKE_SOURCE_DIR}/config.h ${FIRMWARE_PATH}/config.h COPYONLY)
+
 message("main file ${FIRMWARE_PATH}/sunray.ino")
 
 ## set_source_files_properties({sunray_c} PROPERTIES LANGUAGE C)
