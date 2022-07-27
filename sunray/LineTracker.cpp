@@ -85,7 +85,22 @@ void trackLine(bool runControl){
   else {
     // line control (stanley)    
     bool straight = maps.nextPointIsStraight();
-    if (maps.trackSlow) {
+    bool trackslow_allowed = true;
+
+    // in case of docking or undocking - check if trackslow is allowed
+    if ( maps.isUndocking() || maps.isDocking() ) {
+        float dockX = 0;
+        float dockY = 0;
+        float dockDelta = 0;
+        maps.getDockingPos(dockX, dockY, dockDelta);
+        float dist_dock = distance(dockX, dockY, stateX, stateY);
+        // only allow trackslow if we are near dock (below DOCK_UNDOCK_TRACKSLOW_DISTANCE)
+        if (dist_dock > DOCK_UNDOCK_TRACKSLOW_DISTANCE) {
+            trackslow_allowed = false;
+        }
+    }
+
+    if (maps.trackSlow && trackslow_allowed) {
       // planner forces slow tracking (e.g. docking etc)
       linear = 0.1;           
     } else if (     ((setSpeed > 0.2) && (maps.distanceToTargetPoint(stateX, stateY) < 0.5) && (!straight))   // approaching
@@ -104,7 +119,7 @@ void trackLine(bool runControl){
     //angula                                    r = 3.0 * trackerDiffDelta + 3.0 * lateralError;       // correct for path errors 
     float k = stanleyTrackingNormalK; // STANLEY_CONTROL_K_NORMAL;
     float p = stanleyTrackingNormalP; // STANLEY_CONTROL_P_NORMAL;    
-    if (maps.trackSlow) {
+    if (maps.trackSlow && trackslow_allowed) {
       k = stanleyTrackingSlowK; //STANLEY_CONTROL_K_SLOW;   
       p = stanleyTrackingSlowP; //STANLEY_CONTROL_P_SLOW;          
     }
