@@ -1016,7 +1016,11 @@ void mqttReconnect() {
     // Create a random client ID
     String clientId = "sunray-ardumower";
     // Attempt to connect
+#ifdef MQTT_USER
+    if (mqttClient.connect(clientId.c_str()), MQTT_USER, MQTT_PASS) {
+#else
     if (mqttClient.connect(clientId.c_str())) {
+#endif
       CONSOLE.println("MQTT: connected");
       // Once connected, publish an announcement...
       //mqttClient.publish("outTopic", "hello world");
