@@ -1017,7 +1017,7 @@ void mqttReconnect() {
     String clientId = "sunray-ardumower";
     // Attempt to connect
 #ifdef MQTT_USER
-    if (mqttClient.connect(clientId.c_str()), MQTT_USER, MQTT_PASS) {
+    if (mqttClient.connect(clientId.c_str(), MQTT_USER, MQTT_PASS)) {
 #else
     if (mqttClient.connect(clientId.c_str())) {
 #endif
