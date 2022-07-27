@@ -9,7 +9,6 @@ cd ~
 git clone https://github.com/Ardumower/Sunray.git
 
 ## compile sunray ##
-cp ~/sunray_install/config_files/sunray/config.h ~/Sunray/sunray
 cd ~/Sunray/alfred/build
 rm -Rf *
 cmake ..
