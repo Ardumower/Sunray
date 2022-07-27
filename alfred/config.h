@@ -383,8 +383,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DOCK_IGNORE_GPS false     // use GPS fix in docking station and IMU for GPS float/invalid
 //#define DOCK_IGNORE_GPS true     // ignore GPS fix in docking station and use IMU-only (use this if robot gets false GPS fixes in your docking station)
 
-//#define DOCK_AUTO_START true     // robot will automatically continue mowing after docked automatically
-#define DOCK_AUTO_START false      // robot will not automatically continue mowing after docked automatically
+#define DOCK_AUTO_START true     // robot will automatically continue mowing after docked automatically
+//#define DOCK_AUTO_START false      // robot will not automatically continue mowing after docked automatically
 
 
 // ---- path tracking -----------------------------------
@@ -407,7 +407,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
                                  //  1 beep=stop, 6 beeps=start, 5 beeps=dock, 3 beeps=R/C mode ON/OFF)
 //#define BUTTON_CONTROL false   // additional features deactivated
 
-//#define USE_TEMP_SENSOR   // only activate if temp sensor (htu21d) connected
+#define USE_TEMP_SENSOR 1  // only activate if temp sensor (htu21d) connected
+#define DOCK_OVERHEAT_TEMP 85    // if temperature above this degreeC, mower will dock 
+#define DOCK_TOO_COLD_TEMP 5    // if temperature below this degreeC, mower will dock 
+
 
 // activate support for model R/C control?
 // use PCB pin 'mow' for R/C model control speed and PCB pin 'steering' for R/C model control steering, 
