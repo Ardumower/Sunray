@@ -152,7 +152,18 @@ void trackLine(bool runControl){
   // gps-jump/false fix check
   if (KIDNAP_DETECT){
     float allowedPathTolerance = KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE;     
-    if ( maps.isUndocking() ) allowedPathTolerance = 0.2;
+    if ( maps.isUndocking() || maps.isDocking() ) {
+	float dockX = 0;
+	float dockY = 0;
+	float dockDelta = 0;
+	maps.getDockingPos(dockX, dockY, dockDelta);
+	float dist = distance(dockX, dockY, stateX, stateY);
+	// check if current distance to docking station is below
+	// KIDNAP_DETECT_DISTANCE_DOCK_UNDOCK to trigger KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK
+	if (dist < KIDNAP_DETECT_DISTANCE_DOCK_UNDOCK) {
+	    allowedPathTolerance = KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK;
+	}
+    }
     if (fabs(distToPath) > allowedPathTolerance){ // actually, this should not happen (except on false GPS fixes or robot being kidnapped...)
       if (!stateKidnapped){
         stateKidnapped = true;
