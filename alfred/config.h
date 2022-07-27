@@ -256,7 +256,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define MQTT_TOPIC_PREFIX  "robot1"                 // the MQTT topic prefix for your robot 
 #define MQTT_SERVER  "192.168.2.47"                 // your MQTT broker IP or hostname (e.g. "broker.mqtt-dashboard.com")
 #define MQTT_PORT  1883
-
+#define MQTT_USER "user"
+#define MQTT_PASS "pass"
 
 // ------ ultrasonic sensor -----------------------------
 // see Wiki on how to install the ultrasonic sensors: 
