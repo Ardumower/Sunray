@@ -8,7 +8,8 @@
 #include <Arduino.h>
 #include "../../robot.h"
 #include "../../map.h"
-
+#include "../../StateEstimator.h"
+#include "../../helper.h"
 
 ChargeOp chargeOp;
 ErrorOp errorOp;
@@ -156,6 +157,16 @@ void Op::checkStop(){
       activeOp->shouldStop = false;
       activeOp->begin();
     }
+}
+
+float Op::getDockDistance(){
+    float dockX = 0;
+    float dockY = 0;
+    float dockDelta = 0;
+    maps.getDockingPos(dockX, dockY, dockDelta);
+    float dist_dock = distance(dockX, dockY, stateX, stateY);
+
+    return dist_dock;
 }
 
 void Op::run(){
