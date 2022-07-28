@@ -78,6 +78,7 @@ class Op {
     virtual void onChargingCompleted();              
     virtual void onImuTilt();
     virtual void onImuError();
+    virtual float getDockDistance();
 };
 
 

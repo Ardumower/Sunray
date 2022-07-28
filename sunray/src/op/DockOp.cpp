@@ -106,16 +106,15 @@ void DockOp::onTargetReached(){
 
 void DockOp::onGpsFixTimeout(){
     if (REQUIRE_VALID_GPS){    
+      stateSensor = SENS_GPS_FIX_TIMEOUT;
       changeOp(gpsWaitFixOp, true);
     }
 }
 
 void DockOp::onGpsNoSignal(){
     if (REQUIRE_VALID_GPS){   
-      if (!maps.isUndocking()){
-          stateSensor = SENS_GPS_INVALID;
-          changeOp(gpsWaitFloatOp, true);
-      }
+      stateSensor = SENS_GPS_INVALID;
+      changeOp(gpsWaitFloatOp, true);
     }
 }
 
