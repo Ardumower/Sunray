@@ -53,34 +53,37 @@ void trackLine(bool runControl){
     targetReached = (targetDist < 0.2);    
   else 
     targetReached = (targetDist < TARGET_REACHED_TOLERANCE);    
-  
-  
-  if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
-    linear = 0.1;  
-  }   
-          
+ 
+  angleToTargetFits = true;
   // allow rotations only near last or next waypoint or if too far away from path
+  // angular control (if angle to far away, rotate to next waypoint)
   if ( (targetDist < 0.5) || (lastTargetDist < 0.5) ||  (fabs(distToPath) > 0.5) ) {
-    if (SMOOTH_CURVES)
+    if (SMOOTH_CURVES) {
       angleToTargetFits = (fabs(trackerDiffDelta)/PI*180.0 < 120);          
-    else     
-      angleToTargetFits = (fabs(trackerDiffDelta)/PI*180.0 < 20);   
-  } else angleToTargetFits = true;
-
+    } else {
+      angleToTargetFits = (fabs(trackerDiffDelta)/PI*180.0 < 20);
+      // prevent oscillation (jumping between -179 <=> 0 <=> +1 )
+      if (fabs(trackerDiffDelta)/PI*180.0 < 90){
+	// reset rotation direction
+        rotateLeft = false;
+        rotateRight = false;
+	angleToTargetFits = true;
+      }
+    }
+  }
                
   if (!angleToTargetFits){
-    // angular control (if angle to far away, rotate to next waypoint)
     linear = 0;
     angular = 29.0 / 180.0 * PI; //  29 degree/s (0.5 rad/s);               
-    if ((!rotateLeft) && (!rotateRight)){ // decide for one rotation direction (and keep it)
-      if (trackerDiffDelta < 0) rotateLeft = true;
-        else rotateRight = true;
-    }        
+    // decide for one rotation direction (and keep it)
+    if (!rotateLeft && !rotateRight) {
+      if (trackerDiffDelta < 0) {
+	rotateLeft = true;
+      } else {
+        rotateRight = true;
+      }
+    }
     if (rotateLeft) angular *= -1;            
-    if (fabs(trackerDiffDelta)/PI*180.0 < 90){
-      rotateLeft = false;  // reset rotate direction
-      rotateRight = false;
-    }    
   } 
   else {
     // line control (stanley)    
@@ -116,6 +119,12 @@ void trackLine(bool runControl){
         linear = setSpeed;         // desired speed
       if (sonar.nearObstacle()) linear = 0.1; // slow down near obstacles
     }      
+    // slow down speed in case of overload and overwrite all prior speed 
+    if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
+      CONSOLE.println("motor overload detected: reduce linear speed to 0.1");            
+      linear = 0.1;  
+    }   
+          
     //angula                                    r = 3.0 * trackerDiffDelta + 3.0 * lateralError;       // correct for path errors 
     float k = stanleyTrackingNormalK; // STANLEY_CONTROL_K_NORMAL;
     float p = stanleyTrackingNormalP; // STANLEY_CONTROL_P_NORMAL;    
