@@ -53,12 +53,6 @@ void trackLine(bool runControl){
     targetReached = (targetDist < 0.2);    
   else 
     targetReached = (targetDist < TARGET_REACHED_TOLERANCE);    
-  
-  
-  if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
-    linear = 0.1;  
-  }   
-          
   // allow rotations only near last or next waypoint or if too far away from path
   if ( (targetDist < 0.5) || (lastTargetDist < 0.5) ||  (fabs(distToPath) > 0.5) ) {
     if (SMOOTH_CURVES)
@@ -116,6 +110,12 @@ void trackLine(bool runControl){
         linear = setSpeed;         // desired speed
       if (sonar.nearObstacle()) linear = 0.1; // slow down near obstacles
     }      
+    // slow down speed in case of overload and overwrite all prior speed 
+    if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
+      CONSOLE.println("motor overload detected: reduce linear speed to 0.1");            
+      linear = 0.1;  
+    }   
+          
     //angula                                    r = 3.0 * trackerDiffDelta + 3.0 * lateralError;       // correct for path errors 
     float k = stanleyTrackingNormalK; // STANLEY_CONTROL_K_NORMAL;
     float p = stanleyTrackingNormalP; // STANLEY_CONTROL_P_NORMAL;    
