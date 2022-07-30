@@ -16,7 +16,12 @@ String ChargeOp::name(){
 
 
 void ChargeOp::begin(){
-    CONSOLE.println("OP_CHARGE");
+    CONSOLE.print("OP_CHARGE");
+    CONSOLE.print(" dockingInitiatedByOperator=");
+    CONSOLE.print(dockOp.dockingInitiatedByOperator);
+    CONSOLE.print(" dockReasonRainTriggered=");
+    CONSOLE.println(dockOp.dockReasonRainTriggered);
+
     //motor.stopImmediately(true); // do not use PID to get to stop 
     motor.setLinearAngularSpeed(0,0, false); 
     motor.setMowState(false);     

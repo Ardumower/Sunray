@@ -162,17 +162,6 @@ void DockOp::onChargerConnected(){
 }
 
 
-void DockOp::onChargingCompleted(){
-    if ((DOCKING_STATION) && (!dockingInitiatedByOperator)) {
-      if (maps.mowPointsIdx > 0){  // if mowing not completed yet
-        if ((DOCK_AUTO_START) && (!dockReasonRainTriggered)) { // automatic continue mowing allowed?
-          CONSOLE.println("DockOp::onChargingCompleted: DOCK_AUTO_START");
-          changeOp(mowOp); // continue mowing
-        }
-      }
-    }
-}
-
 void DockOp::onNoFurtherWaypoints(){
     CONSOLE.println("docking finished!");
     changeOp(idleOp); 

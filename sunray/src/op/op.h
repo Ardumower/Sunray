@@ -146,7 +146,6 @@ class DockOp: public Op {
     virtual void onObstacleRotation() override;
     virtual void onTargetReached() override;    
     virtual void onGpsFixTimeout() override;
-    virtual void onChargingCompleted() override;
     virtual void onNoFurtherWaypoints() override;              
     virtual void onGpsNoSignal() override;
     virtual void onKidnapped(bool state) override;
