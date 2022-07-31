@@ -1068,6 +1068,41 @@ void processWifiMqttClient()
       mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/pos", mqttMsg);
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%s", gpsSolText.c_str());          
       mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/sol", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%lu", gps.iTOW);          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/tow", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.8f", gps.lon);          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/lon", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.8f", gps.lat);          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/lat", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.1f", gps.height);          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/height", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.4f", gps.relPosN);          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/relNorth", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.4f", gps.relPosE);          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/relEast", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", gps.relPosD);          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/relDist", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", (millis()-gps.dgpsAge)/1000.0);          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/ageDGPS", mqttMsg);    
+      
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", battery.batteryVoltage);          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/power/batteryVoltage", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", motor.motorsSenseLP);          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/power/motorCurrent", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", battery.chargingVoltage);          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/power/batteryChargingVoltage", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", battery.chargingCurrent);          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/power/batteryChargingCurrent", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", maps.targetPoint.x());
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/map/targetPointX", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", maps.targetPoint.y());
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/map/targetPointY", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", stateX);
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/map/posX", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", stateY);
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/map/posY", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", stateDelta);
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/map/posDir", mqttMsg);    
     } else {
       mqttReconnect();  
     }
