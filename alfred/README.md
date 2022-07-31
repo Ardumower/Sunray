@@ -1,6 +1,6 @@
 # Sunray for Alfred
 
-## How to compile 'Sunray for Alred'
+## How to compile 'Sunray for Alfred'
 Run this on your Alfred:
 
 ```
