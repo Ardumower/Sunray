@@ -117,7 +117,9 @@ class AmBumperDriver: public BumperDriver {
     void begin() override;
     void run() override;
     bool obstacle() override;
-        
+    bool getLeftBumper() override;
+    bool getRightBumper() override;
+	
     // get triggered bumper
     void getTriggeredBumper(bool &leftBumper, bool &rightBumper) override;  	  		    
 };

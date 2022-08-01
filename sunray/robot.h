@@ -19,6 +19,7 @@
 #include "battery.h"
 #include "ble.h"
 #include "pinman.h"
+#include "bumper.h"
 #include "buzzer.h"
 #include "sonar.h"
 #include "VL53L0X.h"
@@ -105,7 +106,7 @@ extern int motorErrorCounter;
   extern SerialRobotDriver robotDriver;
   extern SerialMotorDriver motorDriver;
   extern SerialBatteryDriver batteryDriver;
-  extern SerialBumperDriver bumper;
+  extern SerialBumperDriver bumperDriver;
   extern SerialStopButtonDriver stopButton;
   extern SerialRainSensorDriver rainDriver;
   extern SerialLiftSensorDriver liftDriver;  
@@ -114,7 +115,7 @@ extern int motorErrorCounter;
   extern SimRobotDriver robotDriver;
   extern SimMotorDriver motorDriver;
   extern SimBatteryDriver batteryDriver;
-  extern SimBumperDriver bumper;
+  extern SimBumperDriver bumperDriver;
   extern SimStopButtonDriver stopButton;
   extern SimRainSensorDriver rainDriver;
   extern SimLiftSensorDriver liftDriver;
@@ -123,7 +124,7 @@ extern int motorErrorCounter;
   extern AmRobotDriver robotDriver;
   extern AmMotorDriver motorDriver;
   extern AmBatteryDriver batteryDriver;
-  extern AmBumperDriver bumper;
+  extern AmBumperDriver bumperDriver;
   extern AmStopButtonDriver stopButton;
   extern AmRainSensorDriver rainDriver;
   extern AmLiftSensorDriver liftDriver;
@@ -141,6 +142,7 @@ extern int motorErrorCounter;
 extern Motor motor;
 extern Battery battery;
 extern BLEConfig bleConfig;
+extern Bumper bumper;
 extern Buzzer buzzer;
 extern Sonar sonar;
 extern VL53L0X tof;

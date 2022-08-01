@@ -43,7 +43,7 @@
 #include "cpu.h"
 #include "i2c.h"
 #include "src/test/test.h"
-
+#include "bumper.h"
 
 // #define I2C_SPEED  10000
 #define _BV(x) (1 << (x))
@@ -65,7 +65,7 @@ const signed char orientationMatrix[9] = {
   SerialRobotDriver robotDriver;
   SerialMotorDriver motorDriver(robotDriver);
   SerialBatteryDriver batteryDriver(robotDriver);
-  SerialBumperDriver bumper(robotDriver);
+  SerialBumperDriver bumperDriver(robotDriver);
   SerialStopButtonDriver stopButton(robotDriver);
   SerialRainSensorDriver rainDriver(robotDriver);
   SerialLiftSensorDriver liftDriver(robotDriver);
@@ -74,7 +74,7 @@ const signed char orientationMatrix[9] = {
   SimRobotDriver robotDriver;
   SimMotorDriver motorDriver(robotDriver);
   SimBatteryDriver batteryDriver(robotDriver);
-  SimBumperDriver bumper(robotDriver);
+  SimBumperDriver bumperDriver(robotDriver);
   SimStopButtonDriver stopButton(robotDriver);
   SimRainSensorDriver rainDriver(robotDriver);
   SimLiftSensorDriver liftDriver(robotDriver);
@@ -83,7 +83,7 @@ const signed char orientationMatrix[9] = {
   AmRobotDriver robotDriver;
   AmMotorDriver motorDriver;
   AmBatteryDriver batteryDriver;
-  AmBumperDriver bumper;
+  AmBumperDriver bumperDriver;
   AmStopButtonDriver stopButton;
   AmRainSensorDriver rainDriver;
   AmLiftSensorDriver liftDriver;
@@ -102,6 +102,7 @@ PinManager pinMan;
 BLEConfig bleConfig;
 Buzzer buzzer;
 Sonar sonar;
+Bumper bumper;
 VL53L0X tof(VL53L0X_ADDRESS_DEFAULT);
 Map maps;
 RCModel rcmodel;
@@ -203,7 +204,7 @@ void sensorTest(){
   while (millis() < stopTime){
     sonar.run();
     bumper.run();
-	liftDriver.run();
+    liftDriver.run();
     if (millis() > nextMeasureTime){
       nextMeasureTime = millis() + 1000;      
       if (SONAR_ENABLE){
@@ -228,16 +229,19 @@ void sensorTest(){
         CONSOLE.print("\t");
       }    
       if (BUMPER_ENABLE){
-        CONSOLE.print("bumper (triggered): ");
-        CONSOLE.print(((int)bumper.obstacle()));
+        CONSOLE.print("bumper (left,right,triggered): ");
+        CONSOLE.print(((int)bumper.testLeft()));
         CONSOLE.print("\t");
-       
+        CONSOLE.print(((int)bumper.testRight()));
+        CONSOLE.print("\t");
+        CONSOLE.print(((int)bumper.obstacle()));
+        CONSOLE.print("\t");       
       }
-	#ifdef ENABLE_LIFT_DETECTION 
+	    #ifdef ENABLE_LIFT_DETECTION 
         CONSOLE.print("lift sensor (triggered): ");		
         CONSOLE.print(((int)liftDriver.triggered()));	
         CONSOLE.print("\t");							            
-    #endif  
+      #endif  
 	
       CONSOLE.println();  
       watchdogReset();
@@ -441,6 +445,12 @@ void outputConfig(){
   CONSOLE.println(RAIN_ENABLE);
   CONSOLE.print("BUMPER_ENABLE: ");
   CONSOLE.println(BUMPER_ENABLE);
+  CONSOLE.print("BUMPER_DEADTIME: ");
+  CONSOLE.println(BUMPER_DEADTIME);
+  CONSOLE.print("BUMPER_TRIGGER_DELAY: ");
+  CONSOLE.println(BUMPER_TRIGGER_DELAY);
+  CONSOLE.print("BUMPER_MAX_TRIGGER_TIME: ");
+  CONSOLE.println(BUMPER_MAX_TRIGGER_TIME);  
   CONSOLE.print("CURRENT_FACTOR: ");
   CONSOLE.println(CURRENT_FACTOR);
   CONSOLE.print("GO_HOME_VOLTAGE: ");
@@ -743,14 +753,13 @@ bool detectObstacle(){
     #endif
   #endif
 
-  if (BUMPER_ENABLE){
-    if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (bumper.obstacle()) ){  
-      CONSOLE.println("bumper obstacle!");    
-      statMowBumperCounter++;
-      triggerObstacle();    
-      return true;
-    }
+  if (bumper.obstacle()){  
+    CONSOLE.println("bumper obstacle!");    
+    statMowBumperCounter++;
+    triggerObstacle();    
+    return true;
   }
+  
   if (sonar.obstacle() && (maps.wayMode != WAY_DOCK)){
     CONSOLE.println("sonar obstacle!");    
     statMowSonarCounter++;
@@ -849,6 +858,7 @@ void run(){
   sonar.run();
   maps.run();  
   rcmodel.run();
+  bumper.run();
   
   // state saving
   if (millis() >= nextSaveTime){  
@@ -1045,4 +1055,3 @@ void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){
   activeOp->changeOperationType(stateOp, initiatedbyOperator);
   saveState();
 }
-

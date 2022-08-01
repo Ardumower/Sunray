@@ -318,6 +318,14 @@ bool SimBumperDriver::obstacle(){
   return (simTriggered || simRobot.robotIsBumpingIntoObstacle);
 }
 
+bool SimBumperDriver::getLeftBumper(){
+  return (simTriggered || simRobot.robotIsBumpingIntoObstacle);
+}
+
+bool SimBumperDriver::getRightBumper(){
+  return (simTriggered || simRobot.robotIsBumpingIntoObstacle);
+}
+
 void SimBumperDriver::getTriggeredBumper(bool &leftBumper, bool &rightBumper){
   leftBumper = (simTriggered || simRobot.robotIsBumpingIntoObstacle);
   rightBumper = (simTriggered || simRobot.robotIsBumpingIntoObstacle);
