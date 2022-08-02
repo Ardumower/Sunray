@@ -72,7 +72,7 @@ void DockOp::begin(){
       stateSensor = SENS_MAP_NO_ROUTE;
       changeOp(errorOp);      
     } else {    
-      changeOp(gpsRebootRecoveryOp, true);
+      changeOp(gpsRebootRecoveryOp, true, initiatedbyOperator);
     }
   } else {
     lastMapRoutingFailed = false;
@@ -107,14 +107,14 @@ void DockOp::onTargetReached(){
 void DockOp::onGpsFixTimeout(){
     if (REQUIRE_VALID_GPS){    
       stateSensor = SENS_GPS_FIX_TIMEOUT;
-      changeOp(gpsWaitFixOp, true);
+      changeOp(gpsWaitFixOp, true, initiatedbyOperator);
     }
 }
 
 void DockOp::onGpsNoSignal(){
     if (REQUIRE_VALID_GPS){   
       stateSensor = SENS_GPS_INVALID;
-      changeOp(gpsWaitFloatOp, true);
+      changeOp(gpsWaitFloatOp, true, initiatedbyOperator);
     }
 }
 
@@ -123,7 +123,7 @@ void DockOp::onKidnapped(bool state){
         stateSensor = SENS_KIDNAPPED;      
         motor.setLinearAngularSpeed(0,0, false); 
         motor.setMowState(false);    
-        changeOp(kidnapWaitOp, true); 
+        changeOp(kidnapWaitOp, true, initiatedbyOperator); 
     }
 }
 
@@ -144,12 +144,12 @@ void DockOp::onObstacle(){
     statMowObstacles++;      
     if (maps.isDocking()) {    
         if (maps.retryDocking(stateX, stateY)) {
-            changeOp(escapeReverseOp, true);                      
+            changeOp(escapeReverseOp, true, initiatedbyOperator);                      
             return;
         }
     } 
     if ((OBSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){    
-        changeOp(escapeReverseOp, true);      
+        changeOp(escapeReverseOp, true, initiatedbyOperator);      
     } else {     
         stateSensor = SENS_OBSTACLE;
         CONSOLE.println("error: obstacle!");
