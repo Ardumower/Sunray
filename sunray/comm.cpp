@@ -1064,7 +1064,7 @@ void processWifiMqttClient()
   if (millis() >= nextPublishTime){
     nextPublishTime = millis() + 10000;
     if (mqttClient.connected()) {
-      // update map data in case of CRC change
+      // update map data in case of CRC change 
       long curCRC = maps.calcMapCRC()
       if( lastCRC != curCRC) {
         std::ostringstream perimeter;
