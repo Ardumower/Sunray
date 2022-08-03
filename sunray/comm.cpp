@@ -6,6 +6,9 @@
 #include "Stats.h"
 #include "src/op/op.h"
 #include "reset.h"
+#include <string>
+#include <<sstream>>
+
 #ifdef __linux__
   #include <BridgeClient.h>
   #include <Process.h>
@@ -44,6 +47,7 @@ float statMaxControlCycleTime = 0;
 #define MSG_BUFFER_SIZE	(50)
 char mqttMsg[MSG_BUFFER_SIZE];
 unsigned long nextPublishTime = 0;
+long lastCRC = 0;
 
 // wifi client
 WiFiEspClient wifiClient;
@@ -1060,10 +1064,23 @@ void processWifiMqttClient()
   if (millis() >= nextPublishTime){
     nextPublishTime = millis() + 10000;
     if (mqttClient.connected()) {
+      // update map data in case of CRC change
+      long curCRC = maps.calcMapCRC()
+      if( lastCRC != curCRC) {
+        std::ostringstream perimeter;
+        perimeter << "hello world";
+        mqttClient.publish(MQTT_TOPIC_PREFIX "/map/perimeter", perimenter.str());      
+        lastCRC = curCRC;
+      }
       updateStateOpText();
+      // operational state
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%s", stateOpText.c_str());                
       //CONSOLE.println("MQTT: publishing " MQTT_TOPIC_PREFIX "/status");      
       mqttClient.publish(MQTT_TOPIC_PREFIX "/op", mqttMsg);      
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%d", maps.percentCompleted);
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/progress", mqttMsg);    
+
+      // GPS related information
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f, %.2f", gps.relPosN, gps.relPosE);          
       mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/pos", mqttMsg);
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%s", gpsSolText.c_str());          
@@ -1084,16 +1101,22 @@ void processWifiMqttClient()
       mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/relDist", mqttMsg);    
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", (millis()-gps.dgpsAge)/1000.0);          
       mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/ageDGPS", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", gps.accuracy);          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/accuray", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.4f", gps.groundSpeed);          
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/groundSpeed", mqttMsg);    
       
+      // power related information      
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", battery.batteryVoltage);          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/power/batteryVoltage", mqttMsg);    
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/power/batteryVoltage", mqttMsg);         
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", motor.motorsSenseLP);          
       mqttClient.publish(MQTT_TOPIC_PREFIX "/power/motorCurrent", mqttMsg);    
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", battery.chargingVoltage);          
       mqttClient.publish(MQTT_TOPIC_PREFIX "/power/batteryChargingVoltage", mqttMsg);    
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", battery.chargingCurrent);          
       mqttClient.publish(MQTT_TOPIC_PREFIX "/power/batteryChargingCurrent", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", maps.targetPoint.x());
+
+      // map related information
       mqttClient.publish(MQTT_TOPIC_PREFIX "/map/targetPointX", mqttMsg);    
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", maps.targetPoint.y());
       mqttClient.publish(MQTT_TOPIC_PREFIX "/map/targetPointY", mqttMsg);    
@@ -1103,6 +1126,9 @@ void processWifiMqttClient()
       mqttClient.publish(MQTT_TOPIC_PREFIX "/map/posY", mqttMsg);    
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", stateDelta);
       mqttClient.publish(MQTT_TOPIC_PREFIX "/map/posDir", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f, %.2f", maps.targetPoint.x(), maps.targetPoint.y());
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/map/target", mqttMsg);    
+
     } else {
       mqttReconnect();  
     }
