@@ -239,11 +239,11 @@ void SessionTest::end(){
 // ----------------------------------
 
 void Tester::begin(){
-  currentTest.begin();
+  //currentTest.begin();
 }
 
 void Tester::run(){
-  if (currentTest.started){
+  /*if (currentTest.started){
     if (currentTest.shouldStop){ 
        
     } else {
@@ -253,7 +253,7 @@ void Tester::run(){
     currentTest.startTime = millis();
     currentTest.shouldStop = false;
     currentTest.started = true;
-  } 
+  } */
 }
 
 
