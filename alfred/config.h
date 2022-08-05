@@ -247,10 +247,16 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // ------ MQTT (for ESP8266 only, highly experimental - ENABLE_SERVER must be set to false for this to work :-/ ) -----------------------------
 // you can access your robot using a MQTT broker - choose a topic prefix for your robot below - available MQTT topics:
-// robot1/cmd           (cmd can be: start, stop, dock)
-// robot1/op            (current robot operation as text)
-// robot1/gps/sol       (current gps solution as text)
-// robot1/gps/pos       (current gps position as text)
+// robot1/cmd                     (cmd can be: start, stop, dock)
+// robot1/op                      (current robot operation as text)
+// robot1/gps/sol                 (current gps solution as text)
+// robot1/gps/pos                 (current relative gps position as text)
+// robot1/gps/pos/absolute        (current absolute gps position (lat, lon) as text)
+// robot1/gps/pos/absolute/lat    (current absolute latitude as text)
+// robot1/gps/pos/absolute/lon    (current absolute longitude as text)
+// robot1/battery/voltage         (current battery voltage as text)
+// robot1/battery/chargingVoltage (current battery charging voltage as text)
+// robot1/battery/chargingCurrent (current charging current as text)
 //#define ENABLE_MQTT  true                           // start MQTT client?  (true for yes, false for no)
 #define ENABLE_MQTT  false
 #define MQTT_TOPIC_PREFIX  "robot1"                 // the MQTT topic prefix for your robot 

@@ -1061,13 +1061,30 @@ void processWifiMqttClient()
     nextPublishTime = millis() + 10000;
     if (mqttClient.connected()) {
       updateStateOpText();
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%s", stateOpText.c_str());                
-      //CONSOLE.println("MQTT: publishing " MQTT_TOPIC_PREFIX "/status");      
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/op", mqttMsg);      
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f, %.2f", gps.relPosN, gps.relPosE);          
+
+      // OP
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%s", stateOpText.c_str());
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/op", mqttMsg);
+
+      // GPS
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f, %.2f", gps.relPosN, gps.relPosE);
       mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/pos", mqttMsg);
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%s", gpsSolText.c_str());          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/sol", mqttMsg);    
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.5f, %.5f", gps.lat, gps.lon);
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/pos/absolute", mqttMsg);
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.7f", gps.lat);
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/pos/absolute/lat", mqttMsg);
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.7f", gps.lon);
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/pos/absolute/lon", mqttMsg);
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%s", gpsSolText.c_str());
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/sol", mqttMsg);
+
+      // BATTERY
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", battery.batteryVoltage);
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/battery/voltage", mqttMsg);
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", battery.chargingVoltage);
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/battery/chargingVoltage", mqttMsg);
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", battery.chargingCurrent);
+      mqttClient.publish(MQTT_TOPIC_PREFIX "/battery/chargingCurrent", mqttMsg);
     } else {
       mqttReconnect();  
     }
