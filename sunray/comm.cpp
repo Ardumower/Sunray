@@ -1069,7 +1069,7 @@ void processWifiMqttClient()
       // GPS
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f, %.2f", gps.relPosN, gps.relPosE);
       mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/pos", mqttMsg);
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.5f, %.5f", gps.lat, gps.lon);
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.7f, %.7f", gps.lat, gps.lon);
       mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/pos/absolute", mqttMsg);
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.7f", gps.lat);
       mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/pos/absolute/lat", mqttMsg);
