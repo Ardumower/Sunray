@@ -1057,6 +1057,11 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   }
 }
 
+#define MQTT_SEND(VALUE, FORMAT, TOPIC) \
+      snprintf (mqttMsg, MSG_BUFFER_SIZE, FORMAT, VALUE); \
+      mqttClient.publish(MQTT_TOPIC_PREFIX TOPIC, mqttMsg);    
+
+
 // process MQTT input/output (subcriber/publisher)
 void processWifiMqttClient()
 {
@@ -1067,67 +1072,66 @@ void processWifiMqttClient()
       // update map data in case of CRC change 
       long curCRC = maps.calcMapCRC()
       if( lastCRC != curCRC) {
-        std::ostringstream perimeter;
-        perimeter << "hello world";
-        mqttClient.publish(MQTT_TOPIC_PREFIX "/map/perimeter", perimenter.str());      
+        // std::ostringstream perimeter;
+        // perimeter << "hello world";
+        // mqttClient.publish(MQTT_TOPIC_PREFIX "/map/perimeter", perimeter.str());      
         lastCRC = curCRC;
       }
       updateStateOpText();
       // operational state
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%s", stateOpText.c_str());                
       //CONSOLE.println("MQTT: publishing " MQTT_TOPIC_PREFIX "/status");      
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/op", mqttMsg);      
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%d", maps.percentCompleted);
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/progress", mqttMsg);    
+      MQTT_SEND(stateOpText.c_str(), "%s", "/op")
+      MQTT_SEND(maps.percentCompleted, "%d", "/progress")
 
       // GPS related information
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f, %.2f", gps.relPosN, gps.relPosE);          
       mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/pos", mqttMsg);
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%s", gpsSolText.c_str());          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/sol", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%lu", gps.iTOW);          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/tow", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.8f", gps.lon);          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/lon", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.8f", gps.lat);          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/lat", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.1f", gps.height);          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/height", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.4f", gps.relPosN);          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/relNorth", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.4f", gps.relPosE);          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/relEast", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", gps.relPosD);          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/relDist", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", (millis()-gps.dgpsAge)/1000.0);          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/ageDGPS", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", gps.accuracy);          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/accuray", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.4f", gps.groundSpeed);          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/groundSpeed", mqttMsg);    
+      MQTT_SEND(gpsSolText.c_str(), "%s", "/gps/sol")
+      MQTT_SEND(gps.iTOW, "%lu", "/gps/tow")
+      
+      MQTT_SEND(gps.lon, "%.8f", "/gps/lon")
+      MQTT_SEND(gps.lat, "%.8f", "/gps/lat")
+      MQTT_SEND(gps.height, "%.1f", "/gps/height")
+      MQTT_SEND(gps.relPosN, "%.4f", "/gps/relNorth")
+      MQTT_SEND(gps.relPosE, "%.4f", "/gps/relEast")
+      MQTT_SEND(gps.relPosD, "%.2f", "/gps/relDist")
+      MQTT_SEND((millis()-gps.dgpsAge)/1000.0, "%.2f","/gps/ageDGPS")
+      MQTT_SEND(gps.accuracy, "%.2f", "/gps/accuray")
+      MQTT_SEND(gps.groundSpeed, "%.4f", "/gps/groundSpeed")
       
       // power related information      
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", battery.batteryVoltage);          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/power/batteryVoltage", mqttMsg);         
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", motor.motorsSenseLP);          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/power/motorCurrent", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", battery.chargingVoltage);          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/power/batteryChargingVoltage", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", battery.chargingCurrent);          
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/power/batteryChargingCurrent", mqttMsg);    
+      MQTT_SEND(battery.batteryVoltage, "%.2f", "/power/battery/voltage")
+      MQTT_SEND(motor.motorsSenseLP, "%.2f", "/power/motor/current")
+      MQTT_SEND(battery.chargingVoltage, "%.2f", "/power/battery/charging/voltage")
+      MQTT_SEND(battery.chargingCurrent, "%.2f", "/power/battery/charging/current")
 
       // map related information
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/map/targetPointX", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", maps.targetPoint.y());
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/map/targetPointY", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", stateX);
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/map/posX", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", stateY);
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/map/posY", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f", stateDelta);
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/map/posDir", mqttMsg);    
-      snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f, %.2f", maps.targetPoint.x(), maps.targetPoint.y());
-      mqttClient.publish(MQTT_TOPIC_PREFIX "/map/target", mqttMsg);    
+      MQTT_SEND(maps.targetPoint.x(), "%.2f", "/map/targetPoint/X")
+      MQTT_SEND(maps.targetPoint.y(), "%.2f", "/map/targetPoint/Y")
+      MQTT_SEND(stateX, "%.2f", "/map/pos/X")
+      MQTT_SEND(stateY, "%.2f", "/map/pos/Y")
+      MQTT_SEND(stateDelta, "%.2f", "/map/pos/Dir")
+
+      // statistics
+      MQTT_SEND(statIdleDuration, "%d", "/stats/idleDuration")
+      MQTT_SEND(statChargeDuration, "%d", "/stats/chargeDuration")
+      MQTT_SEND(statMowDuration, "%d", "/stats/mow/totalDuration")
+      MQTT_SEND(statMowDurationInvalid, "%d", "/stats/mow/invalidDuration")
+      MQTT_SEND(statMowDurationFloat, "%d", "/stats/mow/floatDuration")
+      MQTT_SEND(statMowDurationFix, "%d", "/stats/mow/fixDuration")
+      MQTT_SEND(statMowFloatToFixRecoveries, "%d", "/stats/mow/floatToFixRecoveries")
+      MQTT_SEND(statMowObstacles, "%d", "/stats/mow/obstacles")
+      MQTT_SEND(statMowGPSMotionTimeoutCounter, "%d", "/stats/mow/gpsMotionTimeouts")
+      MQTT_SEND(statMowBumperCounter, "%d", "/stats/mow/bumperEvents")
+      MQTT_SEND(statMowSonarCounter, "%d", "/stats/mow/sonarEvents")
+      MQTT_SEND(statMowLiftCounter, "%d", "/stats/mow/liftEvents")
+      MQTT_SEND(statMowMaxDgpsAge, "%d", "/stats/mow/maxDgpsAge")
+      MQTT_SEND(statMowDistanceTraveled, "%d", "/stats/mow/distanceTraveled")
+      MQTT_SEND(statMowInvalidRecoveries, "%d", "/stats/mow/invalidRecoveries")
+      MQTT_SEND(statImuRecoveries, "%d", "/stats/imuRecoveries")
+      MQTT_SEND(statGPSJumps, "%d", "/stats/gpsJumps")
+      MQTT_SEND(statTempMin, "%d", "/stats/tempMin")
+      MQTT_SEND(statTempMax, "%d", "/stats/tempMax")
 
     } else {
       mqttReconnect();  
