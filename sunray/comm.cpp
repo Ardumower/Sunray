@@ -1069,22 +1069,6 @@ void processWifiMqttClient()
   if (millis() >= nextPublishTime){
     nextPublishTime = millis() + 10000;
     if (mqttClient.connected()) {
-      // update map data in case of CRC change 
-      long curCRC = maps.calcMapCRC();
-      if( lastCRC != curCRC) {
-        // send the perimeter data points as JSON structure if CRC has changed or at the beginning of the cylce once
-        // std::string res = "[\n";
-        // int i=0;
-        // for(i=0;i<maps.perimeterPoints.numPoints; i++ ) {
-        //   Point p = maps.perimeterPoints.points[i];
-        //   res += "(" + p.x() + "," + p.y() + "),\n";
-        // }
-        // MQTT_SEND(res, "%s", "/map/perimeter")
-        // std::ostringstream perimeter;
-        // perimeter << "hello world";
-        // mqttClient.publish(MQTT_TOPIC_PREFIX "/map/perimeter", perimeter.str());      
-        lastCRC = curCRC;
-      }
       updateStateOpText();
       // operational state
       //CONSOLE.println("MQTT: publishing " MQTT_TOPIC_PREFIX "/status");      
