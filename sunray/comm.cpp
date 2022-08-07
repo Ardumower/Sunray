@@ -1117,13 +1117,13 @@ void processWifiMqttClient()
       MQTT_SEND(statMowBumperCounter, "%d", "/stats/mow/bumperEvents")
       MQTT_SEND(statMowSonarCounter, "%d", "/stats/mow/sonarEvents")
       MQTT_SEND(statMowLiftCounter, "%d", "/stats/mow/liftEvents")
-      MQTT_SEND(statMowMaxDgpsAge, "%d", "/stats/mow/maxDgpsAge")
-      MQTT_SEND(statMowDistanceTraveled, "%d", "/stats/mow/distanceTraveled")
+      MQTT_SEND(statMowMaxDgpsAge, "%.2f", "/stats/mow/maxDgpsAge")
+      MQTT_SEND(statMowDistanceTraveled, "%.1f", "/stats/mow/distanceTraveled")
       MQTT_SEND(statMowInvalidRecoveries, "%d", "/stats/mow/invalidRecoveries")
       MQTT_SEND(statImuRecoveries, "%d", "/stats/imuRecoveries")
       MQTT_SEND(statGPSJumps, "%d", "/stats/gpsJumps")
-      MQTT_SEND(statTempMin, "%d", "/stats/tempMin")
-      MQTT_SEND(statTempMax, "%d", "/stats/tempMax")
+      MQTT_SEND(statTempMin, "%.1f", "/stats/tempMin")
+      MQTT_SEND(statTempMax, "%.1f", "/stats/tempMax")
 
     } else {
       mqttReconnect();  
