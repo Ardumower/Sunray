@@ -6,7 +6,7 @@
 #include "Stats.h"
 #include "src/op/op.h"
 #include "reset.h"
-#include <string>
+//#include <string>
 
 #ifdef __linux__
   #include <BridgeClient.h>
@@ -1073,13 +1073,13 @@ void processWifiMqttClient()
       long curCRC = maps.calcMapCRC()
       if( lastCRC != curCRC) {
         // send the perimeter data points as JSON structure if CRC has changed or at the beginning of the cylce once
-        std::string res = "[\n";
-        int i=0;
-        for(i=0;i<maps.perimeterPoints.numPoints; i++ ) {
-          Point p = maps.perimeterPoints.points[i];
-          res += "(" + p.x() + "," + p.y() + "),\n";
-        }
-        MQTT_SEND(res, "%s", "/map/perimeter")
+        // std::string res = "[\n";
+        // int i=0;
+        // for(i=0;i<maps.perimeterPoints.numPoints; i++ ) {
+        //   Point p = maps.perimeterPoints.points[i];
+        //   res += "(" + p.x() + "," + p.y() + "),\n";
+        // }
+        // MQTT_SEND(res, "%s", "/map/perimeter")
         // std::ostringstream perimeter;
         // perimeter << "hello world";
         // mqttClient.publish(MQTT_TOPIC_PREFIX "/map/perimeter", perimeter.str());      
