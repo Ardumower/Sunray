@@ -1070,7 +1070,7 @@ void processWifiMqttClient()
     nextPublishTime = millis() + 10000;
     if (mqttClient.connected()) {
       // update map data in case of CRC change 
-      long curCRC = maps.calcMapCRC()
+      long curCRC = maps.calcMapCRC();
       if( lastCRC != curCRC) {
         // send the perimeter data points as JSON structure if CRC has changed or at the beginning of the cylce once
         // std::string res = "[\n";
