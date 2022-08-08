@@ -77,6 +77,7 @@ extern Sensor stateSensor; // last triggered sensor
 extern String stateOpText;  // current operation as text
 extern String gpsSolText; // current gps solution as text
 extern int stateButton;  // button state
+extern float stateTemp;  // current temperature
 
 extern float setSpeed; // linear speed (m/s)
 extern int fixTimeout;
