@@ -137,7 +137,7 @@ void DockOp::onObstacleRotation(){
 
 void DockOp::onObstacle(){
     if (battery.chargerConnected()) {
-      CONSOLE.print("triggerObstacle: ignoring, because charger connected");      
+      CONSOLE.println("triggerObstacle: ignoring, because charger connected");      
       return;
     }
     CONSOLE.println("triggerObstacle");      
