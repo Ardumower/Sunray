@@ -31,7 +31,6 @@ extern float statMowDistanceTraveled ; // meter
 extern float statTempMin;
 extern float statTempMax;
 
-
 void calcStats();
 
 #endif
