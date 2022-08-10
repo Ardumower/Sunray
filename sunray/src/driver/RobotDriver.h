@@ -70,6 +70,8 @@ class BumperDriver {
     virtual void begin() = 0;
     virtual void run() = 0;
     virtual bool obstacle() = 0;
+    virtual bool getLeftBumper() = 0;
+    virtual bool getRightBumper() = 0;
     
     // get triggered bumper
     virtual void getTriggeredBumper(bool &leftBumper, bool &rightBumper) = 0;  	  		    
