@@ -1086,7 +1086,7 @@ void processWifiMqttClient()
       MQTT_PUBLISH(gps.relPosE, "%.4f", "/gps/relEast")
       MQTT_PUBLISH(gps.relPosD, "%.2f", "/gps/relDist")
       MQTT_PUBLISH((millis()-gps.dgpsAge)/1000.0, "%.2f","/gps/ageDGPS")
-      MQTT_PUBLISH(gps.accuracy, "%.2f", "/gps/accuray")
+      MQTT_PUBLISH(gps.accuracy, "%.2f", "/gps/accuracy")
       MQTT_PUBLISH(gps.groundSpeed, "%.4f", "/gps/groundSpeed")
       
       // power related information      
