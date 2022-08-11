@@ -209,7 +209,7 @@ void trackLine(bool runControl){
   if (targetReached){
     activeOp->onTargetReached();
     bool straight = maps.nextPointIsStraight();
-    if (!maps.nextPoint(false)){
+    if (!maps.nextPoint(false,stateX,stateY)){
       // finish        
       activeOp->onNoFurtherWaypoints();      
     } else {      

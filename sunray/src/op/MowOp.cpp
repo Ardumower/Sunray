@@ -36,7 +36,7 @@ void MowOp::begin(){
     //dockReasonRainTriggered = false;
     if ((initiatedbyOperator) || (lastMapRoutingFailed)) maps.clearObstacles();
     if (maps.startMowing(stateX, stateY)){
-        if (maps.nextPoint(true)) {
+        if (maps.nextPoint(true, stateX, stateY)) {
             lastFixTime = millis();                
             maps.setLastTargetPoint(stateX, stateY);        
             //stateSensor = SENS_NONE;
