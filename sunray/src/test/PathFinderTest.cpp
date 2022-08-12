@@ -49,7 +49,7 @@ void PathFinderTest::run(){
   int numTests = 0;
   int numTestsFailed = 0; 
   float d = 30.0;  
-  for (int i=0 ; i < 1000; i++){
+  for (int i=0 ; i < 10000; i++){
     CONSOLE.print("PathFinderTest::run loop ");
     CONSOLE.println(i);
     for (int j=0 ; j < 20; j++){
