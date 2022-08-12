@@ -214,13 +214,15 @@ class Map
     bool addObstacle(float stateX, float stateY);    
     void clearObstacles();
     
+    // -----misc-----------------------------------------------
+    bool pointIsInsidePolygon( Polygon &polygon, Point &pt);
+    bool findPath(Point &src, Point &dst);    
   private:
     void finishedUploadingMap();
     void checkMemoryErrors();
     bool nextMowPoint(bool sim);
     bool nextDockPoint(bool sim);
     bool nextFreePoint(bool sim);        
-    bool findPath(Point &src, Point &dst);
     float distance(Point &src, Point &dst);        
     float pointsAngle(float x1, float y1, float x2, float y2);
     float scalePI(float v);
@@ -233,7 +235,6 @@ class Map
     float polygonArea(Polygon &poly);
     bool polygonOffset(Polygon &srcPoly, Polygon &dstPoly, float dist);
     int findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, int startIdx);
-    bool pointIsInsidePolygon( Polygon &polygon, Point &pt);
     void findPathFinderSafeStartPoint(Point &src, Point &dst);
     bool linePolygonIntersectPoint( Point &src, Point &dst, Polygon &poly, Point &sect);
     bool lineLineIntersection(Point &A, Point &B, Point &C, Point &D, Point &pt);
