@@ -15,6 +15,7 @@ DockOp::DockOp(){
   lastMapRoutingFailed = false;
   mapRoutingFailedCounter = 0;
   dockingInitiatedByOperator = true;
+  reason = DockOp::NO_TRIGGER;
 }
 
 

@@ -90,6 +90,7 @@ void MowOp::onRainTriggered(){
         CONSOLE.println("RAIN TRIGGERED");
         stateSensor = SENS_RAIN;
         dockOp.dockReasonRainTriggered = true;
+        dockOp.reason = DockOp::TRIGGERED_BY_RAIN;
         changeOp(dockOp);              
     }
 }
@@ -99,11 +100,13 @@ void MowOp::onTempOutOfRangeTriggered(){
         CONSOLE.println("TEMP OUT-OF-RANGE TRIGGERED");
         stateSensor = SENS_TEMP_OUT_OF_RANGE;
         dockOp.dockReasonRainTriggered = true;
+        dockOp.reason = DockOp::TRIGGERED_BY_OVERTEMP;
         changeOp(dockOp);              
     }
 }
 
-void MowOp::onBatteryLowShouldDock(){    
+void MowOp::onBatteryLowShouldDock(){
+    dockOp.reason = DockOp::TRIGGERED_BY_LOW_BAT;
     changeOp(dockOp);
 }
 
@@ -239,6 +242,7 @@ void MowOp::onNoFurtherWaypoints(){
     CONSOLE.println("mowing finished!");
     if (!finishAndRestart){             
         if (DOCKING_STATION){
+            dockOp.reason = DockOp::TRIGGERED_BY_COMPLETION;
             changeOp(dockOp);               
         } else {
             changeOp(idleOp); 

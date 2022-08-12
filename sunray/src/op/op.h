@@ -132,7 +132,16 @@ class MowOp: public Op {
 
 // dock op (driving to first dock point and following dock points until charging point)
 class DockOp: public Op {
-  public:        
+  public:
+    enum Trigger {    // provide reasoning why docking was triggered
+      NO_TRIGGER,
+      INITIATED_BY_USER,
+      TRIGGERED_BY_RAIN,
+      TRIGGERED_BY_OVERTEMP,
+      TRIGGERED_BY_LOW_BAT,
+      TRIGGERED_BY_COMPLETION
+    };
+    DockOp::Trigger reason;
     bool dockingInitiatedByOperator;            
     bool dockReasonRainTriggered;
     bool lastMapRoutingFailed;
