@@ -56,6 +56,8 @@ void PathFinderTest::run(){
     for (int j=0 ; j < 20; j++){
       //addObstacle( ((float)random(d*10))/10.0-d/2, ((float)random(d*10))/10.0-d/2 );
     }
+    //src.setXY(-2.33, 19.41);
+    //dst.setXY(-3.18, 19.39);
     if (!findValidPoint(src)) break;
     if (!findValidPoint(dst)) break;
     numTests++;
