@@ -25,7 +25,7 @@ bool PathFinderTest::pointIsValid(Point &pt){
 
 
 bool PathFinderTest::findValidPoint(Point &pt){
-  int timeout = 1000;
+  int timeout = 10000;
   float d = 30.0;
   while (timeout > 0){
     pt.setXY( ((float)random(d*10))/10.0-d/2, ((float)random(d*10))/10.0-d/2 );
