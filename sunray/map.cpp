@@ -8,8 +8,8 @@
 #include <Arduino.h>
 
 
-#if defined(__SAMD51__)     // Adafruit Grand Central M4
-  #define FLOAT_CALC    1    // comment out line for using integer calculations instead of float
+#ifndef _SAM3XA_                 // not Arduino Due
+  #define FLOAT_CALC    1    // comment out line for using integer calculations instead of float  
 #endif
 
 // we check for memory corruptions by storing one additional item in all dynamic arrays and 
@@ -1633,6 +1633,9 @@ bool Map::findPath(Point &src, Point &dst){
   
   if (ENABLE_PATH_FINDER){    
     CONSOLE.println("path finder is enabled");      
+    #ifdef FLOAT_CALC
+      CONSOLE.println("using FLOAT_CALC");    
+    #endif
     
     // create path-finder obstacles    
     int idx = 0;
