@@ -248,8 +248,8 @@ void Tester::begin(){
 void Tester::run(){
  
   if (millis() > nextTestTime){
-    nextTestTime = millis() + 10000;     
     pathFinderTest.run();
+    nextTestTime = millis() + 20000;         
   }
   
   /*if (currentTest.started){
