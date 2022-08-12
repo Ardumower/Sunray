@@ -30,6 +30,7 @@ bool PathFinderTest::findValidPoint(Point &pt){
   while (timeout > 0){
     pt.setXY( ((float)random(d*10))/10.0-d/2, ((float)random(d*10))/10.0-d/2 );
     if (pointIsValid(pt)) return true;
+    timeout--;
   }
   CONSOLE.println("findValidPoint failed!");
   return false;  
