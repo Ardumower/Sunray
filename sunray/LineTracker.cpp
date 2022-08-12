@@ -156,9 +156,6 @@ void trackLine(bool runControl){
     // angular control (if angle to far away, rotate to next waypoint)
     linear = 0;
     angular = 29.0 / 180.0 * PI; //  29 degree/s (0.5 rad/s);               
-    if (fabs(trackerDiffDelta) <= 0.6) {
-    	angular = 15.0 / 180.0 * PI; //  29 degree/s (0.5 rad/s);               
-    }
     if ((!rotateLeft) && (!rotateRight)){ // decide for one rotation direction (and keep it)
       int r = 0;
       // no idea but don't work in reverse mode...
@@ -186,13 +183,14 @@ void trackLine(bool runControl){
 
       trackerDiffDelta_positive = (trackerDiffDelta >= 0);
     }        
-    if (rotateRight) angular *= -1;
     if (trackerDiffDelta_positive != (trackerDiffDelta >= 0)) {
       CONSOLE.println("reset left / right rotation - DiffDelta overflow");
       rotateLeft = false;
       rotateRight = false;
-      angular = 0;
+      // reverse rotation (*-1) - slowly rotate back
+      angular = 10.0 / 180.0 * PI * -1; //  10 degree/s (0.19 rad/s);               
     }
+    if (rotateRight) angular *= -1;
   } 
   else {
     // line control (stanley)    
