@@ -517,9 +517,9 @@ void SerialRobotDriver::run(){
   if (millis() > nextTempTime){
     nextTempTime = millis() + 59000; // 59 sec
     updateCpuTemperature();
-    if (cpuTemp < 50){      
+    if (cpuTemp < 60){      
       setFanPowerState(false);
-    } else if (cpuTemp > 55){
+    } else if (cpuTemp > 65){
       setFanPowerState(true);
     }
   }
