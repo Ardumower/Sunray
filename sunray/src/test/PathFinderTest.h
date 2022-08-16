@@ -14,7 +14,8 @@
 class PathFinderTest
 {
   public:
-    void run();
+    void runPerimeterPathTest();
+    void runRandomPathTest();
     bool findValidPoint(Point &pt);
     bool pointIsValid(Point &pt);
 };

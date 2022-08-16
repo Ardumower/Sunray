@@ -10,26 +10,13 @@
 #include "../../robot.h"
 
 
-bool PathFinderTest::pointIsValid(Point &pt){
-  if (!maps.pointIsInsidePolygon( maps.perimeterPoints, pt)) return false;    
-
-  for (int idx=0; idx < maps.obstacles.numPolygons; idx++){
-    if (!maps.pointIsInsidePolygon( maps.obstacles.polygons[idx], pt)) return false;
-  }
-
-  for (int idx=0; idx < maps.exclusions.numPolygons; idx++){
-    if (maps.pointIsInsidePolygon( maps.exclusions.polygons[idx], pt)) return false;
-  }    
-  return true;
-}
-
 
 bool PathFinderTest::findValidPoint(Point &pt){
   int timeout = 10000;
   float d = 30.0;
   while (timeout > 0){
     pt.setXY( ((float)random(d*10))/10.0-d/2, ((float)random(d*10))/10.0-d/2 );
-    if (pointIsValid(pt)) return true;
+    if (maps.isInsidePerimeterOutsideExclusions(pt)) return true;
     timeout--;
   }
   CONSOLE.println("findValidPoint failed!");
@@ -37,11 +24,38 @@ bool PathFinderTest::findValidPoint(Point &pt){
 }
 
 
-void PathFinderTest::run(){
-  CONSOLE.println("PathFinderTest::run");
+// for the current map, run path finder on all perimeter points
+// the test is considered as failed if path has not length 2
+void PathFinderTest::runPerimeterPathTest(){
+  CONSOLE.println("PathFinderTest::runPerimeterPathTest");
+
+  Point src;
+  Point dst;    
+  int numTests = 0;
+  int numTestsFailed = 0;   
+  for (int i=0; i < maps.perimeterPoints.numPoints-1; i++){
+    src.assign(maps.perimeterPoints.points[i]);
+    dst.assign(maps.perimeterPoints.points[i+1]);    
+    numTests++;
+    bool res = maps.findPath(src, dst);
+    if (res) {
+      if (maps.freePoints.numPoints != 2) numTestsFailed++;
+    } else numTestsFailed++;
+  }
+  CONSOLE.print("PathFinderTest::runPerimeterPathTest #tests ");
+  CONSOLE.print(numTests);
+  CONSOLE.print("  #failed ");
+  CONSOLE.println(numTestsFailed);
+}
+
+
+// for the current map, generate random source and destination points which are inside perimeter (and outside exclusions) of current map
+// and run path finder to find a path from source to destination - the test is considered as failed if not path was found
+void PathFinderTest::runRandomPathTest(){
+  CONSOLE.println("PathFinderTest::runRandomPathTest");
 
   if (maps.perimeterPoints.numPoints == 0) {
-    CONSOLE.println("PathFinderTest::run - no map, nothing to test");  
+    CONSOLE.println("PathFinderTest::runRandomPathTest - no map, nothing to test");  
     return;
   }
 
@@ -51,7 +65,7 @@ void PathFinderTest::run(){
   int numTestsFailed = 0; 
   float d = 30.0;  
   for (int i=0 ; i < 10000; i++){
-    CONSOLE.print("PathFinderTest::run loop ");
+    CONSOLE.print("PathFinderTest::runRandomPathTest loop ");
     CONSOLE.println(i);
     for (int j=0 ; j < 20; j++){
       //addObstacle( ((float)random(d*10))/10.0-d/2, ((float)random(d*10))/10.0-d/2 );
@@ -65,7 +79,7 @@ void PathFinderTest::run(){
     if (!res) numTestsFailed++;    
     //clearObstacles();
   }  
-  CONSOLE.print("PathFinderTest::run #tests ");
+  CONSOLE.print("PathFinderTest::runRandomPathTest #tests ");
   CONSOLE.print(numTests);
   CONSOLE.print("  #failed ");
   CONSOLE.println(numTestsFailed);

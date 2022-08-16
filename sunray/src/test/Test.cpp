@@ -248,7 +248,10 @@ void Tester::begin(){
 void Tester::run(){
  
   if (millis() > nextTestTime){
-    pathFinderTest.run();
+    //maps.generateRandomMap();    
+    //pathFinderTest.runPerimeterPathTest();
+    
+    //pathFinderTest.runRandomPathTest();
     nextTestTime = millis() + 20000;         
   }
   

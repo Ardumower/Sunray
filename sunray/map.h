@@ -217,6 +217,9 @@ class Map
     // -----misc-----------------------------------------------
     bool pointIsInsidePolygon( Polygon &polygon, Point &pt);
     bool findPath(Point &src, Point &dst);    
+    void generateRandomMap();    
+    // check if given point is inside perimeter (and outside exclusions) of current map 
+    bool isInsidePerimeterOutsideExclusions(Point &pt);
   private:
     void finishedUploadingMap();
     void checkMemoryErrors();
