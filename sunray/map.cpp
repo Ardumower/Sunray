@@ -1110,7 +1110,7 @@ void Map::findPathFinderSafeStartPoint(Point &src, Point &dst){
 
 // go to next point
 // sim=true: only simulate (do not change data)
-bool Map::nextPoint(bool sim){
+bool Map::nextPoint(bool sim,float stateX, float stateY){
   //CONSOLE.print("nextPoint sim=");
   //CONSOLE.print(sim);
   //CONSOLE.print(" wayMode=");
@@ -1119,7 +1119,41 @@ bool Map::nextPoint(bool sim){
     return (nextDockPoint(sim));
   } 
   else if (wayMode == WAY_MOW) {
+#ifndef __linux__
     return (nextMowPoint(sim));
+#else
+    Point src;
+    Point dst;
+    bool r = (nextMowPoint(sim));
+    if (!r) {
+      // no new mow point available - fast path exit
+      return false;
+    }
+
+    src.setXY(stateX, stateY);
+    // dst might be in an obstacle... check if we can move or may use a new point...
+    if (!findObstacleSafeMowPoint(dst)) {
+      // didn't find a safe dst fall back to old behaviour
+      CONSOLE.println("Map::nextPoint: WARN: no safe mow point found - fall back to normal behaviour!");
+      return true;
+    }
+    bool fr = findPath(src, dst);
+    if (!fr) {
+      // try again without obstacles
+      clearObstacles();
+      fr = findPath(src, dst);
+    }
+    if (!fr) {
+      // still didn't find a path - fall back to old behaviour
+      CONSOLE.println("Map::nextPoint: WARN: no path - fall back to normal behaviour!");
+      return true;
+    }
+
+    // move to WAY_FREE list
+    wayMode = WAY_FREE;
+
+    return true;
+#endif
   } 
   else if (wayMode == WAY_FREE) {
     return (nextFreePoint(sim));
