@@ -798,6 +798,7 @@ void SerialRainSensorDriver::begin(){
 }
 
 void SerialRainSensorDriver::run(){
+  //TODO: make detection time configurable (sensor/hardware & layout dependent)
   // check every second if we still see a rain signal to debounce noise e.g. leafs
   if (millis() >= this->nextCheck){  
     this->nextCheck = millis() + 1000;
