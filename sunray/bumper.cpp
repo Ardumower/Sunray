@@ -51,6 +51,11 @@ void Bumper::run() {
       outputRightPressed  = bumperRight;
     } else outputLeftPressed = outputRightPressed = false;
 
+    /*
+    FIXME: code does not seem to work properly in all cases
+    https://github.com/Ardumower/Sunray/pull/103#issuecomment-1215526140
+    IDEA: do not check bumper errors here, check them (like for the lift-sensor) in 'src/EscapeReverseOp.cpp/run'
+
     // check if bumper stays triggered for a long time periode (maybe blocked)
     if ((bumperRight || bumperLeft) && (BUMPER_MAX_TRIGGER_TIME > 0)){
       if ((abs(motor.linearSpeedSet) >= 0.05) || (abs(motor.angularSpeedSet) >= 0.05)) { // if no movement, bumperStayActivTime paused
@@ -64,6 +69,7 @@ void Bumper::run() {
         }
       }
     } else bumperStayActivTime = 0;
+    */
     lastCallBumperObstacle = millis();
   }
 }
