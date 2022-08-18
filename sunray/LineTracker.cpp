@@ -41,14 +41,14 @@ int get_turn_direction_preference() {
   float r = 0.3;
 
   // create circle / octagon around center angle 0 - "360"
-  circle.points[0].setXY(center_x + cos(0) * r, center_y + sin(0) * r);
-  circle.points[1].setXY(center_x + cos(45) * r, center_y + sin(45) * r);
-  circle.points[2].setXY(center_x + cos(90) * r, center_y + sin(90) * r);
-  circle.points[3].setXY(center_x + cos(135) * r, center_y + sin(135) * r);
-  circle.points[4].setXY(center_x + cos(180) * r, center_y + sin(180) * r);
-  circle.points[5].setXY(center_x + cos(225) * r, center_y + sin(225) * r);
-  circle.points[6].setXY(center_x + cos(270) * r, center_y + sin(270) * r);
-  circle.points[7].setXY(center_x + cos(315) * r, center_y + sin(315) * r);
+  circle.points[0].setXY(center_x + cos(deg2rad(0)) * r, center_y + sin(deg2rad(0)) * r);
+  circle.points[1].setXY(center_x + cos(deg2rad(45)) * r, center_y + sin(deg2rad(45)) * r);
+  circle.points[2].setXY(center_x + cos(deg2rad(90)) * r, center_y + sin(deg2rad(90)) * r);
+  circle.points[3].setXY(center_x + cos(deg2rad(135)) * r, center_y + sin(deg2rad(135)) * r);
+  circle.points[4].setXY(center_x + cos(deg2rad(180)) * r, center_y + sin(deg2rad(180)) * r);
+  circle.points[5].setXY(center_x + cos(deg2rad(225)) * r, center_y + sin(deg2rad(225)) * r);
+  circle.points[6].setXY(center_x + cos(deg2rad(270)) * r, center_y + sin(deg2rad(270)) * r);
+  circle.points[7].setXY(center_x + cos(deg2rad(315)) * r, center_y + sin(deg2rad(315)) * r);
 
   // CONSOLE.print("get_turn_direction_preference: ");
   // CONSOLE.print(" pos: ");
