@@ -781,7 +781,6 @@ void SerialStopButtonDriver::begin(){
 }
 
 void SerialStopButtonDriver::run(){
-
 }
 
 bool SerialStopButtonDriver::triggered(){
@@ -795,14 +794,23 @@ SerialRainSensorDriver::SerialRainSensorDriver(SerialRobotDriver &sr): serialRob
 }
 
 void SerialRainSensorDriver::begin(){
+    this->rainCnt = 0;
 }
 
 void SerialRainSensorDriver::run(){
-
+  // check every second if we still see a rain signal to debounce noise e.g. leafs
+  if (millis() >= this->nextCheck){  
+    this->nextCheck = millis() + 1000;
+    if(serialRobot.triggeredRain)
+      this->rainCnt = this->rainCnt < 60 ? this->rainCnt++ : 60;
+    else
+      this->rainCnt = this->rainCnt > 0 ? this->rainCnt-- : 0;
+  }
 }
 
 bool SerialRainSensorDriver::triggered(){
-  return (serialRobot.triggeredRain); 
+  // if we see more than 30s of rain -> it's raining
+  return (this->rainCnt > 30); 
 }
 
 // ------------------------------------------------------------------------------------
