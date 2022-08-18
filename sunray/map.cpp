@@ -1780,15 +1780,15 @@ bool Map::findPath(Point &src, Point &dst){
       return false;
     }
     
-    if (!polygonOffset(perimeterPoints, pathFinderObstacles.polygons[idx], 0.03)) return false;
+    if (!polygonOffset(perimeterPoints, pathFinderObstacles.polygons[idx], 0.04)) return false;
     idx++;
     
     for (int i=0; i < exclusions.numPolygons; i++){
-      if (!polygonOffset(exclusions.polygons[i], pathFinderObstacles.polygons[idx], -0.03)) return false;
+      if (!polygonOffset(exclusions.polygons[i], pathFinderObstacles.polygons[idx], -0.04)) return false;
       idx++;
     }      
     for (int i=0; i < obstacles.numPolygons; i++){
-      if (!polygonOffset(obstacles.polygons[i], pathFinderObstacles.polygons[idx], -0.03)) return false;
+      if (!polygonOffset(obstacles.polygons[i], pathFinderObstacles.polygons[idx], -0.04)) return false;
       idx++;
     }  
     
