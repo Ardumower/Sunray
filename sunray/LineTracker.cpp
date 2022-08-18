@@ -73,23 +73,23 @@ int get_turn_direction_preference() {
     if (maps.checkpoint(circle.points[i].x(), circle.points[i].y())) {
 
             // skip points in front of us
-	    if (fabs(angle-stateDelta) < 0.05) {
-		    continue;
-	    }
+            if (fabs(angle-stateDelta) < 0.05) {
+                    continue;
+            }
 
             if (stateDelta < targetDelta) {
-	        if (angle >= stateDelta && angle <= targetDelta) {
-		    left++;
-	        } else {
-		    right++;
-	        }
-	    } else {
-   	        if (angle <= stateDelta && angle >= targetDelta) {
-		    right++;
-		} else {
-		    left++;
-	        }
-	    }
+                if (angle >= stateDelta && angle <= targetDelta) {
+                    left++;
+                } else {
+                    right++;
+                }
+            } else {
+                   if (angle <= stateDelta && angle >= targetDelta) {
+                    right++;
+                } else {
+                    left++;
+                }
+            }
     }
   }
   // CONSOLE.print("left/right: ");
@@ -98,11 +98,11 @@ int get_turn_direction_preference() {
   // CONSOLE.println(right);
 
   if (right == left) {
-	  return 0;
+          return 0;
   }
 
   if (right < left) {
-	  return 1;
+          return 1;
   }
 
   return -1;
@@ -133,7 +133,7 @@ void trackLine(bool runControl){
     targetReached = (targetDist < TARGET_REACHED_TOLERANCE);
 
   if ( (last_rotation_target.x() != target.x() || last_rotation_target.y() != target.y()) &&
-	(rotateLeft || rotateRight ) ) {
+        (rotateLeft || rotateRight ) ) {
     // CONSOLE.println("reset left / right rot (target point changed)");
     rotateLeft = false;
     rotateRight = false;
@@ -160,7 +160,7 @@ void trackLine(bool runControl){
       int r = 0;
       // no idea but don't work in reverse mode...
       if (!maps.trackReverse) {
-	r = get_turn_direction_preference();
+        r = get_turn_direction_preference();
       }
       // store last_rotation_target point
       last_rotation_target.setXY(target.x(), target.y());
@@ -176,9 +176,9 @@ void trackLine(bool runControl){
         rotateRight = false;
       }
       else if (trackerDiffDelta < 0) {
-	rotateRight = true;
+        rotateRight = true;
       } else {
-	rotateLeft = true;
+        rotateLeft = true;
       }
 
       trackerDiffDelta_positive = (trackerDiffDelta >= 0);
@@ -292,16 +292,16 @@ void trackLine(bool runControl){
   if (KIDNAP_DETECT){
     float allowedPathTolerance = KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE;     
     if ( maps.isUndocking() || maps.isDocking() ) {
-	float dockX = 0;
-	float dockY = 0;
-	float dockDelta = 0;
-	maps.getDockingPos(dockX, dockY, dockDelta);
-	float dist = distance(dockX, dockY, stateX, stateY);
-	// check if current distance to docking station is below
-	// KIDNAP_DETECT_DISTANCE_DOCK_UNDOCK to trigger KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK
-	if (dist < KIDNAP_DETECT_DISTANCE_DOCK_UNDOCK) {
-	    allowedPathTolerance = KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK;
-	}
+        float dockX = 0;
+        float dockY = 0;
+        float dockDelta = 0;
+        maps.getDockingPos(dockX, dockY, dockDelta);
+        float dist = distance(dockX, dockY, stateX, stateY);
+        // check if current distance to docking station is below
+        // KIDNAP_DETECT_DISTANCE_DOCK_UNDOCK to trigger KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK
+        if (dist < KIDNAP_DETECT_DISTANCE_DOCK_UNDOCK) {
+            allowedPathTolerance = KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK;
+        }
     }
     if (fabs(distToPath) > allowedPathTolerance){ // actually, this should not happen (except on false GPS fixes or robot being kidnapped...)
       if (!stateKidnapped){
