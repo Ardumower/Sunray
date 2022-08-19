@@ -29,15 +29,14 @@ void Bumper::begin(){
 }
 
 void Bumper::run() {
-  if (BUMPER_ENABLE){
-    bumperDriver.run();
+  bumperDriver.run();
     
-    inputLeftPressed   = bumperDriver.getLeftBumper();
-    inputRightPressed  = bumperDriver.getRightBumper();
+  inputLeftPressed   = bumperDriver.getLeftBumper();
+  inputRightPressed  = bumperDriver.getRightBumper();
 
+  if (BUMPER_ENABLE){
     outputLeftPressed = inputLeftPressed;
     outputRightPressed = inputRightPressed;  
-
   
     /*
     FIXME: code does not seem to work properly in all cases
