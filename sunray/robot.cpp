@@ -872,7 +872,7 @@ void run(){
     float batTemp = batteryDriver.getBatteryTemperature();
     float cpuTemp = robotDriver.getCpuTemperature();    
     CONSOLE.print("batTemp=");
-    CONSOLE.print(stateTemp,0);
+    CONSOLE.print(batTemp,0);
     CONSOLE.print("  cpuTemp=");
     CONSOLE.print(cpuTemp,0);    
     //logCPUHealth();
