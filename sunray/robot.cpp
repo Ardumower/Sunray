@@ -753,7 +753,7 @@ bool detectObstacle(){
     #endif
   #endif
 
-  if (bumper.obstacle()){  
+  if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (bumper.obstacle()) ){  
     CONSOLE.println("bumper obstacle!");    
     statMowBumperCounter++;
     triggerObstacle();    
