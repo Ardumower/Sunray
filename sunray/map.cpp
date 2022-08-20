@@ -5,6 +5,7 @@
 #include "map.h"
 #include "robot.h"
 #include "config.h"
+#include "StateEstimator.h"
 #include <Arduino.h>
 
 
@@ -1969,6 +1970,7 @@ bool Map::findPath(Point &src, Point &dst){
       }            
     } else {
       // No result was found
+      resetImuTimeout();
       CONSOLE.println("pathfinder: no path");      
       return false;
       //freePoints.alloc(2);
@@ -1981,8 +1983,9 @@ bool Map::findPath(Point &src, Point &dst){
     freePoints.points[1].assign(dst);        
   }    
   freePointsIdx=0;  
- 
-  checkMemoryErrors();
+  
+  checkMemoryErrors();  
+  resetImuTimeout();
   return true;  
 }
 
