@@ -30,7 +30,7 @@ void DockOp::begin(){
   motor.setLinearAngularSpeed(0,0);
   motor.setMowState(false);                
 
-  if ((initiatedbyOperator) || (lastMapRoutingFailed))  maps.clearObstacles();
+  if (((initiatedbyOperator) && (previousOp == &idleOp)) || (lastMapRoutingFailed))  maps.clearObstacles();
   if (initiatedbyOperator) {
     dockingInitiatedByOperator = true;            
     dockReasonRainTriggered = false;
