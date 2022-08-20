@@ -96,6 +96,7 @@ class SessionTest: public Test {
 
 class Tester {
   public:
+    unsigned long nextTestTime;
     virtual void begin();
     virtual void run();
 };

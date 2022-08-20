@@ -258,6 +258,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // robot1/op            (current robot operation as text)
 // robot1/gps/sol       (current gps solution as text)
 // robot1/gps/pos       (current gps position as text)
+// ... lot of other information -> see comm.cpp or check with your MQTT Explorer
 //#define ENABLE_MQTT  true                           // start MQTT client?  (true for yes, false for no)
 #define ENABLE_MQTT  false
 #define MQTT_TOPIC_PREFIX  "robot1"                 // the MQTT topic prefix for your robot 
@@ -293,10 +294,11 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // see Wiki on how to install bumperduino or freewheel sensor:
 // https://wiki.ardumower.de/index.php?title=Bumper_sensor
 // https://wiki.ardumower.de/index.php?title=Free_wheel_sensor
-// #define BUMPER_ENABLE true
+//#define BUMPER_ENABLE true
 #define BUMPER_ENABLE false
 #define BUMPER_DEADTIME 1000  // linear motion dead-time (ms) after bumper is allowed to trigger
-
+#define BUMPER_TRIGGER_DELAY  0 // bumper must be active for (ms) to trigger
+#define BUMPER_MAX_TRIGGER_TIME 30  // if bumpersensor stays permanent triggered mower will stop with bumper error (time in seconds; 0 = disabled)
 
 // ----- battery charging current measurement (INA169) --------------
 // the Marotronics charger outputs max 1.5A 
@@ -611,4 +613,3 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #ifdef BNO055
   #define MPU9250   // just to make mpu driver happy to compile something
 #endif
-

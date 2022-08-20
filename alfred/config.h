@@ -58,7 +58,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define DRV_SERIAL_ROBOT  1
 //#define DRV_ARDUMOWER     1   // keep this for Ardumower
-
+//#define DRV_SIM_ROBOT     1   // simulation
 
 // ------- Bluetooth4.0/BLE module -----------------------------------
 // see Wiki on how to install the BLE module and configure the jumpers:
@@ -286,9 +286,11 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // see Wiki on how to install bumperduino or freewheel sensor:
 // https://wiki.ardumower.de/index.php?title=Bumper_sensor
 // https://wiki.ardumower.de/index.php?title=Free_wheel_sensor
-// #define BUMPER_ENABLE true
 #define BUMPER_ENABLE true
-#define BUMPER_DEADTIME 1000  // linear motion dead-time (ms) after bumper is allowed to trigger
+//#define BUMPER_ENABLE false
+#define BUMPER_DEADTIME 1000  		// linear motion dead-time (ms) after bumper is allowed to trigger
+#define BUMPER_TRIGGER_DELAY  0		// bumper must be active for (ms) to trigger
+#define BUMPER_MAX_TRIGGER_TIME 30	// if bumpersensor stays permanent triggered mower will stop with bumper error (time in seconds; 0 = disabled)																																				  
 
 
 // ----- battery charging current measurement (INA169) --------------

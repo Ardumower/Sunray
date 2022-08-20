@@ -141,7 +141,8 @@ double rad2deg(double rad) {
 float pointsAngle(float x1, float y1, float x2, float y2){
   float dX = x2 - x1;
   float dY = y2 - y1;
-  float angle = scalePI(atan2(dY, dX));           
+  float angle = scalePI(atan2(dY, dX));
+
   return angle;
 }
 

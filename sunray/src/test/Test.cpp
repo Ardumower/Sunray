@@ -8,6 +8,7 @@
 #ifdef DRV_SIM_ROBOT
 
 #include "test.h"
+#include "PathFinderTest.h"
 #include <Arduino.h>
 #include "../../robot.h"
 #include "../../StateEstimator.h"
@@ -24,6 +25,7 @@ SessionTest sessionTest;
 Tester tester;
 //Test &currentTest = obstacleAvoidanceTest; 
 Test &currentTest = motorFaultTest;
+PathFinderTest pathFinderTest;
 
 
 Test::Test(){
@@ -106,14 +108,14 @@ void ObstacleAvoidanceTest::run(){
     }
   }
   if (robotDriver.robotIsBumpingIntoObstacle){
-    if (!bumper.simTriggered){
+    if (!bumperDriver.simTriggered){
       speak("trigger bumper");
-      bumper.setSimTriggered(true);      
+      bumperDriver.setSimTriggered(true);      
       startTime = millis();
       imuFailureTime = millis() + 200;      
     }
   } else {
-    bumper.setSimTriggered(false);
+    bumperDriver.setSimTriggered(false);
   }
   if (duration() > 60.0) {
     speak("failed");
@@ -239,11 +241,21 @@ void SessionTest::end(){
 // ----------------------------------
 
 void Tester::begin(){
-  currentTest.begin();
+  //currentTest.begin();
+  nextTestTime = 0;
 }
 
 void Tester::run(){
-  if (currentTest.started){
+ 
+  if (millis() > nextTestTime){
+    //maps.generateRandomMap();    
+    //pathFinderTest.runPerimeterPathTest();
+    
+    //pathFinderTest.runRandomPathTest();
+    nextTestTime = millis() + 20000;         
+  }
+  
+  /*if (currentTest.started){
     if (currentTest.shouldStop){ 
        
     } else {
@@ -253,7 +265,7 @@ void Tester::run(){
     currentTest.startTime = millis();
     currentTest.shouldStop = false;
     currentTest.started = true;
-  } 
+  } */
 }
 
 

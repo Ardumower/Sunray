@@ -640,6 +640,13 @@ bool AmBumperDriver::obstacle(){
   return (leftPressed || rightPressed);
 }
     
+bool AmBumperDriver::getLeftBumper(){
+  return (leftPressed);
+}
+
+bool AmBumperDriver::getRightBumper(){
+  return (rightPressed);
+}
 
 void AmBumperDriver::run(){  
 }

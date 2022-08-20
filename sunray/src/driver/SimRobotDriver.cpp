@@ -99,7 +99,14 @@ void SimMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   } 
   lastSampleTime = millis();
 
-  leftPwm = -leftPwm;
+  // undo swapping motor directions (simulator does not like if swapping was enabled in config)
+  #ifdef MOTOR_LEFT_SWAP_DIRECTION
+    leftPwm = -leftPwm;
+  #endif
+
+  #ifdef MOTOR_RIGHT_SWAP_DIRECTION 
+    rightPwm = -rightPwm;
+  #endif
 
   float maxSpeed = 0.7;  // m/s  (pwm=255)
   simRobot.leftSpeed = ((float)leftPwm) / 255.0 * maxSpeed; 
@@ -315,6 +322,14 @@ void SimBumperDriver::run(){
 }
 
 bool SimBumperDriver::obstacle(){
+  return (simTriggered || simRobot.robotIsBumpingIntoObstacle);
+}
+
+bool SimBumperDriver::getLeftBumper(){
+  return (simTriggered || simRobot.robotIsBumpingIntoObstacle);
+}
+
+bool SimBumperDriver::getRightBumper(){
   return (simTriggered || simRobot.robotIsBumpingIntoObstacle);
 }
 

@@ -30,7 +30,7 @@ void DockOp::begin(){
   motor.setLinearAngularSpeed(0,0);
   motor.setMowState(false);                
 
-  if ((initiatedbyOperator) || (lastMapRoutingFailed))  maps.clearObstacles();
+  if (((initiatedbyOperator) && (previousOp == &idleOp)) || (lastMapRoutingFailed))  maps.clearObstacles();
   if (initiatedbyOperator) {
     dockingInitiatedByOperator = true;            
     dockReasonRainTriggered = false;
@@ -46,7 +46,7 @@ void DockOp::begin(){
   // plan route to next target point 
 
   if (maps.startDocking(stateX, stateY)){       
-    if (maps.nextPoint(true)) {
+    if (maps.nextPoint(true, stateX, stateY)) {
       maps.repeatLastMowingPoint();
       lastFixTime = millis();                
       maps.setLastTargetPoint(stateX, stateY);        
@@ -137,7 +137,7 @@ void DockOp::onObstacleRotation(){
 
 void DockOp::onObstacle(){
     if (battery.chargerConnected()) {
-      CONSOLE.print("triggerObstacle: ignoring, because charger connected");      
+      CONSOLE.println("triggerObstacle: ignoring, because charger connected");      
       return;
     }
     CONSOLE.println("triggerObstacle");      

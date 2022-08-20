@@ -188,6 +188,10 @@ void readIMU(){
 }
 
 
+void resetImuTimeout(){
+  imuDataTimeout = millis() + 10000;  
+}
+
 
 // compute robot state (x,y,delta)
 // uses complementary filter ( https://gunjanpatel.wordpress.com/2016/07/07/complementary-filter-design/ )

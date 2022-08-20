@@ -10,7 +10,9 @@
 
 #include <Arduino.h>
 #include "RobotDriver.h"
-#include <Process.h>
+#ifdef __linux__
+  #include <Process.h>
+#endif
 
 
 class SerialRobotDriver: public RobotDriver {
@@ -56,8 +58,10 @@ class SerialRobotDriver: public RobotDriver {
     bool setImuPowerState(bool state);
   protected:    
     bool ledPanelInstalled;
-    Process cpuTempProcess;
-    Process wifiStatusProcess;    
+    #ifdef __linux__
+      Process cpuTempProcess;
+      Process wifiStatusProcess;    
+    #endif
     String cmd;
     String cmdResponse;
     unsigned long nextMotorTime;    
@@ -102,7 +106,9 @@ class SerialBatteryDriver : public BatteryDriver {
     unsigned long nextADCTime;
     bool adcTriggered;
     unsigned long linuxShutdownTime;
-    Process batteryTempProcess;
+    #ifdef __linux__
+      Process batteryTempProcess;
+    #endif
     SerialRobotDriver &serialRobot;
     SerialBatteryDriver(SerialRobotDriver &sr);
     void begin() override;
@@ -123,6 +129,8 @@ class SerialBumperDriver: public BumperDriver {
     void begin() override;
     void run() override;
     bool obstacle() override;
+    bool getLeftBumper() override;
+    bool getRightBumper() override;
     void getTriggeredBumper(bool &leftBumper, bool &rightBumper) override;  	  		    
 };
 
