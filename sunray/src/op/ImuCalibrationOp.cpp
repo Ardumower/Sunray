@@ -16,7 +16,7 @@ String ImuCalibrationOp::name(){
 
 
 // this operation cannot be exited at once (it has to be completed), we remember operation to call on exit here
-void ImuCalibrationOp::changeOp(Op &anOp, bool initiatedbyOperatorFlag, bool returnBackOnExit){
+void ImuCalibrationOp::changeOp(Op &anOp, bool returnBackOnExit){
     if (&anOp == this) return;    
     nextOp = &anOp;
 }

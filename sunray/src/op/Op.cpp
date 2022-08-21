@@ -33,7 +33,7 @@ Op *newActiveOp = NULL;
 
 
 Op::Op(){
-    initiatedbyOperator = false;
+    initiatedByOperator = false;
     previousOp = NULL;
     nextOp = NULL;
     shouldStop = false;
@@ -44,7 +44,7 @@ String Op::name(){
 }
 
 
-void Op::changeOp(Op &anOp, bool returnBackOnExit, bool initiatedbyOperatorFlag){    
+void Op::changeOp(Op &anOp, bool returnBackOnExit){    
     if (&anOp == NULL){
         CONSOLE.println("==> ERROR Op::changeOp: invalid op=NULL!");        
     }
@@ -54,34 +54,42 @@ void Op::changeOp(Op &anOp, bool returnBackOnExit, bool initiatedbyOperatorFlag)
     if (returnBackOnExit) {
       anOp.nextOp = this;
     }
-    anOp.previousOp = this;
-    anOp.initiatedbyOperator = initiatedbyOperatorFlag;         
+    anOp.previousOp = this;      
 
     shouldStop = true;              
 }
 
+void Op::setInitiatedByOperator(bool flag){
+  initiatedByOperator = flag;
+}    
+    
 
-void Op::changeOperationType(OperationType op, bool initiatedbyOperatorFlag){
+void Op::changeOperationTypeByOperator(OperationType op){
   CONSOLE.println("changeOperationType");
   if (activeOp == NULL){
     CONSOLE.println("ERROR Op::changeOperationType - activeOp=NULL");
     return;
-  }
+  }  
   switch (op){
-    case OP_IDLE:
-      activeOp->changeOp(idleOp, false, initiatedbyOperatorFlag);
+    case OP_IDLE:      
+      activeOp->changeOp(idleOp, false);
+      idleOp.setInitiatedByOperator(true);
       break;
     case OP_DOCK:
-      activeOp->changeOp(dockOp, false, initiatedbyOperatorFlag);
+      activeOp->changeOp(dockOp, false);
+      dockOp.setInitiatedByOperator(true);
       break;
     case OP_MOW:      
-      activeOp->changeOp(mowOp, false, initiatedbyOperatorFlag);
+      activeOp->changeOp(mowOp, false);
+      mowOp.setInitiatedByOperator(true);
       break;
     case OP_CHARGE:
-      activeOp->changeOp(chargeOp, false, initiatedbyOperatorFlag);
+      activeOp->changeOp(chargeOp, false);
+      chargeOp.setInitiatedByOperator(true);
       break;
     case OP_ERROR:            
-      activeOp->changeOp(errorOp, false, initiatedbyOperatorFlag);
+      activeOp->changeOp(errorOp, false);
+      errorOp.setInitiatedByOperator(true);
       break;
   }
 }
@@ -117,6 +125,9 @@ Op* Op::getGoalOp(){
 
 String Op::getOpChain(){
     String opChain = name();
+    opChain += "(initiatedByOperator ";
+    opChain += initiatedByOperator;
+    opChain += ")";
     Op *goalOp = this;
     int chainCounter = 0;
     while (goalOp->nextOp != NULL) {

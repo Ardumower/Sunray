@@ -986,17 +986,17 @@ void run(){
     if (stateButton == 5){
       stateButton = 0; // reset button state
       stateSensor = SENS_STOP_BUTTON;
-      setOperation(OP_DOCK, false, true);
+      setOperation(OP_DOCK, false);
     } else if (stateButton == 6){ 
       stateButton = 0; // reset button state        
       stateSensor = SENS_STOP_BUTTON;
-      setOperation(OP_MOW, false, true);
+      setOperation(OP_MOW, false);
     } 
     //else if (stateButton > 0){  // stateButton 1 (or unknown button state)        
     else if (stateButton == 1){  // stateButton 1                   
       stateButton = 0;  // reset button state
       stateSensor = SENS_STOP_BUTTON;
-      setOperation(OP_IDLE, false, true);                             
+      setOperation(OP_IDLE, false);                             
     } else if (stateButton == 9){
       stateButton = 0;  // reset button state
       stateSensor = SENS_STOP_BUTTON;
@@ -1047,11 +1047,11 @@ void run(){
 
 
 // set new robot operation
-void setOperation(OperationType op, bool allowRepeat, bool initiatedbyOperator){  
+void setOperation(OperationType op, bool allowRepeat){  
   if ((stateOp == op) && (!allowRepeat)) return;  
   CONSOLE.print("setOperation op=");
   CONSOLE.println(op);
   stateOp = op;  
-  activeOp->changeOperationType(stateOp, initiatedbyOperator);
+  activeOp->changeOperationTypeByOperator(stateOp);
   saveState();
 }

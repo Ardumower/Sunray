@@ -160,7 +160,7 @@ extern Map maps;
 int freeMemory();
 void start();
 void run();
-void setOperation(OperationType op, bool allowRepeat = false, bool initiatedbyOperator = false);
+void setOperation(OperationType op, bool allowRepeat = false);
 void triggerObstacle();
 void sensorTest();
 void updateStateOpText();

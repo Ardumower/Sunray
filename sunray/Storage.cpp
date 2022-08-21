@@ -152,7 +152,7 @@ bool loadState(){
   if (getResetCause() == RST_WATCHDOG){
     CONSOLE.println("resuming operation due to watchdog trigger");
     stateOp = savedOp;
-    setOperation(stateOp, true, true);
+    setOperation(stateOp, true);
   }
 #endif
   return true;

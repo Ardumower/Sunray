@@ -160,7 +160,7 @@ void cmdControl(){
     // certain operations may require a start from IDLE state (https://github.com/Ardumower/Sunray/issues/66)
     setOperation(OP_IDLE);    
   }
-  if (op >= 0) setOperation((OperationType)op, false, true); // new operation by operator
+  if (op >= 0) setOperation((OperationType)op, false); // new operation by operator
     else if (restartRobot){     // no operation given by operator, continue current operation from IDLE state
       setOperation(oldStateOp);    
     }  
@@ -422,6 +422,20 @@ void cmdObstacle(){
   String s = F("O");
   cmdAnswer(s);  
   triggerObstacle();  
+}
+
+// request rain
+void cmdRain(){
+  String s = F("O2");
+  cmdAnswer(s);  
+  activeOp->onRainTriggered();  
+}
+
+// request battery low
+void cmdBatteryLow(){
+  String s = F("O3");
+  cmdAnswer(s);  
+  activeOp->onBatteryLowShouldDock();  
 }
 
 // perform pathfinder stress test
@@ -792,7 +806,14 @@ void processCmd(bool checkCrc, bool decrypt){
   if (cmd[3] == 'L') cmdClearStats();
   if (cmd[3] == 'E') cmdMotorTest();  
   if (cmd[3] == 'Q') cmdMotorPlot();  
-  if (cmd[3] == 'O') cmdObstacle();  
+  if (cmd[3] == 'O'){
+    if (cmd.length() <= 4){
+      cmdObstacle();   // for developers
+    } else {
+      if (cmd[4] == '2') cmdRain();   // for developers
+      if (cmd[4] == '3') cmdBatteryLow();   // for developers
+    }    
+  }   
   if (cmd[3] == 'F') cmdSensorTest(); 
   if (cmd[3] == 'B') {
     if (cmd[4] == '1') cmdWiFiScan();
@@ -1046,11 +1067,11 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   }
   CONSOLE.println(cmd);
   if (cmd == "dock") {
-    setOperation(OP_DOCK, false, true);
+    setOperation(OP_DOCK, false);
   } else if (cmd ==  "stop") {
-    setOperation(OP_IDLE, false, true);
+    setOperation(OP_IDLE, false);
   } else if (cmd == "start"){
-    setOperation(OP_MOW, false, true);
+    setOperation(OP_MOW, false);
   }
 }
 
