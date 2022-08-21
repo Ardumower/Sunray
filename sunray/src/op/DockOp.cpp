@@ -94,9 +94,11 @@ void DockOp::run(){
 
 void DockOp::onTargetReached(){
     CONSOLE.println("DockOp::onTargetReached");
-    maps.clearObstacles(); // clear obstacles if target reached
-    motorErrorCounter = 0; // reset motor error counter if target reached
-    stateSensor = SENS_NONE; // clear last triggered sensor
+    if (maps.wayMode == WAY_MOW){
+      maps.clearObstacles(); // clear obstacles if target reached
+      motorErrorCounter = 0; // reset motor error counter if target reached
+      stateSensor = SENS_NONE; // clear last triggered sensor
+    }
 }
 
 
