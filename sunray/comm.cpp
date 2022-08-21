@@ -512,6 +512,26 @@ void cmdToggleGPSSolution(){
 }
 
 
+// request obstacles
+void cmdObstacles(){
+  String s = F("S2,");
+  s += maps.obstacles.numPolygons;
+  s += ",";
+  for (int idx=0; idx < maps.obstacles.numPolygons; idx++){
+    s += "0.5,0.5,1,"; // red,green,blue (0-1)    
+    s += maps.obstacles.polygons[idx].numPoints;
+    s += ",";
+    for (int idx2=0 ; idx2 < maps.obstacles.polygons[idx].numPoints; idx2++){
+      s += maps.obstacles.polygons[idx].points[idx2].x();
+      s += ",";
+      s += maps.obstacles.polygons[idx].points[idx2].y();
+      s += ",";
+    }    
+  }
+
+  cmdAnswer(s);
+}
+
 // request summary
 void cmdSummary(){
   String s = F("S,");
@@ -791,7 +811,13 @@ void processCmd(bool checkCrc, bool decrypt){
   if (cmd[0] != 'A') return;
   if (cmd[1] != 'T') return;
   if (cmd[2] != '+') return;
-  if (cmd[3] == 'S') cmdSummary();
+  if (cmd[3] == 'S') {
+    if (cmd.length() <= 4){
+      cmdSummary(); 
+    } else {
+      if (cmd[4] == '2') cmdObstacles();      
+    }
+  }
   if (cmd[3] == 'M') cmdMotor();
   if (cmd[3] == 'C'){ 
     if ((cmd.length() > 4) && (cmd[4] == 'T')) cmdTuneParam();
