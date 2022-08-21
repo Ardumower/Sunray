@@ -516,16 +516,14 @@ void cmdToggleGPSSolution(){
 void cmdObstacles(){
   String s = F("S2,");
   s += maps.obstacles.numPolygons;
-  s += ",";
   for (int idx=0; idx < maps.obstacles.numPolygons; idx++){
-    s += "0.5,0.5,1,"; // red,green,blue (0-1)    
-    s += maps.obstacles.polygons[idx].numPoints;
-    s += ",";
+    s += ",0.5,0.5,1,"; // red,green,blue (0-1)    
+    s += maps.obstacles.polygons[idx].numPoints;    
     for (int idx2=0 ; idx2 < maps.obstacles.polygons[idx].numPoints; idx2++){
+      s += ",";
       s += maps.obstacles.polygons[idx].points[idx2].x();
       s += ",";
       s += maps.obstacles.polygons[idx].points[idx2].y();
-      s += ",";
     }    
   }
 
