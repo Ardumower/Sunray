@@ -34,7 +34,9 @@ void MowOp::begin(){
 
     //dockingInitiatedByOperator = false;
     //dockReasonRainTriggered = false;
-    if ((initiatedByOperator) || (lastMapRoutingFailed)) maps.clearObstacles();
+
+    if (((initiatedByOperator) && (previousOp == &idleOp)) || (lastMapRoutingFailed))  maps.clearObstacles();
+
     if (maps.startMowing(stateX, stateY)){
         if (maps.nextPoint(true, stateX, stateY)) {
             lastFixTime = millis();                
