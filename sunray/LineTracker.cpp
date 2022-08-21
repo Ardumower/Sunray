@@ -166,12 +166,12 @@ void trackLine(bool runControl){
       last_rotation_target.setXY(target.x(), target.y());
       
       if (r == 1) {
-        CONSOLE.println("force turn right");
+        //CONSOLE.println("force turn right");
         rotateLeft = false;
         rotateRight = true;
       }
       else if (r == -1) {
-        CONSOLE.println("force turn left");
+        //CONSOLE.println("force turn left");
         rotateLeft = true;
         rotateRight = false;
       }
