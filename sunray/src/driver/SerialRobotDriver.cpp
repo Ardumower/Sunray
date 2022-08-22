@@ -803,15 +803,15 @@ void SerialRainSensorDriver::run(){
   if (millis() >= this->nextCheck){  
     this->nextCheck = millis() + 1000;
     if(serialRobot.triggeredRain)
-      this->rainCnt = this->rainCnt < 60 ? this->rainCnt++ : 60;
+      this->rainCnt = this->rainCnt < 20 ? this->rainCnt++ : 20;
     else
       this->rainCnt = this->rainCnt > 0 ? this->rainCnt-- : 0;
   }
 }
 
 bool SerialRainSensorDriver::triggered(){
-  // if we see more than 30s of rain -> it's raining
-  return (this->rainCnt > 30); 
+  // if we see more than 10s of rain -> it's raining
+  return (this->rainCnt > 10); 
 }
 
 // ------------------------------------------------------------------------------------
