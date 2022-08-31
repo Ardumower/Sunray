@@ -138,6 +138,9 @@ class SerialStopButtonDriver: public StopButtonDriver {
 };
 
 class SerialRainSensorDriver: public RainSensorDriver {
+  private:
+    unsigned long nextCheck = 0;
+    int rainCnt = 0;
   public:    
     SerialRobotDriver &serialRobot;
     SerialRainSensorDriver(SerialRobotDriver &sr);    

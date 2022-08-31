@@ -1,1 +1,4 @@
-alfred/build
+/config.h
+/alfred/build/**
+/build/**
+/.vscode/**
