@@ -1078,6 +1078,8 @@ void processWifiMqttClient()
       mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/pos", mqttMsg);
       MQTT_PUBLISH(gpsSolText.c_str(), "%s", "/gps/sol")
       MQTT_PUBLISH(gps.iTOW, "%lu", "/gps/tow")
+      MQTT_PUBLISH(stateSensor, "%d", "/stateSensor")
+      MQTT_PUBLISH(activeOp->name(), "%s", "/activeOp")
       
       MQTT_PUBLISH(gps.lon, "%.8f", "/gps/lon")
       MQTT_PUBLISH(gps.lat, "%.8f", "/gps/lat")
