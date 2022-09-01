@@ -423,7 +423,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // more details: https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#R.2FC_model
 //#define RCMODEL_ENABLE 1  // uncomment line to turn on R/C control
 
-#define BUZZER_ENABLE 1 // comment to disable
+#define BUZZER_ENABLE 0 // comment to disable
 
 
 // ------ experimental options  -------------------------
