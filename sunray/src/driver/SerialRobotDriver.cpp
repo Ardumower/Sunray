@@ -811,7 +811,7 @@ void SerialRainSensorDriver::run(){
 
 bool SerialRainSensorDriver::triggered(){
   // if we see more than 10s of rain -> it's raining
-  return (this->rainCnt > 10); 
+  return (this->rainCnt >= 10); 
 }
 
 // ------------------------------------------------------------------------------------
@@ -823,10 +823,19 @@ void SerialLiftSensorDriver::begin(){
 }
 
 void SerialLiftSensorDriver::run(){
+  //TODO: make detection time configurable (sensor/hardware & layout dependent)
+  // check every 20ms if we still see a lift signal to debounce noise -> 100ms reaction time
+  if (millis() >= this->nextCheck){  
+    this->nextCheck = millis() + 20;
+    if(serialRobot.triggeredLift)
+      this->liftCnt = this->liftCnt < 10 ? this->liftCnt++ : 10;
+    else
+      this->liftCnt = this->liftCnt > 0 ? this->liftCnt-- : 0;
+  }
 }
 
 bool SerialLiftSensorDriver::triggered(){
-  return (serialRobot.triggeredLift);
+  return (this->liftCnt >= 5);
 }
 
 

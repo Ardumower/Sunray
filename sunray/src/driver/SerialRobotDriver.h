@@ -150,6 +150,9 @@ class SerialRainSensorDriver: public RainSensorDriver {
 };
 
 class SerialLiftSensorDriver: public LiftSensorDriver {
+  private:
+    unsigned long nextCheck = 0;
+    int liftCnt = 0;
   public:    
     SerialRobotDriver &serialRobot;
     SerialLiftSensorDriver(SerialRobotDriver &sr);    
