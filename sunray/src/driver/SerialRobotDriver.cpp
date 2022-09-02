@@ -824,18 +824,18 @@ void SerialLiftSensorDriver::begin(){
 
 void SerialLiftSensorDriver::run(){
   //TODO: make detection time configurable (sensor/hardware & layout dependent)
-  // check every 20ms if we still see a lift signal to debounce noise -> 100ms reaction time
-  if (millis() >= this->nextCheck){  
-    this->nextCheck = millis() + 20;
-    if(serialRobot.triggeredLift)
-      this->liftCnt = this->liftCnt < 10 ? this->liftCnt++ : 10;
-    else
-      this->liftCnt = this->liftCnt > 0 ? this->liftCnt-- : 0;
+  // check everycycle  if we still see a lift signal to debounce noise -> target: 100ms reaction time
+  if(serialRobot.triggeredLift) {
+    liftCnt = liftCnt < 10 ? liftCnt++ : 10;
+    CONSOLE.print("LiftCnt=");
+    CONSOLE.println(liftCnt);
   }
+  else
+    liftCnt = liftCnt > 0 ? liftCnt-- : 0;
 }
 
 bool SerialLiftSensorDriver::triggered(){
-  return (this->liftCnt >= 5);
+  return (liftCnt >= 2);
 }
 
 
