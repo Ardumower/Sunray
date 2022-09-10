@@ -25,8 +25,9 @@ sudo systemctl start sunray
 ## update repository ##
 cd ~
 git pull
-cd ~/Sunray/alfred/build
+
 ## compile sunray (NOTE: 'make' will always copy config.h in current makefile folder into Sunray source folder) ##
+cd ~/Sunray/alfred/build
 make
 
 ## install new sunray executable ##
