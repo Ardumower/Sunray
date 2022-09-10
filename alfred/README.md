@@ -1,10 +1,10 @@
 # Sunray for Alfred
 
-## How to compile 'Sunray for Alfred'
+## How to install code and compile 'Sunray for Alfred' (required only once)
 Run this on your Alfred:
 
 ```
-## clone repository (required only once) ##
+## clone repository ##
 cd ~
 git clone https://github.com/Ardumower/Sunray.git
 
@@ -20,7 +20,19 @@ cp sunray ~/sunray_install/
 sudo systemctl start sunray
 ```
 
-(To update and compile again later, just run: 'git pull' and then 'make')
+## How to update code and compile 'Sunray for Alfred'
+```
+## update repository ##
+cd ~
+git pull
+cd ~/Sunray/alfred/build
+make
+
+## install new sunray executable ##
+sudo systemctl stop sunray
+cp sunray ~/sunray_install/
+sudo systemctl start sunray
+```
 
 ## License
 Ardumower Sunray 
