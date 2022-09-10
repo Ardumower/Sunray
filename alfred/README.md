@@ -8,7 +8,7 @@ Run this on your Alfred:
 cd ~
 git clone https://github.com/Ardumower/Sunray.git
 
-## compile sunray ##
+## compile sunray (NOTE: 'make' will always copy config.h in current makefile folder into Sunray source folder) ##
 cd ~/Sunray/alfred/build
 rm -Rf *
 cmake ..
@@ -19,6 +19,9 @@ sudo systemctl stop sunray
 cp sunray ~/sunray_install/
 sudo systemctl start sunray
 ```
+
+(To compile again, just run 'make')
+
 ## License
 Ardumower Sunray 
 Copyright (c) 2013-2020 by Alexander Grau, Grau GmbH
