@@ -20,7 +20,7 @@ cp sunray ~/sunray_install/
 sudo systemctl start sunray
 ```
 
-## How to update code and compile 'Sunray for Alfred'
+## How to update installed code and re-compile 'Sunray for Alfred'
 ```
 ## update repository ##
 cd ~/Sunray
