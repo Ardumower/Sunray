@@ -23,7 +23,7 @@ sudo systemctl start sunray
 ## How to update code and compile 'Sunray for Alfred'
 ```
 ## update repository ##
-cd ~
+cd ~/Sunray
 git pull
 
 ## compile sunray (NOTE: 'make' will always copy config.h in current makefile folder into Sunray source folder) ##
