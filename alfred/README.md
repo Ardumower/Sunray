@@ -4,7 +4,7 @@
 Run this on your Alfred:
 
 ```
-## clone repository ##
+## clone repository (required only once) ##
 cd ~
 git clone https://github.com/Ardumower/Sunray.git
 
@@ -20,7 +20,7 @@ cp sunray ~/sunray_install/
 sudo systemctl start sunray
 ```
 
-(To compile again, just run 'make')
+(To update and compile again later, just run: 'git pull' and then 'make')
 
 ## License
 Ardumower Sunray 
