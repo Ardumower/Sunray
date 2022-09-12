@@ -17,6 +17,7 @@ void KidnapWaitOp::begin(){
   stateSensor = SENS_KIDNAPPED;
   recoverGpsTime = millis() + 30000;
   recoverGpsCounter = 0;
+  recoverGpsTimeEarliestNext = millis();
 }
 
 
@@ -51,8 +52,10 @@ void KidnapWaitOp::run(){
       changeOp(errorOp);
       return;
     }   
-    if (GPS_REBOOT_RECOVERY){           
+    if (GPS_REBOOT_RECOVERY && recoverGpsTimeEarliestNext < millis()){           
       gps.reboot();   // try to recover from false GPS fix     
+      // give the GPS tracker a fair chance to lock in
+      recoverGpsTimeEarliestNext = millis() + 5*60000;
     }
   }
 }

@@ -176,6 +176,7 @@ class ChargeOp: public Op {
 class KidnapWaitOp: public Op {
   public:
     unsigned long recoverGpsTime;
+    unsigned long recoverGpsTimeEarliestNext;
     int recoverGpsCounter;
     virtual String name() override;
     virtual void begin() override;
