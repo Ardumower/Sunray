@@ -17,7 +17,6 @@ void KidnapWaitOp::begin(){
   stateSensor = SENS_KIDNAPPED;
   recoverGpsTime = millis() + 30000;
   recoverGpsCounter = 0;
-  recoverGpsTimeEarliestNext = millis();
 }
 
 
@@ -44,18 +43,17 @@ void KidnapWaitOp::run(){
 
   if (millis() > recoverGpsTime){
     CONSOLE.println("KIDNAP_DETECT");
-    recoverGpsTime = millis() + 30000;
+    // wait another 30sec each try to allow longer recovery
+    recoverGpsTime = millis() + (30000 * (recoverGpsCounter+1));
     recoverGpsCounter++;
     if (recoverGpsCounter == 3){          
       CONSOLE.println("error: kidnapped!");
       stateSensor = SENS_KIDNAPPED;
       changeOp(errorOp);
       return;
-    }   
-    if (GPS_REBOOT_RECOVERY && recoverGpsTimeEarliestNext < millis()){           
+    }
+    if (GPS_REBOOT_RECOVERY) {           
       gps.reboot();   // try to recover from false GPS fix     
-      // give the GPS tracker a fair chance to lock in
-      recoverGpsTimeEarliestNext = millis() + 5*60000;
     }
   }
 }
