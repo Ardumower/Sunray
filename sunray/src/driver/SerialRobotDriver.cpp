@@ -840,18 +840,20 @@ void SerialLiftSensorDriver::run(){
     if(serialRobot.triggeredLift) {
       liftCnt = liftCnt < 15 ? ++liftCnt : 15;
       serialRobot.triggeredLift = false;
-      CONSOLE.print("LiftCnt=");
-      CONSOLE.println(liftCnt);
+      // CONSOLE.print("LiftCnt=");
+      // CONSOLE.println(liftCnt);
     }
     else
       liftCnt = liftCnt > 0 ? --liftCnt : 0;
-      CONSOLE.print("LiftCnt=");
-      CONSOLE.println(liftCnt);
+      // if(liftCnt > 0) {
+      //   CONSOLE.print("LiftCnt=");
+      //   CONSOLE.println(liftCnt);
+      // }
   }
 }
 
 bool SerialLiftSensorDriver::triggered(){
-  return (liftCnt >= 15);
+  return (liftCnt > 15);
 }
 
 
