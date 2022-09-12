@@ -835,6 +835,7 @@ void SerialLiftSensorDriver::run(){
     nextCheck = millis() + 50;
     if(serialRobot.triggeredLift) {
       liftCnt = liftCnt < 15 ? ++liftCnt : 15;
+      serialRobot.triggeredLift = false;
       CONSOLE.print("LiftCnt=");
       CONSOLE.println(liftCnt);
     }
