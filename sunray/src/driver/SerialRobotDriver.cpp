@@ -292,6 +292,10 @@ void SerialRobotDriver::motorResponse(){
         triggeredLeftBumper = (intValue != 0);
       } else if (counter == 6){
         triggeredLift = (intValue != 0);
+        if(triggeredLift) {
+          CONSOLE.print("MotorResponse=");
+          CONSOLE.println(cmd);
+        };
       } else if (counter == 7){
         triggeredStopButton = (intValue != 0);
       } 
@@ -841,11 +845,13 @@ void SerialLiftSensorDriver::run(){
     }
     else
       liftCnt = liftCnt > 0 ? --liftCnt : 0;
+      CONSOLE.print("LiftCnt=");
+      CONSOLE.println(liftCnt);
   }
 }
 
 bool SerialLiftSensorDriver::triggered(){
-  return (liftCnt > 10);
+  return (liftCnt >= 15);
 }
 
 
