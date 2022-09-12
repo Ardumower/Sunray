@@ -825,6 +825,7 @@ SerialLiftSensorDriver::SerialLiftSensorDriver(SerialRobotDriver &sr): serialRob
 }
 
 void SerialLiftSensorDriver::begin(){
+  liftCnt = 0;
 }
 
 void SerialLiftSensorDriver::run(){
@@ -833,7 +834,7 @@ void SerialLiftSensorDriver::run(){
   if (millis() >= nextCheck){  
     nextCheck = millis() + 50;
     if(serialRobot.triggeredLift) {
-      liftCnt = liftCnt < 10 ? ++liftCnt : 10;
+      liftCnt = liftCnt < 15 ? ++liftCnt : 15;
       CONSOLE.print("LiftCnt=");
       CONSOLE.println(liftCnt);
     }
@@ -843,7 +844,7 @@ void SerialLiftSensorDriver::run(){
 }
 
 bool SerialLiftSensorDriver::triggered(){
-  return (liftCnt > 2);
+  return (liftCnt > 10);
 }
 
 

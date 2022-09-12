@@ -29,7 +29,11 @@ void MowOp::begin(){
     motor.enableTractionMotors(true); // allow traction motors to operate         
     motor.setLinearAngularSpeed(0,0);      
     motor.setMowState(false);                
-
+    
+    // init sensors when starting
+    liftDriver.begin();
+    rainDriver.begin();
+    
     // plan route to next target point 
 
     //dockingInitiatedByOperator = false;
