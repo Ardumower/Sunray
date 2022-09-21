@@ -32,8 +32,7 @@ void MowOp::begin(){
 
     // plan route to next target point 
 
-    //dockingInitiatedByOperator = false;
-    //dockReasonRainTriggered = false;
+    dockOp.dockReasonRainTriggered = false;    
 
     if (((initiatedByOperator) && (previousOp == &idleOp)) || (lastMapRoutingFailed))  maps.clearObstacles();
 
