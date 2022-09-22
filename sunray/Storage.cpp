@@ -10,6 +10,7 @@
 #include "map.h"
 #include "config.h"
 #include "reset.h"
+#include "src/op/op.h"
 #include <Arduino.h>
 
 
@@ -87,7 +88,17 @@ void updateStateOpText(){
         default: stateOpText += "unknown)"; break;
       }
       break;
-    case OP_DOCK: stateOpText = "dock"; break;
+    case OP_DOCK: 
+      stateOpText = "dock ("; 
+      switch (dockOp.reason){
+        case DockOp::INITIATED_BY_USER: stateOpText += "user)"; break;
+        case DockOp::TRIGGERED_BY_RAIN: stateOpText += "raining)"; break;
+        case DockOp::TRIGGERED_BY_OVERTEMP: stateOpText += "overheated)"; break;
+        case DockOp::TRIGGERED_BY_LOW_BAT: stateOpText += "low bat)"; break;
+        case DockOp::TRIGGERED_BY_COMPLETION: stateOpText += "finished)"; break;
+        default: stateOpText += "unknown)"; break;
+      }
+    break;
     default: stateOpText = "unknown"; break;
   }
   switch (gps.solution){

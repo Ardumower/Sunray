@@ -123,6 +123,8 @@ class SerialBumperDriver: public BumperDriver {
     void begin() override;
     void run() override;
     bool obstacle() override;
+    bool getLeftBumper() override;
+    bool getRightBumper() override;
     void getTriggeredBumper(bool &leftBumper, bool &rightBumper) override;  	  		    
 };
 
@@ -136,6 +138,9 @@ class SerialStopButtonDriver: public StopButtonDriver {
 };
 
 class SerialRainSensorDriver: public RainSensorDriver {
+  private:
+    unsigned long nextCheck = 0;
+    int rainCnt = 0;
   public:    
     SerialRobotDriver &serialRobot;
     SerialRainSensorDriver(SerialRobotDriver &sr);    
@@ -145,6 +150,9 @@ class SerialRainSensorDriver: public RainSensorDriver {
 };
 
 class SerialLiftSensorDriver: public LiftSensorDriver {
+  private:
+    unsigned long nextCheck = 0;
+    int liftCnt = 0;
   public:    
     SerialRobotDriver &serialRobot;
     SerialLiftSensorDriver(SerialRobotDriver &sr);    

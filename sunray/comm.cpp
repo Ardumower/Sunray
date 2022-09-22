@@ -1057,7 +1057,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 }
 
 // define a macro so avoid repetitive code lines for sending single values via MQTT
-#define MQTT_SEND(VALUE, FORMAT, TOPIC) \
+#define MQTT_PUBLISH(VALUE, FORMAT, TOPIC) \
       snprintf (mqttMsg, MSG_BUFFER_SIZE, FORMAT, VALUE); \
       mqttClient.publish(MQTT_TOPIC_PREFIX TOPIC, mqttMsg);    
 
@@ -1072,58 +1072,61 @@ void processWifiMqttClient()
       updateStateOpText();
       // operational state
       //CONSOLE.println("MQTT: publishing " MQTT_TOPIC_PREFIX "/status");      
-      MQTT_SEND(stateOpText.c_str(), "%s", "/op")
-      MQTT_SEND(maps.percentCompleted, "%d", "/progress")
+      MQTT_PUBLISH(stateOpText.c_str(), "%s", "/op")
+      MQTT_PUBLISH(maps.percentCompleted, "%d", "/progress")
 
       // GPS related information
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f, %.2f", gps.relPosN, gps.relPosE);          
       mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/pos", mqttMsg);
-      MQTT_SEND(gpsSolText.c_str(), "%s", "/gps/sol")
-      MQTT_SEND(gps.iTOW, "%lu", "/gps/tow")
+      MQTT_PUBLISH(gpsSolText.c_str(), "%s", "/gps/sol")
+      MQTT_PUBLISH(gps.iTOW, "%lu", "/gps/tow")
+      MQTT_PUBLISH(stateSensor, "%d", "/stateSensor")
+      MQTT_PUBLISH(activeOp->name().c_str(), "%s", "/activeOp")
       
-      MQTT_SEND(gps.lon, "%.8f", "/gps/lon")
-      MQTT_SEND(gps.lat, "%.8f", "/gps/lat")
-      MQTT_SEND(gps.height, "%.1f", "/gps/height")
-      MQTT_SEND(gps.relPosN, "%.4f", "/gps/relNorth")
-      MQTT_SEND(gps.relPosE, "%.4f", "/gps/relEast")
-      MQTT_SEND(gps.relPosD, "%.2f", "/gps/relDist")
-      MQTT_SEND((millis()-gps.dgpsAge)/1000.0, "%.2f","/gps/ageDGPS")
-      MQTT_SEND(gps.accuracy, "%.2f", "/gps/accuray")
-      MQTT_SEND(gps.groundSpeed, "%.4f", "/gps/groundSpeed")
+      MQTT_PUBLISH(gps.lon, "%.8f", "/gps/lon")
+      MQTT_PUBLISH(gps.lat, "%.8f", "/gps/lat")
+      MQTT_PUBLISH(gps.height, "%.1f", "/gps/height")
+      MQTT_PUBLISH(gps.relPosN, "%.4f", "/gps/relNorth")
+      MQTT_PUBLISH(gps.relPosE, "%.4f", "/gps/relEast")
+      MQTT_PUBLISH(gps.relPosD, "%.2f", "/gps/relDist")
+      MQTT_PUBLISH((millis()-gps.dgpsAge)/1000.0, "%.2f","/gps/ageDGPS")
+      MQTT_PUBLISH(gps.accuracy, "%.2f", "/gps/accuracy")
+      MQTT_PUBLISH(gps.groundSpeed, "%.4f", "/gps/groundSpeed")
       
       // power related information      
-      MQTT_SEND(battery.batteryVoltage, "%.2f", "/power/battery/voltage")
-      MQTT_SEND(motor.motorsSenseLP, "%.2f", "/power/motor/current")
-      MQTT_SEND(battery.chargingVoltage, "%.2f", "/power/battery/charging/voltage")
-      MQTT_SEND(battery.chargingCurrent, "%.2f", "/power/battery/charging/current")
+      MQTT_PUBLISH(battery.batteryVoltage, "%.2f", "/power/battery/voltage")
+      MQTT_PUBLISH(motor.motorsSenseLP, "%.2f", "/power/motor/current")
+      MQTT_PUBLISH(battery.chargingVoltage, "%.2f", "/power/battery/charging/voltage")
+      MQTT_PUBLISH(battery.chargingCurrent, "%.2f", "/power/battery/charging/current")
 
       // map related information
-      MQTT_SEND(maps.targetPoint.x(), "%.2f", "/map/targetPoint/X")
-      MQTT_SEND(maps.targetPoint.y(), "%.2f", "/map/targetPoint/Y")
-      MQTT_SEND(stateX, "%.2f", "/map/pos/X")
-      MQTT_SEND(stateY, "%.2f", "/map/pos/Y")
-      MQTT_SEND(stateDelta, "%.2f", "/map/pos/Dir")
+      MQTT_PUBLISH(maps.targetPoint.x(), "%.2f", "/map/targetPoint/X")
+      MQTT_PUBLISH(maps.targetPoint.y(), "%.2f", "/map/targetPoint/Y")
+      MQTT_PUBLISH(stateX, "%.2f", "/map/pos/X")
+      MQTT_PUBLISH(stateY, "%.2f", "/map/pos/Y")
+      MQTT_PUBLISH(stateDelta, "%.2f", "/map/pos/Dir")
 
       // statistics
-      MQTT_SEND(statIdleDuration, "%d", "/stats/idleDuration")
-      MQTT_SEND(statChargeDuration, "%d", "/stats/chargeDuration")
-      MQTT_SEND(statMowDuration, "%d", "/stats/mow/totalDuration")
-      MQTT_SEND(statMowDurationInvalid, "%d", "/stats/mow/invalidDuration")
-      MQTT_SEND(statMowDurationFloat, "%d", "/stats/mow/floatDuration")
-      MQTT_SEND(statMowDurationFix, "%d", "/stats/mow/fixDuration")
-      MQTT_SEND(statMowFloatToFixRecoveries, "%d", "/stats/mow/floatToFixRecoveries")
-      MQTT_SEND(statMowObstacles, "%d", "/stats/mow/obstacles")
-      MQTT_SEND(statMowGPSMotionTimeoutCounter, "%d", "/stats/mow/gpsMotionTimeouts")
-      MQTT_SEND(statMowBumperCounter, "%d", "/stats/mow/bumperEvents")
-      MQTT_SEND(statMowSonarCounter, "%d", "/stats/mow/sonarEvents")
-      MQTT_SEND(statMowLiftCounter, "%d", "/stats/mow/liftEvents")
-      MQTT_SEND(statMowMaxDgpsAge, "%.2f", "/stats/mow/maxDgpsAge")
-      MQTT_SEND(statMowDistanceTraveled, "%.1f", "/stats/mow/distanceTraveled")
-      MQTT_SEND(statMowInvalidRecoveries, "%d", "/stats/mow/invalidRecoveries")
-      MQTT_SEND(statImuRecoveries, "%d", "/stats/imuRecoveries")
-      MQTT_SEND(statGPSJumps, "%d", "/stats/gpsJumps")
-      MQTT_SEND(statTempMin, "%.1f", "/stats/tempMin")
-      MQTT_SEND(statTempMax, "%.1f", "/stats/tempMax")
+      MQTT_PUBLISH(statIdleDuration, "%d", "/stats/idleDuration")
+      MQTT_PUBLISH(statChargeDuration, "%d", "/stats/chargeDuration")
+      MQTT_PUBLISH(statMowDuration, "%d", "/stats/mow/totalDuration")
+      MQTT_PUBLISH(statMowDurationInvalid, "%d", "/stats/mow/invalidDuration")
+      MQTT_PUBLISH(statMowDurationFloat, "%d", "/stats/mow/floatDuration")
+      MQTT_PUBLISH(statMowDurationFix, "%d", "/stats/mow/fixDuration")
+      MQTT_PUBLISH(statMowFloatToFixRecoveries, "%d", "/stats/mow/floatToFixRecoveries")
+      MQTT_PUBLISH(statMowObstacles, "%d", "/stats/mow/obstacles")
+      MQTT_PUBLISH(statMowGPSMotionTimeoutCounter, "%d", "/stats/mow/gpsMotionTimeouts")
+      MQTT_PUBLISH(statMowBumperCounter, "%d", "/stats/mow/bumperEvents")
+      MQTT_PUBLISH(statMowSonarCounter, "%d", "/stats/mow/sonarEvents")
+      MQTT_PUBLISH(statMowLiftCounter, "%d", "/stats/mow/liftEvents")
+      MQTT_PUBLISH(statMowMaxDgpsAge, "%.2f", "/stats/mow/maxDgpsAge")
+      MQTT_PUBLISH(statMowDistanceTraveled, "%.1f", "/stats/mow/distanceTraveled")
+      MQTT_PUBLISH(statMowInvalidRecoveries, "%d", "/stats/mow/invalidRecoveries")
+      MQTT_PUBLISH(statImuRecoveries, "%d", "/stats/imuRecoveries")
+      MQTT_PUBLISH(statGPSJumps, "%d", "/stats/gpsJumps")      
+      MQTT_PUBLISH(statTempMin, "%.1f", "/stats/tempMin")
+      MQTT_PUBLISH(statTempMax, "%.1f", "/stats/tempMax")
+      MQTT_PUBLISH(stateTemp, "%.1f", "/stats/curTemp")
 
     } else {
       mqttReconnect();  

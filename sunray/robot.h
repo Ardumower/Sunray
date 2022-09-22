@@ -19,6 +19,7 @@
 #include "battery.h"
 #include "ble.h"
 #include "pinman.h"
+#include "bumper.h"
 #include "buzzer.h"
 #include "sonar.h"
 #include "VL53L0X.h"
@@ -34,7 +35,7 @@
 #include "PubSubClient.h"
 
 
-#define VER "Sunray,1.0.288"
+#define VER "Sunray,1.0.288-docking"
 
 // operation types
 enum OperationType {
@@ -77,6 +78,7 @@ extern Sensor stateSensor; // last triggered sensor
 extern String stateOpText;  // current operation as text
 extern String gpsSolText; // current gps solution as text
 extern int stateButton;  // button state
+extern float stateTemp;  // current temperature
 
 extern float setSpeed; // linear speed (m/s)
 extern int fixTimeout;
@@ -105,7 +107,7 @@ extern int motorErrorCounter;
   extern SerialRobotDriver robotDriver;
   extern SerialMotorDriver motorDriver;
   extern SerialBatteryDriver batteryDriver;
-  extern SerialBumperDriver bumper;
+  extern SerialBumperDriver bumperDriver;
   extern SerialStopButtonDriver stopButton;
   extern SerialRainSensorDriver rainDriver;
   extern SerialLiftSensorDriver liftDriver;  
@@ -114,7 +116,7 @@ extern int motorErrorCounter;
   extern SimRobotDriver robotDriver;
   extern SimMotorDriver motorDriver;
   extern SimBatteryDriver batteryDriver;
-  extern SimBumperDriver bumper;
+  extern SimBumperDriver bumperDriver;
   extern SimStopButtonDriver stopButton;
   extern SimRainSensorDriver rainDriver;
   extern SimLiftSensorDriver liftDriver;
@@ -123,7 +125,7 @@ extern int motorErrorCounter;
   extern AmRobotDriver robotDriver;
   extern AmMotorDriver motorDriver;
   extern AmBatteryDriver batteryDriver;
-  extern AmBumperDriver bumper;
+  extern AmBumperDriver bumperDriver;
   extern AmStopButtonDriver stopButton;
   extern AmRainSensorDriver rainDriver;
   extern AmLiftSensorDriver liftDriver;
@@ -141,6 +143,7 @@ extern int motorErrorCounter;
 extern Motor motor;
 extern Battery battery;
 extern BLEConfig bleConfig;
+extern Bumper bumper;
 extern Buzzer buzzer;
 extern Sonar sonar;
 extern VL53L0X tof;

@@ -292,6 +292,10 @@ void SerialRobotDriver::motorResponse(){
         triggeredLeftBumper = (intValue != 0);
       } else if (counter == 6){
         triggeredLift = (intValue != 0);
+        if(triggeredLift) {
+          CONSOLE.print("MotorResponse=");
+          CONSOLE.println(cmd);
+        };
       } else if (counter == 7){
         triggeredStopButton = (intValue != 0);
       } 
@@ -757,6 +761,14 @@ bool SerialBumperDriver::obstacle(){
   return (serialRobot.triggeredLeftBumper || serialRobot.triggeredRightBumper); 
 }
 
+bool SerialBumperDriver::getLeftBumper(){
+  return (serialRobot.triggeredLeftBumper);
+}
+
+bool SerialBumperDriver::getRightBumper(){
+  return (serialRobot.triggeredRightBumper);
+}	
+
 void SerialBumperDriver::getTriggeredBumper(bool &leftBumper, bool &rightBumper){
   leftBumper = serialRobot.triggeredLeftBumper;
   rightBumper = serialRobot.triggeredRightBumper;
@@ -773,7 +785,6 @@ void SerialStopButtonDriver::begin(){
 }
 
 void SerialStopButtonDriver::run(){
-
 }
 
 bool SerialStopButtonDriver::triggered(){
@@ -787,14 +798,29 @@ SerialRainSensorDriver::SerialRainSensorDriver(SerialRobotDriver &sr): serialRob
 }
 
 void SerialRainSensorDriver::begin(){
+    rainCnt = 0;
 }
 
 void SerialRainSensorDriver::run(){
-
+  //TODO: make detection time configurable (sensor/hardware & layout dependent)
+  // check every second if we still see a rain signal to debounce noise e.g. leafs
+  if (millis() >= nextCheck){  
+    nextCheck = millis() + 1000;
+    if(serialRobot.triggeredRain)
+    {
+      if(rainCnt < 20)
+        rainCnt++;
+    }
+    else {
+      if(rainCnt > 0)
+        rainCnt--;
+    }
+  }
 }
 
 bool SerialRainSensorDriver::triggered(){
-  return (serialRobot.triggeredRain); 
+  // if we see more than 10s of rain -> it's raining
+  return (rainCnt >= 10); 
 }
 
 // ------------------------------------------------------------------------------------
@@ -803,13 +829,31 @@ SerialLiftSensorDriver::SerialLiftSensorDriver(SerialRobotDriver &sr): serialRob
 }
 
 void SerialLiftSensorDriver::begin(){
+  liftCnt = 0;
 }
 
 void SerialLiftSensorDriver::run(){
+  //TODO: make detection time configurable (sensor/hardware & layout dependent)
+  // check everycycle  if we still see a lift signal to debounce noise -> target: 100ms reaction time
+  if (millis() >= nextCheck){  
+    nextCheck = millis() + 50;
+    if(serialRobot.triggeredLift) {
+      liftCnt = liftCnt < 15 ? ++liftCnt : 15;
+      serialRobot.triggeredLift = false;
+      // CONSOLE.print("LiftCnt=");
+      // CONSOLE.println(liftCnt);
+    }
+    else
+      liftCnt = liftCnt > 0 ? --liftCnt : 0;
+      // if(liftCnt > 0) {
+      //   CONSOLE.print("LiftCnt=");
+      //   CONSOLE.println(liftCnt);
+      // }
+  }
 }
 
 bool SerialLiftSensorDriver::triggered(){
-  return (serialRobot.triggeredLift);
+  return (liftCnt > 15);
 }
 
 

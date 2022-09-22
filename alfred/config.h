@@ -252,10 +252,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // robot1/gps/sol       (current gps solution as text)
 // robot1/gps/pos       (current gps position as text)
 //#define ENABLE_MQTT  true                           // start MQTT client?  (true for yes, false for no)
-#define ENABLE_MQTT  false
-#define MQTT_TOPIC_PREFIX  "robot1"                 // the MQTT topic prefix for your robot 
-#define MQTT_SERVER  "192.168.2.47"                 // your MQTT broker IP or hostname (e.g. "broker.mqtt-dashboard.com")
-#define MQTT_PORT  1883
+#define ENABLE_MQTT true
+#define MQTT_TOPIC_PREFIX  "alfred1"                 // the MQTT topic prefix for your robot 
+#define MQTT_SERVER  "192.168.166.4"                 // your MQTT broker IP or hostname (e.g. "broker.mqtt-dashboard.com")
+#define MQTT_PORT  30169
 #define MQTT_USER "user"
 #define MQTT_PASS "pass"
 
@@ -286,9 +286,11 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // see Wiki on how to install bumperduino or freewheel sensor:
 // https://wiki.ardumower.de/index.php?title=Bumper_sensor
 // https://wiki.ardumower.de/index.php?title=Free_wheel_sensor
-// #define BUMPER_ENABLE true
 #define BUMPER_ENABLE true
-#define BUMPER_DEADTIME 1000  // linear motion dead-time (ms) after bumper is allowed to trigger
+//#define BUMPER_ENABLE false
+#define BUMPER_DEADTIME 1000  		// linear motion dead-time (ms) after bumper is allowed to trigger
+#define BUMPER_TRIGGER_DELAY  0		// bumper must be active for (ms) to trigger
+#define BUMPER_MAX_TRIGGER_TIME 30	// if bumpersensor stays permanent triggered mower will stop with bumper error (time in seconds; 0 = disabled)																																				  
 
 
 // ----- battery charging current measurement (INA169) --------------
@@ -421,7 +423,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // more details: https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#R.2FC_model
 //#define RCMODEL_ENABLE 1  // uncomment line to turn on R/C control
 
-#define BUZZER_ENABLE 1 // comment to disable
+//#define BUZZER_ENABLE 1 // un/comment to en/disable
 
 
 // ------ experimental options  -------------------------
