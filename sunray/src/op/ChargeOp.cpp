@@ -16,6 +16,7 @@ String ChargeOp::name(){
 
 
 void ChargeOp::begin(){
+    nextConsoleDetailsTime = 0;
     CONSOLE.print("OP_CHARGE");
     CONSOLE.print(" dockOp.initiatedByOperator=");
     CONSOLE.print(dockOp.initiatedByOperator);
@@ -46,6 +47,20 @@ void ChargeOp::run(){
         //float tempY;
         //maps.setRobotStatePosToDockingPos(tempX, tempY, stateDelta);                                            
         if (battery.chargingHasCompleted()){
+            if (millis() > nextConsoleDetailsTime){
+                nextConsoleDetailsTime = millis() + 30000;
+                CONSOLE.print("ChargeOp: charging completed (DOCKING_STATION=");
+                CONSOLE.print(DOCKING_STATION);
+                CONSOLE.print(", dockOp.initiatedByOperator=");
+                CONSOLE.print(dockOp.initiatedByOperator);        
+                CONSOLE.print(", maps.mowPointsIdx=");
+                CONSOLE.print(maps.mowPointsIdx);
+                CONSOLE.print(", DOCK_AUTO_START=");
+                CONSOLE.print(DOCK_AUTO_START);
+                CONSOLE.print(", dockOp.dockReasonRainTriggered=");
+                CONSOLE.print(dockOp.dockReasonRainTriggered);
+                CONSOLE.println(")");
+            }
             if ((DOCKING_STATION) && (!dockOp.initiatedByOperator)) {
                 if (maps.mowPointsIdx > 0){  // if mowing not completed yet
                     if ((DOCK_AUTO_START) && (!dockOp.dockReasonRainTriggered)) { // automatic continue mowing allowed?

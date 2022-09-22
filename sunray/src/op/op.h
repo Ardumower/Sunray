@@ -154,7 +154,8 @@ class DockOp: public Op {
 
 // charging op
 class ChargeOp: public Op {
-  public:        
+  public:     
+    unsigned long nextConsoleDetailsTime;   
     virtual String name() override;
     virtual void begin() override;
     virtual void end() override;
