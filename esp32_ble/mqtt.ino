@@ -23,6 +23,7 @@
 */
 #include <ArduinoJson.h>
 
+
 #define MQTT_MOWER_POLL_INTERVAL      1000
 #define MQTT_MOWER_POLL_BACKOFF       5000
 #define MQTT_MOWER_POLL_ATS           5000
@@ -34,12 +35,14 @@ bool mqttPendingPublishProps = false;
 bool mqttPendingPublishState = false;
 bool mqttPendingPublishStats = false;
 
+
 void mqtt_on_message(String &topic, String &payload);
 void mqtt_handle_command_start();
 void mqtt_handle_command_stop();
 void mqtt_handle_command_dock();
 void mqtt_handle_command_reboot();
 void mqtt_handle_command_shutdown();
+void mqtt_handle_command_customcmd(String cmd);
 void mqtt_poll_mower(uint32_t now);
 void mqtt_connect();
 void mqtt_publish_props();
@@ -54,6 +57,7 @@ String mqtt_topic(String postfix) {
 
   return result;
 }
+
 
 void mqtt_setup() {
   mower.addStateListener([ = ](ArduMower::State::State & state) {
@@ -140,6 +144,8 @@ void mqtt_on_message(String &topic, String &payload) {
     mqtt_handle_command_reboot();
   } else if (payload == "shutdown") {
     mqtt_handle_command_shutdown();
+  } else {
+    mqtt_handle_command_customcmd(payload);
   }
 }
 
@@ -168,24 +174,45 @@ void mqtt_publish_stats() {
 }
 
 void mqtt_handle_command_start() {
-  String at = "AT+C,-1,1,0.1,100,0,-1,-1,1";
+  CONSOLE.println("MQTT: received command start");
+  String at = "AT+C,-1,1,0.2,100,0,-1,-1,1";
   mower.sendCommand(at);
 }
 
 void mqtt_handle_command_stop() {
+  CONSOLE.println("MQTT: received command stop");
   mower.sendCommand("AT+C,-1,0,-1,-1,-1,-1,-1,-1");
 }
 
 void mqtt_handle_command_dock() {
+  CONSOLE.println("MQTT: received command dock");
   mower.sendCommand("AT+C,-1,4,-1,-1,-1,-1,-1,1");
 }
 
 void mqtt_handle_command_reboot() {
+  CONSOLE.println("MQTT: received command reboot");
   mower.sendCommand("AT+Y");
 }
 
 void mqtt_handle_command_shutdown() {
+  CONSOLE.println("MQTT: received command shutdown");
   mower.sendCommand("AT+Y3");
+}
+
+void mqtt_handle_command_customcmd(String cmd)
+{
+  CONSOLE.println("MQTT: received custom command");
+  if(cmd.indexOf("AT+")){
+    CONSOLE.print("MQTT: custom command ");
+    CONSOLE.print(cmd);
+    CONSOLE.println(" is invalid");
+  }
+  else {
+    CONSOLE.print("MQTT: custom command ");
+    CONSOLE.print(cmd);
+    CONSOLE.println(" is valid and forwarded");
+    mower.sendCommand(cmd);
+  }
 }
 
 #endif  // USE_MQTT
