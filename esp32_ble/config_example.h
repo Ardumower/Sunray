@@ -85,8 +85,9 @@
 //#define RELAY_PINGWAIT  55
 
 // MQTT server 
-// (subscribed topcis: '/command/start', '/command/stop', '/command/dock')
-//  published topics: '/online', '/state', '/props')
+// (subscribed topcis: '/command/start', '/command/stop', '/command/dock', '/command/reboot', '/command/shutdown', '/command/"every AT+... command supported by comm.cpp"')
+// e.g. command for start over AT+... payload: /command/AT+C,-1,1,0.29,100,0,-1,-1,1
+// (published topics: '/online', '/state', '/props', '/stats')
 
 //#define USE_MQTT  1     // uncomment to activate MQTT
 #define MQTT_PREFIX     "/ardumower/"
