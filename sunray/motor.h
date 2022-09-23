@@ -20,6 +20,7 @@ class Motor {
     float wheelBaseCm;  // wheel-to-wheel diameter
     int wheelDiameter;   // wheel diameter (mm)
     int ticksPerRevolution; // ticks per revolution
+    int ticksPerMowMotorRevolution; // ticks per revolution of the Mowmotor
     float ticksPerCm;  // ticks per cm
     bool activateLinearSpeedRamp;  // activate ramp to accelerate/slow down linear speed?
     bool toggleMowDir; // toggle mowing motor direction each mow motor start?    
@@ -57,6 +58,7 @@ class Motor {
     void begin();
     void run();      
     void test();
+    void testMow(); //Svol0 TestMowMotor
     void plot();
     void enableTractionMotors(bool enable);
     void setLinearAngularSpeed(float linear, float angular, bool useLinearRamp = true);
@@ -102,6 +104,7 @@ class Motor {
     bool checkCurrentTooLowError();
     void sense();
     void dumpOdoTicks(int seconds);    
+    void dumpOdoMowTicks();    
 };
 
 

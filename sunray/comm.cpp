@@ -205,6 +205,15 @@ void cmdMotorTest(){
   motor.test();  
 }
 
+//Svol0 TestMowMotor
+// To find optimal value for pwmMaxMow
+void cmdMowMotorTest(){
+  String s = F("D");
+  cmdAnswer(s);
+  motor.testMow();  
+}
+//END Svol0 TestMowMotor
+
 void cmdMotorPlot(){
   String s = F("Q");
   cmdAnswer(s);
@@ -828,6 +837,7 @@ void processCmd(bool checkCrc, bool decrypt){
   if (cmd[3] == 'P') cmdPosMode();  
   if (cmd[3] == 'T') cmdStats();
   if (cmd[3] == 'L') cmdClearStats();
+  if (cmd[3] == 'D') cmdMowMotorTest(); //Svol0 TestMowMotor															  
   if (cmd[3] == 'E') cmdMotorTest();  
   if (cmd[3] == 'Q') cmdMotorPlot();  
   if (cmd[3] == 'O'){
