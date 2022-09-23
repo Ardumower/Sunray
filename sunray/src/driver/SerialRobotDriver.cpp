@@ -10,7 +10,7 @@
 
 #define COMM  ROBOT
 
-
+//#define DEBUG_SERIAL_ROBOT 1
 
 void SerialRobotDriver::begin(){
   CONSOLE.println("using robot driver: SerialRobotDriver");
@@ -229,7 +229,10 @@ void SerialRobotDriver::sendRequest(String s){
   if (crc <= 0xF) s += F("0");
   s += String(crc, HEX);  
   s += F("\r\n");             
-  //CONSOLE.print(s);  
+  #ifdef DEBUG_SERIAL_ROBOT
+    CONSOLE.print("SerialRobot request: ");
+    CONSOLE.println(s);  
+  #endif
   //cmdResponse = s;
   COMM.print(s);  
 }
@@ -409,10 +412,12 @@ void SerialRobotDriver::processResponse(bool checkCrc){
         return;  
       }      
     } else {
-      // remove CRC
-      cmd = cmd.substring(0, idx);
-      //CONSOLE.print("SerialRobot resp:");
-      //CONSOLE.println(cmd);
+      #ifdef DEBUG_SERIAL_ROBOT
+        CONSOLE.print("SerialRobot resp:");
+        CONSOLE.println(cmd);
+      #endif
+      // remove CRC      
+      cmd = cmd.substring(0, idx);      
     }    
   }     
   if (cmd[0] == 'M') motorResponse();
