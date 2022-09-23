@@ -162,7 +162,7 @@ void cmdControl(){
     // certain operations may require a start from IDLE state (https://github.com/Ardumower/Sunray/issues/66)
     setOperation(OP_IDLE);    
   }
-  if (op >= 0) setOperation((OperationType)op, false, true); // new operation by operator
+  if (op >= 0) setOperation((OperationType)op, false); // new operation by operator
     else if (restartRobot){     // no operation given by operator, continue current operation from IDLE state
       setOperation(oldStateOp);    
     }  
@@ -426,6 +426,20 @@ void cmdObstacle(){
   triggerObstacle();  
 }
 
+// request rain
+void cmdRain(){
+  String s = F("O2");
+  cmdAnswer(s);  
+  activeOp->onRainTriggered();  
+}
+
+// request battery low
+void cmdBatteryLow(){
+  String s = F("O3");
+  cmdAnswer(s);  
+  activeOp->onBatteryLowShouldDock();  
+}
+
 // perform pathfinder stress test
 void cmdStressTest(){
   String s = F("Z");
@@ -499,6 +513,24 @@ void cmdToggleGPSSolution(){
   }
 }
 
+
+// request obstacles
+void cmdObstacles(){
+  String s = F("S2,");
+  s += maps.obstacles.numPolygons;
+  for (int idx=0; idx < maps.obstacles.numPolygons; idx++){
+    s += ",0.5,0.5,1,"; // red,green,blue (0-1)    
+    s += maps.obstacles.polygons[idx].numPoints;    
+    for (int idx2=0 ; idx2 < maps.obstacles.polygons[idx].numPoints; idx2++){
+      s += ",";
+      s += maps.obstacles.polygons[idx].points[idx2].x();
+      s += ",";
+      s += maps.obstacles.polygons[idx].points[idx2].y();
+    }    
+  }
+
+  cmdAnswer(s);
+}
 
 // request summary
 void cmdSummary(){
@@ -779,7 +811,13 @@ void processCmd(bool checkCrc, bool decrypt){
   if (cmd[0] != 'A') return;
   if (cmd[1] != 'T') return;
   if (cmd[2] != '+') return;
-  if (cmd[3] == 'S') cmdSummary();
+  if (cmd[3] == 'S') {
+    if (cmd.length() <= 4){
+      cmdSummary(); 
+    } else {
+      if (cmd[4] == '2') cmdObstacles();      
+    }
+  }
   if (cmd[3] == 'M') cmdMotor();
   if (cmd[3] == 'C'){ 
     if ((cmd.length() > 4) && (cmd[4] == 'T')) cmdTuneParam();
@@ -794,7 +832,14 @@ void processCmd(bool checkCrc, bool decrypt){
   if (cmd[3] == 'L') cmdClearStats();
   if (cmd[3] == 'E') cmdMotorTest();  
   if (cmd[3] == 'Q') cmdMotorPlot();  
-  if (cmd[3] == 'O') cmdObstacle();  
+  if (cmd[3] == 'O'){
+    if (cmd.length() <= 4){
+      cmdObstacle();   // for developers
+    } else {
+      if (cmd[4] == '2') cmdRain();   // for developers
+      if (cmd[4] == '3') cmdBatteryLow();   // for developers
+    }    
+  }   
   if (cmd[3] == 'F') cmdSensorTest(); 
   if (cmd[3] == 'B') {
     if (cmd[4] == '1') cmdWiFiScan();
@@ -1048,11 +1093,11 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   }
   CONSOLE.println(cmd);
   if (cmd == "dock") {
-    setOperation(OP_DOCK, false, true);
+    setOperation(OP_DOCK, false);
   } else if (cmd ==  "stop") {
-    setOperation(OP_IDLE, false, true);
+    setOperation(OP_IDLE, false);
   } else if (cmd == "start"){
-    setOperation(OP_MOW, false, true);
+    setOperation(OP_MOW, false);
   }
 }
 

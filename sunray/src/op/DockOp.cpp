@@ -14,7 +14,7 @@
 DockOp::DockOp(){
   lastMapRoutingFailed = false;
   mapRoutingFailedCounter = 0;
-  dockingInitiatedByOperator = true;
+  dockReasonRainTriggered = false;
   reason = DockOp::NO_TRIGGER;
 }
 
@@ -31,23 +31,18 @@ void DockOp::begin(){
   motor.setLinearAngularSpeed(0,0);
   motor.setMowState(false);                
 
-  if ((initiatedbyOperator) || (lastMapRoutingFailed))  maps.clearObstacles();
-  if (initiatedbyOperator) {
-    dockingInitiatedByOperator = true;            
-    dockReasonRainTriggered = false;
-  } else {
-    dockingInitiatedByOperator = false;
-  }
+  if (((initiatedByOperator) && (previousOp == &idleOp)) || (lastMapRoutingFailed))  maps.clearObstacles();
+  
   CONSOLE.print("OP_DOCK");
-  CONSOLE.print(" dockingInitiatedByOperator=");
-  CONSOLE.print(dockingInitiatedByOperator);
+  CONSOLE.print(" initiatedByOperator=");
+  CONSOLE.print(initiatedByOperator);
   CONSOLE.print(" dockReasonRainTriggered=");
   CONSOLE.println(dockReasonRainTriggered);
 
   // plan route to next target point 
 
   if (maps.startDocking(stateX, stateY)){       
-    if (maps.nextPoint(true)) {
+    if (maps.nextPoint(true, stateX, stateY)) {
       maps.repeatLastMowingPoint();
       lastFixTime = millis();                
       maps.setLastTargetPoint(stateX, stateY);        
@@ -73,7 +68,7 @@ void DockOp::begin(){
       stateSensor = SENS_MAP_NO_ROUTE;
       changeOp(errorOp);      
     } else {    
-      changeOp(gpsRebootRecoveryOp, true, initiatedbyOperator);
+      changeOp(gpsRebootRecoveryOp, true);
     }
   } else {
     lastMapRoutingFailed = false;
@@ -99,23 +94,26 @@ void DockOp::run(){
 
 
 void DockOp::onTargetReached(){
-    maps.clearObstacles(); // clear obstacles if target reached
-    motorErrorCounter = 0; // reset motor error counter if target reached
-    stateSensor = SENS_NONE; // clear last triggered sensor
+    CONSOLE.println("DockOp::onTargetReached");
+    if (maps.wayMode == WAY_MOW){
+      maps.clearObstacles(); // clear obstacles if target reached
+      motorErrorCounter = 0; // reset motor error counter if target reached
+      stateSensor = SENS_NONE; // clear last triggered sensor
+    }
 }
 
 
 void DockOp::onGpsFixTimeout(){
     if (REQUIRE_VALID_GPS){    
       stateSensor = SENS_GPS_FIX_TIMEOUT;
-      changeOp(gpsWaitFixOp, true, initiatedbyOperator);
+      changeOp(gpsWaitFixOp, true);
     }
 }
 
 void DockOp::onGpsNoSignal(){
     if (REQUIRE_VALID_GPS){   
       stateSensor = SENS_GPS_INVALID;
-      changeOp(gpsWaitFloatOp, true, initiatedbyOperator);
+      changeOp(gpsWaitFloatOp, true);
     }
 }
 
@@ -124,7 +122,7 @@ void DockOp::onKidnapped(bool state){
         stateSensor = SENS_KIDNAPPED;      
         motor.setLinearAngularSpeed(0,0, false); 
         motor.setMowState(false);    
-        changeOp(kidnapWaitOp, true, initiatedbyOperator); 
+        changeOp(kidnapWaitOp, true); 
     }
 }
 
@@ -138,19 +136,19 @@ void DockOp::onObstacleRotation(){
 
 void DockOp::onObstacle(){
     if (battery.chargerConnected()) {
-      CONSOLE.print("triggerObstacle: ignoring, because charger connected");      
+      CONSOLE.println("triggerObstacle: ignoring, because charger connected");      
       return;
     }
     CONSOLE.println("triggerObstacle");      
     statMowObstacles++;      
     if (maps.isDocking()) {    
         if (maps.retryDocking(stateX, stateY)) {
-            changeOp(escapeReverseOp, true, initiatedbyOperator);                      
+            changeOp(escapeReverseOp, true);                      
             return;
         }
     } 
     if ((OBSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){    
-        changeOp(escapeReverseOp, true, initiatedbyOperator);      
+        changeOp(escapeReverseOp, true);      
     } else {     
         stateSensor = SENS_OBSTACLE;
         CONSOLE.println("error: obstacle!");

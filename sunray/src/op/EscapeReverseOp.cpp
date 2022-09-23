@@ -43,7 +43,7 @@ void EscapeReverseOp::run(){
         if (maps.isDocking()){
             CONSOLE.println("continue docking");
             // continue without obstacles
-            changeOp(*nextOp, false, initiatedbyOperator);    // continue current operation
+            changeOp(*nextOp, false);    // continue current operation
         } else {
             CONSOLE.println("continue operation with virtual obstacle");
             maps.addObstacle(stateX, stateY);              
@@ -51,7 +51,7 @@ void EscapeReverseOp::run(){
             //if (!maps.findObstacleSafeMowPoint(pt)){
             //    changeOp(dockOp); // dock if no more (valid) mowing points
             //} else changeOp(*nextOp);    // continue current operation
-            changeOp(*nextOp, false, initiatedbyOperator);    // continue current operation
+            changeOp(*nextOp, false);    // continue current operation
         }
     }
 }

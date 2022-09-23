@@ -35,7 +35,7 @@
 #include "PubSubClient.h"
 
 
-#define VER "Sunray,1.0.288-docking"
+#define VER "Sunray,1.0.290"
 
 // operation types
 enum OperationType {
@@ -160,7 +160,7 @@ extern Map maps;
 int freeMemory();
 void start();
 void run();
-void setOperation(OperationType op, bool allowRepeat = false, bool initiatedbyOperator = false);
+void setOperation(OperationType op, bool allowRepeat = false);
 void triggerObstacle();
 void sensorTest();
 void updateStateOpText();

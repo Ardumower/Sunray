@@ -26,7 +26,7 @@ void IdleOp::end(){
 
 void IdleOp::run(){    
     if (battery.chargerConnected()){        
-        dockOp.dockingInitiatedByOperator = true;
+        dockOp.setInitiatedByOperator(true);
         changeOp(chargeOp);
     }    
 }

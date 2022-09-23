@@ -39,7 +39,7 @@ extern float lastIMUYaw;
 bool startIMU(bool forceIMU);
 void readIMU();
 void computeRobotState();
-
+void resetImuTimeout();
 
 
 #endif

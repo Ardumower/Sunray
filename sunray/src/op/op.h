@@ -20,7 +20,7 @@ class Op {
     virtual String name();
     // -------- transitions ----------------------------------       
     // op inititated by operator?
-    bool initiatedbyOperator;
+    bool initiatedByOperator;
     // should this operation stop?
     bool shouldStop;
     // op start time
@@ -42,12 +42,13 @@ class Op {
 
     Op();
     // trigger op exit (optionally allow returning back on called operation exit, e.g. generate an op chain)
-    virtual void changeOp(Op &anOp, bool returnBackOnExit = false, bool initiatedbyOperatorFlag = false);
+    virtual void changeOp(Op &anOp, bool returnBackOnExit = false);
 
     // trigger op exit (optionally allow returning back on called operation exit, e.g. generate an op chain)
-    virtual void changeOperationType(OperationType op, bool initiatedbyOperatorFlag = false);
+    virtual void changeOperationTypeByOperator(OperationType op);
     virtual OperationType getGoalOperationType();
-    
+
+    virtual void setInitiatedByOperator(bool flag);    
     // op entry code
     virtual void begin();
     // checks if active operation should stop and if so, makes transition to new one
@@ -97,7 +98,7 @@ class ImuCalibrationOp: public Op {
     unsigned long nextImuCalibrationSecond;
     int imuCalibrationSeconds;
     virtual String name() override;
-    virtual void changeOp(Op &anOp, bool initiatedbyOperatorFlag = false, bool returnBackOnExit = false) override;
+    virtual void changeOp(Op &anOp, bool returnBackOnExit = false) override;
     virtual void begin() override;
     virtual void end() override;
     virtual void run() override;
@@ -163,7 +164,8 @@ class DockOp: public Op {
 
 // charging op
 class ChargeOp: public Op {
-  public:        
+  public:     
+    unsigned long nextConsoleDetailsTime;   
     virtual String name() override;
     virtual void begin() override;
     virtual void end() override;

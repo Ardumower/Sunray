@@ -36,11 +36,12 @@ void MowOp::begin(){
     
     // plan route to next target point 
 
-    //dockingInitiatedByOperator = false;
-    //dockReasonRainTriggered = false;
-    if ((initiatedbyOperator) || (lastMapRoutingFailed)) maps.clearObstacles();
+    dockOp.dockReasonRainTriggered = false;    
+
+    if (((initiatedByOperator) && (previousOp == &idleOp)) || (lastMapRoutingFailed))  maps.clearObstacles();
+
     if (maps.startMowing(stateX, stateY)){
-        if (maps.nextPoint(true)) {
+        if (maps.nextPoint(true, stateX, stateY)) {
             lastFixTime = millis();                
             maps.setLastTargetPoint(stateX, stateY);        
             //stateSensor = SENS_NONE;
@@ -94,6 +95,7 @@ void MowOp::onRainTriggered(){
         CONSOLE.println("RAIN TRIGGERED");
         stateSensor = SENS_RAIN;
         dockOp.dockReasonRainTriggered = true;
+        dockOp.setInitiatedByOperator(false);
         dockOp.reason = DockOp::TRIGGERED_BY_RAIN;
         changeOp(dockOp);              
     }
@@ -104,6 +106,7 @@ void MowOp::onTempOutOfRangeTriggered(){
         CONSOLE.println("TEMP OUT-OF-RANGE TRIGGERED");
         stateSensor = SENS_TEMP_OUT_OF_RANGE;
         dockOp.dockReasonRainTriggered = true;
+        dockOp.setInitiatedByOperator(false);
         dockOp.reason = DockOp::TRIGGERED_BY_OVERTEMP;
         changeOp(dockOp);              
     }
@@ -111,6 +114,7 @@ void MowOp::onTempOutOfRangeTriggered(){
 
 void MowOp::onBatteryLowShouldDock(){
     dockOp.reason = DockOp::TRIGGERED_BY_LOW_BAT;
+    dockOp.setInitiatedByOperator(false);
     changeOp(dockOp);
 }
 
@@ -200,9 +204,11 @@ void MowOp::onMotorError(){
 }
 
 void MowOp::onTargetReached(){
-    maps.clearObstacles(); // clear obstacles if target reached
-    motorErrorCounter = 0; // reset motor error counter if target reached
-    stateSensor = SENS_NONE; // clear last triggered sensor
+    if (maps.wayMode == WAY_MOW){    
+        maps.clearObstacles(); // clear obstacles if target reached
+        motorErrorCounter = 0; // reset motor error counter if target reached
+        stateSensor = SENS_NONE; // clear last triggered sensor
+    }
 }
 
 
@@ -247,8 +253,10 @@ void MowOp::onNoFurtherWaypoints(){
     if (!finishAndRestart){             
         if (DOCKING_STATION){
             dockOp.reason = DockOp::TRIGGERED_BY_COMPLETION;
+            dockOp.setInitiatedByOperator(false);
             changeOp(dockOp);               
         } else {
+            idleOp.setInitiatedByOperator(false);
             changeOp(idleOp); 
         }
     }
