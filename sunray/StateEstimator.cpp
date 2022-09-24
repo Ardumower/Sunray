@@ -136,7 +136,9 @@ void readIMU(){
   //CONSOLE.println(duration);  
   if ((duration > 40) || (millis() > imuDataTimeout)) {
     if (millis() > imuDataTimeout){
-      CONSOLE.println("ERROR IMU data timeout (check RTC battery if problem persists)");  
+      CONSOLE.print("ERROR IMU data timeout: ");
+      CONSOLE.print(millis()-imuDataTimeout);
+      CONSOLE.println(" (check RTC battery if problem persists)");  
     } else {
       CONSOLE.print("ERROR IMU timeout: ");
       CONSOLE.print(duration);     
