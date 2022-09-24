@@ -620,7 +620,7 @@ void Motor::control(){
 
   //########################  Calculate PWM for left driving motor ############################
 
-  motorLeftPID.TaMax = 0.07;
+  motorLeftPID.TaMax = 0.1;
   motorLeftPID.x = motorLeftRpmCurr;
   motorLeftPID.w  = tempMotorLeftRpmSet;
   motorLeftPID.y_min = -pwmMax;
@@ -633,7 +633,7 @@ void Motor::control(){
 
   //########################  Calculate PWM for right driving motor ############################
   
-  motorRightPID.TaMax = 0.07;
+  motorRightPID.TaMax = 0.1;
   motorRightPID.x = motorRightRpmCurr;
   motorRightPID.w = tempMotorRightRpmSet;
   motorRightPID.y_min = -pwmMax;
