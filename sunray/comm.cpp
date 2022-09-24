@@ -44,7 +44,8 @@ float statMaxControlCycleTime = 0;
 // mqtt
 #define MSG_BUFFER_SIZE	(50)
 char mqttMsg[MSG_BUFFER_SIZE];
-unsigned long nextPublishTime = 0;
+unsigned long nextMQTTPublishTime = 0;
+unsigned long nextMQTTLoopTime = 0;
 
 // wifi client
 WiFiEspClient wifiClient;
@@ -1109,8 +1110,8 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 void processWifiMqttClient()
 {
   if (!ENABLE_MQTT) return; 
-  if (millis() >= nextPublishTime){
-    nextPublishTime = millis() + 10000;
+  if (millis() >= nextMQTTPublishTime){
+    nextMQTTPublishTime = millis() + 20000;
     if (mqttClient.connected()) {
       updateStateOpText();
       // operational state
@@ -1173,7 +1174,10 @@ void processWifiMqttClient()
       mqttReconnect();  
     }
   }
-  mqttClient.loop();
+  if (millis() > nextMQTTLoopTime){
+    nextMQTTLoopTime = millis() + 20000;
+    mqttClient.loop();
+  }
 }
 
 
