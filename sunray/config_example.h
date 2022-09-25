@@ -419,7 +419,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
                                  //  1 beep=stop, 6 beeps=start, 5 beeps=dock, 3 beeps=R/C mode ON/OFF, 9 beeps=shutdown, 12 beeps=WiFi WPS
 //#define BUTTON_CONTROL false   // additional features deactivated
 
-//#define USE_TEMP_SENSOR 1   // only activate if temp sensor (htu21d) connected
+//#define USE_TEMP_SENSOR true  // only activate if temp sensor (htu21d) connected
+#define USE_TEMP_SENSOR false  
+
 #define DOCK_OVERHEAT_TEMP 90    // if temperature above this degreeC, mower will dock 
 #define DOCK_TOO_COLD_TEMP 5    // if temperature below this degreeC, mower will dock 
 

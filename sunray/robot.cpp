@@ -140,6 +140,8 @@ unsigned long angularMotionStartTime = 0;
 unsigned long overallMotionTimeout = 0;
 unsigned long nextControlTime = 0;
 unsigned long lastComputeTime = 0;
+unsigned long nextRainCheckTime = 0;
+int rainTriggerCounter = 0;
 
 unsigned long nextLedTime = 0;
 unsigned long nextImuTime = 0;
@@ -513,9 +515,8 @@ void outputConfig(){
   CONSOLE.println(STANLEY_CONTROL_K_SLOW);
   CONSOLE.print("BUTTON_CONTROL: ");
   CONSOLE.println(BUTTON_CONTROL);
-  #ifdef USE_TEMP_SENSOR
-    CONSOLE.println("USE_TEMP_SENSOR");
-  #endif
+  CONSOLE.print("USE_TEMP_SENSOR: ");
+  CONSOLE.println(USE_TEMP_SENSOR);
   #ifdef BUZZER_ENABLE
     CONSOLE.println("BUZZER_ENABLE");    
   #endif
@@ -959,10 +960,23 @@ void run(){
         }
       }
       if (RAIN_ENABLE){
-        if (rainDriver.triggered()){
-          //CONSOLE.println("RAIN TRIGGERED");
-          activeOp->onRainTriggered();
-        }
+        // rain sensor should trigger serveral times to robustly detect rain (robust rain detection)
+        // it should not trigger if one rain drop or wet tree leaves touches the sensor  
+        if (rainDriver.triggered()){  
+          if (millis() > nextRainCheckTime){
+            nextRainCheckTime = millis() + 10000;
+            rainTriggerCounter++;
+            if (rainTriggerCounter >= 3) {  
+              //CONSOLE.println("RAIN TRIGGERED");            
+              activeOp->onRainTriggered();                                                          
+            } 
+          }          
+        } else {
+          if (millis() > nextRainCheckTime){
+            nextRainCheckTime = millis() + 10000;
+            if (rainTriggerCounter > 0) rainTriggerCounter--;
+          }
+        }                           
       }    
       if (battery.shouldGoHome()){
         if (DOCKING_STATION){
