@@ -966,8 +966,9 @@ void run(){
           if (millis() > nextRainCheckTime){
             nextRainCheckTime = millis() + 10000;
             rainTriggerCounter++;
-            if (rainTriggerCounter >= 3) {  
-              //CONSOLE.println("RAIN TRIGGERED");            
+            CONSOLE.print("RAIN TRIGGERED ");
+            CONSOLE.println(rainTriggerCounter);            
+            if (rainTriggerCounter >= 3) {                            
               activeOp->onRainTriggered();                                                          
             } 
           }          
