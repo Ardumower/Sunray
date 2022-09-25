@@ -968,7 +968,8 @@ void run(){
             rainTriggerCounter++;
             CONSOLE.print("RAIN TRIGGERED ");
             CONSOLE.println(rainTriggerCounter);            
-            if (rainTriggerCounter >= 10) {                            
+            if (rainTriggerCounter >= 30) {
+              rainTriggerCounter = 0;                            
               activeOp->onRainTriggered();                                                          
             } 
           }          

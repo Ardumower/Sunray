@@ -326,10 +326,10 @@ void trackLine(bool runControl){
 
   if (runControl){
     if (angleToTargetFits != langleToTargetFits) {
-        CONSOLE.print("angleToTargetFits: ");
-        CONSOLE.print(angleToTargetFits);
-        CONSOLE.print(" trackerDiffDelta: ");
-        CONSOLE.println(trackerDiffDelta);
+        //CONSOLE.print("angleToTargetFits: ");
+        //CONSOLE.print(angleToTargetFits);
+        //CONSOLE.print(" trackerDiffDelta: ");
+        //CONSOLE.println(trackerDiffDelta);
         langleToTargetFits = angleToTargetFits;
     }
 
