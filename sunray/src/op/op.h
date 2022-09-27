@@ -135,6 +135,7 @@ class MowOp: public Op {
 class DockOp: public Op {
   public:        
     bool dockReasonRainTriggered;
+    unsigned long dockReasonRainAutoStartTime;
     bool lastMapRoutingFailed;
     int mapRoutingFailedCounter;
     DockOp();
@@ -162,6 +163,7 @@ class ChargeOp: public Op {
     virtual void run() override;
     virtual void onChargerDisconnected() override;
     virtual void onBatteryUndervoltage() override;    
+    virtual void onRainTriggered() override;    
 };
 
 // wait for undo kidnap (gps jump) 

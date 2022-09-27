@@ -140,8 +140,6 @@ unsigned long angularMotionStartTime = 0;
 unsigned long overallMotionTimeout = 0;
 unsigned long nextControlTime = 0;
 unsigned long lastComputeTime = 0;
-unsigned long nextRainCheckTime = 0;
-int rainTriggerCounter = 0;
 
 unsigned long nextLedTime = 0;
 unsigned long nextImuTime = 0;
@@ -963,21 +961,8 @@ void run(){
         // rain sensor should trigger serveral times to robustly detect rain (robust rain detection)
         // it should not trigger if one rain drop or wet tree leaves touches the sensor  
         if (rainDriver.triggered()){  
-          if (millis() > nextRainCheckTime){
-            nextRainCheckTime = millis() + 10000;
-            rainTriggerCounter++;
-            CONSOLE.print("RAIN TRIGGERED ");
-            CONSOLE.println(rainTriggerCounter);            
-            if (rainTriggerCounter >= 30) {
-              rainTriggerCounter = 0;                            
-              activeOp->onRainTriggered();                                                          
-            } 
-          }          
-        } else {
-          if (millis() > nextRainCheckTime){
-            nextRainCheckTime = millis() + 10000;
-            if (rainTriggerCounter > 0) rainTriggerCounter--;
-          }
+          //CONSOLE.print("RAIN TRIGGERED ");
+          activeOp->onRainTriggered();                                                                              
         }                           
       }    
       if (battery.shouldGoHome()){

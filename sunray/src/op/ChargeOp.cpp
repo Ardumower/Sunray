@@ -59,11 +59,13 @@ void ChargeOp::run(){
                 CONSOLE.print(DOCK_AUTO_START);
                 CONSOLE.print(", dockOp.dockReasonRainTriggered=");
                 CONSOLE.print(dockOp.dockReasonRainTriggered);
+                CONSOLE.print(", dockOp.dockReasonRainAutoStartTime(min remain)=");
+                CONSOLE.print( ((int)(dockOp.dockReasonRainAutoStartTime - millis())) / 60000 );                
                 CONSOLE.println(")");
             }
             if ((DOCKING_STATION) && (!dockOp.initiatedByOperator)) {
                 if (maps.mowPointsIdx > 0){  // if mowing not completed yet
-                    if ((DOCK_AUTO_START) && (!dockOp.dockReasonRainTriggered)) { // automatic continue mowing allowed?
+                    if ( (DOCK_AUTO_START) && ((!dockOp.dockReasonRainTriggered) || (millis() > dockOp.dockReasonRainAutoStartTime)) ) { // automatic continue mowing allowed?
                         CONSOLE.println("DOCK_AUTO_START: will automatically continue mowing now");
                         changeOp(mowOp); // continue mowing
                     }
@@ -83,3 +85,10 @@ void ChargeOp::onBatteryUndervoltage(){
     stateSensor = SENS_BAT_UNDERVOLTAGE;
 }
 
+void ChargeOp::onRainTriggered(){
+    if (DOCKING_STATION){
+        dockOp.dockReasonRainAutoStartTime = millis() + 60000 * 60; // ensure rain sensor is dry for one hour                       
+        //CONSOLE.print("RAIN TRIGGERED dockOp.dockReasonRainAutoStartTime=");
+        //CONSOLE.println(dockOp.dockReasonRainAutoStartTime);
+    }
+}
