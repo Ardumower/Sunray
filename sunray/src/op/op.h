@@ -156,6 +156,8 @@ class DockOp: public Op {
 // charging op
 class ChargeOp: public Op {
   public:     
+    unsigned long retryTouchDockStopTime;
+    bool retryTouchDock;
     unsigned long nextConsoleDetailsTime;   
     virtual String name() override;
     virtual void begin() override;
@@ -163,7 +165,8 @@ class ChargeOp: public Op {
     virtual void run() override;
     virtual void onChargerDisconnected() override;
     virtual void onBatteryUndervoltage() override;    
-    virtual void onRainTriggered() override;    
+    virtual void onRainTriggered() override;   
+    virtual void onChargerConnected() override; 
 };
 
 // wait for undo kidnap (gps jump) 
