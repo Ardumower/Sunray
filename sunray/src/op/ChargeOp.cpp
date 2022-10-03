@@ -92,7 +92,7 @@ void ChargeOp::run(){
 }
 
 void ChargeOp::onChargerDisconnected(){
-    if (DOCKING_STATION){    
+    if ((DOCKING_STATION) && (DOCK_RETRY_TOUCH)) {    
         CONSOLE.println("ChargeOp::onChargerDisconnected - retryTouchDock");
         retryTouchDock = true;
         retryTouchDockStopTime = millis() + 2000;
