@@ -134,7 +134,7 @@ void readIMU(){
   unsigned long duration = millis() - startTime;    
   //CONSOLE.print("duration:");
   //CONSOLE.println(duration);  
-  if ((duration > 40) || (millis() > imuDataTimeout)) {
+  if ((duration > 60) || (millis() > imuDataTimeout)) {
     if (millis() > imuDataTimeout){
       CONSOLE.print("ERROR IMU data timeout: ");
       CONSOLE.print(millis()-imuDataTimeout);

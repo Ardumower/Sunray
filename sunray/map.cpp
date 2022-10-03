@@ -1943,11 +1943,15 @@ bool Map::findPath(Point &src, Point &dst){
         }
       }
     } 
-    
+
     CONSOLE.print("finish nodes=");
     CONSOLE.print(pathFinderNodes.numNodes);
     CONSOLE.print(" duration=");
     CONSOLE.println(millis()-startTime);  
+
+    //delay(8000); // simulate a busy path finder
+
+    resetImuTimeout();
 
     if ((currentNode != NULL) && (distance(*currentNode->point, *end->point) < 0.02)) {
       Node *curr = currentNode;
@@ -1970,14 +1974,13 @@ bool Map::findPath(Point &src, Point &dst){
       }            
     } else {
       // No result was found
-      resetImuTimeout();
       CONSOLE.println("pathfinder: no path");      
       return false;
       //freePoints.alloc(2);
       //freePoints.points[0].assign(src);    
       //freePoints.points[1].assign(dst);        
     }       
-  } else {
+  } else {  // path finder not enabled (ENABLE_PATH_FINDER=false)    
     if (!freePoints.alloc(2)) return false;
     freePoints.points[0].assign(src);    
     freePoints.points[1].assign(dst);        
