@@ -542,7 +542,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
   #define pinLED 13                  // LED
   #define pinBuzzer 53               // Buzzer
-  #define pinTilt 35                 // Tilt sensor (required for TC-G158 board)
+  //#define pinTilt 35                 // Tilt sensor (required for TC-G158 board)
+  #define pinLift 35                 // Lift sensor (marked as 'Tilt' on PCB1.3/1.4) 
   #define pinButton 51               // digital ON/OFF button
   #define pinBatteryVoltage A2       // battery voltage sensor
   #define pinBatterySwitch 4         // battery-OFF switch   

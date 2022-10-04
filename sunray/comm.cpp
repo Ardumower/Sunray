@@ -11,6 +11,7 @@
   #include <BridgeClient.h>
   #include <Process.h>
   #include <WiFi.h>
+  #include <sys/resource.h>
 #else
   #include "src/esp/WiFiEsp.h"
 #endif
@@ -1227,9 +1228,14 @@ void outputConsole(){
     CONSOLE.print (" op=");    
     CONSOLE.print (activeOp->getOpChain());    
     //CONSOLE.print (stateOp);
-    CONSOLE.print (" freem=");
-    CONSOLE.print (freeMemory ());
-    #ifndef __linux__
+    #ifdef __linux__
+      CONSOLE.print (" mem=");
+      struct rusage r_usage;
+      getrusage(RUSAGE_SELF,&r_usage);
+      CONSOLE.print(r_usage.ru_maxrss);
+    #else
+      CONSOLE.print (" freem=");
+      CONSOLE.print (freeMemory());  
       uint32_t *spReg = (uint32_t*)__get_MSP();   // stack pointer
       CONSOLE.print (" sp=");
       CONSOLE.print (*spReg, HEX);

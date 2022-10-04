@@ -1803,7 +1803,16 @@ bool Map::findPath(Point &src, Point &dst){
     //pathFinderObstacles.dump();
     
     // create nodes
-    if (!pathFinderNodes.alloc(exclusions.numPoints() + obstacles.numPoints() + perimeterPoints.numPoints + 2)) return false;
+    int allocNodeCount = exclusions.numPoints() + obstacles.numPoints() + perimeterPoints.numPoints + 2;
+    CONSOLE.print ("freem=");
+    CONSOLE.print(freeMemory ());    
+    CONSOLE.print("  allocating nodes ");
+    CONSOLE.print(allocNodeCount);
+    CONSOLE.print(" (");
+    CONSOLE.print(sizeof(Node) * allocNodeCount);
+    CONSOLE.println(" bytes)");
+
+    if (!pathFinderNodes.alloc(allocNodeCount)) return false;
     for (int i=0; i < pathFinderNodes.numNodes; i++){
       pathFinderNodes.nodes[i].init();
     }
