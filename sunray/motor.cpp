@@ -25,9 +25,7 @@ void Motor::begin() {
   #endif
   
   pwmSpeedOffset = 1.0;
-  mowMotorCurrentAverage = MOWMOTOR_CURRENT_FACTOR * MOW_OVERLOAD_CURRENT;
-  currentFactor = MOWMOTOR_CURRENT_FACTOR;
-
+  
   //ticksPerRevolution = 1060/2;
   ticksPerRevolution = TICKS_PER_REVOLUTION;
 	wheelBaseCm = WHEEL_BASE_CM;    // wheel-to-wheel distance (cm) 36
@@ -120,101 +118,11 @@ void Motor::begin() {
 
 void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
 {
-  //########################  Declaration ############################
-
-  int pwmVariableMow = 0;
-
-  //########################  Modify pwm depend to to actual Mower Current ############################
-
-  if ((pwmMow != 0) && (ENABLE_DYNAMIC_MOWMOTOR))
-  {
-    switch (DYNAMIC_MOWMOTOR_ALGORITHM){
-      case 1:
-        pwmVariableMow = (int)((MAX_MOW_RPM - MIN_MOW_RPM) * (motorMowSenseLP / MOW_OVERLOAD_CURRENT));
-        break;
-      case 2:
-        pwmVariableMow = (int)((MAX_MOW_RPM - MIN_MOW_RPM) * sqrt((motorMowSenseLP / MOW_OVERLOAD_CURRENT)));
-        break;
-      case 3:
-        pwmVariableMow = (int)((MAX_MOW_RPM - MIN_MOW_RPM) * sq((motorMowSenseLP / MOW_OVERLOAD_CURRENT)));
-        break;
-      default:
-        pwmVariableMow = (int)((MAX_MOW_RPM - MIN_MOW_RPM) * (motorMowSenseLP / MOW_OVERLOAD_CURRENT));
-        break;
-    }
-
-    if (motorMowSenseLP > MOW_OVERLOAD_CURRENT) pwmVariableMow = 0; // failure detection if mower is stuck.
-    if (pwmMow < 0) // check motor direction
-    {
-      pwmMow = (MIN_MOW_RPM + pwmVariableMow) * - 1;
-    }
-    else
-    {
-      pwmMow = MIN_MOW_RPM + pwmVariableMow;
-    }
-    
-//    CONSOLE.print("setpwmMow: ");
-//    CONSOLE.print(pwmMow);
-//    CONSOLE.print(" motorMowSenseLP: "); 
-//    CONSOLE.println(motorMowSenseLP);
-  }
-
-  //########################  Correct Motor Direction ############################
-  
+  //Correct Motor Direction
   if (motorLeftSwapDir) pwmLeft *= -1;
   if (motorRightSwapDir) pwmRight *= -1;
 
-  //########################  Set Mower Speed depend to actual Mower Current ############################
-
-  if ((pwmMow != 0) && (ENABLE_DYNAMIC_MOWER_SPEED))
-  {    
-    if (USE_MOWMOTOR_CURRENT_AVERAGE)
-    {
-      float pwmAverageMow = (MAX_MOW_RPM - MIN_MOW_RPM) / 2 + MIN_MOW_RPM;
-
-      if ((pwmAverageMow - (MAX_MOW_RPM - MIN_MOW_RPM) / 10) < abs(pwmMow) || abs(pwmMow) > (pwmAverageMow + (pwmMaxMow - MIN_MOW_RPM) / 10))
-      {
-        mowMotorCurrentAverage = (( mowMotorCurrentAverage * 10000) + (motorMowSenseLP)) / (10000 + 1);
-        currentFactor = mowMotorCurrentAverage / MOW_OVERLOAD_CURRENT;
-//        CONSOLE.print("ADJUST CURRENT FACTOR ");
-      }
-    }
-
-//    CONSOLE.print("mowMotorCurrentAverage: ");
-//    CONSOLE.print(mowMotorCurrentAverage);
-//    CONSOLE.print(" currentFactor: ");
-//    CONSOLE.println(currentFactor);
-
-    if (motorMowSenseLP > currentFactor * MOW_OVERLOAD_CURRENT * 0.9) pwmSpeedOffset -= SPEED_ACCELERATION * 2;
-    if (motorMowSenseLP < currentFactor * MOW_OVERLOAD_CURRENT * 1.1) pwmSpeedOffset += SPEED_ACCELERATION;
-    
-    pwmSpeedOffset  = min(SPEED_FACTOR_MAX, max(SPEED_FACTOR_MIN, pwmSpeedOffset));
-
-    //########################  Detect a curve ############################
-
-    pwmSpeedCurveDetection = false;
-    
-    if (abs(pwmLeft - pwmRight) > (abs(pwmLeft + pwmRight) / 8))
-    { 
-      pwmSpeedCurveDetection = true;
-//      CONSOLE.println("at curves, speed will not be adjusted");
-    }
-    
-//    CONSOLE.print("pwmLeftMotor: ");
-//    CONSOLE.print(pwmLeft);
-//    CONSOLE.print(" pwmRightMotor: ");
-//    CONSOLE.print(pwmRight);
-//    CONSOLE.print(" setpwmSpeedOffset: ");
-//    CONSOLE.println(pwmSpeedOffset);
- 
-    //########################  set modified pwm value ############################
-    
-    //pwmLeft  = (int)(pwmLeft * pwmSpeedOffset);
-    //pwmRight = (int)(pwmRight * pwmSpeedOffset);
-  }
-
-  //########################  Check pwm higher than Max ############################
-  
+  // ensure pwm is lower than Max
   pwmLeft = min(pwmMax, max(-pwmMax, pwmLeft));
   pwmRight = min(pwmMax, max(-pwmMax, pwmRight));  
   pwmMow = min(pwmMaxMow, max(-pwmMaxMow, pwmMow)); 
