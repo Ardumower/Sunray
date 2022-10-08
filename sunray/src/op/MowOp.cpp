@@ -109,6 +109,7 @@ void MowOp::onTempOutOfRangeTriggered(){
 }
 
 void MowOp::onBatteryLowShouldDock(){    
+    CONSOLE.println("BATTERY LOW TRIGGERED - DOCKING");
     dockOp.setInitiatedByOperator(false);
     changeOp(dockOp);
 }
