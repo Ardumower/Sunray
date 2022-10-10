@@ -187,6 +187,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // should the robot trigger obstacle avoidance on motor errors if motor recovery failed?
 #define ENABLE_FAULT_OBSTACLE_AVOIDANCE true  
 
+// should the PWM value be limited?
+//#define MAX_MOW_RPM 255 // maximum value is 255
 
 // ------ WIFI module (ESP8266 ESP-01 with ESP firmware 2.2.1) --------------------------------
 // NOTE: all settings (maps, absolute position source etc.) are stored in your phone - when using another
