@@ -1242,6 +1242,8 @@ void outputConsole(){
     #endif
     CONSOLE.print(" bat=");
     CONSOLE.print(battery.batteryVoltage);
+    CONSOLE.print(",");
+    CONSOLE.print(battery.batteryVoltageSlope, 3);    
     CONSOLE.print("(");    
     CONSOLE.print(motor.motorsSenseLP);    
     CONSOLE.print(") chg=");

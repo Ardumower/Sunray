@@ -20,6 +20,8 @@ class Battery {
     int enableChargingTimeout;
     float batFullCurrent;
 	  float batteryVoltage;   // volts
+    float batteryVoltageLast;
+    float batteryVoltageSlope; // slope (volts/minute)
 	  float chargingVoltage;  // volts
 	  float chargingCurrent;  // amps
     bool chargingEnabled;

@@ -46,6 +46,8 @@ void Battery::begin()
   batFullVoltage = BAT_FULL_VOLTAGE;  //28.7  voltage when battery is fully charged (we charge to only 90% to increase battery life time)
   enableChargingTimeout = 60 * 30; // if battery is full, wait this time before enabling charging again (seconds)
   batteryVoltage = 0;
+  batteryVoltageLast = 0;
+  batteryVoltageSlope = 0;
   switchOffByOperator = false;
   switchOffAllowedUndervoltage = BAT_SWITCH_OFF_UNDERVOLTAGE;
   switchOffAllowedIdle = BAT_SWITCH_OFF_IDLE;
@@ -104,16 +106,21 @@ void Battery::run(){
   nextBatteryTime = millis() + 50;
   if (startupPhase == 1) startupPhase = 2;
 
+  // voltage
   float voltage = batteryDriver.getChargeVoltage();
   if (abs(chargingVoltage-voltage) > 10) chargingVoltage = voltage;  
   chargingVoltage = 0.9 * chargingVoltage + 0.1* voltage;  
 
   voltage = batteryDriver.getBatteryVoltage();
-  if (abs(batteryVoltage-voltage) > 10) batteryVoltage = voltage;  
+  if (abs(batteryVoltage-voltage) > 10) {
+    batteryVoltage = voltage;
+    batteryVoltageLast = voltage;
+  }  
   float w = 0.995;
   if (chargerConnectedState) w = 0.9;
   batteryVoltage = w * batteryVoltage + (1-w) * voltage;  
 
+  // current
   chargingCurrent = 0.9 * chargingCurrent + 0.1 * batteryDriver.getChargeCurrent();    
 	
   if (!chargerConnectedState){
@@ -143,10 +150,16 @@ void Battery::run(){
       buzzer.sound(SND_OVERCURRENT, true);
       if ((switchOffAllowedIdle) || (switchOffByOperator)) batteryDriver.keepPowerOn(false);
     } else batteryDriver.keepPowerOn(true);              
-    	      
+
+    // slope
+    float w = 0.999; 
+    batteryVoltageSlope = w * batteryVoltageSlope + (1-w) * (batteryVoltage - batteryVoltageLast) * 60.0/5.0;   // 5s => 1min  
+    batteryVoltageLast = batteryVoltage;
+
 		if (millis() >= nextPrintTime){
-			nextPrintTime = millis() + 60000;  	   	   	
-			//print();			
+			nextPrintTime = millis() + 60000;  // 1 minute  	   	   	
+			
+      //print();			
 			/*DEBUG(F("charger conn="));
 			DEBUG(chargerConnected());
 			DEBUG(F(" chgEnabled="));
