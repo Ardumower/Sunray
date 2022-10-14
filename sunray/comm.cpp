@@ -1250,7 +1250,9 @@ void outputConsole(){
     CONSOLE.print(battery.chargingVoltage);    
     CONSOLE.print("(");
     CONSOLE.print(battery.chargingCurrent);    
-    CONSOLE.print(") tg=");
+    CONSOLE.print(") diff=");
+    CONSOLE.print(battery.chargingVoltBatteryVoltDiff, 3);
+    CONSOLE.print(" tg=");
     CONSOLE.print(maps.targetPoint.x());
     CONSOLE.print(",");
     CONSOLE.print(maps.targetPoint.y());

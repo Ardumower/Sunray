@@ -134,6 +134,7 @@ unsigned long nextGPSMotionCheckTime = 0;
 
 bool finishAndRestart = false;
 
+unsigned long nextBadChargingContactCheck = 0;
 unsigned long nextToFTime = 0;
 unsigned long linearMotionStartTime = 0;
 unsigned long angularMotionStartTime = 0;
@@ -939,6 +940,12 @@ void run(){
       } else {
         activeOp->onChargerDisconnected();
       }            
+    }
+    if (millis() > nextBadChargingContactCheck) {
+      if (battery.badChargerContact()){
+        nextBadChargingContactCheck = millis() + 60000; // 1 min.
+        activeOp->onBadChargingContactDetected();
+      }
     } 
 
     if (battery.underVoltage()){

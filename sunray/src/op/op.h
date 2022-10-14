@@ -158,7 +158,9 @@ class DockOp: public Op {
 class ChargeOp: public Op {
   public:     
     unsigned long retryTouchDockStopTime;
+    unsigned long betterTouchDockStopTime;
     bool retryTouchDock;
+    bool betterTouchDock;
     unsigned long nextConsoleDetailsTime;   
     virtual String name() override;
     virtual void begin() override;

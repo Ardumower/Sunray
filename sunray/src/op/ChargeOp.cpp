@@ -18,6 +18,7 @@ String ChargeOp::name(){
 void ChargeOp::begin(){
     nextConsoleDetailsTime = 0;
     retryTouchDock = false;
+    betterTouchDock = false;
     CONSOLE.print("OP_CHARGE");
     CONSOLE.print(" dockOp.initiatedByOperator=");
     CONSOLE.print(dockOp.initiatedByOperator);
@@ -35,7 +36,7 @@ void ChargeOp::end(){
 }
 
 void ChargeOp::run(){
-    
+
     if (retryTouchDock){
         if (millis() > retryTouchDockStopTime) {
             motor.setLinearAngularSpeed(0, 0);
@@ -47,6 +48,14 @@ void ChargeOp::run(){
         } else {
             //motor.enableTractionMotors(true); // allow traction motors to operate                               
             //motor.setLinearAngularSpeed(0.05, 0);
+        }
+    } else {
+        if (betterTouchDock){
+            if (millis() > betterTouchDockStopTime) {
+                CONSOLE.println("ChargeOp: betterTouchDock completed");
+                motor.setLinearAngularSpeed(0, 0);            
+                betterTouchDock = false;
+            }
         }
     }
     
@@ -106,7 +115,13 @@ void ChargeOp::onChargerDisconnected(){
 };
 
 void ChargeOp::onBadChargingContactDetected(){
-    onChargerDisconnected(); // handle like charger disconnected 
+    if ((DOCKING_STATION) && (DOCK_RETRY_TOUCH)) {    
+        CONSOLE.println("ChargeOp::onBadChargingContactDetected - betterTouchDock");
+        betterTouchDock = true;
+        betterTouchDockStopTime = millis() + 2000;
+        motor.enableTractionMotors(true); // allow traction motors to operate                               
+        motor.setLinearAngularSpeed(0.05, 0);
+    } 
 }
 
 void ChargeOp::onChargerConnected(){

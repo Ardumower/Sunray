@@ -50,6 +50,7 @@ void Battery::begin()
   batteryVoltage = 0;
   batteryVoltageLast = 0;
   batteryVoltageSlope = 0;
+  chargingVoltBatteryVoltDiff = 0;
   switchOffByOperator = false;
   switchOffAllowedUndervoltage = BAT_SWITCH_OFF_UNDERVOLTAGE;
   switchOffAllowedIdle = BAT_SWITCH_OFF_IDLE;
@@ -126,6 +127,9 @@ void Battery::run(){
   if (chargerConnectedState) w = 0.9;
   batteryVoltage = w * batteryVoltage + (1-w) * voltage;  
 
+  // difference charging voltage and battery voltage
+  chargingVoltBatteryVoltDiff = 0.99 * chargingVoltBatteryVoltDiff + 0.01 * (chargingVoltage - batteryVoltage);  
+
   // current
   chargingCurrent = 0.9 * chargingCurrent + 0.1 * batteryDriver.getChargeCurrent();    
 	
@@ -176,12 +180,15 @@ void Battery::run(){
       badChargerContactState = false;
       if (chargerConnectedState){
         if (!chargingCompleted){
-          if (batteryVoltageSlope < 0){
+          if (chargingVoltBatteryVoltDiff < -1.0){
+          //if (batteryVoltageSlope < 0){
             badChargerContactState = true;
             DEBUG(F("CHARGER BAD CONTACT chgV="));
             DEBUG(chargingVoltage);
             DEBUG(" batV=");
             DEBUG(batteryVoltage);
+            DEBUG(" diffV=");
+            DEBUG(chargingVoltBatteryVoltDiff);
             DEBUG(" slope(v/min)=");
             DEBUGLN(batteryVoltageSlope);
           }      

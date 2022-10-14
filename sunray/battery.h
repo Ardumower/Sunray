@@ -21,8 +21,9 @@ class Battery {
     float batFullCurrent;
 	  float batteryVoltage;   // volts
     float batteryVoltageLast;
-    float batteryVoltageSlope; // slope (volts/minute)
-	  float chargingVoltage;  // volts
+    float chargingVoltBatteryVoltDiff;    
+    float batteryVoltageSlope; // slope (volts/minute)	  
+    float chargingVoltage;  // volts
 	  float chargingCurrent;  // amps
     bool chargingEnabled;
     int chargingCompletedDelay; // ensure that loadingcurrent or loadingvoltage triggers 'chargingCompleted' condition for a longer period
