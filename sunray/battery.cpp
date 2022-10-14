@@ -115,13 +115,17 @@ void Battery::run(){
 
   // voltage
   float voltage = batteryDriver.getChargeVoltage();
-  if (abs(chargingVoltage-voltage) > 10) chargingVoltage = voltage;  
+  if (abs(chargingVoltage-voltage) > 10) {
+    chargingVoltage = voltage;
+    chargingVoltBatteryVoltDiff = 0;
+  }  
   chargingVoltage = 0.9 * chargingVoltage + 0.1* voltage;  
 
   voltage = batteryDriver.getBatteryVoltage();
   if (abs(batteryVoltage-voltage) > 10) {
     batteryVoltage = voltage;
     batteryVoltageLast = voltage;
+    chargingVoltBatteryVoltDiff = 0;
   }  
   float w = 0.995;
   if (chargerConnectedState) w = 0.9;
