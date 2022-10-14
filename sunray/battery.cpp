@@ -132,7 +132,10 @@ void Battery::run(){
   if (!chargerConnectedState){
 	  if (chargingVoltage > 7){
       chargerConnectedState = true;		    
-		  DEBUGLN(F("CHARGER CONNECTED"));      	              
+		  DEBUG(F("CHARGER CONNECTED chgV="));      	                    
+      DEBUG(chargingVoltage);      
+      DEBUG(F(" batV="));
+      DEBUGLN(batteryVoltage);
       buzzer.sound(SND_OVERCURRENT, true);        
     }
   }
@@ -143,12 +146,18 @@ void Battery::run(){
       if (chargingVoltage <= 5){
         chargerConnectedState = false;
         nextEnableTime = millis() + 5000;  	 // reset charging enable time  	   	 
-        DEBUGLN(F("CHARGER DISCONNECTED"));              				        
+        DEBUG(F("CHARGER DISCONNECTED chgV="));
+        DEBUG(chargingVoltage);        
+        DEBUG(F(" batV="));
+        DEBUGLN(batteryVoltage);                
       }
     }      		
     timeMinutes = (millis()-chargingStartTime) / 1000 /60;
     if (underVoltage()) {
-      DEBUGLN(F("SWITCHING OFF (undervoltage)"));              
+      DEBUG(F("SWITCHING OFF (undervoltage) batV="));
+      DEBUG(batteryVoltage);
+      DEBUG("<");
+      DEBUGLN(batSwitchOffIfBelow);
       buzzer.sound(SND_OVERCURRENT, true);
       if (switchOffAllowedUndervoltage)  batteryDriver.keepPowerOn(false);     
     } else if ((millis() >= switchOffTime) || (switchOffByOperator)) {
@@ -169,7 +178,12 @@ void Battery::run(){
         if (!chargingCompleted){
           if (batteryVoltageSlope < 0){
             badChargerContactState = true;
-            DEBUGLN(F("CHARGER BAD CONTACT"));
+            DEBUG(F("CHARGER BAD CONTACT chgV="));
+            DEBUG(chargingVoltage);
+            DEBUG(" batV=");
+            DEBUG(batteryVoltage);
+            DEBUG(" slope(v/min)=");
+            DEBUGLN(batteryVoltageSlope);
           }      
         } 
       } 
