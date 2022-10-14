@@ -29,11 +29,13 @@ void Battery::begin()
   nextBatteryTime = 0;
   nextCheckTime = 0;
   nextEnableTime = 0;
+  nextSlopeTime = 0;
 	timeMinutes=0;  
   chargingVoltage = 0;
   chargingCompletedDelay =0;
   batteryVoltage = 0;
-  chargerConnectedState = false;      
+  chargerConnectedState = false;
+  badChargerContactState = false;      
   chargingCompleted = false;
   chargingEnabled = true;
   
@@ -69,6 +71,10 @@ void Battery::enableCharging(bool flag){
 
 bool Battery::chargerConnected(){
   return chargerConnectedState;  
+}
+
+bool Battery::badChargerContact(){
+  return badChargerContactState;
 }
  
 bool Battery::chargingHasCompleted(){
@@ -151,10 +157,23 @@ void Battery::run(){
       if ((switchOffAllowedIdle) || (switchOffByOperator)) batteryDriver.keepPowerOn(false);
     } else batteryDriver.keepPowerOn(true);              
 
-    // slope
+    // battery volage slope 
     float w = 0.999; 
     batteryVoltageSlope = w * batteryVoltageSlope + (1-w) * (batteryVoltage - batteryVoltageLast) * 60.0/5.0;   // 5s => 1min  
     batteryVoltageLast = batteryVoltage;
+    
+    if (millis() >= nextSlopeTime){
+      nextSlopeTime = millis() + 60000; // 1 minute
+      badChargerContactState = false;
+      if (chargerConnectedState){
+        if (!chargingCompleted){
+          if (batteryVoltageSlope < 0){
+            badChargerContactState = true;
+            DEBUGLN(F("CHARGER BAD CONTACT"));
+          }      
+        } 
+      } 
+    }
 
 		if (millis() >= nextPrintTime){
 			nextPrintTime = millis() + 60000;  // 1 minute  	   	   	

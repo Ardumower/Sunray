@@ -30,6 +30,7 @@ class Battery {
 	  void begin();            
     void run();	  
 	  bool chargerConnected();
+    bool badChargerContact();
     void enableCharging(bool flag);   	      
     bool shouldGoHome();    
     bool chargingHasCompleted();
@@ -42,13 +43,15 @@ class Battery {
     bool switchOffByOperator;    
     unsigned long timeMinutes;
 		bool chargerConnectedState;
+    bool badChargerContactState;
     bool switchOffAllowedUndervoltage;
     bool switchOffAllowedIdle;
     unsigned long switchOffTime;
     unsigned long chargingStartTime;
 	  unsigned long nextCheckTime;	  
     unsigned long nextEnableTime;	  
-		unsigned long nextPrintTime;	  		
+		unsigned long nextPrintTime;
+    unsigned long nextSlopeTime;	  		
 };
 
 

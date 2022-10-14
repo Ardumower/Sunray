@@ -105,6 +105,9 @@ void ChargeOp::onChargerDisconnected(){
     }
 };
 
+void ChargeOp::onBadChargingContactDetected(){
+    onChargerDisconnected(); // handle like charger disconnected 
+}
 
 void ChargeOp::onChargerConnected(){
     if (retryTouchDock){

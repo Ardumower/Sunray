@@ -75,6 +75,7 @@ class Op {
     virtual void onBatteryUndervoltage();
     virtual void onBatteryLowShouldDock();    
     virtual void onChargerDisconnected();
+    virtual void onBadChargingContactDetected();    
     virtual void onChargerConnected();    
     virtual void onChargingCompleted();              
     virtual void onImuTilt();
@@ -164,6 +165,7 @@ class ChargeOp: public Op {
     virtual void end() override;
     virtual void run() override;
     virtual void onChargerDisconnected() override;
+    virtual void onBadChargingContactDetected() override;
     virtual void onBatteryUndervoltage() override;    
     virtual void onRainTriggered() override;   
     virtual void onChargerConnected() override; 
