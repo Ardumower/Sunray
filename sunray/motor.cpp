@@ -15,9 +15,9 @@
 void Motor::begin() {
 	pwmMax = 255;
  
-  #ifdef MAX_MOW_RPM
-    if (MAX_MOW_RPM <= 255) {
-      pwmMaxMow = MAX_MOW_RPM;
+  #ifdef MAX_MOW_PWM
+    if (MAX_MOW_PWM <= 255) {
+      pwmMaxMow = MAX_MOW_PWM;
     }
     else pwmMaxMow = 255;
   #else 

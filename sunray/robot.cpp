@@ -419,6 +419,10 @@ void outputConfig(){
   #ifdef MOTOR_RIGHT_SWAP_DIRECTION
     CONSOLE.println("MOTOR_RIGHT_SWAP_DIRECTION");
   #endif
+  #ifdef MAX_MOW_PWM
+    CONSOLE.print("MAX_MOW_PWM: ");
+    CONSOLE.println(MAX_MOW_PWM);
+  #endif
   CONSOLE.print("MOW_FAULT_CURRENT: ");
   CONSOLE.println(MOW_FAULT_CURRENT);
   CONSOLE.print("MOW_OVERLOAD_CURRENT: ");
