@@ -511,26 +511,11 @@ void Motor::sense(){
 
 void Motor::control(){  
     
-  //########################  Set SpeedOffset if curve or manual driving is detected ############################
-  
-  float tempPwmSpeedOffset = pwmSpeedOffset;
-
-  float tempMotorLeftRpmSet;
-  float tempMotorRightRpmSet;
-
-  if (pwmSpeedCurveDetection)
-  {
-    tempPwmSpeedOffset = 1;
-  }
-
-  tempMotorLeftRpmSet = motorLeftRpmSet * tempPwmSpeedOffset; // set RPM speed with corrected dynamic speed
-  tempMotorRightRpmSet = motorRightRpmSet * tempPwmSpeedOffset; // set RPM speed with corrected dynamic speed
-
   //########################  Calculate PWM for left driving motor ############################
 
   motorLeftPID.TaMax = 0.1;
   motorLeftPID.x = motorLeftRpmCurr;
-  motorLeftPID.w  = tempMotorLeftRpmSet;
+  motorLeftPID.w  = motorLeftRpmSet;
   motorLeftPID.y_min = -pwmMax;
   motorLeftPID.y_max = pwmMax;
   motorLeftPID.max_output = pwmMax;
@@ -543,7 +528,7 @@ void Motor::control(){
   
   motorRightPID.TaMax = 0.1;
   motorRightPID.x = motorRightRpmCurr;
-  motorRightPID.w = tempMotorRightRpmSet;
+  motorRightPID.w = motorRightRpmSet;
   motorRightPID.y_min = -pwmMax;
   motorRightPID.y_max = pwmMax;
   motorRightPID.max_output = pwmMax;
