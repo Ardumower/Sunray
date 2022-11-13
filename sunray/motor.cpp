@@ -244,9 +244,6 @@ void Motor::run() {
       recoverMotorFault = true;
       nextRecoverMotorFaultTime = millis() + 1000;                  
       motorRecoveryState = true;
-    } else {
-      // no fault
-      motorRecoveryState = false;
     } 
   } 
 
@@ -271,6 +268,7 @@ void Motor::run() {
         CONSOLE.println("resetting recoverMotorFaultCounter");
         recoverMotorFaultCounter = 0;
         nextRecoverMotorFaultTime = 0;
+        motorRecoveryState = false;
       }        
     }
   }
