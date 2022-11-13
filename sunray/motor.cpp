@@ -250,19 +250,11 @@ void Motor::run() {
     if (someFault){
       stopImmediately(true);
       recoverMotorFault = true;
-      nextRecoverMotorFaultTime = millis() + 1000;
-      recoverySucceeded = false;      
+      nextRecoverMotorFaultTime = millis() + 1000;            
     } else {
       // no fault
       if (!recoverySucceeded){
         recoverySucceeded = true;
-        int interval = (millis() - lastMotorRecoveryTime) / 1000;        
-        lastMotorRecoveryTime = millis();
-        if (interval > 0){          
-          motorRecoveryIntervalsSeconds.add(interval);
-          CONSOLE.print("motorRecoveryIntervalsMedianSeconds ");
-          CONSOLE.println(getMotorRecoveryIntervalMedianSeconds());            
-        }        
       }
     }
   }
@@ -273,7 +265,17 @@ void Motor::run() {
     if (millis() > nextRecoverMotorFaultTime){
       if (recoverMotorFault){
         nextRecoverMotorFaultTime = millis() + 10000;
-        recoverMotorFaultCounter++;                        
+        recoverMotorFaultCounter++;       
+        if (recoverySucceeded){
+          recoverySucceeded = false;
+          int interval = (millis() - lastMotorRecoveryTime) / 1000;        
+          lastMotorRecoveryTime = millis();
+          if (interval > 0){          
+            motorRecoveryIntervalsSeconds.add(interval);
+            CONSOLE.print("motorRecoveryIntervalsMedianSeconds ");
+            CONSOLE.println(getMotorRecoveryIntervalMedianSeconds());            
+          }                  
+        }        
         CONSOLE.print("motor fault recover counter ");
         CONSOLE.println(recoverMotorFaultCounter);
         motorDriver.resetMotorFaults();
