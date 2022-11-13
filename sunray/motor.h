@@ -7,7 +7,6 @@
 #define MOTOR_H
 
 #include "pid.h"
-#include "RunningMedian.h"
 
 
 // selected motor
@@ -55,6 +54,7 @@ class Motor {
     float motorLeftSenseLPNorm; 
     float motorRightSenseLPNorm;
     unsigned long motorMowSpinUpTime;
+    bool motorRecoveryState;    
     void begin();
     void run();      
     void test();
@@ -63,9 +63,7 @@ class Motor {
     void setLinearAngularSpeed(float linear, float angular, bool useLinearRamp = true);
     void setMowState(bool switchOn);   
     void stopImmediately(bool includeMowerMotor);
-    unsigned int getMotorRecoveryIntervalMedianSeconds();
   protected: 
-    RunningMedian<unsigned int, 100> motorRecoveryIntervalsSeconds;
     float motorLeftRpmSet; // set speed
     float motorRightRpmSet;   
     float motorLeftRpmCurr;
@@ -86,7 +84,6 @@ class Motor {
     float motorRightPWMCurrLP;    
     unsigned long lastControlTime;    
     unsigned long nextSenseTime;          
-    unsigned long lastMotorRecoveryTime;  
     bool recoverMotorFault;
     int recoverMotorFaultCounter;
     unsigned long nextRecoverMotorFaultTime;
@@ -96,7 +93,6 @@ class Motor {
     PID motorRightPID;        
     bool setLinearAngularSpeedTimeoutActive;
     unsigned long setLinearAngularSpeedTimeout;    
-    bool recoverySucceeded;
     void speedPWM ( int pwmLeft, int pwmRight, int pwmMow );
     void control();    
     bool checkFault();

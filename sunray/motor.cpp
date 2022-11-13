@@ -10,13 +10,6 @@
 #include "Arduino.h"
 
 
-unsigned int Motor::getMotorRecoveryIntervalMedianSeconds(){
-  unsigned int interval;
-  motorRecoveryIntervalsSeconds.getMedian(interval);
-  return interval;  
-}
-
-
 void Motor::begin() {
 	pwmMax = 255;
  
@@ -119,8 +112,7 @@ void Motor::begin() {
   setLinearAngularSpeedTimeout = 0;
   motorMowSpinUpTime = 0;
 
-  lastMotorRecoveryTime = millis();
-  recoverySucceeded = true;
+  motorRecoveryState = false;
 }
 
 
@@ -250,24 +242,13 @@ void Motor::run() {
     if (someFault){
       stopImmediately(true);
       recoverMotorFault = true;
-      nextRecoverMotorFaultTime = millis() + 1000;
-      if (recoverySucceeded){
-        recoverySucceeded = false;
-        int interval = (millis() - lastMotorRecoveryTime) / 1000;        
-        lastMotorRecoveryTime = millis();
-        if (interval > 0){          
-          motorRecoveryIntervalsSeconds.add(interval);
-          CONSOLE.print("motorRecoveryIntervalsMedianSeconds ");
-          CONSOLE.println(getMotorRecoveryIntervalMedianSeconds());            
-        }                  
-      }            
+      nextRecoverMotorFaultTime = millis() + 1000;                  
+      motorRecoveryState = true;
     } else {
       // no fault
-      if (!recoverySucceeded){
-        recoverySucceeded = true;
-      }
-    }
-  }
+      motorRecoveryState = false;
+    } 
+  } 
 
   // try to recover from a motor driver fault signal by resetting the motor driver fault
   // if it fails, indicate a motor error to the robot control (so it can try an obstacle avoidance)  
@@ -275,7 +256,7 @@ void Motor::run() {
     if (millis() > nextRecoverMotorFaultTime){
       if (recoverMotorFault){
         nextRecoverMotorFaultTime = millis() + 10000;
-        recoverMotorFaultCounter++;                       
+        recoverMotorFaultCounter++;                                               
         CONSOLE.print("motor fault recover counter ");
         CONSOLE.println(recoverMotorFaultCounter);
         motorDriver.resetMotorFaults();

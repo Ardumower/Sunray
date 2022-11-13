@@ -627,12 +627,15 @@ void cmdStats(){
   s += statMowBumperCounter;
   s += ",";
   s += statMowGPSMotionTimeoutCounter;
+  s += ",";
+  s += statMowDurationMotorRecovery;
   cmdAnswer(s);  
 }
 
 // clear statistics
 void cmdClearStats(){
   String s = F("L");
+  statMowDurationMotorRecovery = 0;
   statIdleDuration = 0;
   statChargeDuration = 0;
   statMowDuration = 0;
