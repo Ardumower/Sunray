@@ -63,9 +63,9 @@ class Motor {
     void setLinearAngularSpeed(float linear, float angular, bool useLinearRamp = true);
     void setMowState(bool switchOn);   
     void stopImmediately(bool includeMowerMotor);
-    unsigned int getMotorRecoveryIntervalMedianMinutes();
+    unsigned int getMotorRecoveryIntervalMedianSeconds();
   protected: 
-    RunningMedian<unsigned int, 100> motorRecoveryIntervalsMinutes;
+    RunningMedian<unsigned int, 100> motorRecoveryIntervalsSeconds;
     float motorLeftRpmSet; // set speed
     float motorRightRpmSet;   
     float motorLeftRpmCurr;

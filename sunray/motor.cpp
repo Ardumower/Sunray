@@ -10,9 +10,9 @@
 #include "Arduino.h"
 
 
-unsigned int Motor::getMotorRecoveryIntervalMedianMinutes(){
+unsigned int Motor::getMotorRecoveryIntervalMedianSeconds(){
   unsigned int interval;
-  motorRecoveryIntervalsMinutes.getMedian(interval);
+  motorRecoveryIntervalsSeconds.getMedian(interval);
   return interval;  
 }
 
@@ -280,13 +280,13 @@ void Motor::run() {
       if (recoverMotorFault){
         nextRecoverMotorFaultTime = millis() + 10000;
         recoverMotorFaultCounter++;                
-        int interval = (lastMotorRecoveryTime - millis()) / 1000 / 60;
-        if (abs(interval) > 0){
+        if (recoverMotorFaultCounter == 1){
+          int interval = (millis() - lastMotorRecoveryTime) / 1000;        
           lastMotorRecoveryTime = millis();
           if (interval > 0){          
-            motorRecoveryIntervalsMinutes.add(interval);
-            CONSOLE.print("motorRecoveryIntervalsMedianMinutes ");
-            CONSOLE.println(getMotorRecoveryIntervalMedianMinutes());
+            motorRecoveryIntervalsSeconds.add(interval);
+            CONSOLE.print("motorRecoveryIntervalsMedianSeconds ");
+            CONSOLE.println(getMotorRecoveryIntervalMedianSeconds());            
           }
         }
         CONSOLE.print("motor fault recover counter ");
