@@ -54,6 +54,8 @@ class Motor {
     float motorLeftSenseLPNorm; 
     float motorRightSenseLPNorm;
     unsigned long motorMowSpinUpTime;
+    unsigned long totalMotorRecoveryCounter;
+    unsigned long totalMotorRecoveryFailedCounter;
     void begin();
     void run();      
     void test();

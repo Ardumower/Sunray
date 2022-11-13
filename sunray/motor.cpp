@@ -113,6 +113,9 @@ void Motor::begin() {
   setLinearAngularSpeedTimeoutActive = false;  
   setLinearAngularSpeedTimeout = 0;
   motorMowSpinUpTime = 0;
+
+  totalMotorRecoveryCounter = 0;
+  totalMotorRecoveryFailedCounter = 0;
 }
 
 
@@ -273,6 +276,7 @@ void Motor::run() {
       if (recoverMotorFault){
         nextRecoverMotorFaultTime = millis() + 10000;
         recoverMotorFaultCounter++;                
+        totalMotorRecoveryCounter++;
         CONSOLE.print("motor fault recover counter ");
         CONSOLE.println(recoverMotorFaultCounter);
         motorDriver.resetMotorFaults();
@@ -280,6 +284,7 @@ void Motor::run() {
         if (recoverMotorFaultCounter >= 5){ // too many successive motor faults
           //stopImmediately();
           CONSOLE.println("ERROR: motor recovery failed");
+          totalMotorRecoveryFailedCounter++;
           recoverMotorFaultCounter = 0;
           motorError = true;
         }
