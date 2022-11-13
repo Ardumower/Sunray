@@ -10,6 +10,11 @@
 #include "Arduino.h"
 
 
+unsigned int Motor::getMotorRecoveryIntervalMedianMinutes(){
+  unsigned int interval;
+  motorRecoveryIntervalsMinutes.getMedian(interval);
+  return interval;  
+}
 
 
 void Motor::begin() {
@@ -114,8 +119,7 @@ void Motor::begin() {
   setLinearAngularSpeedTimeout = 0;
   motorMowSpinUpTime = 0;
 
-  totalMotorRecoveryCounter = 0;
-  totalMotorRecoveryFailedCounter = 0;
+  lastMotorRecoveryTime = millis();
 }
 
 
@@ -276,7 +280,15 @@ void Motor::run() {
       if (recoverMotorFault){
         nextRecoverMotorFaultTime = millis() + 10000;
         recoverMotorFaultCounter++;                
-        totalMotorRecoveryCounter++;
+        int interval = (lastMotorRecoveryTime - millis()) / 1000 / 60;
+        if (abs(interval) > 0){
+          lastMotorRecoveryTime = millis();
+          if (interval > 0){          
+            motorRecoveryIntervalsMinutes.add(interval);
+            CONSOLE.print("motorRecoveryIntervalsMedianMinutes ");
+            CONSOLE.println(getMotorRecoveryIntervalMedianMinutes());
+          }
+        }
         CONSOLE.print("motor fault recover counter ");
         CONSOLE.println(recoverMotorFaultCounter);
         motorDriver.resetMotorFaults();
@@ -284,7 +296,6 @@ void Motor::run() {
         if (recoverMotorFaultCounter >= 5){ // too many successive motor faults
           //stopImmediately();
           CONSOLE.println("ERROR: motor recovery failed");
-          totalMotorRecoveryFailedCounter++;
           recoverMotorFaultCounter = 0;
           motorError = true;
         }
