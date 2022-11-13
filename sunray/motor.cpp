@@ -120,6 +120,7 @@ void Motor::begin() {
   motorMowSpinUpTime = 0;
 
   lastMotorRecoveryTime = millis();
+  recoverySucceeded = true;
 }
 
 
@@ -241,36 +242,29 @@ void Motor::run() {
   sense();        
 
   // if motor driver indicates a fault signal, try a recovery   
-  if ((!recoverMotorFault) && (checkFault())) {
-    stopImmediately(true);
-    recoverMotorFault = true;
-    nextRecoverMotorFaultTime = millis() + 1000;
-  }
-
   // if motor driver uses too much current, try a recovery     
-  if ((!recoverMotorFault) && (checkCurrentTooHighError())){
-    stopImmediately(true);
-    recoverMotorFault = true;
-    nextRecoverMotorFaultTime = millis() + 1000;
-  }
-
-  if ((!recoverMotorFault) && (checkMowRpmFault())){
-    stopImmediately(true);
-    recoverMotorFault = true;
-    nextRecoverMotorFaultTime = millis() + 1000;
-  }   
-
-  if ((!recoverMotorFault) && (checkOdometryError())) {    
-    // if there is some error (odometry, too low current, rpm fault), try a recovery
-    stopImmediately(true);
-    recoverMotorFault = true;
-    nextRecoverMotorFaultTime = millis() + 1000;
-  }
-
-  if ((!recoverMotorFault) && (checkCurrentTooLowError())){
-    stopImmediately(true);
-    recoverMotorFault = true;
-    nextRecoverMotorFaultTime = millis() + 1000;
+  // if there is some error (odometry, too low current, rpm fault), try a recovery 
+  if (!recoverMotorFault) {
+    bool someFault = ( (checkFault()) || (checkCurrentTooHighError()) || (checkMowRpmFault()) 
+                         || (checkOdometryError()) || (checkCurrentTooLowError()) );
+    if (someFault){
+      stopImmediately(true);
+      recoverMotorFault = true;
+      nextRecoverMotorFaultTime = millis() + 1000;
+      recoverySucceeded = false;      
+    } else {
+      // no fault
+      if (!recoverySucceeded){
+        recoverySucceeded = true;
+        int interval = (millis() - lastMotorRecoveryTime) / 1000;        
+        lastMotorRecoveryTime = millis();
+        if (interval > 0){          
+          motorRecoveryIntervalsSeconds.add(interval);
+          CONSOLE.print("motorRecoveryIntervalsMedianSeconds ");
+          CONSOLE.println(getMotorRecoveryIntervalMedianSeconds());            
+        }        
+      }
+    }
   }
 
   // try to recover from a motor driver fault signal by resetting the motor driver fault
@@ -279,16 +273,7 @@ void Motor::run() {
     if (millis() > nextRecoverMotorFaultTime){
       if (recoverMotorFault){
         nextRecoverMotorFaultTime = millis() + 10000;
-        recoverMotorFaultCounter++;                
-        if (recoverMotorFaultCounter == 1){
-          int interval = (millis() - lastMotorRecoveryTime) / 1000;        
-          lastMotorRecoveryTime = millis();
-          if (interval > 0){          
-            motorRecoveryIntervalsSeconds.add(interval);
-            CONSOLE.print("motorRecoveryIntervalsMedianSeconds ");
-            CONSOLE.println(getMotorRecoveryIntervalMedianSeconds());            
-          }
-        }
+        recoverMotorFaultCounter++;                        
         CONSOLE.print("motor fault recover counter ");
         CONSOLE.println(recoverMotorFaultCounter);
         motorDriver.resetMotorFaults();

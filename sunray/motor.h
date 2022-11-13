@@ -96,6 +96,7 @@ class Motor {
     PID motorRightPID;        
     bool setLinearAngularSpeedTimeoutActive;
     unsigned long setLinearAngularSpeedTimeout;    
+    bool recoverySucceeded;
     void speedPWM ( int pwmLeft, int pwmRight, int pwmMow );
     void control();    
     bool checkFault();
