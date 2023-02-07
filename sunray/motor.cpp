@@ -258,7 +258,7 @@ void Motor::run() {
         CONSOLE.println(recoverMotorFaultCounter);
         motorDriver.resetMotorFaults();
         recoverMotorFault = false;  
-        if (recoverMotorFaultCounter >= 5){ // too many successive motor faults
+        if (recoverMotorFaultCounter >= 10){ // too many successive motor faults
           //stopImmediately();
           CONSOLE.println("ERROR: motor recovery failed");
           recoverMotorFaultCounter = 0;

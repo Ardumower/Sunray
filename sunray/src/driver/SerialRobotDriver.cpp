@@ -553,6 +553,9 @@ void SerialMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   //serialRobot.requestMotorPwm(leftPwm, rightPwm, mowPwm);
   serialRobot.requestLeftPwm = leftPwm;
   serialRobot.requestRightPwm = rightPwm;
+  // Alfred mowing motor driver seem to start start mowing motor more successfully with full PWM (100%) values...  
+  if (mowPwm > 0) mowPwm = 255;
+    else if (mowPwm < 0) mowPwm = -255;
   serialRobot.requestMowPwm = mowPwm;
 }
 
