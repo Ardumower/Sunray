@@ -255,6 +255,7 @@ void sensorTest(){
 
 void startWIFI(){
 #ifdef __linux__
+  WiFi.begin();
   wifiFound = true;
 #else  
   CONSOLE.println("probing for ESP8266 (NOTE: will fail for ESP32)...");

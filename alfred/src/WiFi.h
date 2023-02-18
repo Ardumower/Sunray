@@ -37,6 +37,7 @@ private:
 
     void init();
     void getStatus();
+    void findWifiInterface();
 public:    
     WiFiClass();
 
@@ -54,6 +55,7 @@ public:
     // start Wifi Protected Setup (WPS) - NOTE: press WPS button on your router first
     int startWifiProtectedSetup();
 
+    void begin();
 
     /* Start Wifi connection for OPEN networks
      *
@@ -137,6 +139,10 @@ public:
      * return: pointer to uint8_t array with length WL_MAC_ADDR_LENGTH
      */
     uint8_t* macAddress(uint8_t* mac);
+    uint8_t* accessPointMacAddress(uint8_t* mac);
+
+    /* return signal level (dBm) */
+    int signalLevel();
 
     /*
      * Get the interface IP address.
