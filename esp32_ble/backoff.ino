@@ -17,7 +17,7 @@ class Backoff
 };
 
 Backoff::Backoff(uint32_t _min, uint32_t _max, float _factor)
-  : factor(_factor), min(_min), max(_max),
+  : min(_min), max(_max), factor(_factor), 
     active(false), last_time(0), last_value(0)
 {
 }
