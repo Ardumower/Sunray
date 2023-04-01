@@ -61,7 +61,7 @@ int BridgeClient::connect(IPAddress ip, uint16_t port){
   serveraddr.sin_family = AF_INET;
   bcopy((const void *)(&ip_addr), (void *)&serveraddr.sin_addr.s_addr, 4);
   serveraddr.sin_port = htons(port);
-  setTimeout(3);  // FIXME: good idea to use this small timeout? (AG) 
+  setTimeout(500 * 1000); // 500ms timeout
   if (sock_connect(sockfd, (struct sockaddr*)&serveraddr, sizeof(serveraddr)) < 0){
     Serial.println("client connect error");        
     return 0;
@@ -85,10 +85,10 @@ int BridgeClient::setSocketOption(int option, char* value, size_t len){
   return setsockopt(sockfd, SOL_SOCKET, option, value, len);
 }
 
-int BridgeClient::setTimeout(uint32_t seconds){
+int BridgeClient::setTimeout(uint32_t useconds){
   struct timeval tv;
-  tv.tv_sec = seconds;
-  tv.tv_usec = 0;
+  tv.tv_sec = 0;
+  tv.tv_usec = useconds;
   if(setSocketOption(SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval)) < 0){
     Serial.println("client set timeout error");        
     return -1;
