@@ -15,11 +15,12 @@ class BridgeClient : public Client {
     int sockfd;
     bool _connected;
     BridgeServer *bridgeServer;
+    struct hostent *server;
   public:
     BridgeClient *next;
-    BridgeClient():bridgeServer(NULL), sockfd(-1),_connected(false),next(NULL){}
-    BridgeClient(BridgeServer *aServer):bridgeServer(aServer), sockfd(-1),_connected(false),next(NULL){}
-    BridgeClient(BridgeServer *aServer, int fd):bridgeServer(aServer), sockfd(fd),_connected(true),next(NULL){
+    BridgeClient():bridgeServer(NULL), sockfd(-1),_connected(false),next(NULL),server(NULL){}
+    BridgeClient(BridgeServer *aServer):bridgeServer(aServer), sockfd(-1),_connected(false),next(NULL),server(NULL){}
+    BridgeClient(BridgeServer *aServer, int fd):bridgeServer(aServer), sockfd(fd),_connected(true),next(NULL),server(NULL){
       //Serial.print("new client fd=");
       //Serial.print(sockfd);
       //Serial.print("  connected=");

@@ -72,11 +72,13 @@ int BridgeClient::connect(IPAddress ip, uint16_t port){
 }
 
 int BridgeClient::connect(const char *host, uint16_t port){
-  struct hostent *server;
-  server = gethostbyname(host);
-  if (server == NULL){
-    Serial.println("client connect error - no server");        
-    return 0;
+  // cache server resolution
+  if (server == NULL) {
+    server = gethostbyname(host);
+    if (server == NULL){
+      Serial.println("client connect error - no server");        
+      return 0;
+    }
   }
   return connect(IPAddress((const uint8_t *)(server->h_addr)), port);
 }
