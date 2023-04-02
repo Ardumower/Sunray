@@ -153,6 +153,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define MOTOR_DRIVER_BRUSHLESS_GEARS_JYQD 1   // uncomment for brushless JYQD driver and gears/traction motor
 
 #define MOTOR_FAULT_CURRENT 6.0    // gear motors fault current (amps)
+#define MOTOR_TOO_LOW_CURRENT 0.005   // gear motor too low current (amps)
 #define MOTOR_OVERLOAD_CURRENT 0.8    // gear motors overload current (amps)
 
 //#define USE_LINEAR_SPEED_RAMP  true      // use a speed ramp for the linear speed
@@ -176,6 +177,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define MAX_MOW_PWM 200  // use this to permanently reduce mowing motor power (255=max)
 
 #define MOW_FAULT_CURRENT 8.0       // mowing motor fault current (amps)
+#define MOW_TOO_LOW_CURRENT 0.005   // mowing motor too low current (amps)
 #define MOW_OVERLOAD_CURRENT 2.0    // mowing motor overload current (amps)
 
 // should the direction of mowing motor toggle each start? (yes: true, no: false)
