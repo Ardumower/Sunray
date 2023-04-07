@@ -12,6 +12,7 @@
   #include <BridgeClient.h>
   #include <Process.h>
   #include <WiFi.h>
+  #include <sys/resource.h>
 #else
   #include "src/esp/WiFiEsp.h"
 #endif
@@ -45,8 +46,8 @@ float statMaxControlCycleTime = 0;
 // mqtt
 #define MSG_BUFFER_SIZE	(50)
 char mqttMsg[MSG_BUFFER_SIZE];
-unsigned long nextPublishTime = 0;
-long lastCRC = 0;
+unsigned long nextMQTTPublishTime = 0;
+unsigned long nextMQTTLoopTime = 0;
 
 // wifi client
 WiFiEspClient wifiClient;
@@ -627,12 +628,15 @@ void cmdStats(){
   s += statMowBumperCounter;
   s += ",";
   s += statMowGPSMotionTimeoutCounter;
+  s += ",";
+  s += statMowDurationMotorRecovery;
   cmdAnswer(s);  
 }
 
 // clear statistics
 void cmdClearStats(){
   String s = F("L");
+  statMowDurationMotorRecovery = 0;
   statIdleDuration = 0;
   statChargeDuration = 0;
   statMowDuration = 0;
@@ -1111,8 +1115,8 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 void processWifiMqttClient()
 {
   if (!ENABLE_MQTT) return; 
-  if (millis() >= nextPublishTime){
-    nextPublishTime = millis() + 10000;
+  if (millis() >= nextMQTTPublishTime){
+    nextMQTTPublishTime = millis() + 20000;
     if (mqttClient.connected()) {
       updateStateOpText();
       // operational state
@@ -1177,7 +1181,10 @@ void processWifiMqttClient()
       mqttReconnect();  
     }
   }
-  mqttClient.loop();
+  if (millis() > nextMQTTLoopTime){
+    nextMQTTLoopTime = millis() + 20000;
+    mqttClient.loop();
+  }
 }
 
 
@@ -1227,22 +1234,31 @@ void outputConsole(){
     CONSOLE.print (" op=");    
     CONSOLE.print (activeOp->getOpChain());    
     //CONSOLE.print (stateOp);
-    CONSOLE.print (" freem=");
-    CONSOLE.print (freeMemory ());
-    #ifndef __linux__
+    #ifdef __linux__
+      CONSOLE.print (" mem=");
+      struct rusage r_usage;
+      getrusage(RUSAGE_SELF,&r_usage);
+      CONSOLE.print(r_usage.ru_maxrss);
+    #else
+      CONSOLE.print (" freem=");
+      CONSOLE.print (freeMemory());  
       uint32_t *spReg = (uint32_t*)__get_MSP();   // stack pointer
       CONSOLE.print (" sp=");
       CONSOLE.print (*spReg, HEX);
     #endif
     CONSOLE.print(" bat=");
     CONSOLE.print(battery.batteryVoltage);
+    CONSOLE.print(",");
+    CONSOLE.print(battery.batteryVoltageSlope, 3);    
     CONSOLE.print("(");    
     CONSOLE.print(motor.motorsSenseLP);    
     CONSOLE.print(") chg=");
     CONSOLE.print(battery.chargingVoltage);    
     CONSOLE.print("(");
     CONSOLE.print(battery.chargingCurrent);    
-    CONSOLE.print(") tg=");
+    CONSOLE.print(") diff=");
+    CONSOLE.print(battery.chargingVoltBatteryVoltDiff, 3);
+    CONSOLE.print(" tg=");
     CONSOLE.print(maps.targetPoint.x());
     CONSOLE.print(",");
     CONSOLE.print(maps.targetPoint.y());

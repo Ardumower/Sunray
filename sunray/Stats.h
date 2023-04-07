@@ -17,6 +17,7 @@ extern unsigned long statMowDuration ; // seconds
 extern unsigned long statMowDurationInvalid ; // seconds
 extern unsigned long statMowDurationFloat ; // seconds
 extern unsigned long statMowDurationFix ; // seconds
+extern unsigned long statMowDurationMotorRecovery ; // seconds
 extern unsigned long statMowFloatToFixRecoveries ; // counter
 extern unsigned long statMowInvalidRecoveries ; // counter
 extern unsigned long statImuRecoveries ; // counter

@@ -6,11 +6,13 @@
 
 #include "Stats.h"
 #include "robot.h"
+#include "motor.h"
 #include <Arduino.h>
 
 
 unsigned long statIdleDuration = 0; // seconds
 unsigned long statChargeDuration = 0; // seconds
+unsigned long statMowDurationMotorRecovery = 0; // seconds
 unsigned long statMowDurationInvalid = 0; // seconds
 unsigned long statMowDuration = 0; // seconds
 unsigned long statMowDurationFloat = 0; // seconds
@@ -45,6 +47,7 @@ void calcStats(){
         break;
       case OP_MOW:      
         statMowDuration++;
+        if (motor.motorRecoveryState) statMowDurationMotorRecovery++;
         if (gps.solution == SOL_FIXED) statMowDurationFix++;
           else if (gps.solution == SOL_FLOAT) statMowDurationFloat++;   
           else if (gps.solution == SOL_INVALID) statMowDurationInvalid++;

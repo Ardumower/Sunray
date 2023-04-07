@@ -95,6 +95,7 @@ void MowOp::onRainTriggered(){
         CONSOLE.println("RAIN TRIGGERED");
         stateSensor = SENS_RAIN;
         dockOp.dockReasonRainTriggered = true;
+        dockOp.dockReasonRainAutoStartTime = millis() + 60000 * 60; // try again after one hour 
         dockOp.setInitiatedByOperator(false);
         dockOp.reason = DockOp::TRIGGERED_BY_RAIN;
         changeOp(dockOp);              
@@ -106,14 +107,15 @@ void MowOp::onTempOutOfRangeTriggered(){
         CONSOLE.println("TEMP OUT-OF-RANGE TRIGGERED");
         stateSensor = SENS_TEMP_OUT_OF_RANGE;
         dockOp.dockReasonRainTriggered = true;
+        dockOp.dockReasonRainAutoStartTime = millis() + 60000 * 60; // try again after one hour      
         dockOp.setInitiatedByOperator(false);
         dockOp.reason = DockOp::TRIGGERED_BY_OVERTEMP;
         changeOp(dockOp);              
     }
 }
 
-void MowOp::onBatteryLowShouldDock(){
-    dockOp.reason = DockOp::TRIGGERED_BY_LOW_BAT;
+void MowOp::onBatteryLowShouldDock(){    
+    CONSOLE.println("BATTERY LOW TRIGGERED - DOCKING");
     dockOp.setInitiatedByOperator(false);
     changeOp(dockOp);
 }

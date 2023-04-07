@@ -10,14 +10,12 @@
 #include "Arduino.h"
 
 
-
-
 void Motor::begin() {
 	pwmMax = 255;
  
-  #ifdef MAX_MOW_RPM
-    if (MAX_MOW_RPM <= 255) {
-      pwmMaxMow = MAX_MOW_RPM;
+  #ifdef MAX_MOW_PWM
+    if (MAX_MOW_PWM <= 255) {
+      pwmMaxMow = MAX_MOW_PWM;
     }
     else pwmMaxMow = 255;
   #else 
@@ -25,9 +23,7 @@ void Motor::begin() {
   #endif
   
   pwmSpeedOffset = 1.0;
-  mowMotorCurrentAverage = MOWMOTOR_CURRENT_FACTOR * MOW_OVERLOAD_CURRENT;
-  currentFactor = MOWMOTOR_CURRENT_FACTOR;
-
+  
   //ticksPerRevolution = 1060/2;
   ticksPerRevolution = TICKS_PER_REVOLUTION;
 	wheelBaseCm = WHEEL_BASE_CM;    // wheel-to-wheel distance (cm) 36
@@ -115,106 +111,18 @@ void Motor::begin() {
   setLinearAngularSpeedTimeoutActive = false;  
   setLinearAngularSpeedTimeout = 0;
   motorMowSpinUpTime = 0;
+
+  motorRecoveryState = false;
 }
 
 
 void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
 {
-  //########################  Declaration ############################
-
-  int pwmVariableMow = 0;
-
-  //########################  Modify pwm depend to to actual Mower Current ############################
-
-  if ((pwmMow != 0) && (ENABLE_DYNAMIC_MOWMOTOR))
-  {
-    switch (DYNAMIC_MOWMOTOR_ALGORITHM){
-      case 1:
-        pwmVariableMow = (int)((MAX_MOW_RPM - MIN_MOW_RPM) * (motorMowSenseLP / MOW_OVERLOAD_CURRENT));
-        break;
-      case 2:
-        pwmVariableMow = (int)((MAX_MOW_RPM - MIN_MOW_RPM) * sqrt((motorMowSenseLP / MOW_OVERLOAD_CURRENT)));
-        break;
-      case 3:
-        pwmVariableMow = (int)((MAX_MOW_RPM - MIN_MOW_RPM) * sq((motorMowSenseLP / MOW_OVERLOAD_CURRENT)));
-        break;
-      default:
-        pwmVariableMow = (int)((MAX_MOW_RPM - MIN_MOW_RPM) * (motorMowSenseLP / MOW_OVERLOAD_CURRENT));
-        break;
-    }
-
-    if (motorMowSenseLP > MOW_OVERLOAD_CURRENT) pwmVariableMow = 0; // failure detection if mower is stuck.
-    if (pwmMow < 0) // check motor direction
-    {
-      pwmMow = (MIN_MOW_RPM + pwmVariableMow) * - 1;
-    }
-    else
-    {
-      pwmMow = MIN_MOW_RPM + pwmVariableMow;
-    }
-    
-//    CONSOLE.print("setpwmMow: ");
-//    CONSOLE.print(pwmMow);
-//    CONSOLE.print(" motorMowSenseLP: "); 
-//    CONSOLE.println(motorMowSenseLP);
-  }
-
-  //########################  Correct Motor Direction ############################
-  
+  //Correct Motor Direction
   if (motorLeftSwapDir) pwmLeft *= -1;
   if (motorRightSwapDir) pwmRight *= -1;
 
-  //########################  Set Mower Speed depend to actual Mower Current ############################
-
-  if ((pwmMow != 0) && (ENABLE_DYNAMIC_MOWER_SPEED))
-  {    
-    if (USE_MOWMOTOR_CURRENT_AVERAGE)
-    {
-      float pwmAverageMow = (MAX_MOW_RPM - MIN_MOW_RPM) / 2 + MIN_MOW_RPM;
-
-      if ((pwmAverageMow - (MAX_MOW_RPM - MIN_MOW_RPM) / 10) < abs(pwmMow) || abs(pwmMow) > (pwmAverageMow + (pwmMaxMow - MIN_MOW_RPM) / 10))
-      {
-        mowMotorCurrentAverage = (( mowMotorCurrentAverage * 10000) + (motorMowSenseLP)) / (10000 + 1);
-        currentFactor = mowMotorCurrentAverage / MOW_OVERLOAD_CURRENT;
-//        CONSOLE.print("ADJUST CURRENT FACTOR ");
-      }
-    }
-
-//    CONSOLE.print("mowMotorCurrentAverage: ");
-//    CONSOLE.print(mowMotorCurrentAverage);
-//    CONSOLE.print(" currentFactor: ");
-//    CONSOLE.println(currentFactor);
-
-    if (motorMowSenseLP > currentFactor * MOW_OVERLOAD_CURRENT * 0.9) pwmSpeedOffset -= SPEED_ACCELERATION * 2;
-    if (motorMowSenseLP < currentFactor * MOW_OVERLOAD_CURRENT * 1.1) pwmSpeedOffset += SPEED_ACCELERATION;
-    
-    pwmSpeedOffset  = min(SPEED_FACTOR_MAX, max(SPEED_FACTOR_MIN, pwmSpeedOffset));
-
-    //########################  Detect a curve ############################
-
-    pwmSpeedCurveDetection = false;
-    
-    if (abs(pwmLeft - pwmRight) > (abs(pwmLeft + pwmRight) / 8))
-    { 
-      pwmSpeedCurveDetection = true;
-//      CONSOLE.println("at curves, speed will not be adjusted");
-    }
-    
-//    CONSOLE.print("pwmLeftMotor: ");
-//    CONSOLE.print(pwmLeft);
-//    CONSOLE.print(" pwmRightMotor: ");
-//    CONSOLE.print(pwmRight);
-//    CONSOLE.print(" setpwmSpeedOffset: ");
-//    CONSOLE.println(pwmSpeedOffset);
- 
-    //########################  set modified pwm value ############################
-    
-    //pwmLeft  = (int)(pwmLeft * pwmSpeedOffset);
-    //pwmRight = (int)(pwmRight * pwmSpeedOffset);
-  }
-
-  //########################  Check pwm higher than Max ############################
-  
+  // ensure pwm is lower than Max
   pwmLeft = min(pwmMax, max(-pwmMax, pwmLeft));
   pwmRight = min(pwmMax, max(-pwmMax, pwmRight));  
   pwmMow = min(pwmMaxMow, max(-pwmMaxMow, pwmMow)); 
@@ -326,37 +234,18 @@ void Motor::run() {
   sense();        
 
   // if motor driver indicates a fault signal, try a recovery   
-  if ((!recoverMotorFault) && (checkFault())) {
-    stopImmediately(true);
-    recoverMotorFault = true;
-    nextRecoverMotorFaultTime = millis() + 1000;
-  }
-
   // if motor driver uses too much current, try a recovery     
-  if ((!recoverMotorFault) && (checkCurrentTooHighError())){
-    stopImmediately(true);
-    recoverMotorFault = true;
-    nextRecoverMotorFaultTime = millis() + 1000;
-  }
-
-  if ((!recoverMotorFault) && (checkMowRpmFault())){
-    stopImmediately(true);
-    recoverMotorFault = true;
-    nextRecoverMotorFaultTime = millis() + 1000;
-  }   
-
-  if ((!recoverMotorFault) && (checkOdometryError())) {    
-    // if there is some error (odometry, too low current, rpm fault), try a recovery
-    stopImmediately(true);
-    recoverMotorFault = true;
-    nextRecoverMotorFaultTime = millis() + 1000;
-  }
-
-  if ((!recoverMotorFault) && (checkCurrentTooLowError())){
-    stopImmediately(true);
-    recoverMotorFault = true;
-    nextRecoverMotorFaultTime = millis() + 1000;
-  }
+  // if there is some error (odometry, too low current, rpm fault), try a recovery 
+  if (!recoverMotorFault) {
+    bool someFault = ( (checkFault()) || (checkCurrentTooHighError()) || (checkMowRpmFault()) 
+                         || (checkOdometryError()) || (checkCurrentTooLowError()) );
+    if (someFault){
+      stopImmediately(true);
+      recoverMotorFault = true;
+      nextRecoverMotorFaultTime = millis() + 1000;                  
+      motorRecoveryState = true;
+    } 
+  } 
 
   // try to recover from a motor driver fault signal by resetting the motor driver fault
   // if it fails, indicate a motor error to the robot control (so it can try an obstacle avoidance)  
@@ -364,12 +253,12 @@ void Motor::run() {
     if (millis() > nextRecoverMotorFaultTime){
       if (recoverMotorFault){
         nextRecoverMotorFaultTime = millis() + 10000;
-        recoverMotorFaultCounter++;                
+        recoverMotorFaultCounter++;                                               
         CONSOLE.print("motor fault recover counter ");
         CONSOLE.println(recoverMotorFaultCounter);
         motorDriver.resetMotorFaults();
         recoverMotorFault = false;  
-        if (recoverMotorFaultCounter >= 5){ // too many successive motor faults
+        if (recoverMotorFaultCounter >= 10){ // too many successive motor faults
           //stopImmediately();
           CONSOLE.println("ERROR: motor recovery failed");
           recoverMotorFaultCounter = 0;
@@ -379,6 +268,7 @@ void Motor::run() {
         CONSOLE.println("resetting recoverMotorFaultCounter");
         recoverMotorFaultCounter = 0;
         nextRecoverMotorFaultTime = 0;
+        motorRecoveryState = false;
       }        
     }
   }
@@ -452,9 +342,9 @@ bool Motor::checkCurrentTooLowError(){
   //CONSOLE.print(motorRightPWMCurr);
   //CONSOLE.print(",");
   //CONSOLE.println(motorRightSenseLP);
-  if  (    ( (abs(motorMowPWMCurr) > 100) && (abs(motorMowPWMCurrLP) > 100) && (motorMowSenseLP < 0.005)) 
-        ||  ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (motorLeftSenseLP < 0.005))    
-        ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (motorRightSenseLP < 0.005))  ){        
+  if  (    ( (abs(motorMowPWMCurr) > 100) && (abs(motorMowPWMCurrLP) > 100) && (motorMowSenseLP < MOW_TOO_LOW_CURRENT)) 
+        ||  ( (abs(motorLeftPWMCurr) > 100) && (abs(motorLeftPWMCurrLP) > 100) && (motorLeftSenseLP < MOTOR_TOO_LOW_CURRENT))    
+        ||  ( (abs(motorRightPWMCurr) > 100) && (abs(motorRightPWMCurrLP) > 100) && (motorRightSenseLP < MOTOR_TOO_LOW_CURRENT))  ){        
     // at least one motor is not consuming current      
     // first try reovery, then indicate a motor error to the robot control (so it can try an obstacle avoidance)    
     CONSOLE.print("ERROR: motor current too low: pwm (left,right,mow)=");
@@ -603,26 +493,11 @@ void Motor::sense(){
 
 void Motor::control(){  
     
-  //########################  Set SpeedOffset if curve or manual driving is detected ############################
-  
-  float tempPwmSpeedOffset = pwmSpeedOffset;
-
-  float tempMotorLeftRpmSet;
-  float tempMotorRightRpmSet;
-
-  if (pwmSpeedCurveDetection)
-  {
-    tempPwmSpeedOffset = 1;
-  }
-
-  tempMotorLeftRpmSet = motorLeftRpmSet * tempPwmSpeedOffset; // set RPM speed with corrected dynamic speed
-  tempMotorRightRpmSet = motorRightRpmSet * tempPwmSpeedOffset; // set RPM speed with corrected dynamic speed
-
   //########################  Calculate PWM for left driving motor ############################
 
-  motorLeftPID.TaMax = 0.07;
+  motorLeftPID.TaMax = 0.1;
   motorLeftPID.x = motorLeftRpmCurr;
-  motorLeftPID.w  = tempMotorLeftRpmSet;
+  motorLeftPID.w  = motorLeftRpmSet;
   motorLeftPID.y_min = -pwmMax;
   motorLeftPID.y_max = pwmMax;
   motorLeftPID.max_output = pwmMax;
@@ -633,9 +508,9 @@ void Motor::control(){
 
   //########################  Calculate PWM for right driving motor ############################
   
-  motorRightPID.TaMax = 0.07;
+  motorRightPID.TaMax = 0.1;
   motorRightPID.x = motorRightRpmCurr;
-  motorRightPID.w = tempMotorRightRpmSet;
+  motorRightPID.w = motorRightRpmSet;
   motorRightPID.y_min = -pwmMax;
   motorRightPID.y_max = pwmMax;
   motorRightPID.max_output = pwmMax;

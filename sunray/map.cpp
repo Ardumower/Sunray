@@ -1803,7 +1803,16 @@ bool Map::findPath(Point &src, Point &dst){
     //pathFinderObstacles.dump();
     
     // create nodes
-    if (!pathFinderNodes.alloc(exclusions.numPoints() + obstacles.numPoints() + perimeterPoints.numPoints + 2)) return false;
+    int allocNodeCount = exclusions.numPoints() + obstacles.numPoints() + perimeterPoints.numPoints + 2;
+    CONSOLE.print ("freem=");
+    CONSOLE.print(freeMemory ());    
+    CONSOLE.print("  allocating nodes ");
+    CONSOLE.print(allocNodeCount);
+    CONSOLE.print(" (");
+    CONSOLE.print(sizeof(Node) * allocNodeCount);
+    CONSOLE.println(" bytes)");
+
+    if (!pathFinderNodes.alloc(allocNodeCount)) return false;
     for (int i=0; i < pathFinderNodes.numNodes; i++){
       pathFinderNodes.nodes[i].init();
     }
@@ -1943,11 +1952,15 @@ bool Map::findPath(Point &src, Point &dst){
         }
       }
     } 
-    
+
     CONSOLE.print("finish nodes=");
     CONSOLE.print(pathFinderNodes.numNodes);
     CONSOLE.print(" duration=");
     CONSOLE.println(millis()-startTime);  
+
+    //delay(8000); // simulate a busy path finder
+
+    resetImuTimeout();
 
     if ((currentNode != NULL) && (distance(*currentNode->point, *end->point) < 0.02)) {
       Node *curr = currentNode;
@@ -1970,14 +1983,13 @@ bool Map::findPath(Point &src, Point &dst){
       }            
     } else {
       // No result was found
-      resetImuTimeout();
       CONSOLE.println("pathfinder: no path");      
       return false;
       //freePoints.alloc(2);
       //freePoints.points[0].assign(src);    
       //freePoints.points[1].assign(dst);        
     }       
-  } else {
+  } else {  // path finder not enabled (ENABLE_PATH_FINDER=false)    
     if (!freePoints.alloc(2)) return false;
     freePoints.points[0].assign(src);    
     freePoints.points[1].assign(dst);        

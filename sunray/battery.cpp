@@ -29,11 +29,13 @@ void Battery::begin()
   nextBatteryTime = 0;
   nextCheckTime = 0;
   nextEnableTime = 0;
+  nextSlopeTime = 0;
 	timeMinutes=0;  
   chargingVoltage = 0;
   chargingCompletedDelay =0;
   batteryVoltage = 0;
-  chargerConnectedState = false;      
+  chargerConnectedState = false;
+  badChargerContactState = false;      
   chargingCompleted = false;
   chargingEnabled = true;
   
@@ -46,6 +48,9 @@ void Battery::begin()
   batFullVoltage = BAT_FULL_VOLTAGE;  //28.7  voltage when battery is fully charged (we charge to only 90% to increase battery life time)
   enableChargingTimeout = 60 * 30; // if battery is full, wait this time before enabling charging again (seconds)
   batteryVoltage = 0;
+  batteryVoltageLast = 0;
+  batteryVoltageSlope = 0;
+  chargingVoltBatteryVoltDiff = 0;
   switchOffByOperator = false;
   switchOffAllowedUndervoltage = BAT_SWITCH_OFF_UNDERVOLTAGE;
   switchOffAllowedIdle = BAT_SWITCH_OFF_IDLE;
@@ -67,6 +72,10 @@ void Battery::enableCharging(bool flag){
 
 bool Battery::chargerConnected(){
   return chargerConnectedState;  
+}
+
+bool Battery::badChargerContact(){
+  return badChargerContactState;
 }
  
 bool Battery::chargingHasCompleted(){
@@ -104,22 +113,37 @@ void Battery::run(){
   nextBatteryTime = millis() + 50;
   if (startupPhase == 1) startupPhase = 2;
 
+  // voltage
   float voltage = batteryDriver.getChargeVoltage();
-  if (abs(chargingVoltage-voltage) > 10) chargingVoltage = voltage;  
+  if (abs(chargingVoltage-voltage) > 10) {
+    chargingVoltage = voltage;
+    chargingVoltBatteryVoltDiff = 0;
+  }  
   chargingVoltage = 0.9 * chargingVoltage + 0.1* voltage;  
 
   voltage = batteryDriver.getBatteryVoltage();
-  if (abs(batteryVoltage-voltage) > 10) batteryVoltage = voltage;  
+  if (abs(batteryVoltage-voltage) > 10) {
+    batteryVoltage = voltage;
+    batteryVoltageLast = voltage;
+    chargingVoltBatteryVoltDiff = 0;
+  }  
   float w = 0.995;
   if (chargerConnectedState) w = 0.9;
   batteryVoltage = w * batteryVoltage + (1-w) * voltage;  
 
+  // difference charging voltage and battery voltage
+  chargingVoltBatteryVoltDiff = 0.99 * chargingVoltBatteryVoltDiff + 0.01 * (chargingVoltage - batteryVoltage);  
+
+  // current
   chargingCurrent = 0.9 * chargingCurrent + 0.1 * batteryDriver.getChargeCurrent();    
 	
   if (!chargerConnectedState){
 	  if (chargingVoltage > 7){
       chargerConnectedState = true;		    
-		  DEBUGLN(F("CHARGER CONNECTED"));      	              
+		  DEBUG(F("CHARGER CONNECTED chgV="));      	                    
+      DEBUG(chargingVoltage);      
+      DEBUG(F(" batV="));
+      DEBUGLN(batteryVoltage);
       buzzer.sound(SND_OVERCURRENT, true);        
     }
   }
@@ -130,12 +154,18 @@ void Battery::run(){
       if (chargingVoltage <= 5){
         chargerConnectedState = false;
         nextEnableTime = millis() + 5000;  	 // reset charging enable time  	   	 
-        DEBUGLN(F("CHARGER DISCONNECTED"));              				        
+        DEBUG(F("CHARGER DISCONNECTED chgV="));
+        DEBUG(chargingVoltage);        
+        DEBUG(F(" batV="));
+        DEBUGLN(batteryVoltage);                
       }
     }      		
     timeMinutes = (millis()-chargingStartTime) / 1000 /60;
     if (underVoltage()) {
-      DEBUGLN(F("SWITCHING OFF (undervoltage)"));              
+      DEBUG(F("SWITCHING OFF (undervoltage) batV="));
+      DEBUG(batteryVoltage);
+      DEBUG("<");
+      DEBUGLN(batSwitchOffIfBelow);
       buzzer.sound(SND_OVERCURRENT, true);
       if (switchOffAllowedUndervoltage)  batteryDriver.keepPowerOn(false);     
     } else if ((millis() >= switchOffTime) || (switchOffByOperator)) {
@@ -143,10 +173,37 @@ void Battery::run(){
       buzzer.sound(SND_OVERCURRENT, true);
       if ((switchOffAllowedIdle) || (switchOffByOperator)) batteryDriver.keepPowerOn(false);
     } else batteryDriver.keepPowerOn(true);              
-    	      
+
+    // battery volage slope 
+    float w = 0.999; 
+    batteryVoltageSlope = w * batteryVoltageSlope + (1-w) * (batteryVoltage - batteryVoltageLast) * 60.0/5.0;   // 5s => 1min  
+    batteryVoltageLast = batteryVoltage;
+    
+    if (millis() >= nextSlopeTime){
+      nextSlopeTime = millis() + 60000; // 1 minute
+      badChargerContactState = false;
+      if (chargerConnectedState){
+        if (!chargingCompleted){
+          if (chargingVoltBatteryVoltDiff < -1.0){
+          //if (batteryVoltageSlope < 0){
+            badChargerContactState = true;
+            DEBUG(F("CHARGER BAD CONTACT chgV="));
+            DEBUG(chargingVoltage);
+            DEBUG(" batV=");
+            DEBUG(batteryVoltage);
+            DEBUG(" diffV=");
+            DEBUG(chargingVoltBatteryVoltDiff);
+            DEBUG(" slope(v/min)=");
+            DEBUGLN(batteryVoltageSlope);
+          }      
+        } 
+      } 
+    }
+
 		if (millis() >= nextPrintTime){
-			nextPrintTime = millis() + 60000;  	   	   	
-			//print();			
+			nextPrintTime = millis() + 60000;  // 1 minute  	   	   	
+			
+      //print();			
 			/*DEBUG(F("charger conn="));
 			DEBUG(chargerConnected());
 			DEBUG(F(" chgEnabled="));

@@ -132,11 +132,14 @@ void readIMU(){
   bool avail = (imuDriver.isDataAvail());
   // check time for I2C access : if too long, there's an I2C issue and we need to restart I2C bus...
   unsigned long duration = millis() - startTime;    
+  if (avail) imuDataTimeout = millis() + 10000; // reset IMU data timeout, if IMU data available
   //CONSOLE.print("duration:");
   //CONSOLE.println(duration);  
-  if ((duration > 40) || (millis() > imuDataTimeout)) {
+  if ((duration > 60) || (millis() > imuDataTimeout)) {
     if (millis() > imuDataTimeout){
-      CONSOLE.println("ERROR IMU data timeout (check RTC battery if problem persists)");  
+      CONSOLE.print("ERROR IMU data timeout: ");
+      CONSOLE.print(millis()-imuDataTimeout);
+      CONSOLE.println(" (check RTC battery if problem persists)");  
     } else {
       CONSOLE.print("ERROR IMU timeout: ");
       CONSOLE.print(duration);     

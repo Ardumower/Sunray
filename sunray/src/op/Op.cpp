@@ -224,6 +224,9 @@ void Op::onTargetReached(){
 void Op::onChargerDisconnected(){
 }
 
+void Op::onBadChargingContactDetected(){
+}
+
 void Op::onChargingCompleted(){    
 }
 

@@ -14,6 +14,7 @@
 
 //PID pidLine(0.2, 0.01, 0); // not used
 //PID pidAngle(2, 0.1, 0);  // not used
+Polygon circle(8);
 
 float stanleyTrackingNormalK = STANLEY_CONTROL_K_NORMAL;
 float stanleyTrackingNormalP = STANLEY_CONTROL_P_NORMAL;    
@@ -33,7 +34,6 @@ bool printmotoroverload = false;
 bool trackerDiffDelta_positive = false;
 
 int get_turn_direction_preference() {
-  Polygon circle(8);
   Point target = maps.targetPoint;
   float targetDelta = pointsAngle(stateX, stateY, target.x(), target.y());
   float center_x = stateX;
@@ -326,10 +326,10 @@ void trackLine(bool runControl){
 
   if (runControl){
     if (angleToTargetFits != langleToTargetFits) {
-        CONSOLE.print("angleToTargetFits: ");
-        CONSOLE.print(angleToTargetFits);
-        CONSOLE.print(" trackerDiffDelta: ");
-        CONSOLE.println(trackerDiffDelta);
+        //CONSOLE.print("angleToTargetFits: ");
+        //CONSOLE.print(angleToTargetFits);
+        //CONSOLE.print(" trackerDiffDelta: ");
+        //CONSOLE.println(trackerDiffDelta);
         langleToTargetFits = angleToTargetFits;
     }
 

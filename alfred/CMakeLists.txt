@@ -81,7 +81,7 @@ set_source_files_properties(${FIRMWARE_PATH}/sunray.ino PROPERTIES COMPILE_FLAGS
 
 add_executable(sunray ${pi_sources} ${sunray_cpp} ${sunray_c} ${FIRMWARE_PATH}/sunray.ino)
 target_include_directories(sunray PRIVATE src ${FIRMWARE_PATH}/src)
-target_link_libraries(sunray "${CMAKE_SOURCE_DIR}/lib/libarduino_${CMAKE_SYSTEM_PROCESSOR}.a")
+# target_link_libraries(sunray "${CMAKE_SOURCE_DIR}/lib/libarduino_${CMAKE_SYSTEM_PROCESSOR}.a")
 
 # target_include_directories(sunray PUBLIC ${LIBNL_INCLUDE_DIR})
 # target_link_libraries(sunray ${LIBIW_LIB} ${LIBNL_LIB} ${LIBNL_GENL_LIB})

@@ -134,6 +134,7 @@ unsigned long nextGPSMotionCheckTime = 0;
 
 bool finishAndRestart = false;
 
+unsigned long nextBadChargingContactCheck = 0;
 unsigned long nextToFTime = 0;
 unsigned long linearMotionStartTime = 0;
 unsigned long angularMotionStartTime = 0;
@@ -254,6 +255,7 @@ void sensorTest(){
 
 void startWIFI(){
 #ifdef __linux__
+  WiFi.begin();
   wifiFound = true;
 #else  
   CONSOLE.println("probing for ESP8266 (NOTE: will fail for ESP32)...");
@@ -418,8 +420,10 @@ void outputConfig(){
   #ifdef MOTOR_RIGHT_SWAP_DIRECTION
     CONSOLE.println("MOTOR_RIGHT_SWAP_DIRECTION");
   #endif
-  CONSOLE.print("ENABLE_DYNAMIC_MOWER_SPEED: ");
-  CONSOLE.println(ENABLE_DYNAMIC_MOWER_SPEED);
+  #ifdef MAX_MOW_PWM
+    CONSOLE.print("MAX_MOW_PWM: ");
+    CONSOLE.println(MAX_MOW_PWM);
+  #endif
   CONSOLE.print("MOW_FAULT_CURRENT: ");
   CONSOLE.println(MOW_FAULT_CURRENT);
   CONSOLE.print("MOW_OVERLOAD_CURRENT: ");
@@ -432,8 +436,6 @@ void outputConfig(){
   CONSOLE.println(ENABLE_FAULT_OBSTACLE_AVOIDANCE);
   CONSOLE.print("ENABLE_RPM_FAULT_DETECTION: ");
   CONSOLE.println(ENABLE_RPM_FAULT_DETECTION);
-  CONSOLE.print("ENABLE_DYNAMIC_MOWMOTOR: ");
-  CONSOLE.println(ENABLE_DYNAMIC_MOWMOTOR);
   #ifdef SONAR_INSTALLED
     CONSOLE.println("SONAR_INSTALLED");
     CONSOLE.print("SONAR_ENABLE: ");  
@@ -513,9 +515,8 @@ void outputConfig(){
   CONSOLE.println(STANLEY_CONTROL_K_SLOW);
   CONSOLE.print("BUTTON_CONTROL: ");
   CONSOLE.println(BUTTON_CONTROL);
-  #ifdef USE_TEMP_SENSOR
-    CONSOLE.println("USE_TEMP_SENSOR");
-  #endif
+  CONSOLE.print("USE_TEMP_SENSOR: ");
+  CONSOLE.println(USE_TEMP_SENSOR);
   #ifdef BUZZER_ENABLE
     CONSOLE.println("BUZZER_ENABLE");    
   #endif
@@ -944,6 +945,12 @@ void run(){
       } else {
         activeOp->onChargerDisconnected();
       }            
+    }
+    if (millis() > nextBadChargingContactCheck) {
+      if (battery.badChargerContact()){
+        nextBadChargingContactCheck = millis() + 60000; // 1 min.
+        activeOp->onBadChargingContactDetected();
+      }
     } 
 
     if (battery.underVoltage()){
@@ -959,10 +966,12 @@ void run(){
         }
       }
       if (RAIN_ENABLE){
-        if (rainDriver.triggered()){
-          //CONSOLE.println("RAIN TRIGGERED");
-          activeOp->onRainTriggered();
-        }
+        // rain sensor should trigger serveral times to robustly detect rain (robust rain detection)
+        // it should not trigger if one rain drop or wet tree leaves touches the sensor  
+        if (rainDriver.triggered()){  
+          //CONSOLE.print("RAIN TRIGGERED ");
+          activeOp->onRainTriggered();                                                                              
+        }                           
       }    
       if (battery.shouldGoHome()){
         if (DOCKING_STATION){

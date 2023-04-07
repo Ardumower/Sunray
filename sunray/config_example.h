@@ -153,6 +153,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define MOTOR_DRIVER_BRUSHLESS_GEARS_JYQD 1   // uncomment for brushless JYQD driver and gears/traction motor
 
 #define MOTOR_FAULT_CURRENT 6.0    // gear motors fault current (amps)
+#define MOTOR_TOO_LOW_CURRENT 0.005   // gear motor too low current (amps)
 #define MOTOR_OVERLOAD_CURRENT 0.8    // gear motors overload current (amps)
 
 //#define USE_LINEAR_SPEED_RAMP  true      // use a speed ramp for the linear speed
@@ -167,26 +168,16 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define MOTOR_LEFT_SWAP_DIRECTION 1  // uncomment to swap left motor direction
 //#define MOTOR_RIGHT_SWAP_DIRECTION 1  // uncomment to swap right motor direction
 
-// ------------ dynamic gear motors speed ----------------
-// speed will be adjusted by the mowing motor current. If USE_MOWMOTOR_CURRENT_AVERAGE is set to false, the Speed 
-// will be changed if the mow Current is lower or higher than MOWMOTOR_CURRENT_FACTOR * MOW_OVERLOAD_CURRENT.
-// If USE_MOWMOTOR_CURRENT_AVERAGE is set to true the algorithm will detect the current at the middle PWM of the mowMotor.
-// The mowing average will be calculate over 10000 loops and start at MOWMOTOR_CURRENT_FACTOR.
-#define ENABLE_DYNAMIC_MOWER_SPEED false
-#define SPEED_ACCELERATION 0.005 // Speed factor will be changed with every programm loop 
-
-#define SPEED_FACTOR_MAX 1.2
-#define SPEED_FACTOR_MIN 0.5
-#define USE_MOWMOTOR_CURRENT_AVERAGE true
-#define MOWMOTOR_CURRENT_FACTOR 0.25
-
 
 // ----- mowing motor -------------------------------------------------
 // NOTE: motor drivers will indicate 'fault' signal if motor current (e.g. due to a stall on a molehole) or temperature is too high for a 
 // certain time (normally a few seconds) and the mower will try again and set a virtual obstacle after too many tries
 // On the other hand, the overload detection will detect situations the fault signal cannot detect: slightly higher current for a longer time 
 
+//#define MAX_MOW_PWM 200  // use this to permanently reduce mowing motor power (255=max)
+
 #define MOW_FAULT_CURRENT 8.0       // mowing motor fault current (amps)
+#define MOW_TOO_LOW_CURRENT 0.005   // mowing motor too low current (amps)
 #define MOW_OVERLOAD_CURRENT 2.0    // mowing motor overload current (amps)
 
 // should the direction of mowing motor toggle each start? (yes: true, no: false)
@@ -206,14 +197,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // should the robot trigger obstacle avoidance on motor errors if motor recovery failed?
 #define ENABLE_FAULT_OBSTACLE_AVOIDANCE true  
-
-// ----------- dynamic mowingm motor RPM --------------
-// RPM of the mow motor will be adjust over the actual current of the mow motor. If the motor needs more current the PWM will be higher.
-// it can be used 3 different functions for the calculation of the PWM depended´nt on the mowMotor current. The root-Function is recommended
-#define ENABLE_DYNAMIC_MOWMOTOR false // set true to activate, set false to deactivate
-#define DYNAMIC_MOWMOTOR_ALGORITHM 2 // 1 - linear; 2 - root-Function; 3 - square-Function
-#define MIN_MOW_RPM 170   //minimum value of mow RPM
-#define MAX_MOW_RPM 255   // maximum value is 255
 
 
 // ------ WIFI module (ESP8266 ESP-01 with ESP firmware 2.2.1) --------------------------------
@@ -395,6 +378,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DOCK_AUTO_START true     // robot will automatically continue mowing after docked automatically
 //#define DOCK_AUTO_START false      // robot will not automatically continue mowing after docked automatically
 
+//#define DOCK_RETRY_TOUCH true   // robot will retry touching docking contacts (max. 1cm) if loosing docking contacts during charging
+#define DOCK_RETRY_TOUCH false   // robot will not retry touching docking contacts (max. 1cm) if loosing docking contacts during charging
+
 #define DOCK_UNDOCK_TRACKSLOW_DISTANCE 5 // set distance (m) from dock for trackslow (speed limit)
 
 #define UNDOCK_IGNORE_GPS_DISTANCE 2 // set distance (m) from dock to ignore gps while undocking
@@ -419,7 +405,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
                                  //  1 beep=stop, 6 beeps=start, 5 beeps=dock, 3 beeps=R/C mode ON/OFF, 9 beeps=shutdown, 12 beeps=WiFi WPS
 //#define BUTTON_CONTROL false   // additional features deactivated
 
-//#define USE_TEMP_SENSOR 1   // only activate if temp sensor (htu21d) connected
+//#define USE_TEMP_SENSOR true  // only activate if temp sensor (htu21d) connected
+#define USE_TEMP_SENSOR false  
+
 #define DOCK_OVERHEAT_TEMP 90    // if temperature above this degreeC, mower will dock 
 #define DOCK_TOO_COLD_TEMP 5    // if temperature below this degreeC, mower will dock 
 

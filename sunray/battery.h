@@ -20,7 +20,10 @@ class Battery {
     int enableChargingTimeout;
     float batFullCurrent;
 	  float batteryVoltage;   // volts
-	  float chargingVoltage;  // volts
+    float batteryVoltageLast;
+    float chargingVoltBatteryVoltDiff;    
+    float batteryVoltageSlope; // slope (volts/minute)	  
+    float chargingVoltage;  // volts
 	  float chargingCurrent;  // amps
     bool chargingEnabled;
     int chargingCompletedDelay; // ensure that loadingcurrent or loadingvoltage triggers 'chargingCompleted' condition for a longer period
@@ -28,6 +31,7 @@ class Battery {
 	  void begin();            
     void run();	  
 	  bool chargerConnected();
+    bool badChargerContact();
     void enableCharging(bool flag);   	      
     bool shouldGoHome();    
     bool chargingHasCompleted();
@@ -40,13 +44,15 @@ class Battery {
     bool switchOffByOperator;    
     unsigned long timeMinutes;
 		bool chargerConnectedState;
+    bool badChargerContactState;
     bool switchOffAllowedUndervoltage;
     bool switchOffAllowedIdle;
     unsigned long switchOffTime;
     unsigned long chargingStartTime;
 	  unsigned long nextCheckTime;	  
     unsigned long nextEnableTime;	  
-		unsigned long nextPrintTime;	  		
+		unsigned long nextPrintTime;
+    unsigned long nextSlopeTime;	  		
 };
 
 

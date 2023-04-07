@@ -17,6 +17,8 @@ String ChargeOp::name(){
 
 void ChargeOp::begin(){
     nextConsoleDetailsTime = 0;
+    retryTouchDock = false;
+    betterTouchDock = false;
     CONSOLE.print("OP_CHARGE");
     CONSOLE.print(" dockOp.initiatedByOperator=");
     CONSOLE.print(dockOp.initiatedByOperator);
@@ -34,6 +36,29 @@ void ChargeOp::end(){
 }
 
 void ChargeOp::run(){
+
+    if (retryTouchDock){
+        if (millis() > retryTouchDockStopTime) {
+            motor.setLinearAngularSpeed(0, 0);
+            retryTouchDock = false;
+            CONSOLE.println("ChargeOp: retryTouchDock failed");
+            motor.enableTractionMotors(true); // allow traction motors to operate                               
+            maps.setIsDocked(false);
+            changeOp(idleOp);    
+        } else {
+            //motor.enableTractionMotors(true); // allow traction motors to operate                               
+            //motor.setLinearAngularSpeed(0.05, 0);
+        }
+    } else {
+        if (betterTouchDock){
+            if (millis() > betterTouchDockStopTime) {
+                CONSOLE.println("ChargeOp: betterTouchDock completed");
+                motor.setLinearAngularSpeed(0, 0);            
+                betterTouchDock = false;
+            }
+        }
+    }
+    
     battery.resetIdle();
     if (battery.chargerConnected()){        
         //CONSOLE.println("Op::onChargerConnected");
@@ -59,11 +84,13 @@ void ChargeOp::run(){
                 CONSOLE.print(DOCK_AUTO_START);
                 CONSOLE.print(", dockOp.dockReasonRainTriggered=");
                 CONSOLE.print(dockOp.dockReasonRainTriggered);
+                CONSOLE.print(", dockOp.dockReasonRainAutoStartTime(min remain)=");
+                CONSOLE.print( ((int)(dockOp.dockReasonRainAutoStartTime - millis())) / 60000 );                
                 CONSOLE.println(")");
             }
             if ((DOCKING_STATION) && (!dockOp.initiatedByOperator)) {
                 if (maps.mowPointsIdx > 0){  // if mowing not completed yet
-                    if ((DOCK_AUTO_START) && (!dockOp.dockReasonRainTriggered)) { // automatic continue mowing allowed?
+                    if ( (DOCK_AUTO_START) && ((!dockOp.dockReasonRainTriggered) || (millis() > dockOp.dockReasonRainAutoStartTime)) ) { // automatic continue mowing allowed?
                         CONSOLE.println("DOCK_AUTO_START: will automatically continue mowing now");
                         changeOp(mowOp); // continue mowing
                     }
@@ -74,12 +101,45 @@ void ChargeOp::run(){
 }
 
 void ChargeOp::onChargerDisconnected(){
-    motor.enableTractionMotors(true); // allow traction motors to operate                       
-    maps.setIsDocked(false);
-    changeOp(idleOp);
+    if ((DOCKING_STATION) && (DOCK_RETRY_TOUCH)) {    
+        CONSOLE.println("ChargeOp::onChargerDisconnected - retryTouchDock");
+        retryTouchDock = true;
+        retryTouchDockStopTime = millis() + 2000;
+        motor.enableTractionMotors(true); // allow traction motors to operate                               
+        motor.setLinearAngularSpeed(0.05, 0);
+    } else {
+        motor.enableTractionMotors(true); // allow traction motors to operate                               
+        maps.setIsDocked(false);
+        changeOp(idleOp);    
+    }
 };
+
+void ChargeOp::onBadChargingContactDetected(){
+    if ((DOCKING_STATION) && (DOCK_RETRY_TOUCH)) {    
+        CONSOLE.println("ChargeOp::onBadChargingContactDetected - betterTouchDock");
+        betterTouchDock = true;
+        betterTouchDockStopTime = millis() + 2000;
+        motor.enableTractionMotors(true); // allow traction motors to operate                               
+        motor.setLinearAngularSpeed(0.05, 0);
+    } 
+}
+
+void ChargeOp::onChargerConnected(){
+    if (retryTouchDock){
+        CONSOLE.println("ChargeOp: retryTouchDock succeeded");        
+        motor.setLinearAngularSpeed(0, 0);
+        retryTouchDock = false;
+    }
+}
 
 void ChargeOp::onBatteryUndervoltage(){    
     stateSensor = SENS_BAT_UNDERVOLTAGE;
 }
 
+void ChargeOp::onRainTriggered(){
+    if (DOCKING_STATION){
+        dockOp.dockReasonRainAutoStartTime = millis() + 60000 * 60; // ensure rain sensor is dry for one hour                       
+        //CONSOLE.print("RAIN TRIGGERED dockOp.dockReasonRainAutoStartTime=");
+        //CONSOLE.println(dockOp.dockReasonRainAutoStartTime);
+    }
+}

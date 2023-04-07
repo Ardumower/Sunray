@@ -8,7 +8,7 @@
 // enable: true or false
 void ioI2cMux(uint8_t addr, uint8_t slave, bool enable){
   byte mask = (1 << slave);
-  Wire.requestFrom(addr, 1);
+  Wire.requestFrom(addr, (uint8_t)1);
   uint8_t state = Wire.read();   // get current control register state
   //CONSOLE.print("I2cMux control=");
   //CONSOLE.println(state, BIN);
@@ -29,7 +29,7 @@ bool ioExpanderOut(uint8_t addr, uint8_t port, uint8_t pin, bool level){
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(6+port);    // configuration port    
   if (Wire.endTransmission() != 0) return false;
-  if (Wire.requestFrom(addr, 1) != 1) return false;  
+  if (Wire.requestFrom(addr, (uint8_t)1) != 1) return false;  
   uint8_t state = Wire.read();   // get current configuration port
 
   Wire.beginTransmission(addr); // PCA9555 address 
@@ -40,7 +40,7 @@ bool ioExpanderOut(uint8_t addr, uint8_t port, uint8_t pin, bool level){
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(2+port);    // output port    
   if (Wire.endTransmission() != 0) return false;
-  if (Wire.requestFrom(addr, 1) != 1) return false;  
+  if (Wire.requestFrom(addr, (uint8_t)1) != 1) return false;  
   state = Wire.read();   // get current output port
 
   Wire.beginTransmission(addr); // PCA9555 address 
@@ -62,7 +62,7 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin){
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(6+port);    // configuration port    
   if (Wire.endTransmission() != 0) return false;
-  if (Wire.requestFrom(addr, 1) != 1) return false;  
+  if (Wire.requestFrom(addr, (uint8_t)1) != 1) return false;  
   uint8_t state = Wire.read();   // get current configuration port
 
   Wire.beginTransmission(addr); // PCA9555 address 
@@ -73,7 +73,7 @@ bool ioExpanderIn(uint8_t addr, uint8_t port, uint8_t pin){
   Wire.beginTransmission(addr); // PCA9555 address 
   Wire.write(0+port);    // input port    
   if (Wire.endTransmission() != 0) return false;
-  if (Wire.requestFrom(addr, 1) != 1) return false;  
+  if (Wire.requestFrom(addr, (uint8_t)1) != 1) return false;  
   state = Wire.read();   // get current output port
   return ((state & mask) != 0); 
 }
@@ -173,7 +173,7 @@ byte ioEepromReadByte( uint8_t addr, unsigned int eeaddress ) {
   Wire.write((int)(eeaddress >> 8)); // MSB
   Wire.write((int)(eeaddress & 0xFF)); // LSB
   if (Wire.endTransmission() != 0) return rdata;
-  if (Wire.requestFrom(addr,1) != 1) return rdata;
+  if (Wire.requestFrom(addr,(uint8_t)1) != 1) return rdata;
   if (Wire.available()) rdata = Wire.read();
   return rdata;
 }
