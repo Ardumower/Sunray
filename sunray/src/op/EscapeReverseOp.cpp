@@ -28,7 +28,7 @@ void EscapeReverseOp::end(){
 void EscapeReverseOp::run(){
     battery.resetIdle();
     motor.setLinearAngularSpeed(-0.1,0);
-    motor.setMowState(false);                                        
+    if (DISABLE_MOW_MOTOR_AT_OBSTACLE)  motor.setMowState(false);                                       
 
     if (millis() > driveReverseStopTime){
         CONSOLE.println("driveReverseStopTime");
