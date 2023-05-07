@@ -6,6 +6,7 @@
 #include "Stats.h"
 #include "src/op/op.h"
 #include "reset.h"
+#include "map.h"
 
 #ifdef __linux__
   #include <BridgeClient.h>
@@ -336,6 +337,300 @@ void cmdExclusionCount(){
   String s = F("X,");
   s += widx;              
   cmdAnswer(s);         
+}
+
+
+// request output of waypoints count
+// RN
+// returns RN,#peri,#excl,#dock,#mow,#free  (,chksum)
+void cmdReadWayCount(){
+  String s = F("RN,");
+  s += maps.perimeterPoints.numPoints;
+  s += F(",");
+  s += maps.exclusionPointsCount;
+  s += F(",");
+  s += maps.dockPoints.numPoints;
+  s += F(",");
+  s += maps.mowPoints.numPoints;
+  s += F(",");
+  s += maps.freePoints.numPoints;
+  
+  cmdAnswer(s);         
+}
+
+
+// request output of exclusion count
+// RNX
+// returns RNX,cntExclusions,cntPointsExclusion1,cntPointsExclusion2,cntPointsExclusion3,cntPointsExclusion4,... (,chksum)
+void cmdReadExclusionCount(){
+  String s = F("RNX,");
+  s += maps.exclusions.numPolygons;
+  for (int i=0; i < maps.exclusions.numPolygons; i++){
+    s += F(",");
+    s += maps.exclusions.polygons[i].numPoints;
+  }
+
+  cmdAnswer(s);         
+}
+
+
+// request output of perimeter points
+// RP   or RP,StartIdx,NumberOfPoints,ChkSum    (value of ChkSum is not important; important is the presence of the comma)
+// returns RP,x,y,x,y,x,y,x,y,...
+void cmdReadPerimeterPoints(){
+  int StartIdx = 0;
+  int EndIdx = 0;
+  if (cmd.length() == 5){       // Only RP
+    EndIdx = maps.perimeterPoints.numPoints;
+  } else {                      // RP,StartIdx,NumberOfPoints,
+    int counter = 0;
+    int lastCommaIdx = 0;
+    for (int idx=0; idx < cmd.length(); idx++){
+      char ch = cmd[idx];
+      //Serial.print("ch=");
+      //Serial.println(ch);
+      if ((ch == ',') || (idx == (cmd.length()-1))){    
+        int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+        /*CONSOLE.print("PerimeterPoint ");
+        CONSOLE.print(intValue);
+        CONSOLE.print("/");
+        CONSOLE.print(cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1));
+        CONSOLE.print("/ ");
+        CONSOLE.print(cmd.length());
+        CONSOLE.print("/ ");
+        CONSOLE.print(counter);
+        CONSOLE.print(",");
+        CONSOLE.println(lastCommaIdx); */
+        if (counter == 1){
+          if (intValue < maps.perimeterPoints.numPoints) {StartIdx = intValue;}
+          else {StartIdx = maps.perimeterPoints.numPoints;}
+        } else if (counter == 2){
+          if ((StartIdx+intValue) < maps.perimeterPoints.numPoints) {EndIdx = StartIdx + intValue;}
+          else {EndIdx = maps.perimeterPoints.numPoints;}
+        }
+        counter++;
+        lastCommaIdx = idx;
+      }
+    }      
+  }
+  String s = F("RP");                     // response
+  for (int i=StartIdx; i < EndIdx; i++){ 
+    s += F(",");
+    s += maps.perimeterPoints.points[i].x();
+    s += F(",");
+    s += maps.perimeterPoints.points[i].y();
+  }
+
+  cmdAnswer(s);       
+}
+
+
+// request output of dock points
+// RD   or RD,StartIdx,NumberOfPoints,ChkSum    (value of ChkSum is not important; important is the presence of the comma)
+// returns RD,x,y,x,y,x,y,x,y,...
+void cmdReadDockPoints(){
+  int StartIdx = 0;
+  int EndIdx = 0;
+  if (cmd.length() == 5){       // Only RD
+    EndIdx = maps.dockPoints.numPoints;
+  } else {                      // RD,StartIdx,NumberOfPoints,
+    int counter = 0;
+    int lastCommaIdx = 0;
+    for (int idx=0; idx < cmd.length(); idx++){
+      char ch = cmd[idx];
+      //Serial.print("ch=");
+      //Serial.println(ch);
+      if ((ch == ',') || (idx == (cmd.length()-1))){    
+        int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+        /*CONSOLE.print("DockPoint ");
+        CONSOLE.print(intValue);
+        CONSOLE.print("/");
+        CONSOLE.print(cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1));
+        CONSOLE.print("/ ");
+        CONSOLE.print(cmd.length());
+        CONSOLE.print("/ ");
+        CONSOLE.print(counter);
+        CONSOLE.print(",");
+        CONSOLE.println(lastCommaIdx); */
+        if (counter == 1){
+          if (intValue < maps.dockPoints.numPoints) {StartIdx = intValue;}
+          else {StartIdx = maps.dockPoints.numPoints;}
+        } else if (counter == 2){
+          if ((StartIdx+intValue) < maps.dockPoints.numPoints) {EndIdx = StartIdx + intValue;}
+          else {EndIdx = maps.dockPoints.numPoints;}
+        }
+        counter++;
+        lastCommaIdx = idx;
+      }
+    }      
+  }
+  String s = F("RD");                     // response
+  for (int i=StartIdx; i < EndIdx; i++){ 
+    s += F(",");
+    s += maps.dockPoints.points[i].x();
+    s += F(",");
+    s += maps.dockPoints.points[i].y();
+  }
+
+  cmdAnswer(s);       
+}
+
+
+// request output of mow points
+// RM   or RM,StartIdx,NumberOfPoints,ChkSum    (value of ChkSum is not important; important is the presence of the comma)
+// returns RM,x,y,x,y,x,y,x,y,...
+void cmdReadMowPoints(){
+  int StartIdx = 0;
+  int EndIdx = 0;
+  if (cmd.length() == 5){       // Only RM
+    EndIdx = maps.mowPoints.numPoints;
+  } else {                      // RM,StartIdx,NumberOfPoints,
+    int counter = 0;
+    int lastCommaIdx = 0;
+    for (int idx=0; idx < cmd.length(); idx++){
+      char ch = cmd[idx];
+      //Serial.print("ch=");
+      //Serial.println(ch);
+      if ((ch == ',') || (idx == (cmd.length()-1))){    
+        int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+        /*CONSOLE.print("PerimeterPoint ");
+        CONSOLE.print(intValue);
+        CONSOLE.print("/");
+        CONSOLE.print(cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1));
+        CONSOLE.print("/ ");
+        CONSOLE.print(cmd.length());
+        CONSOLE.print("/ ");
+        CONSOLE.print(counter);
+        CONSOLE.print(",");
+        CONSOLE.println(lastCommaIdx); */
+        if (counter == 1){
+          if (intValue < maps.mowPoints.numPoints) {StartIdx = intValue;}
+          else {StartIdx = maps.mowPoints.numPoints;}
+        } else if (counter == 2){
+          if ((StartIdx+intValue) < maps.mowPoints.numPoints) {EndIdx = StartIdx + intValue;}
+          else {EndIdx = maps.mowPoints.numPoints;}
+        }
+        counter++;
+        lastCommaIdx = idx;
+      }
+    }      
+  }
+  String s = F("RM");                     // response
+  for (int i=StartIdx; i < EndIdx; i++){ 
+    s += F(",");
+    s += maps.mowPoints.points[i].x();
+    s += F(",");
+    s += maps.mowPoints.points[i].y();
+  }
+
+  cmdAnswer(s);       
+}
+
+
+// request output of free points
+// RF   or RF,StartIdx,NumberOfPoints,ChkSum    (value of ChkSum is not important; important is the presence of the comma)
+// returns RF,x,y,x,y,x,y,x,y,...
+void cmdReadFreePoints(){
+  int StartIdx = 0;
+  int EndIdx = 0;
+  if (cmd.length() == 5){       // Only RF
+    EndIdx = maps.freePoints.numPoints;
+  } else {                      // RF,StartIdx,NumberOfPoints,
+    int counter = 0;
+    int lastCommaIdx = 0;
+    for (int idx=0; idx < cmd.length(); idx++){
+      char ch = cmd[idx];
+      //Serial.print("ch=");
+      //Serial.println(ch);
+      if ((ch == ',') || (idx == (cmd.length()-1))){    
+        int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+        /*CONSOLE.print("PerimeterPoint ");
+        CONSOLE.print(intValue);
+        CONSOLE.print("/");
+        CONSOLE.print(cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1));
+        CONSOLE.print("/ ");
+        CONSOLE.print(cmd.length());
+        CONSOLE.print("/ ");
+        CONSOLE.print(counter);
+        CONSOLE.print(",");
+        CONSOLE.println(lastCommaIdx); */
+        if (counter == 1){
+          if (intValue < maps.freePoints.numPoints) {StartIdx = intValue;}
+          else {StartIdx = maps.freePoints.numPoints;}
+        } else if (counter == 2){
+          if ((StartIdx+intValue) < maps.freePoints.numPoints) {EndIdx = StartIdx + intValue;}
+          else {EndIdx = maps.freePoints.numPoints;}
+        }
+        counter++;
+        lastCommaIdx = idx;
+      }
+    }      
+  }
+  String s = F("RF");                     // response
+  for (int i=StartIdx; i < EndIdx; i++){ 
+    s += F(",");
+    s += maps.freePoints.points[i].x();
+    s += F(",");
+    s += maps.freePoints.points[i].y();
+  }
+
+  cmdAnswer(s);       
+}
+
+
+// request output of exclusion points
+// RX,ExclusionIdx,ChkSum   or RX,ExclusionIdx,StartIdx,NumberOfPoints,ChkSum    ExclusionIdx [0-n] (value of ChkSum is not important; important is the presence of the comma)
+// returns RX,x,y,x,y,x,y,x,y,...
+void cmdReadExclusionPoints(){
+  int ExclusionIdx = 0;
+  int StartIdx = 0;
+  int EndIdx = 0;               // init EndIdx = 0 to avoid output of points if wrong command parameters are given
+  int counter = 0;
+  int lastCommaIdx = 0;
+  for (int idx=0; idx < cmd.length(); idx++){
+    char ch = cmd[idx];
+    //Serial.print("ch=");
+    //Serial.println(ch);
+    if ((ch == ',') || (idx == (cmd.length()-1))){    
+      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      /*CONSOLE.print("ExclusionPoint ");
+      CONSOLE.print(intValue);
+      CONSOLE.print("/");
+      CONSOLE.print(cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1));
+      CONSOLE.print("/ ");
+      CONSOLE.print(cmd.length());
+      CONSOLE.print("/ ");
+      CONSOLE.print(counter);
+      CONSOLE.print(",");
+      CONSOLE.println(lastCommaIdx); */
+      if (counter == 1){
+        if (intValue < maps.exclusions.numPolygons){                  // set ExclusionIdx [0-n]
+          ExclusionIdx = intValue;
+          EndIdx = maps.exclusions.polygons[ExclusionIdx].numPoints;  // set EndIdx to numPoints to handle case Only RX,ExclusionIdx,ChkSum
+        } else {                                                      // handle no valid ExclusionNumber
+          ExclusionIdx = maps.exclusions.numPolygons;
+          counter = 10;
+        }         
+      } else if (counter == 2){                                       // set StartIdx if exists in commandstring
+        if (intValue < maps.exclusions.polygons[ExclusionIdx].numPoints) {StartIdx = intValue;}
+        else {StartIdx = maps.exclusions.polygons[ExclusionIdx].numPoints;}
+      } else if (counter == 3){                                       // handle NumberOfPoints if exists in commandstring
+        if ((StartIdx+intValue) < maps.exclusions.polygons[ExclusionIdx].numPoints) {EndIdx = StartIdx + intValue;}
+        else {EndIdx = maps.exclusions.polygons[ExclusionIdx].numPoints;}
+      }
+      counter++;
+      lastCommaIdx = idx;
+    }
+  }      
+  String s = F("RX");                     // response
+  for (int i=StartIdx; i < EndIdx; i++){ 
+    s += F(",");
+    s += maps.exclusions.polygons[ExclusionIdx].points[i].x();
+    s += F(",");
+    s += maps.exclusions.polygons[ExclusionIdx].points[i].y();
+  }
+
+  cmdAnswer(s);       
 }
 
 
@@ -829,6 +1124,17 @@ void processCmd(bool checkCrc, bool decrypt){
   if (cmd[3] == 'W') cmdWaypoint();
   if (cmd[3] == 'N') cmdWayCount();
   if (cmd[3] == 'X') cmdExclusionCount();
+  if (cmd[3] == 'R'){       // Handling for apps to read out to actual used perimeter, exclusion, docking, waypoint values from mower to be able to use the same configuration in several app devices without needed internet server copy process
+    if (cmd[4] == 'N'){     // Read Counts
+      if ((cmd.length() > 5) && (cmd[5] == 'X')) cmdReadExclusionCount(); // Read ExclusionCount Values
+      else cmdReadWayCount();                                             // Read WayCount Values
+    }
+    if (cmd[4] == 'P') cmdReadPerimeterPoints();
+    if (cmd[4] == 'D') cmdReadDockPoints();
+    if (cmd[4] == 'M') cmdReadMowPoints();
+    if (cmd[4] == 'F') cmdReadFreePoints();
+    if (cmd[4] == 'X') cmdReadExclusionPoints();
+  }
   if (cmd[3] == 'V') cmdVersion();  
   if (cmd[3] == 'P') cmdPosMode();  
   if (cmd[3] == 'T') cmdStats();
