@@ -38,7 +38,13 @@ int get_turn_direction_preference() {
   float targetDelta = pointsAngle(stateX, stateY, target.x(), target.y());
   float center_x = stateX;
   float center_y = stateY;
-  float r = 0.3;
+  float r = (MOWER_SIZE / 100);
+  float cur_angle = stateDelta;
+
+  if (FREEWHEEL_IS_AT_BACKSIDE) {
+	  cur_angle = scalePI(stateDelta + PI);
+	  targetDelta = scalePI(targetDelta + PI);
+  }
 
   // create circle / octagon around center angle 0 - "360"
   circle.points[0].setXY(center_x + cos(deg2rad(0)) * r, center_y + sin(deg2rad(0)) * r);
@@ -56,7 +62,7 @@ int get_turn_direction_preference() {
   // CONSOLE.print("/");
   // CONSOLE.print(stateY);
   // CONSOLE.print(" stateDelta: ");
-  // CONSOLE.print(stateDelta);
+  // CONSOLE.print(cur_angle);
   // CONSOLE.print(" targetDelta: ");
   // CONSOLE.println(targetDelta);
   int right = 0;
@@ -73,18 +79,18 @@ int get_turn_direction_preference() {
     if (maps.checkpoint(circle.points[i].x(), circle.points[i].y())) {
 
             // skip points in front of us
-            if (fabs(angle-stateDelta) < 0.05) {
+            if (fabs(angle-cur_angle) < 0.05) {
                     continue;
             }
 
-            if (stateDelta < targetDelta) {
-                if (angle >= stateDelta && angle <= targetDelta) {
+            if (cur_angle < targetDelta) {
+                if (angle >= cur_angle && angle <= targetDelta) {
                     left++;
                 } else {
                     right++;
                 }
             } else {
-                   if (angle <= stateDelta && angle >= targetDelta) {
+                   if (angle <= cur_angle && angle >= targetDelta) {
                     right++;
                 } else {
                     left++;
