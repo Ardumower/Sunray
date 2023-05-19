@@ -1236,6 +1236,12 @@ void outputConsole(){
       struct rusage r_usage;
       getrusage(RUSAGE_SELF,&r_usage);
       CONSOLE.print(r_usage.ru_maxrss);
+      #ifdef __arm__
+        CONSOLE.print(" sp=");
+        uint64_t spReg;
+        asm( "mov %0, %%sp" : "=rm" ( spReg ));
+        CONSOLE.print ( ((uint32_t)spReg), HEX);
+      #endif
     #else
       CONSOLE.print (" freem=");
       CONSOLE.print (freeMemory());  
