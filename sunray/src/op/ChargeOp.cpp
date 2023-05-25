@@ -104,7 +104,7 @@ void ChargeOp::onChargerDisconnected(){
     if ((DOCKING_STATION) && (DOCK_RETRY_TOUCH)) {    
         CONSOLE.println("ChargeOp::onChargerDisconnected - retryTouchDock");
         retryTouchDock = true;
-        retryTouchDockStopTime = millis() + 2000;
+        retryTouchDockStopTime = millis() + 5000;
         motor.enableTractionMotors(true); // allow traction motors to operate                               
         motor.setLinearAngularSpeed(0.05, 0);
     } else {
@@ -118,7 +118,7 @@ void ChargeOp::onBadChargingContactDetected(){
     if ((DOCKING_STATION) && (DOCK_RETRY_TOUCH)) {    
         CONSOLE.println("ChargeOp::onBadChargingContactDetected - betterTouchDock");
         betterTouchDock = true;
-        betterTouchDockStopTime = millis() + 2000;
+        betterTouchDockStopTime = millis() + 5000;
         motor.enableTractionMotors(true); // allow traction motors to operate                               
         motor.setLinearAngularSpeed(0.05, 0);
     } 
