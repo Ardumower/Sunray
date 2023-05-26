@@ -1,7 +1,7 @@
 # Sunray
 
 ## Branch Watchdog
-Fix: Watchdog-Reset - Timer-reset-cycle reduced to 1s
+Fix: Watchdog-Reset - Timer-reset-cycle reduced to 1s<br>
 New: Debuginformation mean, min and max loopduration
 
 ## Download
