@@ -1256,7 +1256,9 @@ void outputConsole(){
     CONSOLE.print("(");    
     CONSOLE.print(motor.motorsSenseLP);    
     CONSOLE.print(") chg=");
-    CONSOLE.print(battery.chargingVoltage);    
+    CONSOLE.print(battery.chargingVoltage);
+    CONSOLE.print(",");
+    CONSOLE.print(int(battery.chargingHasCompleted()));
     CONSOLE.print("(");
     CONSOLE.print(battery.chargingCurrent);    
     CONSOLE.print(") diff=");
