@@ -199,7 +199,7 @@ void Battery::run(){
           }      
         } 
       }
-      if (abs(batteryVoltageSlope) < 0.007){
+      if (abs(batteryVoltageSlope) < 0.002){
         batteryVoltageSlopeLowCounter = min(10, batteryVoltageSlopeLowCounter + 1);
       } else {
         batteryVoltageSlopeLowCounter = 0; //max(0, batteryVoltageSlopeLowCounter - 1);
