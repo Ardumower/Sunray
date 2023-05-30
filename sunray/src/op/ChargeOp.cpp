@@ -46,8 +46,11 @@ void ChargeOp::run(){
             maps.setIsDocked(false);
             changeOp(idleOp);    
         } else {
-            //motor.enableTractionMotors(true); // allow traction motors to operate                               
-            //motor.setLinearAngularSpeed(0.05, 0);
+            if (millis() > retryTouchDockSpeedTime){                            
+                retryTouchDockSpeedTime = millis() + 1000;
+                motor.enableTractionMotors(true); // allow traction motors to operate                               
+                motor.setLinearAngularSpeed(0.05, 0);
+            }
         }
     } else {
         if (betterTouchDock){
@@ -119,8 +122,7 @@ void ChargeOp::onBadChargingContactDetected(){
         CONSOLE.println("ChargeOp::onBadChargingContactDetected - betterTouchDock");
         betterTouchDock = true;
         betterTouchDockStopTime = millis() + 5000;
-        motor.enableTractionMotors(true); // allow traction motors to operate                               
-        motor.setLinearAngularSpeed(0.05, 0);
+        retryTouchDockSpeedTime = millis();
     } 
 }
 
