@@ -37,28 +37,27 @@ void ChargeOp::end(){
 
 void ChargeOp::run(){
 
-    if (retryTouchDock){
-        if (millis() > retryTouchDockStopTime) {
-            motor.setLinearAngularSpeed(0, 0);
-            retryTouchDock = false;
-            CONSOLE.println("ChargeOp: retryTouchDock failed");
+    if ((retryTouchDock) || (betterTouchDock)){
+        if (millis() > retryTouchDockSpeedTime){                            
+            retryTouchDockSpeedTime = millis() + 1000;
             motor.enableTractionMotors(true); // allow traction motors to operate                               
-            maps.setIsDocked(false);
-            changeOp(idleOp);    
-        } else {
-            if (millis() > retryTouchDockSpeedTime){                            
-                retryTouchDockSpeedTime = millis() + 1000;
-                motor.enableTractionMotors(true); // allow traction motors to operate                               
-                motor.setLinearAngularSpeed(0.05, 0);
-            }
+            motor.setLinearAngularSpeed(0.05, 0);
         }
-    } else {
-        if (betterTouchDock){
+        if (retryTouchDock){
+            if (millis() > retryTouchDockStopTime) {
+                motor.setLinearAngularSpeed(0, 0);
+                retryTouchDock = false;
+                CONSOLE.println("ChargeOp: retryTouchDock failed");
+                motor.enableTractionMotors(true); // allow traction motors to operate                               
+                maps.setIsDocked(false);
+                changeOp(idleOp);    
+            }
+        } else if (betterTouchDock){
             if (millis() > betterTouchDockStopTime) {
                 CONSOLE.println("ChargeOp: betterTouchDock completed");
                 motor.setLinearAngularSpeed(0, 0);            
                 betterTouchDock = false;
-            }
+            }        
         }
     }
     
@@ -108,8 +107,7 @@ void ChargeOp::onChargerDisconnected(){
         CONSOLE.println("ChargeOp::onChargerDisconnected - retryTouchDock");
         retryTouchDock = true;
         retryTouchDockStopTime = millis() + 5000;
-        motor.enableTractionMotors(true); // allow traction motors to operate                               
-        motor.setLinearAngularSpeed(0.05, 0);
+        retryTouchDockSpeedTime = millis();
     } else {
         motor.enableTractionMotors(true); // allow traction motors to operate                               
         maps.setIsDocked(false);
