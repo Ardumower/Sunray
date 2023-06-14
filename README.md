@@ -3,6 +3,7 @@
 ## Branch Watchdog
 Fix: Watchdog-Reset - Timer-reset-cycle reduced to 1s<br>
 New: Debuginformation mean, min and max loopduration
+Fix: Stackpointer-problem caused by activeOp->getOpChain()
 
 ## Download
 __WARNING__: Do not use the master version (via download button), that is 'code we work on' and it may be unstable - use one release version instead (click on 'releases' link below)!
