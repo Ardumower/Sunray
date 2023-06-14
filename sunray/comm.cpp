@@ -1229,9 +1229,7 @@ void outputConsole(){
     controlLoops=0;    
     CONSOLE.print (statControlCycleTime);        
     CONSOLE.print (" op=");    
-    #ifndef __SAMD51__   // FIXME: why does this waste stack memory on Adafruit Grand Central M4 ? (https://github.com/Ardumower/Sunray/issues/130) 
-      CONSOLE.print (activeOp->getOpChain());    
-    #endif
+    CONSOLE.print(activeOp->OpChain);
     //CONSOLE.print (stateOp);
     #ifdef __linux__
       CONSOLE.print (" mem=");

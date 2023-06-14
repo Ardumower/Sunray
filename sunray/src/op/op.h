@@ -33,6 +33,7 @@ class Op {
     // returns chained op's as a string (starting with active op, going until goal op) 
     // (example: "ImuCalibration->GpsWaitFix->Mow")
     String getOpChain();
+    String OpChain;
 
     // op's can be chained, this returns the current goal op:
     // examples:    
