@@ -148,6 +148,8 @@ void cmdControl(){
           }
       } else if (counter == 8){
           if (intValue >= 0) sonar.enabled = (intValue == 1);
+      } else if (counter == 9){
+         if (intValue >= 0) motor.setMowMaxPwm(intValue);
       }
       counter++;
       lastCommaIdx = idx;
@@ -1229,13 +1231,19 @@ void outputConsole(){
     controlLoops=0;    
     CONSOLE.print (statControlCycleTime);        
     CONSOLE.print (" op=");    
-    CONSOLE.print (activeOp->getOpChain());    
+    CONSOLE.print(activeOp->OpChain);
     //CONSOLE.print (stateOp);
     #ifdef __linux__
       CONSOLE.print (" mem=");
       struct rusage r_usage;
       getrusage(RUSAGE_SELF,&r_usage);
       CONSOLE.print(r_usage.ru_maxrss);
+      #ifdef __arm__
+        CONSOLE.print(" sp=");
+        uint64_t spReg;
+        asm( "mov %0, %%sp" : "=rm" ( spReg ));
+        CONSOLE.print ( ((uint32_t)spReg), HEX);
+      #endif
     #else
       CONSOLE.print (" freem=");
       CONSOLE.print (freeMemory());  
@@ -1250,7 +1258,9 @@ void outputConsole(){
     CONSOLE.print("(");    
     CONSOLE.print(motor.motorsSenseLP);    
     CONSOLE.print(") chg=");
-    CONSOLE.print(battery.chargingVoltage);    
+    CONSOLE.print(battery.chargingVoltage);
+    CONSOLE.print(",");
+    CONSOLE.print(int(battery.chargingHasCompleted()));
     CONSOLE.print("(");
     CONSOLE.print(battery.chargingCurrent);    
     CONSOLE.print(") diff=");

@@ -148,6 +148,16 @@ unsigned long nextTempTime = 0;
 unsigned long imuDataTimeout = 0;
 unsigned long nextSaveTime = 0;
 
+//##################################################################################
+unsigned long loopTime = millis();
+int loopTimeNow = 0;
+int loopTimeMax = 0;
+float loopTimeMean = 0;
+int loopTimeMin = 99999;
+unsigned long loopTimeTimer = 0;
+unsigned long wdResetTimer = millis();
+//##################################################################################
+
 bool wifiFound = false;
 char ssid[] = WIFI_SSID;      // your network SSID (name)
 char pass[] = WIFI_PASS;        // your network password
@@ -630,7 +640,7 @@ void start(){
     ntrip.begin();  
   #endif
   
-  watchdogEnable(10000L);   // 10 seconds  
+  watchdogEnable(15000L);   // 15 seconds  
   
   startIMU(false);        
   
@@ -1025,8 +1035,39 @@ void run(){
     
   // ----- read serial input (BT/console) -------------
   processComm();
-  outputConsole();       
-  watchdogReset();
+  outputConsole();    
+
+  //##############################################################################
+
+  if(millis() > wdResetTimer + 1000){
+    watchdogReset();
+  }   
+
+  loopTimeNow = millis() - loopTime;
+  loopTimeMin = min(loopTimeNow, loopTimeMin); 
+  loopTimeMax = max(loopTimeNow, loopTimeMax);
+  loopTimeMean = 0.99 * loopTimeMean + 0.01 * loopTimeNow; 
+  loopTime = millis();
+
+  if(millis() > loopTimeTimer + 10000){
+    if(loopTimeMax > 500){
+      CONSOLE.print("WARNING - LoopTime: ");
+    }else{
+      CONSOLE.print("Info - LoopTime: ");
+    }
+    CONSOLE.print(loopTimeNow);
+    CONSOLE.print(" - ");
+    CONSOLE.print(loopTimeMin);
+    CONSOLE.print(" - ");
+    CONSOLE.print(loopTimeMean);
+    CONSOLE.print(" - ");
+    CONSOLE.print(loopTimeMax);
+    CONSOLE.println("ms");
+    loopTimeMin = 99999; 
+    loopTimeMax = 0;
+    loopTimeTimer = millis();
+  }   
+  //##############################################################################
 
   // compute button state (stateButton)
   if (BUTTON_CONTROL){

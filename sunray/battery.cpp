@@ -29,6 +29,7 @@ void Battery::begin()
   nextBatteryTime = 0;
   nextCheckTime = 0;
   nextEnableTime = 0;
+  batteryVoltageSlopeLowCounter = 0;
   nextSlopeTime = 0;
 	timeMinutes=0;  
   chargingVoltage = 0;
@@ -197,7 +198,12 @@ void Battery::run(){
             DEBUGLN(batteryVoltageSlope);
           }      
         } 
-      } 
+      }
+      if (abs(batteryVoltageSlope) < 0.002){
+        batteryVoltageSlopeLowCounter = min(10, batteryVoltageSlopeLowCounter + 1);
+      } else {
+        batteryVoltageSlopeLowCounter = 0; //max(0, batteryVoltageSlopeLowCounter - 1);
+      }
     }
 
 		if (millis() >= nextPrintTime){
@@ -233,7 +239,7 @@ void Battery::run(){
           //if ((timeMinutes > 180) || (chargingCurrent < batFullCurrent)) {   
           // https://github.com/Ardumower/Sunray/issues/32               
           if (chargingCompletedDelay > 5) {  // chargingCompleted check first after 6 * 5000ms = 30sec. 
-            chargingCompleted = ((chargingCurrent <= batFullCurrent) || (batteryVoltage >= batFullVoltage)); 
+            chargingCompleted = ((chargingCurrent <= batFullCurrent) || (batteryVoltage >= batFullVoltage) || (batteryVoltageSlopeLowCounter > 5)); 
           } 
           else {           
             chargingCompletedDelay++;  
