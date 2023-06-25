@@ -20,7 +20,7 @@ double stateCRC = 0;
 double calcStateCRC(){
  return (stateOp *10 + maps.mowPointsIdx + maps.dockPointsIdx + maps.freePointsIdx + ((byte)maps.wayMode) 
    + sonar.enabled + fixTimeout 
-   + ((byte)absolutePosSource) + absolutePosSourceLon + absolutePosSourceLat + motor.pwmMaxMow + finishAndRestart + motor.motorMowForwardSet);
+   + ((byte)absolutePosSource) + absolutePosSourceLon + absolutePosSourceLat);
 }
 
 
@@ -55,13 +55,7 @@ void dumpState(){
   CONSOLE.print(" lon=");
   CONSOLE.print(absolutePosSourceLon);
   CONSOLE.print(" lat=");
-  CONSOLE.print(absolutePosSourceLat);
-  CONSOLE.print(" pwmMaxMow=");
-  CONSOLE.print(motor.pwmMaxMow);
-  CONSOLE.print(" finishAndRestart=");
-  CONSOLE.print(finishAndRestart);
-  CONSOLE.print(" motorMowForwardSet=");
-  CONSOLE.println(motor.motorMowForwardSet);
+  CONSOLE.println(absolutePosSourceLat);
 }
 
 void updateStateOpText(){
@@ -147,13 +141,12 @@ bool loadState(){
   res &= (stateFile.read((uint8_t*)&stateSensor, sizeof(stateSensor)) != 0);
   res &= (stateFile.read((uint8_t*)&sonar.enabled, sizeof(sonar.enabled)) != 0);
   res &= (stateFile.read((uint8_t*)&fixTimeout, sizeof(fixTimeout)) != 0);
-  res &= (stateFile.read((uint8_t*)&setSpeed, sizeof(setSpeed)) != 0);
+  res &= (stateFile.read((uint8_t*)&setSpeed, sizeof(setSpeed)) != 0);  
   res &= (stateFile.read((uint8_t*)&absolutePosSource, sizeof(absolutePosSource)) != 0);
   res &= (stateFile.read((uint8_t*)&absolutePosSourceLon, sizeof(absolutePosSourceLon)) != 0);
   res &= (stateFile.read((uint8_t*)&absolutePosSourceLat, sizeof(absolutePosSourceLat)) != 0);
-  res &= (stateFile.read((uint8_t*)&motor.pwmMaxMow, sizeof(motor.pwmMaxMow)) != 0);
+  res &= (stateFile.read((uint8_t*)&motor.pwmMaxMow, sizeof(motor.pwmMaxMow)) != 0); 
   res &= (stateFile.read((uint8_t*)&finishAndRestart, sizeof(finishAndRestart)) != 0); 
-  res &= (stateFile.read((uint8_t*)&motor.motorMowForwardSet, sizeof(motor.motorMowForwardSet)) != 0); 
   stateFile.close();  
   CONSOLE.println("ok");
   stateCRC = calcStateCRC();
@@ -206,7 +199,6 @@ bool saveState(){
   res &= (stateFile.write((uint8_t*)&absolutePosSourceLat, sizeof(absolutePosSourceLat)) != 0);
   res &= (stateFile.write((uint8_t*)&motor.pwmMaxMow, sizeof(motor.pwmMaxMow)) != 0);  
   res &= (stateFile.write((uint8_t*)&finishAndRestart, sizeof(finishAndRestart)) != 0);  
-  res &= (stateFile.write((uint8_t*)&motor.motorMowForwardSet, sizeof(motor.motorMowForwardSet)) != 0);
   if (res){
     CONSOLE.println("ok");
   } else {
