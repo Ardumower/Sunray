@@ -71,7 +71,6 @@ void mqtt_setup() {
   });
 
   mqttClient.begin(MQTT_HOSTNAME, MQTT_PORT, mqttNet);
-  mqttClient.setWill(mqtt_topic("/online").c_str(), "false");
   mqttClient.onMessage(mqtt_on_message);
 }
 
@@ -124,6 +123,7 @@ void mqtt_connect() {
 
   mqttClient.subscribe(mqtt_topic("/command").c_str());
   mqttClient.publish(mqtt_topic("/online").c_str(), "true");
+  mqttClient.setWill(mqtt_topic("/online").c_str(), "false");
 }
 
 void mqtt_on_message(String &topic, String &payload) {

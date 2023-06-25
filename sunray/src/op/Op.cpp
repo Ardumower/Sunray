@@ -164,8 +164,7 @@ void Op::checkStop(){
       newActiveOp = NULL;
       activeOp->startTime = millis();
       CONSOLE.print("==> changeOp:");
-      activeOp->OpChain =  activeOp->getOpChain();      
-      CONSOLE.println(activeOp->OpChain);
+      CONSOLE.println(activeOp->getOpChain());
       activeOp->shouldStop = false;
       activeOp->begin();
     }

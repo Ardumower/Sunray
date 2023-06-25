@@ -31,6 +31,7 @@ class Motor {
     bool motorMowOverload; 
     bool tractionMotorsEnabled;       
     bool enableMowMotor;
+    bool motorMowForwardSet; 
     bool odometryError;    
     unsigned long motorOverloadDuration; // accumulated duration (ms)
     int  pwmMax;
@@ -62,7 +63,6 @@ class Motor {
     void enableTractionMotors(bool enable);
     void setLinearAngularSpeed(float linear, float angular, bool useLinearRamp = true);
     void setMowState(bool switchOn);   
-    void setMowMaxPwm( int val );
     void stopImmediately(bool includeMowerMotor);
   protected: 
     float motorLeftRpmSet; // set speed
@@ -75,7 +75,6 @@ class Motor {
     float motorMowRpmCurrLP;    
     float motorLeftRpmLast;
     float motorRightRpmLast;
-    bool motorMowForwardSet; 
     float motorMowPWMSet;  
     float motorMowPWMCurr; 
     int motorLeftPWMCurr;
