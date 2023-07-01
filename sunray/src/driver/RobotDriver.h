@@ -145,12 +145,12 @@ class GpsDriver {
     unsigned long chksumErrorCounter;
     unsigned long dgpsChecksumErrorCounter;
     unsigned long dgpsPacketCounter;
-    int year;          // UTC time year
-    int month;         // UTC time month
-    int day;           // UTC time day
-    int hour;          // UTC time hour
-    int min;           // UTC time minute
-    int sec;           // UTC time second
+    int year;          // UTC time year (1999..2099)
+    int month;         // UTC time month (1..12)
+    int day;           // UTC time day (1..31)
+    int hour;          // UTC time hour (0..23)
+    int min;           // UTC time minute (0..59)
+    int sec;           // UTC time second (0..60) (incl. leap second)
     // start tcp receiver
     virtual void begin(Client &client, char *host, uint16_t port) = 0;
     // start serial receiver          
