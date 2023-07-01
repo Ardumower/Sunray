@@ -16,6 +16,8 @@
   #include "src/esp/WiFiEsp.h"
 #endif
 #include "RingBuffer.h"
+#include "timetable.h"
+
 
 //#define VERBOSE 1
 
@@ -221,6 +223,51 @@ void cmdSensorTest(){
   sensorTest();  
 }
 
+// request timetable (up to 10 timeframes)
+// TT,weekofday,starthour,startmin,endhour,endmin,...
+// TT,  1,8,0,19,0,   2,8,0,19,0,  3,8,0,19,0,   4,8,0,19,0,  5,8,0,19,0,   6,8,0,19,0,   7,8,0,19,0,   1,22,0,23,0,  2,22,0,23,0,  3,22,0,23,0
+void cmdTimeTable(){
+  if (cmd.length()<6) return;  
+  int counter = 1;
+  int lastCommaIdx = 0;
+  timeframe_t frame;
+  frame.enabled = true;
+  bool success = true;
+  timeTable.clear();
+  for (int idx=0; idx < cmd.length(); idx++){
+    char ch = cmd[idx];
+    //Serial.print("ch=");
+    //Serial.println(ch);
+    if ((ch == ',') || (idx == cmd.length()-1)){            
+      float intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      //float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
+      if (counter == 1){                            
+          frame.startTime.hour = intValue;
+      } else if (counter == 2){
+          frame.startTime.min = intValue;
+      } else if (counter == 3){
+          frame.endTime.hour = intValue;
+      } else if (counter == 4){
+          frame.endTime.min = intValue;
+          if (!timeTable.addMowingTimeFrame(frame)){
+            success = false;
+            break;
+          }          
+          counter = 1;
+      } 
+      counter++;
+      lastCommaIdx = idx;
+    }    
+  }      
+  timeTable.dump();
+  String s = F("TT");
+  cmdAnswer(s);       
+  
+  if (!success){   
+    stateSensor = SENS_MEM_OVERFLOW;
+    setOperation(OP_ERROR);
+  } 
+}
 
 // request waypoint (perim,excl,dock,mow,free)
 // W,startidx,x,y,x,y,x,y,x,y,...
@@ -833,7 +880,10 @@ void processCmd(bool checkCrc, bool decrypt){
   if (cmd[3] == 'X') cmdExclusionCount();
   if (cmd[3] == 'V') cmdVersion();  
   if (cmd[3] == 'P') cmdPosMode();  
-  if (cmd[3] == 'T') cmdStats();
+  if (cmd[3] == 'T'){ 
+    if ((cmd.length() > 4) && (cmd[4] == 'T')) cmdTimeTable();
+    else cmdStats();
+  }
   if (cmd[3] == 'L') cmdClearStats();
   if (cmd[3] == 'E') cmdMotorTest();  
   if (cmd[3] == 'Q') cmdMotorPlot();  

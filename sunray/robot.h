@@ -33,6 +33,7 @@
   #include "src/esp/WiFiEsp.h"
 #endif
 #include "PubSubClient.h"
+#include "timetable.h"
 
 
 #define VER "Sunray,1.0.306"
@@ -149,6 +150,7 @@ extern Sonar sonar;
 extern VL53L0X tof;
 extern PinManager pinMan;
 extern Map maps;
+extern TimeTable timeTable;
 #ifdef DRV_SIM_ROBOT
   extern SimGpsDriver gps;
 #elif GPS_SKYTRAQ

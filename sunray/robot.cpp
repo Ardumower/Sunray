@@ -106,6 +106,7 @@ Bumper bumper;
 VL53L0X tof(VL53L0X_ADDRESS_DEFAULT);
 Map maps;
 RCModel rcmodel;
+TimeTable timeTable;
 
 int stateButton = 0;  
 int stateButtonTemp = 0;
