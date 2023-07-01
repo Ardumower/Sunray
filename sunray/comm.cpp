@@ -223,12 +223,12 @@ void cmdSensorTest(){
   sensorTest();  
 }
 
-// request timetable (up to 10 timeframes)
+// request timetable (up to 10 timeframes in UTC time)
 // TT,weekofday,starthour,startmin,endhour,endmin,...
-// TT,  1,8,0,19,0,   2,8,0,19,0,  3,8,0,19,0,   4,8,0,19,0,  5,8,0,19,0,   6,8,0,19,0,   7,8,0,19,0,   1,22,0,23,0,  2,22,0,23,0,  3,22,0,23,0
+// TT,  0,8,0,19,0,   1,8,0,19,0,  2,8,0,19,0,   3,8,0,19,0,  4,8,0,19,0,   5,8,0,19,0,   6,8,0,19,0,   0,22,0,23,0,  1,22,0,23,0,  2,22,0,23,0
 void cmdTimeTable(){
   if (cmd.length()<6) return;  
-  int counter = 1;
+  int counter = 0;
   int lastCommaIdx = 0;
   timeframe_t frame;
   frame.enabled = true;
@@ -241,7 +241,9 @@ void cmdTimeTable(){
     if ((ch == ',') || (idx == cmd.length()-1)){            
       float intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
       //float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
-      if (counter == 1){                            
+      if (counter == 0){                            
+          frame.dayOfWeek = intValue;
+      } else if (counter == 1){                            
           frame.startTime.hour = intValue;
       } else if (counter == 2){
           frame.startTime.min = intValue;
@@ -253,7 +255,7 @@ void cmdTimeTable(){
             success = false;
             break;
           }          
-          counter = 1;
+          counter = 0;
       } 
       counter++;
       lastCommaIdx = idx;
