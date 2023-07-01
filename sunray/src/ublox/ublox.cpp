@@ -209,7 +209,7 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.addCfgValset8(0x20910045, 1); // CFG-MSGOUT-UBX_NAV_VELNED_USB     (every solution)
         setValueSuccess &= configGPS.addCfgValset8(0x2091026b, 5); // CFG-MSGOUT-UBX_RXM_RTCM_USB   (every 5 solutions)
         setValueSuccess &= configGPS.addCfgValset8(0x20910348, 20); // CFG-MSGOUT-UBX_NAV_SIG_USB   (every 20 solutions)
-        setValueSuccess &= configGPS.addCfgValset8(0x2091005e, 20); // CFG-MSGOUT-UBX_NAV_TIMEUTC_USB   (every 20 solutions)   
+        setValueSuccess &= configGPS.addCfgValset8(0x2091005e, 0); // CFG-MSGOUT-UBX_NAV_TIMEUTC_USB   (off)   
 
         // ----- uart1 messages (Ardumower) -----------------  
         setValueSuccess &= configGPS.addCfgValset8(0x20910007, 0); // CFG-MSGOUT-UBX_NAV_PVT_UART1   (off)
@@ -218,7 +218,7 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.addCfgValset8(0x20910043, 1); // CFG-MSGOUT-UBX_NAV_VELNED_UART1     (every solution)
         setValueSuccess &= configGPS.addCfgValset8(0x20910269, 5); // CFG-MSGOUT-UBX_RXM_RTCM_UART1   (every 5 solutions)
         setValueSuccess &= configGPS.addCfgValset8(0x20910346, 20); // CFG-MSGOUT-UBX_NAV_SIG_UART1   (every 20 solutions)  
-        setValueSuccess &= configGPS.sendCfgValset8(0x2091005c, 20, timeout); // CFG-MSGOUT-UBX_NAV_TIMEUTC_UART1   (every 20 solutions)  
+        setValueSuccess &= configGPS.sendCfgValset8(0x2091005c, 0, timeout); // CFG-MSGOUT-UBX_NAV_TIMEUTC_UART1   (off)  
       }
       if (setValueSuccess){
         CONSOLE.println("OK");
@@ -519,7 +519,7 @@ void UBLOX::dispatchMessage() {
               relPosD = ((float)this->unpack_int32(16))/100.0;              
               solution = (SolType)((this->unpack_int32(60) >> 3) & 3);              
               solutionAvail = true;
-              solutionTimeout=millis() + 1000;
+              solutionTimeout=millis() + 1000;              
               if (verbose){
                 CONSOLE.print("UBX-NAV-RELPOSNED ");
                 CONSOLE.print("n=");

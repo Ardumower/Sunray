@@ -125,7 +125,7 @@ class BuzzerDriver {
 
 class GpsDriver {
   public:
-    unsigned long iTOW; //  An interval time of week (ITOW)
+    unsigned long iTOW; //  An interval time of week (ITOW), ms since Saturday/Sunday transition
     int numSV;         // #signals tracked 
     int numSVdgps;     // #signals tracked with DGPS signal
     double lon;        // deg
@@ -151,6 +151,7 @@ class GpsDriver {
     int hour;          // UTC time hour (0..23)
     int min;           // UTC time minute (0..59)
     int sec;           // UTC time second (0..60) (incl. leap second)
+    int dayOfWeek;     // UTC dayOfWeek (0=Monday)
     // start tcp receiver
     virtual void begin(Client &client, char *host, uint16_t port) = 0;
     // start serial receiver          
@@ -161,6 +162,15 @@ class GpsDriver {
     virtual bool configure() = 0; 
     // should reboot receiver
     virtual void reboot() = 0;
+
+    // decodes iTOW into hour, min, sec and dayOfWeek(0=Monday)
+    virtual void decodeTOW(){ 
+      unsigned long towMin = iTOW / 1000 / 60;  // convert milliseconds to minutes since GPS week start      
+      dayOfWeek = ((towMin / 1440)-1) % 7; // GPS week starts at Saturday/Sunday transition   
+      unsigned long totalMin = towMin % 1440; // total minutes of current day  
+      hour = totalMin / 60; 
+      min = totalMin % 60; 
+    }
 };
 
 

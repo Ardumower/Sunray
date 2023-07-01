@@ -148,6 +148,7 @@ unsigned long nextImuTime = 0;
 unsigned long nextTempTime = 0;
 unsigned long imuDataTimeout = 0;
 unsigned long nextSaveTime = 0;
+unsigned long nextTimeTableTime = 0;
 
 //##################################################################################
 unsigned long loopTime = millis();
@@ -918,7 +919,13 @@ void run(){
   }
 
   gps.run();
-    
+
+  if (millis() > nextTimeTableTime){
+    nextTimeTableTime = millis() + 30000;
+    gps.decodeTOW();
+    timeTable.setCurrentTime(gps.hour, gps.min, gps.dayOfWeek);
+  }
+
   calcStats();  
   
   
