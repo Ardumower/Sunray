@@ -3,6 +3,30 @@
 
 TimeTable::TimeTable()
 {
+    timetable.hours[0] = 0;
+    timetable.hours[1] = 0;
+    timetable.hours[2] = 0;
+    timetable.hours[3] = 0;
+    timetable.hours[4] = 0;
+    timetable.hours[5] = 0;
+    timetable.hours[6] = 0;
+    timetable.hours[7] = 0;
+    timetable.hours[8] = 0;
+    timetable.hours[9] = 127; // if mowing allowed, mask is set for that day
+    timetable.hours[10] = 127;
+    timetable.hours[11] = 127;
+    timetable.hours[12] = 127;
+    timetable.hours[13] = 127;
+    timetable.hours[14] = 127;
+    timetable.hours[15] = 127;
+    timetable.hours[16] = 127;
+    timetable.hours[17] = 127;
+    timetable.hours[18] = 127;
+    timetable.hours[19] = 127;
+    timetable.hours[20] = 0;
+    timetable.hours[21] = 0;
+    timetable.hours[22] = 0;
+    timetable.hours[23] = 0;    
 }
 
 
@@ -13,6 +37,7 @@ void TimeTable::setCurrentTime(int hour, int min, int dayOfWeek){
     currentTime.dayOfWeek = dayOfWeek;
     CONSOLE.print("GPS time (UTC): ");
     dumpWeekTime(currentTime);
+    dump();
 }    
 
 void TimeTable::dumpWeekTime(weektime_t time){
@@ -26,6 +51,7 @@ void TimeTable::dumpWeekTime(weektime_t time){
 
 
 void TimeTable::dump(){
+    CONSOLE.print("timetable (UTC times)    ");                
     for (int hour=0; hour < 24; hour++){
         String s;
         if (hour < 10) s += "0";
@@ -34,8 +60,8 @@ void TimeTable::dump(){
         CONSOLE.print(" ");
     }
     CONSOLE.println();
-    for (int day=0; day < 7; day++){
-        CONSOLE.print("timetable (UTC times)");
+    for (int day=0; day < 7; day++){        
+        CONSOLE.print("timetable (UTC times) ");
         String s;
         switch (day){
             case 0: s = "mon"; break;
@@ -55,9 +81,10 @@ void TimeTable::dump(){
         }
         CONSOLE.println();
     }
+    CONSOLE.println("* means mowing allowed");
     CONSOLE.print("current GPS UTC weektime: ");
     dumpWeekTime(currentTime);
-    CONSOLE.print("mowing allowed: ");
+    CONSOLE.print("mowing allowed (timetable evaluated): ");
     CONSOLE.println(mowingAllowed());
 }
 
@@ -81,7 +108,7 @@ bool TimeTable::mowingAllowed(weektime_t time){
     if ((hour < 0) || (hour > 23)) return false;    
     int mask = (1 << time.dayOfWeek);
 
-    bool allowed = (timetable.hours[hour] & mask != 0);
+    bool allowed = (timetable.hours[hour] & mask != 0); // if mowing allowed, mask is set for that day
     return allowed;
 }
 

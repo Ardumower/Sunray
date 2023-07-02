@@ -5,10 +5,23 @@
 
 /*
   ---timetable example (allowed mowing times)---
+NOTE: timetable times are UTC times (not local time) 
 
-  
+GPS time (UTC): dayOfWeek(0=Monday)=6  hour=19  min=25
 
-  NOTE: timetable times are UTC times (not local time) 
+timetable (UTC times)    00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 
+timetable (UTC times) mon                            *  *  *  *  *  *  *  *  *  *  *             
+timetable (UTC times) tue                            *  *  *  *  *  *  *  *  *  *  *             
+timetable (UTC times) wed                            *  *  *  *  *  *  *  *  *  *  *             
+timetable (UTC times) thu                            *  *  *  *  *  *  *  *  *  *  *             
+timetable (UTC times) fri                            *  *  *  *  *  *  *  *  *  *  *             
+timetable (UTC times) sat                            *  *  *  *  *  *  *  *  *  *  *             
+timetable (UTC times) sun                            *  *  *  *  *  *  *  *  *  *  *             
+* means mowing allowed
+
+current GPS UTC weektime: dayOfWeek(0=Monday)=6  hour=19  min=25
+mowing allowed (timetable evaluated): 1
+
 */
 
 
@@ -47,7 +60,7 @@ typedef struct timeframe_t {
 } timeframe_t;
 
 
-// day mask 
+// day mask (if mowing allowed, mask is set for that day) 
 // 1=mon, 2=tue, 4=wed, 8=thu, 16=fri, 32=sat, 64=sun
 typedef byte daymask_t; 
 

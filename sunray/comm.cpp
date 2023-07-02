@@ -223,7 +223,7 @@ void cmdSensorTest(){
   sensorTest();  
 }
 
-// request timetable (day masks for 24 UTC hours)
+// request timetable (mowing allowed day masks for 24 UTC hours)
 // TT,daymask,daymask,daymask,daymask,daymask,...
 // TT,0,0,0,0,0,0,0,0,0,0,127,127,127,127,127,127,127,127,127,0,0,0,0,0
 void cmdTimeTable(){
