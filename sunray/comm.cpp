@@ -223,41 +223,28 @@ void cmdSensorTest(){
   sensorTest();  
 }
 
-// request timetable (up to 10 timeframes in UTC time)
-// TT,weekofday,starthour,startmin,endhour,endmin,...
-// TT,  0,8,0,19,0,   1,8,0,19,0,  2,8,0,19,0,   3,8,0,19,0,  4,8,0,19,0,   5,8,0,19,0,   6,8,0,19,0,   0,22,0,23,0,  1,22,0,23,0,  2,22,0,23,0
+// request timetable (day masks for 24 UTC hours)
+// TT,daymask,daymask,daymask,daymask,daymask,...
+// TT,0,0,0,0,0,0,0,0,0,0,127,127,127,127,127,127,127,127,127,0,0,0,0,0
 void cmdTimeTable(){
   if (cmd.length()<6) return;  
-  int counter = 0;
   int lastCommaIdx = 0;
-  timeframe_t frame;
-  frame.enabled = true;
   bool success = true;
   timeTable.clear();
+  int hour = 0;
   for (int idx=0; idx < cmd.length(); idx++){
     char ch = cmd[idx];
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){            
-      float intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
       //float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
-      if (counter == 0){                            
-          frame.dayOfWeek = intValue;
-      } else if (counter == 1){                            
-          frame.startTime.hour = intValue;
-      } else if (counter == 2){
-          frame.startTime.min = intValue;
-      } else if (counter == 3){
-          frame.endTime.hour = intValue;
-      } else if (counter == 4){
-          frame.endTime.min = intValue;
-          if (!timeTable.addMowingTimeFrame(frame)){
-            success = false;
-            break;
-          }          
-          counter = 0;
-      } 
-      counter++;
+      daymask_t daymask = intValue;
+      if (!timeTable.setDayMask(hour, daymask)){
+        success = false;
+        break;
+      }          
+      hour++;
       lastCommaIdx = idx;
     }    
   }      
@@ -286,7 +273,7 @@ void cmdWaypoint(){
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){            
-      float intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
       float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
       if (counter == 1){                            
           widx = intValue;
@@ -336,7 +323,7 @@ void cmdWayCount(){
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){            
-      float intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
       float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();      
       if (counter == 1){                            
           if (!maps.setWayCount(WAY_PERIMETER, intValue)) return;                
@@ -371,7 +358,7 @@ void cmdExclusionCount(){
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){            
-      float intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
       float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
       if (counter == 1){                            
           widx = intValue;

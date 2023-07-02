@@ -4,23 +4,13 @@
 #include <Arduino.h>
 
 /*
-  ---timetable example (allowed mowing times), up to 10 time frames can be set---
+  ---timetable example (allowed mowing times)---
 
-  timeframe: monday    08:00 - 13:00
-  timeframe: monday    15:00 - 19:00  
-  timeframe: tuesday   08:00 - 19:00
-  timeframe: wednesday 12:00 - 19:00
-  timeframe: thirsday  08:00 - 19:00
-  timeframe: friday    08:00 - 19:00
-  timeframe: sunday    08:00 - 19:00
-  timeframe: -----     08:00 - 19:00
-  timeframe: -----     08:00 - 19:00
-  timeframe: -----     08:00 - 19:00
+  
 
   NOTE: timetable times are UTC times (not local time) 
 */
 
-#define TIME_FRAMES 10
 
 // time of day
 typedef struct daytime_t {
@@ -57,9 +47,13 @@ typedef struct timeframe_t {
 } timeframe_t;
 
 
-// all time frames
+// day mask 
+// 1=mon, 2=tue, 4=wed, 8=thu, 16=fri, 32=sat, 64=sun
+typedef byte daymask_t; 
+
+// timetable
 typedef struct timetable_t {
-  timeframe_t frames[TIME_FRAMES];
+  daymask_t hours[24];
 } timetable_t;
 
 
@@ -67,7 +61,7 @@ typedef struct timetable_t {
 class TimeTable
 {
   public:
-    timetable_t timeTable;
+    timetable_t timetable;
     weektime_t currentTime;  // current time to compare time table against
     bool enabled;    
     TimeTable(); 
@@ -82,8 +76,8 @@ class TimeTable
     // set current UTC time
     void setCurrentTime(int hour, int min, int weekOfDay); 
 
-    // add timeframe to timetable 
-    bool addMowingTimeFrame(timeframe_t timeframe);
+    // set day mask for hour 
+    bool setDayMask(int hour, daymask_t mask);
 
     // mowing allowed for current UTC week time?
     bool mowingAllowed();
