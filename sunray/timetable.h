@@ -66,7 +66,8 @@ typedef byte daymask_t;
 
 // timetable
 typedef struct timetable_t {
-  daymask_t hours[24];
+    bool enable;    // use timetable?
+    daymask_t hours[24];
 } timetable_t;
 
 
@@ -76,7 +77,6 @@ class TimeTable
   public:
     timetable_t timetable;
     weektime_t currentTime;  // current time to compare time table against
-    bool enabled;    // use timetable?
     TimeTable(); 
 
     // dump timetable

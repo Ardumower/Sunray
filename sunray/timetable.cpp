@@ -4,7 +4,7 @@
 TimeTable::TimeTable()
 {
     lastMowingAllowedState = false;
-    enabled = false;    
+    timetable.enable = false;    
     timetable.hours[0] = 0;
     timetable.hours[1] = 0;
     timetable.hours[2] = 0;
@@ -86,7 +86,7 @@ void TimeTable::dump(){
     CONSOLE.print("current GPS UTC weektime: ");
     dumpWeekTime(currentTime);
     CONSOLE.print("timetable enabled: ");
-    CONSOLE.println(enabled);
+    CONSOLE.println(timetable.enable);
     CONSOLE.print("mowing allowed: ");    
     CONSOLE.println(mowingAllowed());
 }
@@ -110,12 +110,12 @@ bool TimeTable::setDayMask(int hour, daymask_t mask){
 }
 
 void TimeTable::setEnabled(bool flag){
-    enabled = flag;
+    timetable.enable = flag;
 }
     
 
 bool TimeTable::mowingAllowed(weektime_t time){
-    if (!enabled) return true; // timetable not enabled => mowing allowed
+    if (!timetable.enable) return true; // timetable not enabled => mowing allowed
     int hour = time.hour; 
     if ((hour < 0) || (hour > 23)) return false;    
     int mask = (1 << time.dayOfWeek);
@@ -132,6 +132,8 @@ bool TimeTable::mowingAllowedChanged(){
     bool allowed = mowingAllowed();     
     if (allowed == lastMowingAllowedState) return false;
     lastMowingAllowedState = allowed;
+    CONSOLE.println("timetable.mowingAllowedChanged...");
+    dump();
     return true;
 }
 

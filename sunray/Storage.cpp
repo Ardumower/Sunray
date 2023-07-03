@@ -61,7 +61,7 @@ void dumpState(){
   CONSOLE.print(" finishAndRestart=");
   CONSOLE.print(finishAndRestart);
   CONSOLE.print(" motorMowForwardSet=");
-  CONSOLE.println(motor.motorMowForwardSet);
+  CONSOLE.println(motor.motorMowForwardSet);  
 }
 
 void updateStateOpText(){
@@ -120,7 +120,7 @@ bool loadState(){
   }
   uint32_t marker = 0;
   stateFile.read((uint8_t*)&marker, sizeof(marker));
-  if (marker != 0x10001005){
+  if (marker != 0x10001006){
     CONSOLE.print("ERROR: invalid marker: ");
     CONSOLE.println(marker, HEX);
     return false;
@@ -154,10 +154,12 @@ bool loadState(){
   res &= (stateFile.read((uint8_t*)&motor.pwmMaxMow, sizeof(motor.pwmMaxMow)) != 0);
   res &= (stateFile.read((uint8_t*)&finishAndRestart, sizeof(finishAndRestart)) != 0); 
   res &= (stateFile.read((uint8_t*)&motor.motorMowForwardSet, sizeof(motor.motorMowForwardSet)) != 0); 
+  res &= (stateFile.read((uint8_t*)&timetable.timetable, sizeof(timetable.timetable)) != 0);
   stateFile.close();  
   CONSOLE.println("ok");
   stateCRC = calcStateCRC();
   dumpState();
+  timetable.dump();
   if (getResetCause() == RST_WATCHDOG){
     CONSOLE.println("resuming operation due to watchdog trigger");
     stateOp = savedOp;
@@ -185,7 +187,7 @@ bool saveState(){
     CONSOLE.println("ERROR opening file for writing");
     return false;
   }
-  uint32_t marker = 0x10001005;
+  uint32_t marker = 0x10001006;
   res &= (stateFile.write((uint8_t*)&marker, sizeof(marker)) != 0); 
   res &= (stateFile.write((uint8_t*)&maps.mapCRC, sizeof(maps.mapCRC)) != 0); 
 
@@ -207,6 +209,7 @@ bool saveState(){
   res &= (stateFile.write((uint8_t*)&motor.pwmMaxMow, sizeof(motor.pwmMaxMow)) != 0);  
   res &= (stateFile.write((uint8_t*)&finishAndRestart, sizeof(finishAndRestart)) != 0);  
   res &= (stateFile.write((uint8_t*)&motor.motorMowForwardSet, sizeof(motor.motorMowForwardSet)) != 0);
+  res &= (stateFile.write((uint8_t*)&timetable.timetable, sizeof(timetable.timetable)) != 0);  
   if (res){
     CONSOLE.println("ok");
   } else {
