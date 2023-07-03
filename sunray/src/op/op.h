@@ -33,6 +33,7 @@ class Op {
     // returns chained op's as a string (starting with active op, going until goal op) 
     // (example: "ImuCalibration->GpsWaitFix->Mow")
     String getOpChain();
+    String OpChain;
 
     // op's can be chained, this returns the current goal op:
     // examples:    
@@ -73,7 +74,9 @@ class Op {
     virtual void onTargetReached();
     virtual void onKidnapped(bool state);
     virtual void onBatteryUndervoltage();
-    virtual void onBatteryLowShouldDock();    
+    virtual void onBatteryLowShouldDock();  
+    virtual bool onTimetableStopMowing();
+    virtual bool onTimetableStartMowing();  
     virtual void onChargerDisconnected();
     virtual void onBadChargingContactDetected();    
     virtual void onChargerConnected();    
@@ -123,6 +126,7 @@ class MowOp: public Op {
     virtual void onRainTriggered() override;
     virtual void onTempOutOfRangeTriggered() override;    
     virtual void onBatteryLowShouldDock() override;
+    virtual bool onTimetableStopMowing() override;    
     virtual void onObstacle() override;
     virtual void onObstacleRotation() override;
     virtual void onTargetReached() override;    
@@ -157,8 +161,10 @@ class DockOp: public Op {
 // charging op
 class ChargeOp: public Op {
   public:     
+    unsigned long retryTouchDockSpeedTime;
     unsigned long retryTouchDockStopTime;
     unsigned long betterTouchDockStopTime;
+    bool timetableStartMowingTriggered;
     bool retryTouchDock;
     bool betterTouchDock;
     unsigned long nextConsoleDetailsTime;   
@@ -171,6 +177,7 @@ class ChargeOp: public Op {
     virtual void onBatteryUndervoltage() override;    
     virtual void onRainTriggered() override;   
     virtual void onChargerConnected() override; 
+    virtual bool onTimetableStartMowing() override;    
 };
 
 // wait for undo kidnap (gps jump) 

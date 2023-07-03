@@ -29,6 +29,7 @@ void MowOp::begin(){
     motor.enableTractionMotors(true); // allow traction motors to operate         
     motor.setLinearAngularSpeed(0,0);      
     if (((previousOp != &escapeReverseOp) && (previousOp != &escapeForwardOp)) || (DISABLE_MOW_MOTOR_AT_OBSTACLE))  motor.setMowState(false);              
+    battery.setIsDocked(false);                
 
     // plan route to next target point 
 
@@ -114,6 +115,17 @@ void MowOp::onBatteryLowShouldDock(){
     changeOp(dockOp);
 }
 
+bool MowOp::onTimetableStopMowing(){        
+    if (DOCKING_STATION){
+        CONSOLE.println("TIMETABLE - DOCKING");
+        dockOp.setInitiatedByOperator(false);
+        changeOp(dockOp);
+    } else {
+        CONSOLE.println("TIMETABLE - IDLE");
+        changeOp(idleOp);
+    }
+    return true;  // indicate event consumed
+}
 
 void MowOp::onObstacle(){
     CONSOLE.println("triggerObstacle");      

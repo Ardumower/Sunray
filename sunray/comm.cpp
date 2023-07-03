@@ -16,6 +16,8 @@
   #include "src/esp/WiFiEsp.h"
 #endif
 #include "RingBuffer.h"
+#include "timetable.h"
+
 
 //#define VERBOSE 1
 
@@ -148,6 +150,8 @@ void cmdControl(){
           }
       } else if (counter == 8){
           if (intValue >= 0) sonar.enabled = (intValue == 1);
+      } else if (counter == 9){
+         if (intValue >= 0) motor.setMowMaxPwm(intValue);
       }
       counter++;
       lastCommaIdx = idx;
@@ -219,6 +223,45 @@ void cmdSensorTest(){
   sensorTest();  
 }
 
+// request timetable (mowing allowed day masks for 24 UTC hours)
+// TT,enable,daymask,daymask,daymask,daymask,daymask,...
+// TT,1,0,0,0,0,0,0,0,0,0,0,127,127,127,127,127,127,127,127,127,0,0,0,0,0
+void cmdTimetable(){
+  if (cmd.length()<6) return;
+  //CONSOLE.println(cmd);  
+  int lastCommaIdx = 0;
+  bool success = true;
+  timetable.clear();
+  int counter = 0;
+  for (int idx=0; idx < cmd.length(); idx++){
+    char ch = cmd[idx];
+    //Serial.print("ch=");
+    //Serial.println(ch);
+    if ((ch == ',') || (idx == cmd.length()-1)){            
+      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      //float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
+      if (counter == 1){
+        timetable.setEnabled(intValue == 1);
+      } else if (counter > 1){
+        daymask_t daymask = intValue;
+        if (!timetable.setDayMask(counter-2, daymask)){
+          success = false;
+          break;
+        }    
+      }      
+      counter++;
+      lastCommaIdx = idx;
+    }    
+  }      
+  timetable.dump();
+  String s = F("TT");
+  cmdAnswer(s);       
+  
+  if (!success){   
+    stateSensor = SENS_MEM_OVERFLOW;
+    setOperation(OP_ERROR);
+  } 
+}
 
 // request waypoint (perim,excl,dock,mow,free)
 // W,startidx,x,y,x,y,x,y,x,y,...
@@ -235,7 +278,7 @@ void cmdWaypoint(){
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){            
-      float intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
       float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
       if (counter == 1){                            
           widx = intValue;
@@ -285,7 +328,7 @@ void cmdWayCount(){
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){            
-      float intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
       float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();      
       if (counter == 1){                            
           if (!maps.setWayCount(WAY_PERIMETER, intValue)) return;                
@@ -320,7 +363,7 @@ void cmdExclusionCount(){
     //Serial.print("ch=");
     //Serial.println(ch);
     if ((ch == ',') || (idx == cmd.length()-1)){            
-      float intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
       float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
       if (counter == 1){                            
           widx = intValue;
@@ -831,7 +874,10 @@ void processCmd(bool checkCrc, bool decrypt){
   if (cmd[3] == 'X') cmdExclusionCount();
   if (cmd[3] == 'V') cmdVersion();  
   if (cmd[3] == 'P') cmdPosMode();  
-  if (cmd[3] == 'T') cmdStats();
+  if (cmd[3] == 'T'){ 
+    if ((cmd.length() > 4) && (cmd[4] == 'T')) cmdTimetable();
+    else cmdStats();
+  }
   if (cmd[3] == 'L') cmdClearStats();
   if (cmd[3] == 'E') cmdMotorTest();  
   if (cmd[3] == 'Q') cmdMotorPlot();  
@@ -1229,13 +1275,19 @@ void outputConsole(){
     controlLoops=0;    
     CONSOLE.print (statControlCycleTime);        
     CONSOLE.print (" op=");    
-    CONSOLE.print (activeOp->getOpChain());    
+    CONSOLE.print(activeOp->OpChain);
     //CONSOLE.print (stateOp);
     #ifdef __linux__
       CONSOLE.print (" mem=");
       struct rusage r_usage;
       getrusage(RUSAGE_SELF,&r_usage);
       CONSOLE.print(r_usage.ru_maxrss);
+      #ifdef __arm__
+        CONSOLE.print(" sp=");
+        uint64_t spReg;
+        asm( "mov %0, %%sp" : "=rm" ( spReg ));
+        CONSOLE.print ( ((uint32_t)spReg), HEX);
+      #endif
     #else
       CONSOLE.print (" freem=");
       CONSOLE.print (freeMemory());  
@@ -1250,7 +1302,9 @@ void outputConsole(){
     CONSOLE.print("(");    
     CONSOLE.print(motor.motorsSenseLP);    
     CONSOLE.print(") chg=");
-    CONSOLE.print(battery.chargingVoltage);    
+    CONSOLE.print(battery.chargingVoltage);
+    CONSOLE.print(",");
+    CONSOLE.print(int(battery.chargingHasCompleted()));
     CONSOLE.print("(");
     CONSOLE.print(battery.chargingCurrent);    
     CONSOLE.print(") diff=");

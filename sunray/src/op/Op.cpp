@@ -164,7 +164,8 @@ void Op::checkStop(){
       newActiveOp = NULL;
       activeOp->startTime = millis();
       CONSOLE.print("==> changeOp:");
-      CONSOLE.println(activeOp->getOpChain());
+      activeOp->OpChain =  activeOp->getOpChain();      
+      CONSOLE.println(activeOp->OpChain);
       activeOp->shouldStop = false;
       activeOp->begin();
     }
@@ -249,6 +250,13 @@ void Op::onBatteryUndervoltage(){
 void Op::onBatteryLowShouldDock(){    
 }
 
+bool Op::onTimetableStartMowing(){    
+  return false;  // indicate event not consumed 
+}
+
+bool Op::onTimetableStopMowing(){    
+  return false; // indicate event not consumed
+}
 
 void Op::onImuTilt(){
 }

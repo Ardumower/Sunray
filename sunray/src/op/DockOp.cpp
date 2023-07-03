@@ -157,13 +157,15 @@ void DockOp::onObstacle(){
 }
 
 void DockOp::onChargerConnected(){            
+  battery.setIsDocked(true);    
   changeOp(chargeOp);
 }
 
 
 void DockOp::onNoFurtherWaypoints(){
-    CONSOLE.println("docking finished!");
-    changeOp(idleOp); 
+  CONSOLE.println("docking finished!");
+  battery.setIsDocked(true);    
+  changeOp(idleOp); 
 }
 
 
