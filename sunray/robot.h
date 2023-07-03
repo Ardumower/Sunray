@@ -150,7 +150,7 @@ extern Sonar sonar;
 extern VL53L0X tof;
 extern PinManager pinMan;
 extern Map maps;
-extern TimeTable timeTable;
+extern TimeTable timetable;
 #ifdef DRV_SIM_ROBOT
   extern SimGpsDriver gps;
 #elif GPS_SKYTRAQ

@@ -250,6 +250,11 @@ void Op::onBatteryUndervoltage(){
 void Op::onBatteryLowShouldDock(){    
 }
 
+void Op::onTimetableStartMowing(){    
+}
+
+void Op::onTimetableStopMowing(){    
+}
 
 void Op::onImuTilt(){
 }

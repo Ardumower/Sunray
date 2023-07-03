@@ -3,6 +3,8 @@
 
 TimeTable::TimeTable()
 {
+    lastMowingAllowedState = false;
+    enabled = false;    
     timetable.hours[0] = 0;
     timetable.hours[1] = 0;
     timetable.hours[2] = 0;
@@ -37,7 +39,6 @@ void TimeTable::setCurrentTime(int hour, int min, int dayOfWeek){
     currentTime.dayOfWeek = dayOfWeek;
     CONSOLE.print("GPS time (UTC): ");
     dumpWeekTime(currentTime);
-    dump();
 }    
 
 void TimeTable::dumpWeekTime(weektime_t time){
@@ -84,7 +85,9 @@ void TimeTable::dump(){
     CONSOLE.println("* means mowing allowed");
     CONSOLE.print("current GPS UTC weektime: ");
     dumpWeekTime(currentTime);
-    CONSOLE.print("mowing allowed (timetable evaluated): ");
+    CONSOLE.print("timetable enabled: ");
+    CONSOLE.println(enabled);
+    CONSOLE.print("mowing allowed: ");    
     CONSOLE.println(mowingAllowed());
 }
 
@@ -105,9 +108,14 @@ bool TimeTable::setDayMask(int hour, daymask_t mask){
     timetable.hours[hour] = mask;
     return true;
 }
+
+void TimeTable::setEnabled(bool flag){
+    enabled = flag;
+}
     
 
 bool TimeTable::mowingAllowed(weektime_t time){
+    if (!enabled) return true; // timetable not enabled => mowing allowed
     int hour = time.hour; 
     if ((hour < 0) || (hour > 23)) return false;    
     int mask = (1 << time.dayOfWeek);
@@ -116,9 +124,17 @@ bool TimeTable::mowingAllowed(weektime_t time){
     return allowed;
 }
 
- bool TimeTable::mowingAllowed(){
-     return mowingAllowed(currentTime);
- }
+bool TimeTable::mowingAllowed(){
+    return mowingAllowed(currentTime);
+}
+
+bool TimeTable::mowingAllowedChanged(){
+    bool allowed = mowingAllowed();     
+    if (allowed == lastMowingAllowedState) return false;
+    lastMowingAllowedState = allowed;
+    return true;
+}
+
 
 // calc dayOfWeek(0=Monday) for given UTC date (untested and not used!)
 // not needed as GPS signal gives us millis since start of a week

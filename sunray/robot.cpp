@@ -106,7 +106,7 @@ Bumper bumper;
 VL53L0X tof(VL53L0X_ADDRESS_DEFAULT);
 Map maps;
 RCModel rcmodel;
-TimeTable timeTable;
+TimeTable timetable;
 
 int stateButton = 0;  
 int stateButtonTemp = 0;
@@ -148,7 +148,7 @@ unsigned long nextImuTime = 0;
 unsigned long nextTempTime = 0;
 unsigned long imuDataTimeout = 0;
 unsigned long nextSaveTime = 0;
-unsigned long nextTimeTableTime = 0;
+unsigned long nextTimetableTime = 0;
 
 //##################################################################################
 unsigned long loopTime = millis();
@@ -920,10 +920,10 @@ void run(){
 
   gps.run();
 
-  if (millis() > nextTimeTableTime){
-    nextTimeTableTime = millis() + 30000;
+  if (millis() > nextTimetableTime){
+    nextTimetableTime = millis() + 30000;
     gps.decodeTOW();
-    timeTable.setCurrentTime(gps.hour, gps.min, gps.dayOfWeek);
+    timetable.setCurrentTime(gps.hour, gps.min, gps.dayOfWeek);
   }
 
   calcStats();  
@@ -996,6 +996,14 @@ void run(){
            activeOp->onBatteryLowShouldDock();
         }
       }   
+
+      if (timetable.mowingAllowedChanged()){
+        if (!timetable.mowingAllowed()){
+          activeOp->onTimetableStopMowing();        
+        } else {
+          activeOp->onTimetableStartMowing();
+        }
+      }
        
       if (battery.chargerConnected()){
         if (battery.chargingHasCompleted()){

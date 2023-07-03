@@ -224,14 +224,14 @@ void cmdSensorTest(){
 }
 
 // request timetable (mowing allowed day masks for 24 UTC hours)
-// TT,daymask,daymask,daymask,daymask,daymask,...
-// TT,0,0,0,0,0,0,0,0,0,0,127,127,127,127,127,127,127,127,127,0,0,0,0,0
-void cmdTimeTable(){
+// TT,enable,daymask,daymask,daymask,daymask,daymask,...
+// TT,1,0,0,0,0,0,0,0,0,0,0,127,127,127,127,127,127,127,127,127,0,0,0,0,0
+void cmdTimetable(){
   if (cmd.length()<6) return;
   //CONSOLE.println(cmd);  
   int lastCommaIdx = 0;
   bool success = true;
-  timeTable.clear();
+  timetable.clear();
   int counter = 0;
   for (int idx=0; idx < cmd.length(); idx++){
     char ch = cmd[idx];
@@ -240,9 +240,11 @@ void cmdTimeTable(){
     if ((ch == ',') || (idx == cmd.length()-1)){            
       int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
       //float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
-      if (counter > 0){
+      if (counter == 1){
+        timetable.setEnabled(intValue == 1);
+      } else if (counter > 1){
         daymask_t daymask = intValue;
-        if (!timeTable.setDayMask(counter-1, daymask)){
+        if (!timetable.setDayMask(counter-2, daymask)){
           success = false;
           break;
         }    
@@ -251,7 +253,7 @@ void cmdTimeTable(){
       lastCommaIdx = idx;
     }    
   }      
-  timeTable.dump();
+  timetable.dump();
   String s = F("TT");
   cmdAnswer(s);       
   
@@ -873,7 +875,7 @@ void processCmd(bool checkCrc, bool decrypt){
   if (cmd[3] == 'V') cmdVersion();  
   if (cmd[3] == 'P') cmdPosMode();  
   if (cmd[3] == 'T'){ 
-    if ((cmd.length() > 4) && (cmd[4] == 'T')) cmdTimeTable();
+    if ((cmd.length() > 4) && (cmd[4] == 'T')) cmdTimetable();
     else cmdStats();
   }
   if (cmd[3] == 'L') cmdClearStats();

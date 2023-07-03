@@ -165,7 +165,6 @@ class GpsDriver {
 
     // decodes iTOW into hour, min, sec and dayOfWeek(0=Monday)
     virtual void decodeTOW(){ 
-      iTOW = 69918400;
       long towMin = iTOW / 1000 / 60;  // convert milliseconds to minutes since GPS week start      
       dayOfWeek = ((towMin / 1440)+6) % 7; // GPS week starts at Saturday/Sunday transition   
       unsigned long totalMin = towMin % 1440; // total minutes of current day  

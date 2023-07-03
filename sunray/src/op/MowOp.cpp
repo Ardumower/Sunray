@@ -114,6 +114,16 @@ void MowOp::onBatteryLowShouldDock(){
     changeOp(dockOp);
 }
 
+void MowOp::onTimetableStopMowing(){        
+    if (DOCKING_STATION){
+        CONSOLE.println("TIMETABLE - DOCKING");
+        dockOp.setInitiatedByOperator(false);
+        changeOp(dockOp);
+    } else {
+        CONSOLE.println("TIMETABLE - IDLE");
+        changeOp(idleOp);
+    }
+}
 
 void MowOp::onObstacle(){
     CONSOLE.println("triggerObstacle");      

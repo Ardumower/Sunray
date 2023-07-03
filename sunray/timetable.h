@@ -76,7 +76,7 @@ class TimeTable
   public:
     timetable_t timetable;
     weektime_t currentTime;  // current time to compare time table against
-    bool enabled;    
+    bool enabled;    // use timetable?
     TimeTable(); 
 
     // dump timetable
@@ -89,8 +89,14 @@ class TimeTable
     // set current UTC time
     void setCurrentTime(int hour, int min, int weekOfDay); 
 
+    // enable/disable timetable
+    void setEnabled(bool flag);
+
     // set day mask for hour 
     bool setDayMask(int hour, daymask_t mask);
+
+    // is there a transition change for mowing allowed? 
+    bool mowingAllowedChanged();
 
     // mowing allowed for current UTC week time?
     bool mowingAllowed();
@@ -101,6 +107,10 @@ class TimeTable
 
     // calc dayOfWeek(0=Monday) for given UTC date  (untested and not used!)
     int calcDayOfWeek(int year, int month, int day); 
+
+  protected:
+      bool lastMowingAllowedState;
+
 };
 
 
