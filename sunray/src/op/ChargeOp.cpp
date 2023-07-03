@@ -79,6 +79,8 @@ void ChargeOp::run(){
                 nextConsoleDetailsTime = millis() + 30000;
                 CONSOLE.print("ChargeOp: charging completed (DOCKING_STATION=");
                 CONSOLE.print(DOCKING_STATION);
+                CONSOLE.print(", battery.isDocked=");
+                CONSOLE.print(battery.isDocked());
                 CONSOLE.print(", dockOp.initiatedByOperator=");
                 CONSOLE.print(dockOp.initiatedByOperator);        
                 CONSOLE.print(", maps.mowPointsIdx=");
@@ -96,13 +98,15 @@ void ChargeOp::run(){
                 CONSOLE.println(")");
             }
             if ( (DOCKING_STATION) && (DOCK_AUTO_START) )  { // automatic continue mowing allowed?
+                if (battery.isDocked()){   // robot is in dock
                     if ( (timetableStartMowingTriggered) ||  // if timetable triggered  OR                   
                         ((maps.mowPointsIdx > 0) && (timetable.mowingAllowed())) ) { // if mowing not completed yet                       
                         if ( (!dockOp.dockReasonRainTriggered) || (millis() > dockOp.dockReasonRainAutoStartTime) ){ // raining timeout 
                             CONSOLE.println("DOCK_AUTO_START: will automatically continue mowing now");
                             changeOp(mowOp); // continue mowing                                                    
-                        }   
+                        }                           
                     }
+                }
             }
         }
     }        

@@ -12,6 +12,7 @@
 
 class Battery {
   public:
+    bool docked;    // robot in docking?
     bool batMonitor;
     float batGoHomeIfBelow;
     float batFullVoltage;
@@ -30,6 +31,8 @@ class Battery {
     bool chargingCompleted;
 	  void begin();            
     void run();	  
+    void setIsDocked(bool state);
+    bool isDocked();
 	  bool chargerConnected();
     bool badChargerContact();
     void enableCharging(bool flag);   	      

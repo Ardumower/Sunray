@@ -28,7 +28,8 @@ void MowOp::begin(){
     CONSOLE.println("OP_MOW");      
     motor.enableTractionMotors(true); // allow traction motors to operate         
     motor.setLinearAngularSpeed(0,0);      
-    motor.setMowState(false);                
+    motor.setMowState(false);   
+    battery.setIsDocked(false);                
 
     // plan route to next target point 
 

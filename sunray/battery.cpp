@@ -24,7 +24,7 @@
 // alfred:   Samsung INR18650-15M, 7 cells in series, nominal voltage 3.6v 
 
 void Battery::begin()
-{
+{  
   startupPhase = 0;
   nextBatteryTime = 0;
   nextCheckTime = 0;
@@ -39,7 +39,8 @@ void Battery::begin()
   badChargerContactState = false;      
   chargingCompleted = false;
   chargingEnabled = true;
-  
+  docked = false;
+
   batMonitor = true;              // monitor battery and charge voltage?      
   batGoHomeIfBelow = GO_HOME_VOLTAGE; // 21.5  drive home voltage (Volt)  
   batSwitchOffIfBelow = 18.9;  // switch off battery if below voltage (Volt)  
@@ -73,6 +74,16 @@ void Battery::enableCharging(bool flag){
 
 bool Battery::chargerConnected(){
   return chargerConnectedState;  
+}
+
+bool Battery::isDocked(){
+  return docked;
+}
+
+void Battery::setIsDocked(bool state){
+  CONSOLE.print("battery.setIsDocked ");
+  CONSOLE.println(state);
+  docked = state;
 }
 
 bool Battery::badChargerContact(){

@@ -120,7 +120,7 @@ bool loadState(){
   }
   uint32_t marker = 0;
   stateFile.read((uint8_t*)&marker, sizeof(marker));
-  if (marker != 0x10001006){
+  if (marker != 0x10001007){
     CONSOLE.print("ERROR: invalid marker: ");
     CONSOLE.println(marker, HEX);
     return false;
@@ -155,6 +155,7 @@ bool loadState(){
   res &= (stateFile.read((uint8_t*)&finishAndRestart, sizeof(finishAndRestart)) != 0); 
   res &= (stateFile.read((uint8_t*)&motor.motorMowForwardSet, sizeof(motor.motorMowForwardSet)) != 0); 
   res &= (stateFile.read((uint8_t*)&timetable.timetable, sizeof(timetable.timetable)) != 0);
+  res &= (stateFile.read((uint8_t*)&battery.docked, sizeof(battery.docked)) != 0);  
   stateFile.close();  
   CONSOLE.println("ok");
   stateCRC = calcStateCRC();
@@ -187,7 +188,7 @@ bool saveState(){
     CONSOLE.println("ERROR opening file for writing");
     return false;
   }
-  uint32_t marker = 0x10001006;
+  uint32_t marker = 0x10001007;
   res &= (stateFile.write((uint8_t*)&marker, sizeof(marker)) != 0); 
   res &= (stateFile.write((uint8_t*)&maps.mapCRC, sizeof(maps.mapCRC)) != 0); 
 
@@ -210,6 +211,7 @@ bool saveState(){
   res &= (stateFile.write((uint8_t*)&finishAndRestart, sizeof(finishAndRestart)) != 0);  
   res &= (stateFile.write((uint8_t*)&motor.motorMowForwardSet, sizeof(motor.motorMowForwardSet)) != 0);
   res &= (stateFile.write((uint8_t*)&timetable.timetable, sizeof(timetable.timetable)) != 0);  
+  res &= (stateFile.write((uint8_t*)&battery.docked, sizeof(battery.docked)) != 0);  
   if (res){
     CONSOLE.println("ok");
   } else {
