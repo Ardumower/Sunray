@@ -999,9 +999,9 @@ void run(){
 
       if (timetable.mowingAllowedChanged()){
         if (!timetable.mowingAllowed()){
-          activeOp->onTimetableStopMowing();        
+          if (activeOp->onTimetableStopMowing()) timetable.resetMowingAllowedChanged();        
         } else {
-          activeOp->onTimetableStartMowing();
+          if (activeOp->onTimetableStartMowing()) timetable.resetMowingAllowedChanged();
         }
       }
        

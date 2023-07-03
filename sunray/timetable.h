@@ -95,10 +95,10 @@ class TimeTable
     // set day mask for hour 
     bool setDayMask(int hour, daymask_t mask);
 
-    // is there a transition change for mowing allowed? 
+    // is there any pending change for mowing allowed? (use resetMowingAllowedChanged() to reset change event) 
     bool mowingAllowedChanged();
 
-    // reset
+    // reset transition change event
     void resetMowingAllowedChanged();
 
     // mowing allowed for current UTC week time?

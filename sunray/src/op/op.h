@@ -75,8 +75,8 @@ class Op {
     virtual void onKidnapped(bool state);
     virtual void onBatteryUndervoltage();
     virtual void onBatteryLowShouldDock();  
-    virtual void onTimetableStopMowing();
-    virtual void onTimetableStartMowing();  
+    virtual bool onTimetableStopMowing();
+    virtual bool onTimetableStartMowing();  
     virtual void onChargerDisconnected();
     virtual void onBadChargingContactDetected();    
     virtual void onChargerConnected();    
@@ -126,7 +126,7 @@ class MowOp: public Op {
     virtual void onRainTriggered() override;
     virtual void onTempOutOfRangeTriggered() override;    
     virtual void onBatteryLowShouldDock() override;
-    virtual void onTimetableStopMowing() override;    
+    virtual bool onTimetableStopMowing() override;    
     virtual void onObstacle() override;
     virtual void onObstacleRotation() override;
     virtual void onTargetReached() override;    
@@ -177,7 +177,7 @@ class ChargeOp: public Op {
     virtual void onBatteryUndervoltage() override;    
     virtual void onRainTriggered() override;   
     virtual void onChargerConnected() override; 
-    virtual void onTimetableStartMowing() override;    
+    virtual bool onTimetableStartMowing() override;    
 };
 
 // wait for undo kidnap (gps jump) 

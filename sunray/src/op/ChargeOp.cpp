@@ -115,8 +115,9 @@ void ChargeOp::run(){
     }        
 }
 
-void ChargeOp::onTimetableStartMowing(){        
+bool ChargeOp::onTimetableStartMowing(){        
     timetableStartMowingTriggered = true;    
+    return true; // indicate event consumed
 }
 
 void ChargeOp::onChargerDisconnected(){

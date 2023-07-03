@@ -131,10 +131,13 @@ bool TimeTable::mowingAllowed(){
 bool TimeTable::mowingAllowedChanged(){
     bool allowed = mowingAllowed();     
     if (allowed == lastMowingAllowedState) return false;
-    lastMowingAllowedState = allowed;
-    CONSOLE.println("timetable.mowingAllowedChanged...");
-    dump();
     return true;
+}
+
+void TimeTable::resetMowingAllowedChanged(){
+    CONSOLE.println("timetable.mowingAllowedChanged...");
+    lastMowingAllowedState = mowingAllowed();
+    dump();
 }
 
 
