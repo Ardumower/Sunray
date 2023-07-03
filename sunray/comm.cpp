@@ -227,11 +227,12 @@ void cmdSensorTest(){
 // TT,daymask,daymask,daymask,daymask,daymask,...
 // TT,0,0,0,0,0,0,0,0,0,0,127,127,127,127,127,127,127,127,127,0,0,0,0,0
 void cmdTimeTable(){
-  if (cmd.length()<6) return;  
+  if (cmd.length()<6) return;
+  //CONSOLE.println(cmd);  
   int lastCommaIdx = 0;
   bool success = true;
   timeTable.clear();
-  int hour = 0;
+  int counter = 0;
   for (int idx=0; idx < cmd.length(); idx++){
     char ch = cmd[idx];
     //Serial.print("ch=");
@@ -239,12 +240,14 @@ void cmdTimeTable(){
     if ((ch == ',') || (idx == cmd.length()-1)){            
       int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
       //float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
-      daymask_t daymask = intValue;
-      if (!timeTable.setDayMask(hour, daymask)){
-        success = false;
-        break;
-      }          
-      hour++;
+      if (counter > 0){
+        daymask_t daymask = intValue;
+        if (!timeTable.setDayMask(counter-1, daymask)){
+          success = false;
+          break;
+        }    
+      }      
+      counter++;
       lastCommaIdx = idx;
     }    
   }      
