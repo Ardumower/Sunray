@@ -96,14 +96,13 @@ void ChargeOp::run(){
                 CONSOLE.println(")");
             }
             if ( (DOCKING_STATION) && (DOCK_AUTO_START) )  { // automatic continue mowing allowed?
-            //if ((DOCKING_STATION) && (!dockOp.initiatedByOperator)) {
-                if ( (timetableStartMowingTriggered) ||  // if timetable triggered  OR                   
-                     ((maps.mowPointsIdx > 0) && (timetable.mowingAllowed())) ) { // if mowing not completed yet                       
-                    if ( (!dockOp.dockReasonRainTriggered) || (millis() > dockOp.dockReasonRainAutoStartTime) ){ // raining timeout 
-                        CONSOLE.println("DOCK_AUTO_START: will automatically continue mowing now");
-                        changeOp(mowOp); // continue mowing                                                    
-                    }   
-                }
+                    if ( (timetableStartMowingTriggered) ||  // if timetable triggered  OR                   
+                        ((maps.mowPointsIdx > 0) && (timetable.mowingAllowed())) ) { // if mowing not completed yet                       
+                        if ( (!dockOp.dockReasonRainTriggered) || (millis() > dockOp.dockReasonRainAutoStartTime) ){ // raining timeout 
+                            CONSOLE.println("DOCK_AUTO_START: will automatically continue mowing now");
+                            changeOp(mowOp); // continue mowing                                                    
+                        }   
+                    }
             }
         }
     }        
