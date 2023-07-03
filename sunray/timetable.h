@@ -98,6 +98,9 @@ class TimeTable
     // is there a transition change for mowing allowed? 
     bool mowingAllowedChanged();
 
+    // reset
+    void resetMowingAllowedChanged();
+
     // mowing allowed for current UTC week time?
     bool mowingAllowed();
 

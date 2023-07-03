@@ -29,6 +29,7 @@ void IdleOp::run(){
         // special case: when docking, robot might shortly enter IDLE state before CHARGE state and we should not flag operator mode then        
         // normal case: when going from IDLE to CHARGE state, flag operator mode
         if (millis() - startTime > 2000) {
+            CONSOLE.println("IDLE->CHARGE: idle time more than 2secs => assuming robot is not in dock");
             dockOp.setInitiatedByOperator(true);
             battery.setIsDocked(false);
         }             

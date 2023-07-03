@@ -99,8 +99,11 @@ void ChargeOp::run(){
             }
             if ( (DOCKING_STATION) && (DOCK_AUTO_START) )  { // automatic continue mowing allowed?
                 if (battery.isDocked()){   // robot is in dock
-                    if ( (timetableStartMowingTriggered) ||  // if timetable triggered  OR                   
-                        ((maps.mowPointsIdx > 0) && (timetable.mowingAllowed())) ) { // if mowing not completed yet                       
+                    // if timetable triggered  
+                    if (  (timetableStartMowingTriggered)      
+                    // OR if docked automatically and mowing not completed yet                    
+                      ||  ((!dockOp.initiatedByOperator) && (maps.mowPointsIdx > 0) && (timetable.mowingAllowed()))   )   
+                    {                        
                         if ( (!dockOp.dockReasonRainTriggered) || (millis() > dockOp.dockReasonRainAutoStartTime) ){ // raining timeout 
                             CONSOLE.println("DOCK_AUTO_START: will automatically continue mowing now");
                             changeOp(mowOp); // continue mowing                                                    
