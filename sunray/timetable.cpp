@@ -4,6 +4,7 @@
 TimeTable::TimeTable()
 {
     lastMowingAllowedState = false;
+    mowingCompletedInCurrentTimeFrame = false;
     timetable.enable = false;    
     timetable.hours[0] = 0;
     timetable.hours[1] = 0;
@@ -29,6 +30,10 @@ TimeTable::TimeTable()
     timetable.hours[21] = 0;
     timetable.hours[22] = 0;
     timetable.hours[23] = 0;    
+}
+
+void TimeTable::setMowingCompletedInCurrentTimeFrame(bool completed){
+    mowingCompletedInCurrentTimeFrame = completed;
 }
 
 
@@ -131,6 +136,8 @@ bool TimeTable::mowingAllowed(){
 bool TimeTable::mowingAllowedChanged(){
     bool allowed = mowingAllowed();     
     if (allowed == lastMowingAllowedState) return false;
+    // there is a transition in the timetable
+    mowingCompletedInCurrentTimeFrame = false; // reset mowing complete for new time frame
     return true;
 }
 

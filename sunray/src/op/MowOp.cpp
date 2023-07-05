@@ -258,6 +258,7 @@ void MowOp::onKidnapped(bool state){
 
 void MowOp::onNoFurtherWaypoints(){
     CONSOLE.println("mowing finished!");
+    timetable.setMowingCompletedInCurrentTimeFrame(true);
     if (!finishAndRestart){             
         if (DOCKING_STATION){
             dockOp.setInitiatedByOperator(false);

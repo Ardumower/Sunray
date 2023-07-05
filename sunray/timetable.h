@@ -77,6 +77,7 @@ class TimeTable
   public:
     timetable_t timetable;
     weektime_t currentTime;  // current time to compare time table against
+    bool mowingCompletedInCurrentTimeFrame;  // has mowing completed in current time frame?
     TimeTable(); 
 
     // dump timetable
@@ -91,6 +92,8 @@ class TimeTable
 
     // enable/disable timetable
     void setEnabled(bool flag);
+
+    void setMowingCompletedInCurrentTimeFrame(bool completed);
 
     // set day mask for hour 
     bool setDayMask(int hour, daymask_t mask);
