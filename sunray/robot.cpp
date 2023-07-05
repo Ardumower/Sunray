@@ -924,6 +924,7 @@ void run(){
     nextTimetableTime = millis() + 30000;
     gps.decodeTOW();
     timetable.setCurrentTime(gps.hour, gps.min, gps.dayOfWeek);
+    timetable.run();
   }
 
   calcStats();  
@@ -996,14 +997,6 @@ void run(){
            activeOp->onBatteryLowShouldDock();
         }
       }   
-
-      if (timetable.mowingAllowedChanged()){
-        if (!timetable.mowingAllowed()){
-          if (activeOp->onTimetableStopMowing()) timetable.resetMowingAllowedChanged();        
-        } else {
-          if (activeOp->onTimetableStartMowing()) timetable.resetMowingAllowedChanged();
-        }
-      }
        
       if (battery.chargerConnected()){
         if (battery.chargingHasCompleted()){

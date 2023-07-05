@@ -616,6 +616,18 @@ void cmdSummary(){
   s += maps.mapCRC;
   s += ",";
   s += lateralError;
+  s += ",";
+  if (stateOp == OP_MOW){
+    s += timetable.autostopTime.dayOfWeek;
+    s += ",";  
+    s += timetable.autostopTime.hour;
+  } else if (stateOp == OP_CHARGE) {
+    s += timetable.autostartTime.dayOfWeek;
+    s += ",";  
+    s += timetable.autostartTime.hour;
+  } else {
+    s += "-1,0";
+  }
   cmdAnswer(s);  
 }
 

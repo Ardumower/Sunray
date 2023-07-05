@@ -24,6 +24,7 @@ mowing allowed (timetable evaluated): 1
 
 */
 
+#define NOT_SET -1
 
 // time of day
 typedef struct daytime_t {
@@ -76,9 +77,15 @@ class TimeTable
 {
   public:
     timetable_t timetable;
+    weektime_t autostartTime;   // next autostart time
+    weektime_t autostopTime;    // next autostop time
     weektime_t currentTime;  // current time to compare time table against
     bool mowingCompletedInCurrentTimeFrame;  // has mowing completed in current time frame?
     TimeTable(); 
+
+    bool shouldAutostartNow();  // robot should autostart now?
+    bool shouldAutostopNow();  // robot should autostop now?
+
 
     // dump timetable
     void dump();    
@@ -98,25 +105,30 @@ class TimeTable
     // set day mask for hour 
     bool setDayMask(int hour, daymask_t mask);
 
-    // is there any pending change for mowing allowed? (use resetMowingAllowedChanged() to reset change event) 
-    bool mowingAllowedChanged();
-
-    // reset transition change event
-    void resetMowingAllowedChanged();
-
-    // mowing allowed for current UTC week time?
-    bool mowingAllowed();
 
     // ------ misc functions -----------------------------------    
+    bool findAutostartTime(weektime_t &time);    
+    bool findAutostopTime(weektime_t &time);    
+
     // mowing allowed for given UTC week time?
     bool mowingAllowed(weektime_t time);  
 
     // calc dayOfWeek(0=Monday) for given UTC date  (untested and not used!)
     int calcDayOfWeek(int year, int month, int day); 
 
-  protected:
-      bool lastMowingAllowedState;
+    // mowing allowed for current UTC week time?
+    bool mowingAllowed();
 
+    // run loop
+    void run(); 
+
+  protected:
+      unsigned long nextCheckTime; 
+      bool lastMowingAllowedState;
+      bool autostartTriggered;  // remember transition triggers
+      bool autostopTriggered;  // remember transition triggers      
+      bool autostartNow;  
+      bool autostopNow;   
 };
 
 

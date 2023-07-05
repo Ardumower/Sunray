@@ -1,11 +1,22 @@
 #include "timetable.h"
 #include "config.h"
+#include "robot.h"
+#include "src/op/op.h"
+
 
 TimeTable::TimeTable()
 {
-    lastMowingAllowedState = false;
+    autostartNow = false;
+    autostopNow = false;
     mowingCompletedInCurrentTimeFrame = false;
-    timetable.enable = false;    
+    nextCheckTime = 0;
+    lastMowingAllowedState = false;
+    autostartTriggered = false;
+    autostopTriggered = false;    
+    autostopTime.dayOfWeek = NOT_SET;
+    autostartTime.dayOfWeek = NOT_SET;    
+    timetable.enable = false; 
+
     timetable.hours[0] = 0;
     timetable.hours[1] = 0;
     timetable.hours[2] = 0;
@@ -47,12 +58,22 @@ void TimeTable::setCurrentTime(int hour, int min, int dayOfWeek){
 }    
 
 void TimeTable::dumpWeekTime(weektime_t time){
-    CONSOLE.print("dayOfWeek(0=Monday)=");
-    CONSOLE.print(time.dayOfWeek);
+    CONSOLE.print("dayOfWeek=");
+    String s;
+    switch (time.dayOfWeek){
+        case 0: s = "mon"; break;
+        case 1: s = "tue"; break;
+        case 2: s = "wed"; break;
+        case 3: s = "thu"; break;
+        case 4: s = "fri"; break;
+        case 5: s = "sat"; break;
+        case 6: s = "sun"; break;         
+    }    
+    CONSOLE.print(s);
     CONSOLE.print("  hour=");
-    CONSOLE.print(time.hour);
-    CONSOLE.print("  min=");
-    CONSOLE.println(time.min);
+    CONSOLE.println(time.hour);
+    //CONSOLE.print("  min=");
+    //CONSOLE.println(time.min);
 }
 
 
@@ -101,6 +122,9 @@ void TimeTable::clear(){
     for (int i=0; i  < 24; i++){
         timetable.hours[i] = 0;
     }
+    lastMowingAllowedState = false;
+    autostartTriggered = false;
+    autostopTriggered = false;        
 }    
 
 // set day mask for hour 
@@ -133,18 +157,164 @@ bool TimeTable::mowingAllowed(){
     return mowingAllowed(currentTime);
 }
 
-bool TimeTable::mowingAllowedChanged(){
-    bool allowed = mowingAllowed();     
-    if (allowed == lastMowingAllowedState) return false;
-    // there is a transition in the timetable
-    mowingCompletedInCurrentTimeFrame = false; // reset mowing complete for new time frame
-    return true;
+
+bool TimeTable::findAutostopTime(weektime_t &time){
+    time.dayOfWeek = NOT_SET;
+    if (!timetable.enable) {
+        CONSOLE.println("AUTOSTOP: timetable is disabled");
+        return false;
+    }
+    bool autostop = false;
+    bool triggered = autostopTriggered;
+    weektime_t checktime = currentTime;
+    bool checkstate = true;
+
+    // check timetable
+    for (int hour =0; hour < 24 * 7; hour++){
+        bool allowed = mowingAllowed(checktime);
+        if (allowed != checkstate){   
+            if ( (!allowed ) && (!triggered) )   {         
+                // timetable status transition                                
+                CONSOLE.print("AUTOSTOP: timetable transition ");                                    
+                time = checktime;
+                dumpWeekTime(time);
+                autostop = true;
+                break;
+            } 
+            triggered = false;
+            checkstate = allowed;
+        }
+        // continue to next hour in timetable
+        checktime.hour++;
+        if (checktime.hour > 23){
+            checktime.dayOfWeek++;
+            if (checktime.dayOfWeek > 6){
+                checktime.dayOfWeek = 0;
+            }
+            checktime.hour=0;
+        }
+    }
+    if (!autostop) CONSOLE.println("AUTOSTOP: no time found");
+    return autostop;
 }
 
-void TimeTable::resetMowingAllowedChanged(){
-    CONSOLE.println("timetable.mowingAllowedChanged...");
-    lastMowingAllowedState = mowingAllowed();
-    dump();
+
+bool TimeTable::findAutostartTime(weektime_t &time){    
+    time.dayOfWeek = NOT_SET;
+    if ( !DOCKING_STATION ){
+        CONSOLE.println("AUTOSTART: not defined DOCKING_STATION");
+        return false; 
+    }
+    if (!DOCK_AUTO_START) {// automatic continue mowing allowed?
+        CONSOLE.println("AUTOSTART: not defined DOCK_AUTO_START");
+        return false;     
+    }
+    if ( !battery.isDocked() ) { // robot is in dock?
+        CONSOLE.println("AUTOSTART: not docked automatically (use DOCK command first)");
+        return false;   
+    }
+    bool autostart = false;    
+    weektime_t checktime = currentTime;
+    bool checkstate = false;
+    bool triggered = autostartTriggered;    
+    unsigned long waitmillis = millis(); 
+    
+    // check timetable and rain timeouts    
+    for (int hour =0; hour < 24 * 7; hour++){
+        if ( (!dockOp.dockReasonRainTriggered) || (waitmillis > dockOp.dockReasonRainAutoStartTime) ) {  // raining timeout 
+            if (!timetable.enable){  // timetable disabled
+                if ((!dockOp.initiatedByOperator) && (maps.mowPointsIdx > 0)) { // mowing not completed yet                    
+                    CONSOLE.print("AUTOSTART: mowing not completed yet ");
+                    time = checktime;
+                    dumpWeekTime(time);
+                    autostart = true;
+                    break;
+                }
+            } else {   // timetable enabled
+                bool allowed = mowingAllowed(checktime);
+                if (allowed != checkstate){   
+                    if ((allowed) && (!triggered))    {         
+                        // timetable status transition
+                        CONSOLE.print("AUTOSTART: timetable transition ");                    
+                        time = checktime;
+                        dumpWeekTime(time);
+                        autostart = true;
+                        break;
+                    }
+                    triggered = false;
+                    checkstate = allowed;
+                }
+                if (allowed){   // timetable status
+                    if ( (!dockOp.initiatedByOperator) && ((!mowingCompletedInCurrentTimeFrame) || (maps.mowPointsIdx > 0)) )  {
+                        CONSOLE.print("AUTOSTART: timetable state ");                    
+                        time =checktime;
+                        dumpWeekTime(time);
+                        autostart = true;
+                        break;
+                    }
+                }
+            }
+        }
+        // continue to next hour in timetable
+        checktime.hour++;
+        waitmillis += 1000 * 60 * 60; // 1 hour
+        if (checktime.hour > 23){
+            checktime.dayOfWeek++;
+            if (checktime.dayOfWeek > 6){
+                checktime.dayOfWeek = 0;
+            }
+            checktime.hour=0;
+        }
+    }     
+    if (!autostart) CONSOLE.println("AUTOSTART: no time found");
+    return autostart;
+}
+
+bool TimeTable::shouldAutostartNow(){
+    if (autostartNow){
+        autostartTriggered = true;
+        return true;
+    }
+    return false;
+}
+
+bool TimeTable::shouldAutostopNow(){
+    if (autostopNow){        
+        autostopTriggered = true;
+        return true;
+    }
+    return false;
+}
+
+
+void TimeTable::run(){    
+    //if (millis() < nextCheckTime) return;
+    //nextCheckTime = millis() + 30000;    
+
+    bool allowed = mowingAllowed(currentTime);
+    if (allowed != lastMowingAllowedState){
+        lastMowingAllowedState = allowed;
+        autostartTriggered = false; // reset trigger
+        autostopTriggered = false; // reset trigger    
+    }
+
+    autostopNow = false;
+    if (findAutostopTime(autostopTime)){ 
+        if (autostopTime.dayOfWeek == currentTime.dayOfWeek){
+            if (autostopTime.hour == currentTime.hour){                                
+                autostopNow = true;
+            }
+        }
+    }
+
+    autostartNow = false;
+    if (findAutostartTime(autostartTime)){
+        if (autostartTime.dayOfWeek == currentTime.dayOfWeek){
+            if (autostartTime.hour == currentTime.hour){
+                autostartNow = true;
+            }
+        } 
+    }
 }
 
 

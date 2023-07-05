@@ -25,6 +25,11 @@ String DockOp::name(){
 
 
 void DockOp::begin(){
+  if (previousOp == &chargeOp){
+    changeOp(chargeOp);    
+    return;
+  }
+
   bool error = false;
   bool routingFailed = false;      
   

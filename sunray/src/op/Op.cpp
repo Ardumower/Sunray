@@ -250,12 +250,10 @@ void Op::onBatteryUndervoltage(){
 void Op::onBatteryLowShouldDock(){    
 }
 
-bool Op::onTimetableStartMowing(){    
-  return false;  // indicate event not consumed 
+void Op::onTimetableStartMowing(){    
 }
 
-bool Op::onTimetableStopMowing(){    
-  return false; // indicate event not consumed
+void Op::onTimetableStopMowing(){    
 }
 
 void Op::onImuTilt(){
