@@ -97,6 +97,8 @@ void ChargeOp::run(){
                 CONSOLE.print(timetable.mowingAllowed());
                 CONSOLE.print(", timetableStartMowingTriggered=");                
                 CONSOLE.print(timetableStartMowingTriggered);
+                CONSOLE.print(", finishAndRestart=");                
+                CONSOLE.print(finishAndRestart);                
                 CONSOLE.println(")");
             }
             if ( (DOCKING_STATION) && (DOCK_AUTO_START) )  { // automatic continue mowing allowed?
