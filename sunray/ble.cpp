@@ -16,6 +16,11 @@
 #include "ble.h"
 #include <Arduino.h>
 #include "config.h"
+#include "robot.h"
+#include "comm.h"
+
+bool bleConnected = false;
+unsigned long bleConnectedTimeout = 0;
 
 
 String BLEConfig::read(){
@@ -110,3 +115,32 @@ void BLEConfig::run(){
   //}
 #endif
 }
+
+
+// process Bluetooth input
+void processBLE(){
+  char ch;   
+  if (BLE.available()){
+    battery.resetIdle();  
+    bleConnected = true;
+    bleConnectedTimeout = millis() + 5000;
+    while ( BLE.available() ){    
+      ch = BLE.read();      
+      if ((ch == '\r') || (ch == '\n')) {   
+        #ifdef VERBOSE
+          CONSOLE.print("BLE:");     
+          CONSOLE.println(cmd);        
+        #endif
+        processCmd(true, true);              
+        BLE.print(cmdResponse);    
+        cmd = "";
+      } else if (cmd.length() < 500){
+        cmd += ch;
+      }
+    }    
+  } else {
+    if (millis() > bleConnectedTimeout){
+      bleConnected = false;
+    }
+  }  
+}  
