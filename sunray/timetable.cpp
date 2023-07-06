@@ -149,7 +149,7 @@ bool TimeTable::mowingAllowed(weektime_t time){
     if ((hour < 0) || (hour > 23)) return false;    
     int mask = (1 << time.dayOfWeek);
 
-    bool allowed = (timetable.hours[hour] & mask != 0); // if mowing allowed, mask is set for that day
+    bool allowed = ( (timetable.hours[hour] & mask) != 0); // if mowing allowed, mask is set for that day
     return allowed;
 }
 
