@@ -3,9 +3,8 @@
 
 #include <Arduino.h>
 
-void mqttReconnect();
-void mqttCallback(char* topic, byte* payload, unsigned int length);
-void processWifiMqttClient();
+void processWifiRelayClient();
+void processWifiAppServer();
 
 
 #endif

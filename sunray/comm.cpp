@@ -6,6 +6,9 @@
 #include "Stats.h"
 #include "src/op/op.h"
 #include "reset.h"
+#include "mqtt.h"
+#include "httpserver.h"
+#include "ble.h"
 
 #ifdef __linux__
   #include <BridgeClient.h>

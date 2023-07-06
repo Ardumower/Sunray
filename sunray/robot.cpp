@@ -44,6 +44,7 @@
 #include "i2c.h"
 #include "src/test/test.h"
 #include "bumper.h"
+#include "mqtt.h"
 
 // #define I2C_SPEED  10000
 #define _BV(x) (1 << (x))
