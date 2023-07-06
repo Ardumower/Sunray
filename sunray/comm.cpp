@@ -226,6 +226,7 @@ void cmdSensorTest(){
 // request timetable (mowing allowed day masks for 24 UTC hours)
 // TT,enable,daymask,daymask,daymask,daymask,daymask,...
 // TT,1,0,0,0,0,0,0,0,0,0,0,127,127,127,127,127,127,127,127,127,0,0,0,0,0
+// NOTE: protocol for this command will change in near future (please do not assume this a final implementation)
 void cmdTimetable(){
   if (cmd.length()<6) return;
   //CONSOLE.println(cmd);  
