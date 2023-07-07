@@ -19,6 +19,7 @@
   #include "src/esp/WiFiEsp.h"
 #endif
 #include "timetable.h"
+#include "Storage.h"
 
 
 //#define VERBOSE 1
@@ -247,7 +248,9 @@ void cmdTimetable(){
   if (!success){   
     stateSensor = SENS_MEM_OVERFLOW;
     setOperation(OP_ERROR);
-  } 
+  } else {
+    saveState();
+  }
 }
 
 // request waypoint (perim,excl,dock,mow,free)

@@ -91,6 +91,8 @@ class TimeTable
     void dump();    
     void dumpWeekTime(weektime_t time);
 
+    int crc();
+
     // clear timetable
     void clear();
 

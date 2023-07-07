@@ -127,6 +127,15 @@ void TimeTable::clear(){
     autostopTriggered = false;        
 }    
 
+int TimeTable::crc(){
+    int crc = 0;
+    for (int i=0; i  < 24; i++){
+        crc += i * timetable.hours[i];
+    }
+    crc += ((byte)timetable.enable);
+    return crc;
+}
+
 // set day mask for hour 
 bool TimeTable::setDayMask(int hour, daymask_t mask){
     if ((hour < 0) || (hour > 23)) return false;
