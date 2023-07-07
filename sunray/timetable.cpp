@@ -122,9 +122,6 @@ void TimeTable::clear(){
     for (int i=0; i  < 24; i++){
         timetable.hours[i] = 0;
     }
-    lastMowingAllowedState = false;
-    autostartTriggered = false;
-    autostopTriggered = false;        
 }    
 
 int TimeTable::crc(){
