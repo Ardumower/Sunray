@@ -3,7 +3,7 @@
 NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' firmware.
 
 ## How to install code and compile 'Sunray for Alfred' (required only once)
-Run this on your Alfred:
+Run this on your Alfred Linux terminal:
 
 ```
 ## clone repository ##
