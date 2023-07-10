@@ -44,7 +44,7 @@ sudo apt-get -y install libbluetooth-dev
 ```
 
 ## How to compile 'OpenOCD' on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
-OpenOCD is used to flash the Alfred MCU firmware via GPIO interface (SWD emulation). Run this in your 'pi' home folder:
+OpenOCD is used to flash the Alfred MCU firmware via GPIO interface (SWD emulation). Run this in your 'pi' home folder. The compiled binary ('openocd') can be found in folder 'src'. 
 ```
 sudo apt-get -y install libtool
 git clone --recursive https://github.com/lupyuen/openocd-spi
@@ -54,6 +54,18 @@ git pull zorvalt fix-multiple-gcc-10-errors
 ./boostrap
 ./configure --disable-internal-libjaylink --enable-sysfsgpio
 make
+```
+Please note that the OpenOCD config ('~/sunray_install/config_files/openocd/swd-pi.ocd') has to be adjusted as the GPIO pins have different numbers:
+```
+# SWD banana-pi wiring:
+# CON1-P18 	SWDIO   GPIO-10  (raspi GPIO24)
+# CON1-P22 	SWCLK 	GPIO-47  (raspi GPIO25)
+# CON1-P16 	SRST2 	GPIO-11  (raspi GPIO23)  -- main MCU
+# CON1-P24 	SRST1 	GPIO-20  (raspi GPIO8)   -- perim MCU
+
+sysfsgpio_swdio_num 24
+sysfsgpio_swclk_num 25
+sysfsgpio_srst_num 23
 ```
 
 ## License
