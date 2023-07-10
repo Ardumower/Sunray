@@ -47,7 +47,7 @@ sudo apt-get -y install libbluetooth-dev
 OpenOCD is used to flash the MCU firmware via GPIO interface (SPI emulation). Run this in your 'pi' home folder:
 ```
 sudo apt-get -y install libtool
-git clone https://github.com/lupyuen/openocd-spi
+git clone --recursive https://github.com/lupyuen/openocd-spi
 cd openocd-spi
 ./boostrap
 ./configure --disable-internal-libjaylink --enable-sysfsgpio
