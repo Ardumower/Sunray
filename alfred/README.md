@@ -49,6 +49,8 @@ OpenOCD is used to flash the Alfred MCU firmware via GPIO interface (SPI emulati
 sudo apt-get -y install libtool
 git clone --recursive https://github.com/lupyuen/openocd-spi
 cd openocd-spi
+git remote add zorvalt https://github.com/Zorvalt/openocd-spi/
+git pull zorvalt fix-multiple-gcc-10-errors
 ./boostrap
 ./configure --disable-internal-libjaylink --enable-sysfsgpio
 make
