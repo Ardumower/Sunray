@@ -36,6 +36,13 @@ cp sunray ~/sunray_install/
 sudo systemctl start sunray
 ```
 
+## How to Compile 'Sunray for Alfred' on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
+Before running above commands, install required libs:
+```
+sudo apt-get -y install cmake
+sudo apt-get -y install libbluetooth-dev
+```
+
 ## License
 Ardumower Sunray 
 Copyright (c) 2013-2020 by Alexander Grau, Grau GmbH
