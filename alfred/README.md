@@ -36,7 +36,7 @@ cp sunray ~/sunray_install/
 sudo systemctl start sunray
 ```
 
-## How to compile 'Alfred MCU firmware'
+## How to compile and flash 'Alfred MCU firmware'
 NOTE: This step is only required if you want to compile a custom version of the Alfred MCU firmware. The Alfred MCU firmware can be compiled using Arduino compiler on the Alfred. The compiled Alfred MCU firmware will then be flashed to the Alfred MCU using OpenOCD.
 ```
 cd sunray_install
