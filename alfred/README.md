@@ -36,11 +36,22 @@ cp sunray ~/sunray_install/
 sudo systemctl start sunray
 ```
 
-## How to Compile 'Sunray for Alfred' on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
+## How to compile 'Sunray for Alfred' on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
 Before running above commands, install required libs:
 ```
 sudo apt-get -y install cmake
 sudo apt-get -y install libbluetooth-dev
+```
+
+## How to compile 'OpenOCD' with SPI support on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
+OpenOCD is used to flash the MCU firmware via GPIO interface (SPI emulation). Run this in your 'pi' home folder:
+```
+sudo apt-get -y install libtool
+git clone https://github.com/lupyuen/openocd-spi
+cd openocd-spi
+./boostrap
+./configure --disable-internal-libjaylink --enable-sysfsgpio
+make
 ```
 
 ## License
