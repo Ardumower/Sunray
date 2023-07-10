@@ -40,10 +40,10 @@ sudo systemctl start sunray
 NOTE: This step is only required if you want to compile a custom version of the Alfred MCU firmware. The Alfred MCU firmware can be compiled using Arduino compiler on the Alfred. The compiled Alfred MCU firmware will then be flashed to the Alfred MCU using OpenOCD.
 ```
 cd sunray_install
-sudo flash.sh
+sudo ./flash.sh
 ```
-1. Choose 'Install Arduino IDE' (not required for Alfred SD card images)
-2. Build+Flash NGP firmware (Sunray-compatible)
+1. Choose 'Install Arduino IDE' (this step may not be required for Alfred SD card images)
+2. Choose 'Build+Flash NGP firmware (Sunray-compatible)'
 
 
 ## How to compile 'Sunray for Alfred' on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
