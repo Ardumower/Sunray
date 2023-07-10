@@ -1,5 +1,7 @@
 # Sunray for Alfred
 
+NOTE: Below steps are only required if you want to compile custom version of the 'Sunray for Alfred' firmware.
+
 ## How to install code and compile 'Sunray for Alfred' (required only once)
 Run this on your Alfred:
 
