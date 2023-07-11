@@ -1,5 +1,7 @@
 /*
-  RM24A/18 robot mower  
+  Alfred MCU firmware (for RM24A/18 robot mower)
+  provides Sunray-compatible robot driver (serial robot driver)
+  NOTE: For compiling this file on the Alfred, see README (https://github.com/Ardumower/Sunray/blob/master/alfred/README.md)
   
   * MCU1 (main): STM32F103VET 512K flash/64K SRAM
         flash size       0x80000 
@@ -29,36 +31,7 @@
     2 RX                            TX1
     3 GND                           GND
     4 5V                            5V
-
-  Ardumower PCB BT connector      Arduino
-    1 EN                             
-    2 5V                            5V
-    3 GND                           GND
-    4 TX (at module)                RX2
-    5 RX (at module)                TX2
-
-  Ardumower PCB GPS connector     Arduino     -----
-    1 5V                            5V         - 1|
-    2 GND                           GND        |  |
-    3 TX   (at module)              RX3        |  |
-    4 RX   (at module)              TX3        -  |
-    5 LED                                     -----
     
-  Ardumower PCB IMU connector     Arduino
-    1 5V                            5V
-    2 GND                           GND
-    3 SDA                           SDA
-    4 SCL                           SCL
-    5 3.3V                          3.3V
-
-  Buzzer                          Arduino 
-    1 5V                            5V
-    2 GND                           GND
-    3 signal pin                    D53
-
-  Arduino Due power-on-reset circuit
-    RESET -- 0.5K -- 10 uF -- GND
-  
   --------------NOT USED---------------------
   J1: perimeter,  J2: main unit 
 
@@ -77,7 +50,7 @@
     GND  U   v   W
 
 
-  steps:
+  steps for compiling on a PC:
   
   1. install Arduino STM32 board libraries ('STMicroelectronics 1.9.0'):   https://github.com/stm32duino/Arduino_Core_STM32
      https://idyl.io/arduino/how-to/program-stm32-blue-pill-stm32f103c8t6/
