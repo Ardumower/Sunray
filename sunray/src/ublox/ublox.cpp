@@ -474,8 +474,8 @@ void UBLOX::dispatchMessage() {
                       CONSOLE.print(",");
                       CONSOLE.println(cno); */
                       rsum += fabs(prRes);    // pseudorange residual
-                      rmax = max(rmax, fabs(prRes));
-                      rmin = min(rmin, fabs(prRes));
+                      rmax = ::max(rmax, fabs(prRes));
+                      rmin = ::min(rmin, fabs(prRes));
                       crcnt++;
                     }                    
                   }
