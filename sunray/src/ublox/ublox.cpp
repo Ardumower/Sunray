@@ -373,7 +373,7 @@ void UBLOX::dispatchMessage() {
               month = (unsigned char)this->unpack_int8(14);
               day = (unsigned char)this->unpack_int8(15);
               hour = (unsigned char)this->unpack_int8(16);
-              min = (unsigned char)this->unpack_int8(17);
+              mins = (unsigned char)this->unpack_int8(17);
               sec = (unsigned char)this->unpack_int8(18);              
               if (verbose) {
                 CONSOLE.print("UBX-NAV-TIMEUTC ");
@@ -386,7 +386,7 @@ void UBLOX::dispatchMessage() {
                 CONSOLE.print("  hour=");
                 CONSOLE.print(hour);
                 CONSOLE.print("  min=");
-                CONSOLE.print(min);
+                CONSOLE.print(mins);
                 CONSOLE.print("  sec=");
                 CONSOLE.println(sec);                
               }
@@ -474,8 +474,8 @@ void UBLOX::dispatchMessage() {
                       CONSOLE.print(",");
                       CONSOLE.println(cno); */
                       rsum += fabs(prRes);    // pseudorange residual
-                      rmax = ::max(rmax, fabs(prRes));
-                      rmin = ::min(rmin, fabs(prRes));
+                      rmax = max(rmax, fabs(prRes));
+                      rmin = min(rmin, fabs(prRes));
                       crcnt++;
                     }                    
                   }

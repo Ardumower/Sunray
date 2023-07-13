@@ -56,9 +56,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
   #endif
 #endif
 
-#define DRV_SERIAL_ROBOT  1
+//#define DRV_SERIAL_ROBOT  1
 //#define DRV_ARDUMOWER     1   // keep this for Ardumower
-//#define DRV_SIM_ROBOT     1   // simulation
+#define DRV_SIM_ROBOT     1   // simulation
 
 // ------- Bluetooth4.0/BLE module -----------------------------------
 // see Wiki on how to install the BLE module and configure the jumpers:
