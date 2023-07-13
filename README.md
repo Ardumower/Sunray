@@ -1,4 +1,4 @@
-# Sunray
+# Sunray firmware
 
 # Table of contents
 1. [Description](#description)
@@ -8,7 +8,7 @@
    
 
 ## Description <a name="description"></a>
-An alternative Firmware (experimental) for...
+Sunray firmware is an alternative Firmware (experimental) for...
 
 Platform | Hardware required 
 --- | ---
