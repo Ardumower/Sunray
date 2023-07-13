@@ -621,6 +621,17 @@ bool Map::save(){
 
 void Map::finishedUploadingMap(){
   CONSOLE.println("finishedUploadingMap");
+  #ifdef DRV_SIM_ROBOT
+    float x;
+    float y;
+    float delta;
+    if (getDockingPos(x, y, delta)){
+      CONSOLE.println("SIM: setting robot pos to docking pos");
+      robotDriver.setSimRobotPosState(x, y, delta);
+    } else {
+      CONSOLE.println("SIM: error getting docking pos");
+    }
+  #endif
   mapCRC = calcMapCRC();
   dump();
   save();
