@@ -10,6 +10,8 @@ Alfred | Alfred robot with Alfred RTK conversion kit (tiny Linux computer, IO-bo
 
 The robot mower uses RTK to localize itself (without a perimeter wire)
 
+# Sunray for Ardumower
+
 ## Warning
 All software and hardware, software and motor components are designed and optimized as a whole, if you try to replace or exclude some component not as designed, you risk to damage your hardware with the software
 
