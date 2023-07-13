@@ -1,4 +1,4 @@
 # Sunray for Alfred / Sunray Simulator / Sunray for Raspberry PI
 
-[Click here...](../README.md)
+[README has moved - click here...](../README.md)
 
