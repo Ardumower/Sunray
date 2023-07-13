@@ -81,7 +81,7 @@ sysfsgpio_srst_num 23
 ```
 
 ## How to compile 'Sunray Simulator'
-The simulator will simulate an Ardumower/Alfred on a Linux computer. 
+The simulator will simulate an Ardumower/Alfred on a Linux computer. It uses the same firmware with simulator drivers for all robot hardware (motors, bumper, GPS, etc.). It will also simulate all network-based interfaces (HTTP, MQTT etc.).
 
 Run this on your Linux terminal:
 ```
