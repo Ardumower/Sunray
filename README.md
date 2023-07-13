@@ -6,7 +6,7 @@ An alternative Firmware (experimental) for...
 Platform | Compilation 
 --- | ---
 Ardumower | Ardumower kit mowing and gear motors, PCB 1.3, Adafruit Grand Central M4 (or Arduino Due) and ArduSimple RTK kit
-Alfred | Alfred robot with Alfred RTK conversion kit (tiny Linux computer, IO-board, RTK base antenna etc.)
+Alfred | Alfred robot with Alfred RTK conversion kit (tiny Linux computer, IO-board, ArduSimple RTK kit, base antenna etc.)
 
 The robot mower uses RTK to localize itself (without a perimeter wire)
 
