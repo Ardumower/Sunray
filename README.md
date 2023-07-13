@@ -142,9 +142,9 @@ cmake ..
 make
 sudo ./sunray
 ```
-When uploading a map, simulator will set the robot position to the uploaded docking point. If using Sunray App, you can simulate sensors like this:
+When uploading a map, simulator will set the robot position to the uploaded docking point. Using the Sunray App, you can simulate sensors like this:
 
-Key | Sensor simulation 
+Keyboard key | Sensor simulation 
 --- | ---
 o | Trigger robot obstacle sensor (bumper etc.)
 r | Trigger robot rain sensor
