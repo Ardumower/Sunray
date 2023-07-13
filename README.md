@@ -1,6 +1,13 @@
 # Sunray
 
-## Description
+# Table of contents
+1. [Description](#description)
+2. [Sunray for Ardumower](#sunray_ardumower)
+3. [Sunray for Alfred](#sunray_alfred)
+4. [Sunray Simulator](#sunray_sim)
+   
+
+## Description <a name="description"></a>
 An alternative Firmware (experimental) for...
 
 Platform | Compilation 
@@ -10,7 +17,7 @@ Alfred | Alfred robot with Alfred RTK conversion kit (tiny Linux computer, IO-bo
 
 The robot mower uses RTK to localize itself (without a perimeter wire)
 
-# Sunray for Ardumower
+# Sunray for Ardumower <a name="sunray_ardumower"></a>
 
 ## Warning
 All software and hardware, software and motor components are designed and optimized as a whole, if you try to replace or exclude some component not as designed, you risk to damage your hardware with the software
@@ -26,7 +33,7 @@ __WARNING__: Do not use the master version (via download button), that is 'code 
 
 https://github.com/Ardumower/Sunray/releases
 
-# Sunray for Alfred / Sunray Simulator / Sunray for Raspberry PI
+# Sunray for Alfred / Sunray Simulator / Sunray for Raspberry PI <a name="sunray_alfred"></a>
 
 NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' firmware or if you want to compile the Sunray Simulator. The code for all steps will require a Linux system (either the Alfred, a Raspberry PI or some external PC).
 
@@ -117,7 +124,7 @@ sysfsgpio_swclk_num 25
 sysfsgpio_srst_num 23
 ```
 
-## How to compile 'Sunray Simulator'
+## How to compile 'Sunray Simulator' <a name="sunray_sim"></a>
 The simulator will simulate an Ardumower/Alfred on a Linux computer. It uses the same firmware with simulator drivers for all robot hardware (motors, bumper, GPS, etc.). It will also simulate all network-based interfaces (HTTP, MQTT etc.).
 
 Run this on your Linux terminal:
