@@ -16,7 +16,7 @@ All software and hardware, software and motor components are designed and optimi
 ## Ardumower Wiki
 http://wiki.ardumower.de/index.php?title=Ardumower_Sunray
 
-## Demo video
+## Adumower Demo video
 https://www.youtube.com/watch?v=yDcmS5zdj90
 
 ## Ardumower Download
