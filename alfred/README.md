@@ -1,6 +1,6 @@
-# Sunray for Alfred
+# Sunray for Alfred / Sunray Simulator / Sunray for Raspberry PI
 
-NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' firmware.
+NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' firmware or if you want to compile the Sunray Simulator. The code for all steps will require a Linux system (either the Alfred, a Raspberry PI or some external PC).
 
 ## How to install code and compile 'Sunray for Alfred' (required only once)
 Run this on your Alfred Linux terminal:
@@ -79,6 +79,33 @@ sysfsgpio_swdio_num 24
 sysfsgpio_swclk_num 25
 sysfsgpio_srst_num 23
 ```
+
+## How to compile 'Sunray Simulator'
+The simulator will simulate an Ardumower/Alfred on a Linux computer. It uses the same firmware with simulator drivers for all robot hardware (motors, bumper, GPS, etc.). It will also simulate all network-based interfaces (HTTP, MQTT etc.).
+
+Run this on your Linux terminal:
+```
+## clone repository ##
+cd ~
+git clone https://github.com/Ardumower/Sunray.git
+```
+
+Now edit the file alfred/config.h and uncomment only the simulation driver:
+```
+//#define DRV_SERIAL_ROBOT  1
+//#define DRV_ARDUMOWER     1   // keep this for Ardumower
+#define DRV_SIM_ROBOT     1   // simulation
+```
+
+Finally, compile and run the simulator:
+```
+cd ~/Sunray/alfred/build
+rm -Rf *
+cmake ..
+make
+sudo ./sunray
+```
+When uploading a map, simulator will set the robot position to the uploaded docking point. 
 
 
 ## License
