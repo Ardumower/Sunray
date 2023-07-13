@@ -1,7 +1,13 @@
 # Sunray
 
 ## Description
-An alternative Firmware (experimental) for Ardumower kit mowing and gear motors, PCB 1.3, Adafruit Grand Central M4 (or Arduino Due) and ArduSimple RTK kit
+An alternative Firmware (experimental) for...
+
+Platform | Compilation 
+--- | ---
+Ardumower | Ardumower kit mowing and gear motors, PCB 1.3, Adafruit Grand Central M4 (or Arduino Due) and ArduSimple RTK kit
+Alfred | Alfred with Alfred RTK conversion kit (tiny Linux computer, IO-board, RTK base antenna etc.)
+
 The robot mower uses RTK to localize itself (without a perimeter wire)
 
 ## Warning
