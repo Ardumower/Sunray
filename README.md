@@ -33,9 +33,9 @@ __WARNING__: Do not use the master version (via download button), that is 'code 
 
 https://github.com/Ardumower/Sunray/releases
 
-# Sunray for Alfred / Sunray Simulator / Sunray for Raspberry PI <a name="sunray_alfred"></a>
+# Sunray for Alfred / Sunray for Raspberry PI <a name="sunray_alfred"></a>
 
-NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' firmware or if you want to compile the Sunray Simulator. The code for all steps will require a Linux system (either the Alfred, a Raspberry PI or some external PC).
+NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' firmware. The code for all steps will require a Linux system (either the Alfred, a Raspberry PI or some PC).
 
 How does everything fit together?
 
