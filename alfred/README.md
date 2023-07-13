@@ -3,9 +3,12 @@
 NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' firmware or if you want to compile the Sunray Simulator. The code for all steps will require a Linux system (either the Alfred, a Raspberry PI or some external PC).
 
 How does everything fit together?
-* Ardumower: The complete Sunray firmware and software drivers are compiled for a specific MCU (Due/M4)
-* Alfred: Sunray firmware is compiled for Linux. Additionally, a tiny serial robot driver is compiled for the specific Alfred MCU (STM32). The Linux Sunray firmware will communicate with this serial robot driver to control motors, read sensors etc.
-* Simulator: The complete Sunray firmware and simulated hardware is compiled for Linux.
+
+Platform | Compilation 
+--- | ---
+Ardumower | The complete Sunray firmware and software drivers are compiled for a specific MCU (Due/M4)
+Alfred | Sunray firmware is compiled for Linux. Additionally, a tiny serial robot driver is compiled for the specific Alfred MCU (STM32). The Linux Sunray firmware will communicate with this serial robot driver to control motors, read sensors etc.
+Simulator | The complete Sunray firmware and simulated hardware is compiled for Linux.
 
 
 ## How to install code and compile 'Sunray for Alfred' (required only once)
