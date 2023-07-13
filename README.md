@@ -10,12 +10,20 @@
 ## Description <a name="description"></a>
 An alternative Firmware (experimental) for...
 
-Platform | Compilation 
+Platform | Hardware required 
 --- | ---
 Ardumower | Ardumower kit mowing and gear motors, PCB 1.3, Adafruit Grand Central M4 (or Arduino Due) and ArduSimple RTK kit
 Alfred | Alfred robot with Alfred RTK conversion kit (tiny Linux computer, IO-board, ArduSimple RTK kit, base antenna etc.)
 
 The robot mower uses RTK to localize itself (without a perimeter wire)
+
+How does it work?
+
+Platform | Compilation 
+--- | ---
+Ardumower | The complete Sunray firmware and software drivers are compiled for a specific MCU (Due/M4)
+Alfred | Sunray firmware is compiled for Linux. Additionally, a tiny serial robot driver is compiled for the specific Alfred MCU (STM32). The Linux Sunray firmware will communicate with this serial robot driver to control motors, read sensors etc.
+Simulator | The complete Sunray firmware and simulated hardware is compiled for Linux.
 
 # Sunray for Ardumower <a name="sunray_ardumower"></a>
 
@@ -36,15 +44,6 @@ https://github.com/Ardumower/Sunray/releases
 # Sunray for Alfred / Sunray for Raspberry PI <a name="sunray_alfred"></a>
 
 NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' firmware. The code for all steps will require a Linux system (either the Alfred, a Raspberry PI or some PC).
-
-How does everything fit together?
-
-Platform | Compilation 
---- | ---
-Ardumower | The complete Sunray firmware and software drivers are compiled for a specific MCU (Due/M4)
-Alfred | Sunray firmware is compiled for Linux. Additionally, a tiny serial robot driver is compiled for the specific Alfred MCU (STM32). The Linux Sunray firmware will communicate with this serial robot driver to control motors, read sensors etc.
-Simulator | The complete Sunray firmware and simulated hardware is compiled for Linux.
-
 
 ## How to install code and compile 'Sunray for Alfred' (required only once)
 Run this on your Alfred Linux terminal:
