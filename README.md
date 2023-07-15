@@ -123,6 +123,25 @@ sysfsgpio_swclk_num 25
 sysfsgpio_srst_num 23
 ```
 
+## How to configure Bluetooth BLE module on a Linux computer
+NOTE: This step is only required if you don't use a ready Alfred Linux SD card image.
+
+echo "----bluetooth devices----"
+hcitool dev
+# configure bluetooth BLE module
+echo "----BLE config----"
+echo 12 > /sys/kernel/debug/bluetooth/hci0/conn_min_interval  # 24   6
+echo 20 > /sys/kernel/debug/bluetooth/hci0/conn_max_interval  # 40   6
+echo 1 > /sys/kernel/debug/bluetooth/hci0/conn_latency       # 0    1
+btmgmt -i hci0 power off
+btmgmt -i hci0 le on
+btmgmt -i hci0 bredr off
+btmgmt -i hci0 connectable on
+btmgmt -i hci0 name "alfred"
+btmgmt -i hci0 advertising on
+btmgmt -i hci0 power on
+
+
 ## How to compile 'Sunray Simulator' <a name="sunray_sim"></a>
 The simulator will simulate an Ardumower/Alfred on a Linux computer. It uses the same firmware with simulator drivers for all robot hardware (motors, bumper, GPS, etc.). It will also simulate all network-based interfaces (HTTP, MQTT etc.).
 
