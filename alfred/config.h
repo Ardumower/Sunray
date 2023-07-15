@@ -45,18 +45,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 */
 
 
-
-#ifdef __cplusplus
-  #include "udpserial.h"
-  #include "sdserial.h"
-  #include "src/agcm4/adafruit_grand_central.h"
-  #ifdef __linux__
-    #include "src/linux/linux.h"    
-    #include <Console.h>
-  #endif
-#endif
-
-#define DRV_SERIAL_ROBOT  1
+#define DRV_SERIAL_ROBOT  1     // Linux (Alfred)
 //#define DRV_ARDUMOWER     1   // keep this for Ardumower
 //#define DRV_SIM_ROBOT     1   // simulation
 
@@ -463,7 +452,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #elif __linux__ 
   #define WIFI SerialWIFI             // dummy serial device   
   #define SERIAL_WIFI_PATH "/dev/null"  
-  #define BLE SerialBLE
+  #define LINUX_BLE                 // comment to disable BLE
+  #define BLE SerialBLE             
+  #define SERIAL_BLE_PATH "/dev/null"    // dummy serial device    
   #define GPS SerialGPS
   #define SERIAL_GPS_PATH "/dev/serial/by-id/usb-u-blox_AG_-_www.u-blox.com_u-blox_GNSS_receiver-if00"  
   #define GPS_HOST "127.0.0.1"  
@@ -596,3 +587,12 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
   #define MPU9250   // just to make mpu driver happy to compile something
 #endif
 
+#ifdef __cplusplus
+  #include "udpserial.h"
+  #include "sdserial.h"
+  #include "src/agcm4/adafruit_grand_central.h"
+  #ifdef __linux__
+    #include "src/linux/linux.h"    
+    #include <Console.h>
+  #endif
+#endif
