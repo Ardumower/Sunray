@@ -144,7 +144,7 @@ btmgmt -i hci0 power on
 ```
 
 ## How to compile 'Sunray Simulator' <a name="sunray_sim"></a>
-The simulator will simulate an Ardumower/Alfred on a Linux computer. It uses the same firmware with simulator drivers for all robot hardware (motors, bumper, GPS, etc.). It will also simulate all network-based interfaces (HTTP, MQTT etc.).
+The simulator will simulate an Ardumower/Alfred on a Linux computer. It uses the same firmware with simulator drivers for all robot hardware (motors, bumper, GPS, etc.). It will also simulate all network-based interfaces (HTTP, MQTT etc.) and support phone connections via Bluetooth BLE (see section above how to configure BLE module on Linux).
 
 Run this on your Linux terminal:
 ```
