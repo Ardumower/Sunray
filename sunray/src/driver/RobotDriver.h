@@ -149,7 +149,7 @@ class GpsDriver {
     int month;         // UTC time month (1..12)
     int day;           // UTC time day (1..31)
     int hour;          // UTC time hour (0..23)
-    int min;           // UTC time minute (0..59)
+    int mins;          // UTC time minute (0..59)
     int sec;           // UTC time second (0..60) (incl. leap second)
     int dayOfWeek;     // UTC dayOfWeek (0=Monday)
     // start tcp receiver
@@ -169,7 +169,7 @@ class GpsDriver {
       dayOfWeek = ((towMin / 1440)+6) % 7; // GPS week starts at Saturday/Sunday transition   
       unsigned long totalMin = towMin % 1440; // total minutes of current day  
       hour = totalMin / 60; 
-      min = totalMin % 60; 
+      mins = totalMin % 60; 
     }
 };
 

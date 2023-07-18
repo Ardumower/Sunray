@@ -924,7 +924,7 @@ void run(){
   if (millis() > nextTimetableTime){
     nextTimetableTime = millis() + 30000;
     gps.decodeTOW();
-    timetable.setCurrentTime(gps.hour, gps.min, gps.dayOfWeek);
+    timetable.setCurrentTime(gps.hour, gps.mins, gps.dayOfWeek);
     timetable.run();
   }
 
