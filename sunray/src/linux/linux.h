@@ -8,7 +8,11 @@
 
 extern LinuxSerial SerialROBOT;
 extern LinuxSerial SerialWIFI;
-extern BleUartServer SerialBLE;
+#ifdef LINUX_BLE
+  extern BleUartServer SerialBLE;
+#else
+  extern LinuxSerial SerialBLE;
+#endif
 extern LinuxSerial SerialGPS;
 extern LinuxSerial SerialNTRIP;
 

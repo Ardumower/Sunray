@@ -19,8 +19,10 @@ double stateCRC = 0;
 
 double calcStateCRC(){
  return (stateOp *10 + maps.mowPointsIdx + maps.dockPointsIdx + maps.freePointsIdx + ((byte)maps.wayMode) 
-   + sonar.enabled + fixTimeout 
-   + ((byte)absolutePosSource) + absolutePosSourceLon + absolutePosSourceLat + motor.pwmMaxMow + finishAndRestart + motor.motorMowForwardSet);
+   + sonar.enabled + fixTimeout + setSpeed + ((byte)sonar.enabled)
+   + ((byte)absolutePosSource) + absolutePosSourceLon + absolutePosSourceLat + motor.pwmMaxMow 
+   + ((byte)finishAndRestart) + ((byte)motor.motorMowForwardSet) + ((byte)battery.docked)
+   + timetable.crc() );
 }
 
 

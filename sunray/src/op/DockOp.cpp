@@ -25,6 +25,12 @@ String DockOp::name(){
 
 
 void DockOp::begin(){
+  if (previousOp == &chargeOp){
+    battery.setIsDocked(true);    
+    changeOp(chargeOp);    
+    return;
+  }
+
   bool error = false;
   bool routingFailed = false;      
   

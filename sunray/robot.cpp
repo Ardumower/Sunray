@@ -44,6 +44,7 @@
 #include "i2c.h"
 #include "src/test/test.h"
 #include "bumper.h"
+#include "mqtt.h"
 
 // #define I2C_SPEED  10000
 #define _BV(x) (1 << (x))
@@ -923,7 +924,8 @@ void run(){
   if (millis() > nextTimetableTime){
     nextTimetableTime = millis() + 30000;
     gps.decodeTOW();
-    timetable.setCurrentTime(gps.hour, gps.min, gps.dayOfWeek);
+    timetable.setCurrentTime(gps.hour, gps.mins, gps.dayOfWeek);
+    timetable.run();
   }
 
   calcStats();  
@@ -996,14 +998,6 @@ void run(){
            activeOp->onBatteryLowShouldDock();
         }
       }   
-
-      if (timetable.mowingAllowedChanged()){
-        if (!timetable.mowingAllowed()){
-          if (activeOp->onTimetableStopMowing()) timetable.resetMowingAllowedChanged();        
-        } else {
-          if (activeOp->onTimetableStartMowing()) timetable.resetMowingAllowedChanged();
-        }
-      }
        
       if (battery.chargerConnected()){
         if (battery.chargingHasCompleted()){

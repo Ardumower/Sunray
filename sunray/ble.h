@@ -22,6 +22,7 @@ class BLEConfig
     
 };
 
+void processBLE();
 
 
 #endif

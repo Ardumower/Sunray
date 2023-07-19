@@ -19,7 +19,6 @@ void ChargeOp::begin(){
     nextConsoleDetailsTime = 0;
     retryTouchDock = false;
     betterTouchDock = false;
-    timetableStartMowingTriggered = false;
     CONSOLE.print("OP_CHARGE");
     CONSOLE.print(" dockOp.initiatedByOperator=");
     CONSOLE.print(dockOp.initiatedByOperator);
@@ -91,33 +90,26 @@ void ChargeOp::run(){
                 CONSOLE.print(dockOp.dockReasonRainTriggered);
                 CONSOLE.print(", dockOp.dockReasonRainAutoStartTime(min remain)=");
                 CONSOLE.print( ((int)(dockOp.dockReasonRainAutoStartTime - millis())) / 60000 );                                
+                CONSOLE.print(", timetable.mowingCompletedInCurrentTimeFrame=");                
+                CONSOLE.print(timetable.mowingCompletedInCurrentTimeFrame);
                 CONSOLE.print(", timetable.mowingAllowed=");                
                 CONSOLE.print(timetable.mowingAllowed());
-                CONSOLE.print(", timetableStartMowingTriggered=");                
-                CONSOLE.print(timetableStartMowingTriggered);
+                CONSOLE.print(", finishAndRestart=");                
+                CONSOLE.print(finishAndRestart);                
                 CONSOLE.println(")");
             }
-            if ( (DOCKING_STATION) && (DOCK_AUTO_START) )  { // automatic continue mowing allowed?
-                if (battery.isDocked()){   // robot is in dock
-                    // if timetable triggered  
-                    if (  (timetableStartMowingTriggered)      
-                    // OR if docked automatically and mowing not completed yet                    
-                      ||  ((!dockOp.initiatedByOperator) && (maps.mowPointsIdx > 0) && (timetable.mowingAllowed()))   )   
-                    {                        
-                        if ( (!dockOp.dockReasonRainTriggered) || (millis() > dockOp.dockReasonRainAutoStartTime) ){ // raining timeout 
-                            CONSOLE.println("DOCK_AUTO_START: will automatically continue mowing now");
-                            changeOp(mowOp); // continue mowing                                                    
-                        }                           
-                    }
-                }
+            if (timetable.shouldAutostartNow()){
+                CONSOLE.println("DOCK_AUTO_START: will automatically continue mowing now");
+                changeOp(mowOp); // continue mowing                                                    
             }
         }
     }        
 }
 
-bool ChargeOp::onTimetableStartMowing(){        
-    timetableStartMowingTriggered = true;    
-    return true; // indicate event consumed
+void ChargeOp::onTimetableStopMowing(){        
+}
+
+void ChargeOp::onTimetableStartMowing(){        
 }
 
 void ChargeOp::onChargerDisconnected(){
