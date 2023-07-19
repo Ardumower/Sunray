@@ -28,7 +28,9 @@ void MowOp::begin(){
     CONSOLE.println("OP_MOW");      
     motor.enableTractionMotors(true); // allow traction motors to operate         
     motor.setLinearAngularSpeed(0,0);      
-    motor.setMowState(false);                
+    motor.setMowState(false);   
+    battery.setIsDocked(false);
+    timetable.setMowingCompletedInCurrentTimeFrame(false);                
 
     // plan route to next target point 
 
@@ -84,6 +86,17 @@ void MowOp::run(){
     trackLine(true); 
     detectSensorMalfunction();    
     battery.resetIdle();
+    
+    if (timetable.shouldAutostopNow()){
+        if (DOCKING_STATION){
+            CONSOLE.println("TIMETABLE - DOCKING");
+            dockOp.setInitiatedByOperator(false);
+            changeOp(dockOp);
+        } else {
+            CONSOLE.println("TIMETABLE - IDLE");
+            changeOp(idleOp);
+        }
+    }
 }
 
 void MowOp::onRainTriggered(){
@@ -114,6 +127,11 @@ void MowOp::onBatteryLowShouldDock(){
     changeOp(dockOp);
 }
 
+void MowOp::onTimetableStopMowing(){        
+}
+
+void MowOp::onTimetableStartMowing(){        
+}
 
 void MowOp::onObstacle(){
     CONSOLE.println("triggerObstacle");      
@@ -246,6 +264,7 @@ void MowOp::onKidnapped(bool state){
 
 void MowOp::onNoFurtherWaypoints(){
     CONSOLE.println("mowing finished!");
+    timetable.setMowingCompletedInCurrentTimeFrame(true);
     if (!finishAndRestart){             
         if (DOCKING_STATION){
             dockOp.setInitiatedByOperator(false);

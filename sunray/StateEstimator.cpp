@@ -28,6 +28,7 @@ unsigned long stateRightTicks = 0;
 
 float lastPosN = 0;
 float lastPosE = 0;
+float lastPosDelta = 0;
 
 float stateDeltaLast = 0;
 float stateDeltaSpeed = 0;
@@ -242,27 +243,32 @@ void computeRobotState(){
       resetLastPos = false;
       lastPosN = posN;
       lastPosE = posE;
+      lastPosDelta = stateDelta;
     } else if (distGPS > 0.1) {       
-      if ( (fabs(motor.linearSpeedSet) > 0) && (fabs(motor.angularSpeedSet) /PI *180.0 < 45) ) {  
-        stateDeltaGPS = scalePI(atan2(posN-lastPosN, posE-lastPosE));    
-        if (motor.linearSpeedSet < 0) stateDeltaGPS = scalePI(stateDeltaGPS + PI); // consider if driving reverse
-        //stateDeltaGPS = scalePI(2*PI-gps.heading+PI/2);
-        float diffDelta = distancePI(stateDelta, stateDeltaGPS);                 
-        if (    ((gps.solution == SOL_FIXED) && (maps.useGPSfixForDeltaEstimation ))
-             || ((gps.solution == SOL_FLOAT) && (maps.useGPSfloatForDeltaEstimation)) )
-        {   // allows planner to use float solution?         
-          if (fabs(diffDelta/PI*180) > 45){ // IMU-based heading too far away => use GPS heading
-            stateDelta = stateDeltaGPS;
-            stateDeltaIMU = 0;
-          } else {
-            // delta fusion (complementary filter, see above comment)
-            stateDeltaGPS = scalePIangles(stateDeltaGPS, stateDelta);
-            stateDelta = scalePI(fusionPI(0.9, stateDelta, stateDeltaGPS));               
-          }            
+      float diffLastPosDelta = distancePI(stateDelta, lastPosDelta);                 
+      if (fabs(diffLastPosDelta) /PI * 180.0 < 10){  // robot sensors indicate it is not turning
+        if ( (fabs(motor.linearSpeedSet) > 0) && (fabs(motor.angularSpeedSet) /PI *180.0 < 45) ) {  
+          stateDeltaGPS = scalePI(atan2(posN-lastPosN, posE-lastPosE));    
+          if (motor.linearSpeedSet < 0) stateDeltaGPS = scalePI(stateDeltaGPS + PI); // consider if driving reverse
+          //stateDeltaGPS = scalePI(2*PI-gps.heading+PI/2);
+          float diffDelta = distancePI(stateDelta, stateDeltaGPS);                 
+          if (    ((gps.solution == SOL_FIXED) && (maps.useGPSfixForDeltaEstimation ))
+              || ((gps.solution == SOL_FLOAT) && (maps.useGPSfloatForDeltaEstimation)) )
+          {   // allows planner to use float solution?         
+            if (fabs(diffDelta/PI*180) > 45){ // IMU-based heading too far away => use GPS heading
+              stateDelta = stateDeltaGPS;
+              stateDeltaIMU = 0;
+            } else {
+              // delta fusion (complementary filter, see above comment)
+              stateDeltaGPS = scalePIangles(stateDeltaGPS, stateDelta);
+              stateDelta = scalePI(fusionPI(0.9, stateDelta, stateDeltaGPS));               
+            }            
+          }
         }
       }
       lastPosN = posN;
       lastPosE = posE;
+      lastPosDelta = stateDelta;
     } 
     if (gps.solution == SOL_FIXED) {
       // fix

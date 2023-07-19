@@ -37,25 +37,27 @@ void ChargeOp::end(){
 
 void ChargeOp::run(){
 
-    if (retryTouchDock){
-        if (millis() > retryTouchDockStopTime) {
-            motor.setLinearAngularSpeed(0, 0);
-            retryTouchDock = false;
-            CONSOLE.println("ChargeOp: retryTouchDock failed");
+    if ((retryTouchDock) || (betterTouchDock)){
+        if (millis() > retryTouchDockSpeedTime){                            
+            retryTouchDockSpeedTime = millis() + 1000;
             motor.enableTractionMotors(true); // allow traction motors to operate                               
-            maps.setIsDocked(false);
-            changeOp(idleOp);    
-        } else {
-            //motor.enableTractionMotors(true); // allow traction motors to operate                               
-            //motor.setLinearAngularSpeed(0.05, 0);
+            motor.setLinearAngularSpeed(0.05, 0);
         }
-    } else {
-        if (betterTouchDock){
+        if (retryTouchDock){
+            if (millis() > retryTouchDockStopTime) {
+                motor.setLinearAngularSpeed(0, 0);
+                retryTouchDock = false;
+                CONSOLE.println("ChargeOp: retryTouchDock failed");
+                motor.enableTractionMotors(true); // allow traction motors to operate                               
+                maps.setIsDocked(false);
+                changeOp(idleOp);    
+            }
+        } else if (betterTouchDock){
             if (millis() > betterTouchDockStopTime) {
                 CONSOLE.println("ChargeOp: betterTouchDock completed");
                 motor.setLinearAngularSpeed(0, 0);            
                 betterTouchDock = false;
-            }
+            }        
         }
     }
     
@@ -76,6 +78,8 @@ void ChargeOp::run(){
                 nextConsoleDetailsTime = millis() + 30000;
                 CONSOLE.print("ChargeOp: charging completed (DOCKING_STATION=");
                 CONSOLE.print(DOCKING_STATION);
+                CONSOLE.print(", battery.isDocked=");
+                CONSOLE.print(battery.isDocked());
                 CONSOLE.print(", dockOp.initiatedByOperator=");
                 CONSOLE.print(dockOp.initiatedByOperator);        
                 CONSOLE.print(", maps.mowPointsIdx=");
@@ -85,42 +89,48 @@ void ChargeOp::run(){
                 CONSOLE.print(", dockOp.dockReasonRainTriggered=");
                 CONSOLE.print(dockOp.dockReasonRainTriggered);
                 CONSOLE.print(", dockOp.dockReasonRainAutoStartTime(min remain)=");
-                CONSOLE.print( ((int)(dockOp.dockReasonRainAutoStartTime - millis())) / 60000 );                
+                CONSOLE.print( ((int)(dockOp.dockReasonRainAutoStartTime - millis())) / 60000 );                                
+                CONSOLE.print(", timetable.mowingCompletedInCurrentTimeFrame=");                
+                CONSOLE.print(timetable.mowingCompletedInCurrentTimeFrame);
+                CONSOLE.print(", timetable.mowingAllowed=");                
+                CONSOLE.print(timetable.mowingAllowed());
+                CONSOLE.print(", finishAndRestart=");                
+                CONSOLE.print(finishAndRestart);                
                 CONSOLE.println(")");
             }
-            if ((DOCKING_STATION) && (!dockOp.initiatedByOperator)) {
-                if (maps.mowPointsIdx > 0){  // if mowing not completed yet
-                    if ( (DOCK_AUTO_START) && ((!dockOp.dockReasonRainTriggered) || (millis() > dockOp.dockReasonRainAutoStartTime)) ) { // automatic continue mowing allowed?
-                        CONSOLE.println("DOCK_AUTO_START: will automatically continue mowing now");
-                        changeOp(mowOp); // continue mowing
-                    }
-                }
+            if (timetable.shouldAutostartNow()){
+                CONSOLE.println("DOCK_AUTO_START: will automatically continue mowing now");
+                changeOp(mowOp); // continue mowing                                                    
             }
         }
     }        
+}
+
+void ChargeOp::onTimetableStopMowing(){        
+}
+
+void ChargeOp::onTimetableStartMowing(){        
 }
 
 void ChargeOp::onChargerDisconnected(){
     if ((DOCKING_STATION) && (DOCK_RETRY_TOUCH)) {    
         CONSOLE.println("ChargeOp::onChargerDisconnected - retryTouchDock");
         retryTouchDock = true;
-        retryTouchDockStopTime = millis() + 2000;
-        motor.enableTractionMotors(true); // allow traction motors to operate                               
-        motor.setLinearAngularSpeed(0.05, 0);
+        retryTouchDockStopTime = millis() + 5000;
+        retryTouchDockSpeedTime = millis();
     } else {
         motor.enableTractionMotors(true); // allow traction motors to operate                               
         maps.setIsDocked(false);
         changeOp(idleOp);    
     }
-};
+}
 
 void ChargeOp::onBadChargingContactDetected(){
     if ((DOCKING_STATION) && (DOCK_RETRY_TOUCH)) {    
         CONSOLE.println("ChargeOp::onBadChargingContactDetected - betterTouchDock");
         betterTouchDock = true;
-        betterTouchDockStopTime = millis() + 2000;
-        motor.enableTractionMotors(true); // allow traction motors to operate                               
-        motor.setLinearAngularSpeed(0.05, 0);
+        betterTouchDockStopTime = millis() + 5000;
+        retryTouchDockSpeedTime = millis();
     } 
 }
 
