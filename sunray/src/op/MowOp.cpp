@@ -28,8 +28,8 @@ void MowOp::begin(){
     CONSOLE.println("OP_MOW");      
     motor.enableTractionMotors(true); // allow traction motors to operate         
     motor.setLinearAngularSpeed(0,0);      
-    motor.setMowState(false);   
-    battery.setIsDocked(false);
+    if (((previousOp != &escapeReverseOp) && (previousOp != &escapeForwardOp)) || (DISABLE_MOW_MOTOR_AT_OBSTACLE))  motor.setMowState(false);              
+    battery.setIsDocked(false);                
     timetable.setMowingCompletedInCurrentTimeFrame(false);                
 
     // plan route to next target point 
