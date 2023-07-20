@@ -176,7 +176,7 @@ o | Trigger robot obstacle sensor (bumper etc.)
 r | Trigger robot rain sensor
 l | Trigger robot battery low 
 
-##Fixing issue: available(): not listening##
+## Fixing issue: 'available(): not listening'
 If you restart the Linux sunray process, it might be possible that the HTTP port is still not cleared from a previous session. A quick check before running the process will solve this:
 ```
 echo "----waiting for TCP connections to be closed from previous sessions----"
