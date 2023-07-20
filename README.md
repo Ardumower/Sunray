@@ -183,7 +183,7 @@ echo "----waiting for TCP connections to be closed from previous sessions----"
 echo "Waiting TCP port 80 to be closed..."
 for _ in `seq 1 30`; do
   RES=$(netstat -ant | grep -w 80)
-  if \[ -z "$RES" ]; then
+  if [ -z "$RES" ]; then
     break
   fi
   echo $RES
