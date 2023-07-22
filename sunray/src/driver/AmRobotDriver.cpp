@@ -313,6 +313,8 @@ void AmMotorDriver::begin(){
       mowDriverChip = BLDC8015A;    
     #elif MOTOR_DRIVER_BRUSHLESS_MOW_JYQD
       mowDriverChip = JYQD;
+    #elif MOTOR_DRIVER_BRUSHLESS_MOW_OWL
+      mowDriverChip = OWL;
     #else 
       mowDriverChip = CUSTOM;
     #endif
@@ -325,6 +327,8 @@ void AmMotorDriver::begin(){
       gearsDriverChip = BLDC8015A;    
     #elif MOTOR_DRIVER_BRUSHLESS_GEARS_JYQD
       gearsDriverChip = JYQD;
+    #elif MOTOR_DRIVER_BRUSHLESS_GEARS_OWL
+      gearsDriverChip = OWL;
     #else 
       gearsDriverChip = CUSTOM;
     #endif
