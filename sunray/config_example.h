@@ -448,7 +448,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define WIFI_BAUDRATE 115200          // baudrate for WIFI module
 #define ROBOT_BAUDRATE 115200         // baudrate for Linux serial robot (non-Ardumower)
 
-#ifdef _SAM3XA_                 // Arduino Due
+#ifdef __SAM3X8E__                 // Arduino Due
   #define WIFI Serial1
   #define ROBOT Serial1
   #define BLE Serial2

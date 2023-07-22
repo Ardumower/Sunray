@@ -252,6 +252,25 @@ AmMotorDriver::AmMotorDriver(){
   JYQD.adcVoltToAmpScale = 7.57; // ADC voltage to amps (scale)
   JYQD.adcVoltToAmpPow = 1.0;    // ADC voltage to amps (power of number)
 
+  // owlDrive 
+  OWL.driverName = "owlDrive";    // just a name for your driver
+  OWL.forwardPwmInvert = false; // invert PWM signal for forward? (false or true)
+  OWL.forwardDirLevel = LOW;    // logic level for forward (LOW or HIGH)
+  OWL.reversePwmInvert = false; // invert PWM signal for reverse? (false or true)
+  OWL.reverseDirLevel = HIGH;   // logic level for reverse (LOW or HIGH)
+  OWL.usePwmRamp = false;       // use a ramp to get to PWM value?    
+  OWL.faultActive = LOW;        // fault active level (LOW or HIGH)
+  OWL.resetFaultByToggleEnable = false; // reset a fault by toggling enable? 
+  OWL.enableActive = LOW;       // enable active level (LOW or HIGH)
+  OWL.disableAtPwmZeroSpeed=false;  // disable driver at PWM zero speed? (brake function)
+  OWL.keepPwmZeroSpeed = false;  // keep PWM zero value (disregard minPwmSpeed at zero speed)?
+  OWL.minPwmSpeed = 0;          // minimum PWM speed your driver can operate
+  OWL.maxPwmSpeed = 255;          
+  OWL.pwmFreq = PWM_FREQ_29300;  // choose between PWM_FREQ_3900 and PWM_FREQ_29300 here   
+  OWL.adcVoltToAmpOfs = -1.65;      // ADC voltage to amps (offset)        // brushless-adapter: 0A=1.65V, resolution 132mV/A
+  OWL.adcVoltToAmpScale = 7.57; // ADC voltage to amps (scale)
+  OWL.adcVoltToAmpPow = 1.0;    // ADC voltage to amps (power of number)
+
   // your custom brushed/brushless driver (ACT-8015A, JYQD_V7.3E3, etc.)
   CUSTOM.driverName = "CUSTOM";    // just a name for your driver
   CUSTOM.forwardPwmInvert = false; // invert PWM signal for forward? (false or true)
