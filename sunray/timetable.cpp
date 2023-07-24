@@ -276,27 +276,31 @@ bool TimeTable::findAutostartTime(weektime_t &time){
     return autostart;
 }
 
+// called from charge operation
 bool TimeTable::shouldAutostartNow(){
     if (autostartNow){
-        autostartTriggered = true;
+        autostartTriggered = true; // remember trigger
         return true;
     }
     return false;
 }
 
+
+// called from mow operation
 bool TimeTable::shouldAutostopNow(){
     if (autostopNow){        
-        autostopTriggered = true;
+        autostopTriggered = true;  // remember trigger
         return true;
     }
     return false;
 }
 
-
+// called every 30s in robot
 void TimeTable::run(){    
     //if (millis() < nextCheckTime) return;
     //nextCheckTime = millis() + 30000;    
 
+    // reset triggers on timetable changes
     bool allowed = mowingAllowed(currentTime);
     if (allowed != lastMowingAllowedState){
         lastMowingAllowedState = allowed;
