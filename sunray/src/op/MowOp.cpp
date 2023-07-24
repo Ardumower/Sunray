@@ -104,7 +104,11 @@ void MowOp::onRainTriggered(){
         CONSOLE.println("RAIN TRIGGERED");
         stateSensor = SENS_RAIN;
         dockOp.dockReasonRainTriggered = true;
-        dockOp.dockReasonRainAutoStartTime = millis() + 60000 * 60; // try again after one hour 
+        #ifdef DRV_SIM_ROBOT
+            dockOp.dockReasonRainAutoStartTime = millis() + 60000 * 3; // try again after 3 minutes 
+        #else
+            dockOp.dockReasonRainAutoStartTime = millis() + 60000 * 60; // try again after one hour 
+        #endif
         dockOp.setInitiatedByOperator(false);
         changeOp(dockOp);              
     }
