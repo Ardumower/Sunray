@@ -504,6 +504,7 @@ void SimGpsDriver::run(){
   if (true){
     if (millis() > nextSolutionTime){
       nextSolutionTime = millis() + 200; // 5 hz    
+      iTOW += 200 * 100;  // sim has 100 times faster gps time      
       relPosE = simRobot.simX;
       relPosN = simRobot.simY;
       relPosD = 100;
@@ -518,7 +519,7 @@ void SimGpsDriver::run(){
       accuracy = 0.01;
       hAccuracy = accuracy;
       vAccuracy = accuracy;
-      dgpsAge = millis();
+      dgpsAge = millis();              
       groundSpeed = simRobot.linearSpeed;
       solutionAvail = true;
     }
