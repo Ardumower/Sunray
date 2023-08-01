@@ -229,7 +229,7 @@ AmMotorDriver::AmMotorDriver(){
   BLDC8015A.minPwmSpeed = 0;          // minimum PWM speed your driver can operate
   BLDC8015A.maxPwmSpeed = 255;            
   BLDC8015A.pwmFreq = PWM_FREQ_29300;  // choose between PWM_FREQ_3900 and PWM_FREQ_29300 here   
-  BLDC8015A.adcVoltToAmpOfs = -1.65;      // ADC voltage to amps (offset)    // brushless-adapter: 0A=1.65V, resolution 132mV/A  
+  BLDC8015A.adcVoltToAmpOfs = -1.68;      // ADC voltage to amps (offset)    // brushless-adapter: 0A=1.65V, resolution 132mV/A  
   BLDC8015A.adcVoltToAmpScale = 7.57; // ADC voltage to amps (scale)
   BLDC8015A.adcVoltToAmpPow = 1.0;    // ADC voltage to amps (power of number)
 
@@ -528,19 +528,19 @@ void AmMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, flo
   // current (amps)= ((ADCvoltage + ofs)^pow) * scale
   float ValuePosCheck	= 0;
   ValuePosCheck = (((float)ADC2voltage(analogRead(pinMotorLeftSense))) + gearsDriverChip.adcVoltToAmpOfs);
-  if (ValuePosCheck < 0) ValuePosCheck = 0;	// avoid negativ numbers
+  //if (ValuePosCheck < 0) ValuePosCheck = 0;	// avoid negativ numbers
   leftCurrent = pow(
       ValuePosCheck, gearsDriverChip.adcVoltToAmpPow
       )  * gearsDriverChip.adcVoltToAmpScale;
 
   ValuePosCheck = (((float)ADC2voltage(analogRead(pinMotorRightSense))) + gearsDriverChip.adcVoltToAmpOfs);
-  if (ValuePosCheck < 0) ValuePosCheck = 0;	// avoid negativ numbers
+  //if (ValuePosCheck < 0) ValuePosCheck = 0;	// avoid negativ numbers
   rightCurrent = pow(
       ValuePosCheck, gearsDriverChip.adcVoltToAmpPow
       )  * gearsDriverChip.adcVoltToAmpScale;
 
   ValuePosCheck = (((float)ADC2voltage(analogRead(pinMotorMowSense))) + gearsDriverChip.adcVoltToAmpOfs);
-  if (ValuePosCheck < 0) ValuePosCheck = 0;	// avoid negativ numbers
+  //if (ValuePosCheck < 0) ValuePosCheck = 0;	// avoid negativ numbers
   mowCurrent = pow(
             ValuePosCheck, mowDriverChip.adcVoltToAmpPow
       )  * mowDriverChip.adcVoltToAmpScale;
