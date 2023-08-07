@@ -83,7 +83,7 @@
 
 //#define DEBUG 1
 
-#define VER "RM18,1.1.15"
+#define VER "RM18,1.1.16"
 
 #define pinSwdCLK          PA14
 #define pinSwdSDA          PA13
