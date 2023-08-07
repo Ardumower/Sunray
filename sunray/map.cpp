@@ -1298,7 +1298,9 @@ bool Map::nextDockPoint(bool sim){
     if (dockPointsIdx > 0){
       if (!sim) lastTargetPoint.assign(targetPoint);
       if (!sim) dockPointsIdx--;              
-      if (!sim) trackReverse = true;              
+      if (!sim) {
+        trackReverse = (dockPointsIdx >= dockPoints.numPoints-2) ; // undock reverse only in dock
+      }              
       if (!sim) trackSlow = true;      
       return true;
     } else {
