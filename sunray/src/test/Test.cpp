@@ -306,7 +306,7 @@ void Tester::run(){
 
 
   // to run a test permanently...
-  currentTest.run();
+  //currentTest.run();
   
   
   /*if (currentTest.started){
