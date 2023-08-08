@@ -155,7 +155,7 @@ git clone https://github.com/Ardumower/Sunray.git
 
 Now edit the file alfred/config.h and uncomment only the simulation driver:
 ```
-//#define DRV_SERIAL_ROBOT  1
+//#define DRV_SERIAL_ROBOT  1   // for Alfred
 //#define DRV_ARDUMOWER     1   // keep this for Ardumower
 #define DRV_SIM_ROBOT     1   // simulation
 ```
