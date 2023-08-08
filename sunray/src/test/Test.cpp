@@ -271,13 +271,10 @@ void BumperTest::run(){
     
 
       if ((gridx % 4 == 0) && (gridy % 4 == 0)){  // obstacle grid (every 4x4m)
-        if (triggerAllowed) {
-          triggerAllowed = false;
-          releaseBumperTime = millis() + 1000;
-          speak("trigger bumper");    
-          CONSOLE.println("SIM: trigger bumper");
-          bumperDriver.setSimTriggered(true);                    
-        }
+        releaseBumperTime = millis() + 1000;
+        speak("trigger bumper");    
+        CONSOLE.println("SIM: trigger bumper");
+        bumperDriver.setSimTriggered(true);                            
       }
       lastGridX = gridx;
       lastGridY = gridy;      
@@ -309,7 +306,7 @@ void Tester::run(){
 
 
   // to run a test permanently...
-  //currentTest.run();
+  currentTest.run();
   
   
   /*if (currentTest.started){
