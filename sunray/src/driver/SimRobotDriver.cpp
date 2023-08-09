@@ -538,13 +538,20 @@ void SimGpsDriver::run(){
         else floatX = max(-1.5, floatX-0.01);
       if (random(100) < 50) floatY = min(1.5, floatY+0.01);
         else floatY = max(-1.5, floatY-0.01);
+      
+      if (solution == SOL_FIXED){
+        accuracy = 0.01;
+        hAccuracy = accuracy;
+        vAccuracy = accuracy;
+      } else {
+        accuracy = max(floatX, floatY);
+        hAccuracy = floatX;
+        vAccuracy = floatY;
+      }
 
       lon = relPosE;
       lat =relPosN;
       height = relPosD;
-      accuracy = 0.01;
-      hAccuracy = accuracy;
-      vAccuracy = accuracy;
       dgpsAge = millis();              
       groundSpeed = simRobot.linearSpeed;
       solutionAvail = true;
