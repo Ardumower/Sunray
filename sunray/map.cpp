@@ -193,6 +193,20 @@ bool Polygon::write(File &file){
   return true;  
 }
 
+void Polygon::getCenter(Point &pt){
+  float minX = 9999;
+  float maxX = -9999;
+  float minY = 9999;
+  float maxY = -9999;
+  for (int i=0; i < numPoints; i++){
+    minX = min(minX, points[i].x());
+    maxX = max(maxX, points[i].x());
+    minY = min(minY, points[i].y());
+    maxY = max(maxY, points[i].y());
+  }
+  pt.setXY( (maxX-minX)/2, (maxY-minY)/2 ); 
+}
+
 // -----------------------------------
 
 PolygonList::PolygonList(){
@@ -630,6 +644,11 @@ void Map::finishedUploadingMap(){
       robotDriver.setSimRobotPosState(x, y, delta);
     } else {
       CONSOLE.println("SIM: error getting docking pos");
+      if (perimeterPoints.numPoints > 0){
+        Point pt = perimeterPoints.points[0];
+        //perimeterPoints.getCenter(pt);
+        robotDriver.setSimRobotPosState(pt.x(), pt.y(), 0);
+      }
     }
   #endif
   mapCRC = calcMapCRC();
