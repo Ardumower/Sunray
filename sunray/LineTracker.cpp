@@ -325,19 +325,16 @@ void trackLine(bool runControl){
     }
   }
    
+  // in any case, turn off mower motor if lifted 
+  // also, if lifted, do not turn on mowing motor so that the robot will drive and can do obstacle avoidance 
+  if (detectLift()) mow = false;
+  
   if (mow)  { 
     if (millis() < motor.motorMowSpinUpTime + 10000){
        // wait until mowing motor is running
       if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
       linear = 0;
-      angular = 0;   
-    } else if (millis() > motor.motorMowSpinUpTime + 12000){
-      // in any case, turn off mower motor if lifted
-      // however (timeout hack to solve problem below): 
-      // 1. if lift is detected, mower motor is not running
-      // 2. if mower motor is not running, robot will not start driving
-      // 3. if robot is not driving, lift sensor is not evaluated for obstacle avoidance
-      if (detectLift()) mow = false;  
+      angular = 0;          
     }
   }
 
