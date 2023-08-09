@@ -182,6 +182,7 @@ void Motor::setMowState(bool switchOn){
   //CONSOLE.println(switchOn);
   if ((enableMowMotor) && (switchOn)){
     if (abs(motorMowPWMSet) > 0) return; // mowing motor already switch ON
+    CONSOLE.println("Motor::setMowState ON");
     motorMowSpinUpTime = millis();
     if (toggleMowDir){
       // toggle mowing motor direction each mow motor start
@@ -192,6 +193,8 @@ void Motor::setMowState(bool switchOn){
       motorMowPWMSet = pwmMaxMow;  
     }
   } else {
+    if (abs(motorMowPWMSet) < 0.01) return; // mowing motor already switch OFF    
+    CONSOLE.println("Motor::setMowState OFF");
     motorMowPWMSet = 0;  
     motorMowPWMCurr = 0;
   }

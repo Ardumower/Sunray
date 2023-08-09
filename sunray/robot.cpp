@@ -733,6 +733,7 @@ void detectSensorMalfunction(){
 bool detectLift(){  
   #ifdef ENABLE_LIFT_DETECTION
     if (liftDriver.triggered()) {
+      CONSOLE.println("LIFT triggered");
       return true;            
     }  
   #endif 
