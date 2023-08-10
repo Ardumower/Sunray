@@ -100,6 +100,10 @@ class RainSensorDriver {
 
 class ImuDriver {
   public:
+    float quatW; // quaternion
+    float quatX; // quaternion
+    float quatY; // quaternion
+    float quatZ; // quaternion        
     float roll; // euler radiant
     float pitch; // euler radiant
     float yaw;   // euler radiant
