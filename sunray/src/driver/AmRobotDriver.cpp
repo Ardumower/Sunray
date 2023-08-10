@@ -261,7 +261,7 @@ AmMotorDriver::AmMotorDriver(){
   OWL.usePwmRamp = false;       // use a ramp to get to PWM value?    
   OWL.faultActive = LOW;        // fault active level (LOW or HIGH)
   OWL.resetFaultByToggleEnable = false; // reset a fault by toggling enable? 
-  OWL.enableActive = HIGH;       // enable active level (LOW or HIGH)
+  OWL.enableActive = LOW;       // enable active level (LOW or HIGH)
   OWL.disableAtPwmZeroSpeed=false;  // disable driver at PWM zero speed? (brake function)
   OWL.keepPwmZeroSpeed = false;  // keep PWM zero value (disregard minPwmSpeed at zero speed)?
   OWL.minPwmSpeed = 0;          // minimum PWM speed your driver can operate
