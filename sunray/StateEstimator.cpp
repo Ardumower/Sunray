@@ -13,6 +13,8 @@
 #include "helper.h"
 #include "i2c.h"
 
+#include "src/math/vetor_datatype/quaternion_type.h"
+#include "src/math/vetor_datatype/vector_type.h"
 
 float stateX = 0;  // position-east (m)
 float stateY = 0;  // position-north (m)
@@ -211,8 +213,16 @@ void computeRobotState(){
   float distLeft = ((float)leftDelta) / ((float)motor.ticksPerCm);
   float distRight = ((float)rightDelta) / ((float)motor.ticksPerCm);  
   float distOdometry = (distLeft + distRight) / 2.0;
-  float deltaOdometry = -(distLeft - distRight) / motor.wheelBaseCm;    
-  
+  float deltaOdometry = -(distLeft - distRight) / motor.wheelBaseCm; 
+
+  if ((imuDriver.imuFound) && (maps.useIMU)) {
+    // IMU available and should be used by planner
+    stateDelta = scalePI(stateDelta + stateDeltaIMU );          
+  } else {
+    // odometry
+    stateDelta = scalePI(stateDelta + deltaOdometry);  
+  }
+
   float posN = 0;
   float posE = 0;
   if (absolutePosSource){
@@ -220,7 +230,25 @@ void computeRobotState(){
   } else {
     posN = gps.relPosN;  
     posE = gps.relPosE;     
-  }   
+  }  
+
+  if (GPS_POSITION_OFFSET_ENABLED && imuDriver.imuFound)
+  {
+    quat_t x; x.setRotation({1,0,0}, imuDriver.roll, false);  
+    quat_t y; y.setRotation({0,1,0}, imuDriver.pitch, false);  
+    quat_t z; z.setRotation({0,0,1}, stateDelta, false);
+    quat_t rot = (z*y*x).norm();
+  
+    vec3_t forward = rot.rotate({1,0,0}, GLOBAL_FRAME).norm(); 
+    vec3_t right = rot.rotate({0,-1,0}, GLOBAL_FRAME).norm();
+    vec3_t up = rot.rotate({0,0,1}, GLOBAL_FRAME).norm(); 
+  
+    vec3_t gpsOffset = forward * (GPS_POSITION_OFFSET_FORWARD / 100.0)
+                    + right * (GPS_POSITION_OFFSET_RIGHT / 100.0)
+                    + up * (GPS_POSITION_OFFSET_UP / 100.0);
+    posN += gpsOffset.y;
+    posE += gpsOffset.x;
+  }
   
   if (fabs(motor.linearSpeedSet) < 0.001){       
     resetLastPos = true;
@@ -291,13 +319,6 @@ void computeRobotState(){
   stateY += distOdometry/100.0 * sin(stateDelta);        
   if (stateOp == OP_MOW) statMowDistanceTraveled += distOdometry/100.0;
   
-  if ((imuDriver.imuFound) && (maps.useIMU)) {
-    // IMU available and should be used by planner
-    stateDelta = scalePI(stateDelta + stateDeltaIMU );          
-  } else {
-    // odometry
-    stateDelta = scalePI(stateDelta + deltaOdometry);  
-  }
   if (imuDriver.imuFound){
     stateDeltaSpeedIMU = 0.99 * stateDeltaSpeedIMU + 0.01 * stateDeltaIMU / 0.02; // IMU yaw rotation speed (20ms timestep)
   }
