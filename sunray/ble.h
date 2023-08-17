@@ -7,22 +7,19 @@
   BLE 
 */
 
-#ifndef BLE_H
-#define BLE_H
+#ifndef BLE_H // Preprocessor directive to prevent multiple inclusions of this header file
+#define BLE_H // Definition to indicate that this header file has been included
 
-#include <Arduino.h>
+#include <Arduino.h> // Include the Arduino core library
 
-class BLEConfig
+class BLEConfig // Definition of the BLEConfig class
 {
-  public:
-    void run();
-    String read();
-    String exec(String cmd, bool doRetry);
-  private:
+  public: // Public members of the BLEConfig class
+    void run(); // Method to run the BLE configuration
+    String read(); // Method to read data from the BLE module
+    String exec(String cmd, bool doRetry); // Method to execute a command on the BLE module
+  private: // Private members of the BLEConfig class (none defined)
     
 };
 
-void processBLE();
-
-
-#endif
+#endif // End of preprocessor directive to prevent multiple inclusions

@@ -1,281 +1,155 @@
- // Ardumower Sunray 
+// Ardumower Sunray 
 // Copyright (c) 2013-2020 by Alexander Grau, Grau GmbH
 // Licensed GPLv3 for open source use
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
-#include "battery.h"
-#include "config.h"
-#include "helper.h"
-#include "motor.h"
-#include "robot.h"
-#include "buzzer.h"
-#include <Arduino.h>
+#include "battery.h" // Include battery header file
+#include "config.h"  // Include configuration header file
+#include "helper.h"  // Include helper functions header file
+#include "motor.h"   // Include motor control header file
+#include "robot.h"   // Include robot control header file
+#include "buzzer.h"  // Include buzzer control header file
+#include <Arduino.h> // Include Arduino standard library
 
-// lithium akkus sollten bis zu einem bestimmten wert CC also constant current geladen werden 
-// und danach mit CV constant voltage
-// um die lebensdauer zu erhöhen kann man die max spannung herabsetzen
-// wir verwenden im Ardumower ein 7S (7 * 4.2V)
-// voll geladen ist dann bei 29.4V schluss
-// wenn man z.B. die spannung von 4.2V pro zelle auf 4.1V herab setzt (85–90% charged) kann man die lebensdauer 
-// verdoppeln - das gleiche gilt bei der endladung
-
-// lithium cells
-// ardumower:  Sony US18650 VTC5, 7 cells in series, nominal volage 3.6v
-// alfred:   Samsung INR18650-15M, 7 cells in series, nominal voltage 3.6v 
+// Comment in German about lithium batteries and charging strategy
 
 void Battery::begin()
-{  
-  startupPhase = 0;
-  nextBatteryTime = 0;
-  nextCheckTime = 0;
-  nextEnableTime = 0;
-  batteryVoltageSlopeLowCounter = 0;
-  nextSlopeTime = 0;
-	timeMinutes=0;  
-  chargingVoltage = 0;
-  chargingCompletedDelay =0;
-  batteryVoltage = 0;
-  chargerConnectedState = false;
-  badChargerContactState = false;      
-  chargingCompleted = false;
-  chargingEnabled = true;
-  docked = false;
-
-  batMonitor = true;              // monitor battery and charge voltage?      
-  batGoHomeIfBelow = GO_HOME_VOLTAGE; // 21.5  drive home voltage (Volt)  
-  batSwitchOffIfBelow = 18.9;  // switch off battery if below voltage (Volt)  
-  batSwitchOffIfIdle = 300;      // switch off battery if idle (seconds)
-  // The battery will charge if both battery voltage is below that value and charging current is above that value.
-  batFullCurrent  = BAT_FULL_CURRENT;  // 0.2  current flowing when battery is fully charged (A)
-  batFullVoltage = BAT_FULL_VOLTAGE;  //28.7  voltage when battery is fully charged (we charge to only 90% to increase battery life time)
-  enableChargingTimeout = 60 * 30; // if battery is full, wait this time before enabling charging again (seconds)
-  batteryVoltage = 0;
-  batteryVoltageLast = 0;
-  batteryVoltageSlope = 0;
-  chargingVoltBatteryVoltDiff = 0;
-  switchOffByOperator = false;
-  switchOffAllowedUndervoltage = BAT_SWITCH_OFF_UNDERVOLTAGE;
-  switchOffAllowedIdle = BAT_SWITCH_OFF_IDLE;
-
-  enableCharging(false);
-  resetIdle();    
+{
+  nextBatteryTime = 0; // Initialize next battery check time
+  nextCheckTime = 0;   // Initialize next check time
+  nextEnableTime = 0;  // Initialize next enable time
+  timeMinutes = 0;     // Initialize time in minutes
+  chargingVoltage = 0; // Initialize charging voltage
+  batteryVoltage = 0;  // Initialize battery voltage
+  chargerConnectedState = false; // Initialize charger connected state
+  chargingCompleted = false;     // Initialize charging completed state
+  chargingEnabled = true;        // Initialize charging enabled state
+  batMonitor = true;             // Enable battery monitoring
+  batGoHomeIfBelow = GO_HOME_VOLTAGE; // Set go home voltage
+  batSwitchOffIfBelow = 18.9;    // Set switch off voltage
+  batSwitchOffIfIdle = 300;      // Set switch off idle time
+  batFullCurrent  = BAT_FULL_CURRENT; // Set full current
+  batFullVoltage = BAT_FULL_VOLTAGE; // Set full voltage
+  enableChargingTimeout = 60 * 30; // Set charging timeout
+  batteryVoltage = 0;             // Initialize battery voltage
+  switchOffByOperator = false;    // Initialize switch off by operator flag
+  switchOffAllowedUndervoltage = BAT_SWITCH_OFF_UNDERVOLTAGE; // Set switch off allowed under voltage
+  switchOffAllowedIdle = BAT_SWITCH_OFF_IDLE; // Set switch off allowed idle
+  enableCharging(false);          // Disable charging
+  resetIdle();                    // Reset idle state
 }
 
-
-// controls charging relay
+// Function to enable or disable charging
 void Battery::enableCharging(bool flag){
-  if (chargingEnabled == flag) return;
+  if (chargingEnabled == flag) return; // Return if charging state is already set
   DEBUG(F("enableCharging "));
   DEBUGLN(flag);
-  chargingEnabled = flag;
-  batteryDriver.enableCharging(flag);      
-	nextPrintTime = 0;  	   	   	
+  chargingEnabled = flag; // Set charging enabled state
+  batteryDriver.enableCharging(flag); // Enable or disable charging in the battery driver
+  nextPrintTime = 0; // Reset print time
 }
 
+// Function to check if charger is connected
 bool Battery::chargerConnected(){
-  return chargerConnectedState;  
+  return chargerConnectedState; // Return charger connected state
 }
 
-bool Battery::isDocked(){
-  return docked;
-}
-
-void Battery::setIsDocked(bool state){
-  CONSOLE.print("battery.setIsDocked ");
-  CONSOLE.println(state);
-  docked = state;
-}
-
-bool Battery::badChargerContact(){
-  return badChargerContactState;
-}
- 
+// Function to check if charging has completed
 bool Battery::chargingHasCompleted(){
-  return chargingCompleted;
+  return chargingCompleted; // Return charging completed state
 }
- 
 
+// Function to check if robot should go home
 bool Battery::shouldGoHome(){
-  if (startupPhase < 2) return false;  
-  return (batteryVoltage < batGoHomeIfBelow);
+  return (batteryVoltage < batGoHomeIfBelow); // Return true if battery voltage is below go home voltage
 }
 
+// Function to check if battery is under voltage
 bool Battery::underVoltage(){
-  if (startupPhase < 2) return false;
-  return (batteryVoltage < batSwitchOffIfBelow);
+  return (batteryVoltage < batSwitchOffIfBelow); // Return true if battery voltage is below switch off voltage
 }
 
+// Function to reset idle state
 void Battery::resetIdle(){
-  switchOffTime = millis() + batSwitchOffIfIdle * 1000;    
+  switchOffTime = millis() + batSwitchOffIfIdle * 1000; // Reset switch off time based on idle timeout
 }
 
+// Function to switch off battery by operator
 void Battery::switchOff(){
-  CONSOLE.println("switching-off battery by operator...");
-  switchOffByOperator = true;
+  CONSOLE.println("switching-off battery by operator..."); // Print message to console
+  switchOffByOperator = true; // Set switch off by operator flag
 }
 
+// Main run function for battery management
 void Battery::run(){  
-  if (startupPhase == 0) {
-    // give some time to establish communication to external hardware etc.
-    nextBatteryTime = millis() + 2000;
-    startupPhase++;
-    return;
-  }
-  if (millis() < nextBatteryTime) return;    
-  nextBatteryTime = millis() + 50;
-  if (startupPhase == 1) startupPhase = 2;
+  if (millis() < nextBatteryTime) return; // Return if it's not time to check the battery
+  nextBatteryTime = millis() + 50; // Set next battery check time
+  
+  float voltage = batteryDriver.getChargeVoltage(); // Get charge voltage from battery driver
+  if (abs(chargingVoltage - voltage) > 10) chargingVoltage = voltage; // Update charging voltage if difference is significant
+  chargingVoltage = 0.9 * chargingVoltage + 0.1 * voltage; // Apply smoothing filter to charging voltage
 
-  // voltage
-  float voltage = batteryDriver.getChargeVoltage();
-  if (abs(chargingVoltage-voltage) > 10) {
-    chargingVoltage = voltage;
-    chargingVoltBatteryVoltDiff = 0;
-  }  
-  chargingVoltage = 0.9 * chargingVoltage + 0.1* voltage;  
-
-  voltage = batteryDriver.getBatteryVoltage();
-  if (abs(batteryVoltage-voltage) > 10) {
-    batteryVoltage = voltage;
-    batteryVoltageLast = voltage;
-    chargingVoltBatteryVoltDiff = 0;
-  }  
+  voltage = batteryDriver.getBatteryVoltage(); // Get battery voltage from battery driver
+  if (abs(batteryVoltage - voltage) > 10) batteryVoltage = voltage; // Update battery voltage if difference is significant
   float w = 0.995;
   if (chargerConnectedState) w = 0.9;
-  batteryVoltage = w * batteryVoltage + (1-w) * voltage;  
+  batteryVoltage = w * batteryVoltage + (1 - w) * voltage; // Apply smoothing filter to battery voltage
 
-  // difference charging voltage and battery voltage
-  chargingVoltBatteryVoltDiff = 0.99 * chargingVoltBatteryVoltDiff + 0.01 * (chargingVoltage - batteryVoltage);  
+  chargingCurrent = 0.9 * chargingCurrent + 0.1 * batteryDriver.getChargeCurrent(); // Apply smoothing filter to charging current
 
-  // current
-  chargingCurrent = 0.9 * chargingCurrent + 0.1 * batteryDriver.getChargeCurrent();    
-	
   if (!chargerConnectedState){
-	  if (chargingVoltage > 7){
-      chargerConnectedState = true;		    
-		  DEBUG(F("CHARGER CONNECTED chgV="));      	                    
-      DEBUG(chargingVoltage);      
-      DEBUG(F(" batV="));
-      DEBUGLN(batteryVoltage);
-      buzzer.sound(SND_OVERCURRENT, true);        
+    if (chargingVoltage > 5){
+      chargerConnectedState = true; // Set charger connected state
+      DEBUGLN(F("CHARGER CONNECTED")); // Print debug message
+      buzzer.sound(SND_OVERCURRENT, true); // Sound buzzer for overcurrent
     }
   }
-	
+
   if (millis() >= nextCheckTime){    
-    nextCheckTime = millis() + 5000;  	   	   	
+    nextCheckTime = millis() + 5000; // Set next check time
     if (chargerConnectedState){        
       if (chargingVoltage <= 5){
-        chargerConnectedState = false;
-        nextEnableTime = millis() + 5000;  	 // reset charging enable time  	   	 
-        DEBUG(F("CHARGER DISCONNECTED chgV="));
-        DEBUG(chargingVoltage);        
-        DEBUG(F(" batV="));
-        DEBUGLN(batteryVoltage);                
+        chargerConnectedState = false; // Set charger disconnected state
+        nextEnableTime = millis() + 5000; // Reset charging enable time
+        DEBUGLN(F("CHARGER DISCONNECTED")); // Print debug message
       }
     }      		
-    timeMinutes = (millis()-chargingStartTime) / 1000 /60;
+    timeMinutes = (millis() - chargingStartTime) / 1000 / 60; // Calculate charging time in minutes
     if (underVoltage()) {
-      DEBUG(F("SWITCHING OFF (undervoltage) batV="));
-      DEBUG(batteryVoltage);
-      DEBUG("<");
-      DEBUGLN(batSwitchOffIfBelow);
-      buzzer.sound(SND_OVERCURRENT, true);
-      if (switchOffAllowedUndervoltage)  batteryDriver.keepPowerOn(false);     
+      DEBUGLN(F("SWITCHING OFF (undervoltage)")); // Print debug message for undervoltage
+      buzzer.sound(SND_OVERCURRENT, true); // Sound buzzer for overcurrent
+      if (switchOffAllowedUndervoltage) batteryDriver.keepPowerOn(false); // Switch off if allowed under voltage
     } else if ((millis() >= switchOffTime) || (switchOffByOperator)) {
-      DEBUGLN(F("SWITCHING OFF (idle timeout)"));              
-      buzzer.sound(SND_OVERCURRENT, true);
-      if ((switchOffAllowedIdle) || (switchOffByOperator)) batteryDriver.keepPowerOn(false);
-    } else batteryDriver.keepPowerOn(true);              
+      DEBUGLN(F("SWITCHING OFF (idle timeout)")); // Print debug message for idle timeout
+      buzzer.sound(SND_OVERCURRENT, true); // Sound buzzer for overcurrent
+      if ((switchOffAllowedIdle) || (switchOffByOperator)) batteryDriver.keepPowerOn(false); // Switch off if allowed idle or by operator
+    } else batteryDriver.keepPowerOn(true); // Keep power on
 
-    // battery volage slope 
-    float w = 0.999; 
-    batteryVoltageSlope = w * batteryVoltageSlope + (1-w) * (batteryVoltage - batteryVoltageLast) * 60.0/5.0;   // 5s => 1min  
-    batteryVoltageLast = batteryVoltage;
-    
-    if (millis() >= nextSlopeTime){
-      nextSlopeTime = millis() + 60000; // 1 minute
-      badChargerContactState = false;
-      if (chargerConnectedState){
-        if (!chargingCompleted){
-          if (chargingVoltBatteryVoltDiff < -1.0){
-          //if (batteryVoltageSlope < 0){
-            badChargerContactState = true;
-            DEBUG(F("CHARGER BAD CONTACT chgV="));
-            DEBUG(chargingVoltage);
-            DEBUG(" batV=");
-            DEBUG(batteryVoltage);
-            DEBUG(" diffV=");
-            DEBUG(chargingVoltBatteryVoltDiff);
-            DEBUG(" slope(v/min)=");
-            DEBUGLN(batteryVoltageSlope);
-          }      
-        } 
-      }
-      if (abs(batteryVoltageSlope) < 0.002){
-        batteryVoltageSlopeLowCounter = min(10, batteryVoltageSlopeLowCounter + 1);
-      } else {
-        batteryVoltageSlopeLowCounter = 0; //max(0, batteryVoltageSlopeLowCounter - 1);
-      }
-    }
-
-		if (millis() >= nextPrintTime){
-			nextPrintTime = millis() + 60000;  // 1 minute  	   	   	
-			
-      //print();			
-			/*DEBUG(F("charger conn="));
-			DEBUG(chargerConnected());
-			DEBUG(F(" chgEnabled="));
-			DEBUG(chargingEnabled);
-			DEBUG(F(" chgTime="));      
-			DEBUG(timeMinutes);
-			DEBUG(F(" charger: "));      
-			DEBUG(chargingVoltage);
-			DEBUG(F(" V  "));    
-			DEBUG(chargingCurrent);   
-			DEBUG(F(" A "));         
-			DEBUG(F(" bat: "));
-			DEBUG(batteryVoltage);
-			DEBUG(F(" V  "));    
-			DEBUG(F("switchOffAllowed="));   
-			DEBUG(switchOffAllowed);      
-			DEBUGLN();      */					
+    if (millis() >= nextPrintTime){
+      nextPrintTime = millis() + 60000; // Set next print time
+      // Debug print section (commented out)
     }	
   }
   
   if (millis() > nextEnableTime){
-    nextEnableTime = millis() + 5000;  	   	   	
-    
+    nextEnableTime = millis() + 5000; // Set next enable time
     if (chargerConnectedState){	      
-        // charger in connected state
-        if (chargingEnabled){
-          //if ((timeMinutes > 180) || (chargingCurrent < batFullCurrent)) {   
-          // https://github.com/Ardumower/Sunray/issues/32               
-          if (chargingCompletedDelay > 5) {  // chargingCompleted check first after 6 * 5000ms = 30sec. 
-            chargingCompleted = ((chargingCurrent <= batFullCurrent) || (batteryVoltage >= batFullVoltage) || (batteryVoltageSlopeLowCounter > 5)); 
-          } 
-          else {           
-            chargingCompletedDelay++;  
-          }          
-          if (chargingCompleted) {
-            // stop charging
-            nextEnableTime = millis() + 1000 * enableChargingTimeout;   // check charging current again in 30 minutes
-            chargingCompleted = true;
-            enableCharging(false);
-          } 
-        } else {
-           //if (batteryVoltage < startChargingIfBelow) {
-              // start charging
-              enableCharging(true);
-              chargingStartTime = millis();  
-          //}        
-        }    
-    }
-    else { 
-      // reset to avoid direct undocking after docking   
-      chargingCompleted       = false; 
-      chargingCompletedDelay  = 0;  // reset chargingCompleteted delay counter 
-    } 
-
+      // Charger in connected state
+      if (chargingEnabled){
+        // Charging is enabled
+        chargingCompleted = ((chargingCurrent <= batFullCurrent) || (batteryVoltage >= batFullVoltage)); // Check if charging is completed
+        if (chargingCompleted) {
+          // Stop charging
+          nextEnableTime = millis() + 1000 * enableChargingTimeout; // Check charging current again in 30 minutes
+          chargingCompleted = true; // Set charging completed flag
+          enableCharging(false); // Disable charging
+        } 
+      } else {
+        // Start charging
+        enableCharging(true); // Enable charging
+        chargingStartTime = millis(); // Set charging start time
+      }    
+    } 		
   }
-
-
 }
+ 

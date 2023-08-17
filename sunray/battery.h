@@ -5,60 +5,44 @@
 
 // Ardumower battery management
 
-#ifndef BATTERY_H
-#define BATTERY_H
+#ifndef BATTERY_H // Preprocessor directive to prevent multiple inclusions of this header file
+#define BATTERY_H // Definition to indicate that this header file has been included
 
-
-
-class Battery {
-  public:
-    bool docked;    // robot in docking?
-    bool batMonitor;
-    float batGoHomeIfBelow;
-    float batFullVoltage;
-    float batSwitchOffIfBelow;  // switch off battery if below voltage (Volt)
-    int batSwitchOffIfIdle;      // switch off battery if idle (minutes)  
-    int enableChargingTimeout;
-    float batFullCurrent;
-	  float batteryVoltage;   // volts
-    float batteryVoltageLast;
-    float chargingVoltBatteryVoltDiff;    
-    float batteryVoltageSlope; // slope (volts/minute)	  
-    float chargingVoltage;  // volts
-	  float chargingCurrent;  // amps
-    bool chargingEnabled;
-    int chargingCompletedDelay; // ensure that loadingcurrent or loadingvoltage triggers 'chargingCompleted' condition for a longer period
-    bool chargingCompleted;
-	  void begin();            
-    void run();	  
-    void setIsDocked(bool state);
-    bool isDocked();
-	  bool chargerConnected();
-    bool badChargerContact();
-    void enableCharging(bool flag);   	      
-    bool shouldGoHome();    
-    bool chargingHasCompleted();
-    bool underVoltage();
-    void resetIdle();
-    void switchOff();
-  protected:       
-    int batteryVoltageSlopeLowCounter;
-    int startupPhase;    
-    unsigned long nextBatteryTime ;
-    bool switchOffByOperator;    
-    unsigned long timeMinutes;
-		bool chargerConnectedState;
-    bool badChargerContactState;
-    bool switchOffAllowedUndervoltage;
-    bool switchOffAllowedIdle;
-    unsigned long switchOffTime;
-    unsigned long chargingStartTime;
-	  unsigned long nextCheckTime;	  
-    unsigned long nextEnableTime;	  
-		unsigned long nextPrintTime;
-    unsigned long nextSlopeTime;	  		
+class Battery { // Definition of the Battery class
+  public: // Public members of the Battery class
+    bool batMonitor; // Boolean to monitor the battery
+    float batGoHomeIfBelow; // Voltage level to trigger going home
+    float batFullVoltage; // Voltage level considered as full charge
+    float batSwitchOffIfBelow; // Voltage level to switch off the battery
+    int batSwitchOffIfIdle; // Time in minutes to switch off the battery if idle
+    int enableChargingTimeout; // Timeout for enabling charging
+    float batFullCurrent; // Current level considered as full charge
+    float batteryVoltage; // Current battery voltage in volts
+    float chargingVoltage; // Current charging voltage in volts
+    float chargingCurrent; // Current charging current in amps
+    bool chargingEnabled; // Boolean to indicate if charging is enabled
+    bool chargingCompleted; // Boolean to indicate if charging has been completed
+    void begin(); // Method to initialize the battery management
+    void run(); // Method to run the battery management
+    bool chargerConnected(); // Method to check if the charger is connected
+    void enableCharging(bool flag); // Method to enable or disable charging
+    bool shouldGoHome(); // Method to check if the robot should go home
+    bool chargingHasCompleted(); // Method to check if charging has completed
+    bool underVoltage(); // Method to check if the battery is under voltage
+    void resetIdle(); // Method to reset the idle state
+    void switchOff(); // Method to switch off the battery
+  protected: // Protected members of the Battery class
+    unsigned long nextBatteryTime; // Next time to check the battery
+    bool switchOffByOperator; // Boolean to indicate if switched off by operator
+    unsigned long timeMinutes; // Time in minutes for charging
+    bool chargerConnectedState; // Boolean to indicate the charger connected state
+    bool switchOffAllowedUndervoltage; // Boolean to allow switch off under voltage
+    bool switchOffAllowedIdle; // Boolean to allow switch off if idle
+    unsigned long switchOffTime; // Time to switch off the battery
+    unsigned long chargingStartTime; // Time when charging started
+    unsigned long nextCheckTime; // Next time to check the charging state
+    unsigned long nextEnableTime; // Next time to enable charging
+    unsigned long nextPrintTime; // Next time to print the charging state
 };
 
-
-
-#endif
+#endif // End of preprocessor directive to prevent multiple inclusions
