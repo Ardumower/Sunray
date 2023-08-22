@@ -23,6 +23,13 @@
 
 #define SUPER_SPIKE_ELIMINATOR 1  // advanced spike elimination  (experimental, comment out to disable)
 
+volatile unsigned long motorLeftTickTime = 0;
+volatile unsigned long motorRightTickTime = 0;
+volatile unsigned long motorMowTickTime = 0;
+
+volatile unsigned long motorLeftThen = 0;
+volatile unsigned long motorRightThen = 0;
+volatile unsigned long motorMowThen = 0;
 
 volatile int odomTicksLeft  = 0;
 volatile int odomTicksRight = 0;
@@ -101,8 +108,11 @@ float AmRobotDriver::getCpuTemperature(){
 // odometry signal change interrupt
 
 void OdometryMowISR(){			  
+  unsigned long now = micros();
   if (digitalRead(pinMotorMowRpm) == LOW) return;
-  if (millis() < motorMowTicksTimeout) return; // eliminate spikes  
+  if (millis() < motorMowTicksTimeout) return; // eliminate spikes 
+  motorMowTickTime = now - motorMowThen;
+  motorMowThen = now; 
   #ifdef SUPER_SPIKE_ELIMINATOR
     unsigned long duration = millis() - motorMowTransitionTime;
     if (duration > 5) duration = 0;
@@ -112,13 +122,16 @@ void OdometryMowISR(){
   #else
     motorMowTicksTimeout = millis() + 1;
   #endif
-  odomTicksMow++;    
+  odomTicksMow++;      
 }
 
 
 void OdometryLeftISR(){			  
+  unsigned long now = micros();
   if (digitalRead(pinOdometryLeft) == LOW) return;
-  if (millis() < motorLeftTicksTimeout) return; // eliminate spikes  
+  if (millis() < motorLeftTicksTimeout) return; // eliminate spikes 
+  motorLeftTickTime = now - motorLeftThen;
+  motorLeftThen = now; 
   #ifdef SUPER_SPIKE_ELIMINATOR
     unsigned long duration = millis() - motorLeftTransitionTime;
     if (duration > 5) duration = 0;
@@ -128,12 +141,15 @@ void OdometryLeftISR(){
   #else
     motorLeftTicksTimeout = millis() + 1;
   #endif
-  odomTicksLeft++;    
+  odomTicksLeft++;     
 }
 
 void OdometryRightISR(){			
+  unsigned long now = micros();
   if (digitalRead(pinOdometryRight) == LOW) return;  
   if (millis() < motorRightTicksTimeout) return; // eliminate spikes
+  motorRightTickTime = now - motorRightThen;
+  motorRightThen = now;
   #ifdef SUPER_SPIKE_ELIMINATOR
     unsigned long duration = millis() - motorRightTransitionTime;
     if (duration > 5) duration = 0;  
@@ -553,6 +569,18 @@ void AmMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &m
   // reset counters
   odomTicksLeft = odomTicksRight = odomTicksMow = 0;
 }    
+
+void AmMotorDriver::getMotorTickTime(unsigned long &leftTime, unsigned long &rightTime, unsigned long &mowTime){
+  leftTime = motorLeftTickTime;
+  rightTime = motorRightTickTime;  
+  mowTime = motorMowTickTime;
+
+  // estimate deceleration
+  unsigned long now = micros();
+  if (now > motorLeftThen + motorLeftTickTime) leftTime = now - motorLeftThen;
+  if (now > motorRightThen + motorRightTickTime) rightTime = now - motorRightThen;
+  if (now > motorMowThen + motorMowTickTime) mowTime = now - motorMowThen;
+}   
 
 
 
