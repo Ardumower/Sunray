@@ -130,6 +130,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // #define TICKS_PER_REVOLUTION  304     // odometry ticks per wheel revolution (RM18)
 
+#define RESPONSIVE_RPM false // use tick time for odometry RPM calculations
+
 
 // ----- gear motors --------------------------------------------------
 // for brushless motors, study the sections (drivers, adapter, protection etc.) in the Wiki (https://wiki.ardumower.de/index.php?title=DIY_Brushless_Driver_Board)
