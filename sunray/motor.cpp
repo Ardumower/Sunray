@@ -296,7 +296,7 @@ void Motor::run() {
   float deltaControlTimeSec =  ((float)(currTime - lastControlTime)) / 1000.0;
   lastControlTime = currTime;
 
-#ifdef RESPONSIVE_RPM
+#if RESPONSIVE_RPM
   unsigned long timeLeft;
   unsigned long timeRight;
   unsigned long timeMow;
