@@ -110,54 +110,51 @@ float AmRobotDriver::getCpuTemperature(){
 void OdometryMowISR(){			  
   unsigned long now = micros();
   if (digitalRead(pinMotorMowRpm) == LOW) return;
-  if (millis() < motorMowTicksTimeout) return; // eliminate spikes 
+  if (now < motorMowTicksTimeout) return; // eliminate spikes 
   motorMowTickTime = now - motorMowThen;
   motorMowThen = now; 
   #ifdef SUPER_SPIKE_ELIMINATOR
-    unsigned long duration = millis() - motorMowTransitionTime;
-    if (duration > 5) duration = 0;
-    motorMowTransitionTime = millis();
+    unsigned long duration = motorMowTickTime;
+    if (duration > 5000) duration = 0;
     motorMowDurationMax = 0.7 * max(motorMowDurationMax, ((float)duration));
-    motorMowTicksTimeout = millis() + motorMowDurationMax;
+    motorMowTicksTimeout = now + motorMowDurationMax;
   #else
-    motorMowTicksTimeout = millis() + 1;
+    motorMowTicksTimeout = now + 1000;
   #endif
-  odomTicksMow++;      
+  odomTicksMow++;
 }
 
 
 void OdometryLeftISR(){			  
   unsigned long now = micros();
   if (digitalRead(pinOdometryLeft) == LOW) return;
-  if (millis() < motorLeftTicksTimeout) return; // eliminate spikes 
+  if (now < motorLeftTicksTimeout) return; // eliminate spikes 
   motorLeftTickTime = now - motorLeftThen;
   motorLeftThen = now; 
   #ifdef SUPER_SPIKE_ELIMINATOR
-    unsigned long duration = millis() - motorLeftTransitionTime;
-    if (duration > 5) duration = 0;
-    motorLeftTransitionTime = millis();
+    unsigned long duration = motorLeftTickTime;
+    if (duration > 5000) duration = 0;
     motorLeftDurationMax = 0.7 * max(motorLeftDurationMax, ((float)duration));
-    motorLeftTicksTimeout = millis() + motorLeftDurationMax;
+    motorLeftTicksTimeout = now + motorLeftDurationMax;
   #else
-    motorLeftTicksTimeout = millis() + 1;
+    motorLeftTicksTimeout = now + 1000;
   #endif
-  odomTicksLeft++;     
+  odomTicksLeft++;    
 }
 
 void OdometryRightISR(){			
   unsigned long now = micros();
   if (digitalRead(pinOdometryRight) == LOW) return;  
-  if (millis() < motorRightTicksTimeout) return; // eliminate spikes
+  if (now < motorRightTicksTimeout) return; // eliminate spikes
   motorRightTickTime = now - motorRightThen;
   motorRightThen = now;
   #ifdef SUPER_SPIKE_ELIMINATOR
-    unsigned long duration = millis() - motorRightTransitionTime;
-    if (duration > 5) duration = 0;  
-    motorRightTransitionTime = millis();
+    unsigned long duration = motorRightTickTime;
+    if (duration > 5000) duration = 0;  
     motorRightDurationMax = 0.7 * max(motorRightDurationMax, ((float)duration));  
-    motorRightTicksTimeout = millis() + motorRightDurationMax;
+    motorRightTicksTimeout = now + motorRightDurationMax;
   #else
-    motorRightTicksTimeout = millis() + 1;
+    motorRightTicksTimeout = now + 1000;
   #endif
   odomTicksRight++;        
   
