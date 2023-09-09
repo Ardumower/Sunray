@@ -1812,6 +1812,9 @@ bool Map::findPath(Point &src, Point &dst){
       CONSOLE.println("OUT OF MEMORY");
       return false;
     }
+
+    // we will use 'linePolygonIntersectPoint' to find points that may touch the perimeter - because touching counts as intersecting, we
+    // will offset the perimeter before we can detect for intersections...
     
     if (!polygonOffset(perimeterPoints, pathFinderObstacles.polygons[idx], 0.04)) return false;
     idx++;
