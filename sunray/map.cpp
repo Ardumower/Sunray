@@ -1813,8 +1813,9 @@ bool Map::findPath(Point &src, Point &dst){
       return false;
     }
 
-    // we will use 'linePolygonIntersectPoint' to find points that may touch the perimeter - because touching counts as intersecting, we
-    // will offset the perimeter before we can detect for intersections...
+    // For validating a potential route, we will use  'linePolygonIntersectPoint' and check for intersections between route start point 
+    // and end point. To have something to check intersection with, we offset the perimeter (make bigger) and exclusions
+    //  (maker schmaller) and use them as 'obstacles'.
     
     if (!polygonOffset(perimeterPoints, pathFinderObstacles.polygons[idx], 0.04)) return false;
     idx++;
