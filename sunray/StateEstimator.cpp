@@ -257,7 +257,10 @@ void computeRobotState(){
   if (fabs(motor.linearSpeedSet) < 0.001)  
     resetLastPos = true;
 
-  if ((gps.solutionAvail) && ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT))  )
+  if ((gps.solutionAvail) &&
+    ((gps.solution == SOL_FIXED && millis() > lastInvalidTime + IGNORE_GPS_FIX_AFTER_INVALID * 1000.0)
+    || (gps.solution == SOL_FLOAT))  
+  )
   {
     gps.solutionAvail = false;
     stateGroundSpeed = 0.9 * stateGroundSpeed + 0.1 * abs(gps.groundSpeed);    
@@ -326,6 +329,10 @@ void computeRobotState(){
     vec3_t pos = forward * (distOdometry/100.0);
     stateX += pos.x;
     stateY += pos.y;
+
+    // set last invalid time
+    if (gps.solutionAvail && gps.solution == SOL_INVALID)
+      lastInvalidTime = millis();
   }
   
   if (stateOp == OP_MOW) statMowDistanceTraveled += distOdometry/100.0;
