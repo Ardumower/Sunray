@@ -42,6 +42,7 @@ float diffIMUWheelYawSpeedLP = 0;
 
 bool gpsJump = false;
 bool resetLastPos = true;
+unsigned long lastInvalidTime = 0;
 
 float lastIMUYaw = 0; 
 float lateralError = 0; // lateral error
