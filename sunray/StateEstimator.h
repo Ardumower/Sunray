@@ -30,6 +30,7 @@ extern float diffIMUWheelYawSpeed;
 extern float diffIMUWheelYawSpeedLP;
 
 extern bool gpsJump;
+extern unsigned long lastInvalidTime;
 
 extern bool imuIsCalibrating;
 extern unsigned long imuDataTimeout;
