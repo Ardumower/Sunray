@@ -36,7 +36,7 @@
 #include "timetable.h"
 
 
-#define VER "Sunray,1.0.310"
+#define VER "Sunray,1.0.314"
 
 // operation types
 enum OperationType {
@@ -135,7 +135,7 @@ extern int motorErrorCounter;
 
 #ifdef DRV_SIM_ROBOT
   extern SimImuDriver imuDriver;
-#elif BNO055
+#elif defined(BNO055)
   extern BnoDriver imuDriver;  
 #else
   extern MpuDriver imuDriver;

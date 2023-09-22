@@ -155,7 +155,9 @@ void trackLine(bool runControl){
     else     
       angleToTargetFits = (fabs(trackerDiffDelta)/PI*180.0 < 20);
   } else {
-     angleToTargetFits = true;
+    // while tracking the mowing line do allow rotations if angle to target increases (e.g. due to gps jumps)
+    angleToTargetFits = (fabs(trackerDiffDelta)/PI*180.0 < 45);       
+    //angleToTargetFits = true;
   }
 
   if (!angleToTargetFits){
@@ -323,11 +325,16 @@ void trackLine(bool runControl){
     }
   }
    
-  if (mow)  {  // wait until mowing motor is running
+  // in any case, turn off mower motor if lifted 
+  // also, if lifted, do not turn on mowing motor so that the robot will drive and can do obstacle avoidance 
+  if (detectLift()) mow = false;
+  
+  if (mow)  { 
     if (millis() < motor.motorMowSpinUpTime + 10000){
+       // wait until mowing motor is running
       if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
       linear = 0;
-      angular = 0;   
+      angular = 0;          
     }
   }
 
@@ -341,7 +348,6 @@ void trackLine(bool runControl){
     }
 
     motor.setLinearAngularSpeed(linear, angular);      
-    if (detectLift()) mow = false; // in any case, turn off mower motor if lifted 
     motor.setMowState(mow);    
   }
 

@@ -22,9 +22,10 @@
 ObstacleAvoidanceTest obstacleAvoidanceTest;
 MotorFaultTest motorFaultTest;
 SessionTest sessionTest;
+BumperTest bumperTest;
 Tester tester;
 //Test &currentTest = obstacleAvoidanceTest; 
-Test &currentTest = motorFaultTest;
+Test &currentTest = bumperTest;
 PathFinderTest pathFinderTest;
 
 
@@ -130,7 +131,6 @@ void ObstacleAvoidanceTest::run(){
 
 // --------------------------------------------
 
-
 String MotorFaultTest::name(){
   return "MotorFaultTest";
 }
@@ -150,6 +150,7 @@ void MotorFaultTest::run(){
     motorDriver.setSimMotorFault(false, false, true);  // left, right, mow
   }
 }
+
 
 // --------------------------------------------
 
@@ -238,6 +239,52 @@ void SessionTest::run(){
 void SessionTest::end(){
 }        
 
+// --------------------------------------------
+
+String BumperTest::name(){
+  return "BumperTest";
+}
+
+void BumperTest::begin(){  
+  nextBumperTime = millis() + 60000;
+  triggerAllowed = true;
+  lastGridX = 0;
+  lastGridY = 0;
+  speak("Bumper Test");
+}
+
+void BumperTest::end(){
+}
+ 
+void BumperTest::run(){    
+  //CONSOLE.println(maps.wayMode);
+  //if ((stateOp == OP_MOW) 
+  if (maps.wayMode != WAY_DOCK){
+    int gridx = robotDriver.simX; // convert into meter-grid
+    int gridy = robotDriver.simY; // convert into meter-grid
+
+    if ((gridx != lastGridX) || (gridy != lastGridY)){
+      CONSOLE.print("SIM: grid ");
+      CONSOLE.print(gridx);
+      CONSOLE.print(",");
+      CONSOLE.println(gridy);
+    
+
+      if ((gridx % 4 == 0) && (gridy % 4 == 0)){  // obstacle grid (every 4x4m)
+        releaseBumperTime = millis() + 1000;
+        speak("trigger bumper");    
+        CONSOLE.println("SIM: trigger bumper");
+        bumperDriver.setSimTriggered(true);                            
+      }
+      lastGridX = gridx;
+      lastGridY = gridy;      
+    }
+    if (millis() > releaseBumperTime){
+      bumperDriver.setSimTriggered(false);          
+    }
+  }
+}
+
 // ----------------------------------
 
 void Tester::begin(){
@@ -247,13 +294,20 @@ void Tester::begin(){
 
 void Tester::run(){
  
-  if (millis() > nextTestTime){
+  // if you want to run a test only at certain time intervals...
+
+  /*if (millis() > nextTestTime){
     //maps.generateRandomMap();    
     //pathFinderTest.runPerimeterPathTest();
     
     //pathFinderTest.runRandomPathTest();
     nextTestTime = millis() + 20000;         
-  }
+  }*/
+
+
+  // to run a test permanently...
+  //currentTest.run();
+  
   
   /*if (currentTest.started){
     if (currentTest.shouldStop){ 

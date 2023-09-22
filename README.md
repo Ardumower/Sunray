@@ -155,7 +155,7 @@ git clone https://github.com/Ardumower/Sunray.git
 
 Now edit the file alfred/config.h and uncomment only the simulation driver:
 ```
-//#define DRV_SERIAL_ROBOT  1
+//#define DRV_SERIAL_ROBOT  1   // for Alfred
 //#define DRV_ARDUMOWER     1   // keep this for Ardumower
 #define DRV_SIM_ROBOT     1   // simulation
 ```
@@ -175,3 +175,20 @@ Keyboard key | Sensor simulation
 o | Trigger robot obstacle sensor (bumper etc.)
 r | Trigger robot rain sensor
 l | Trigger robot battery low 
+
+## Fixing issue: 'available(): not listening'
+If you restart the Linux sunray process, it might be possible that the HTTP port is still not cleared from a previous session. A quick check before running the process will solve this:
+```
+echo "----waiting for TCP connections to be closed from previous sessions----"
+echo "Waiting TCP port 80 to be closed..."
+for _ in `seq 1 30`; do
+  RES=$(netstat -ant | grep -w 80)
+  if [ -z "$RES" ]; then
+    break
+  fi
+  echo $RES
+  sleep 2.0    
+done;
+```
+
+

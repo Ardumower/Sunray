@@ -70,6 +70,18 @@ class MotorFaultTest: public Test {
     virtual void run() override;
 };
 
+class BumperTest: public Test {
+  public:
+    int lastGridX;
+    int lastGridY;
+    bool triggerAllowed;
+    unsigned long nextBumperTime;
+    unsigned long releaseBumperTime;    
+    virtual String name() override;
+    virtual void begin() override;
+    virtual void end() override;
+    virtual void run() override;
+};
 
 class SessionTest: public Test {
   public:        

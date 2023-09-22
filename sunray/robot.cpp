@@ -57,7 +57,7 @@ const signed char orientationMatrix[9] = {
 
 #ifdef DRV_SIM_ROBOT
   SimImuDriver imuDriver(robotDriver);
-#elif BNO055
+#elif defined(BNO055)
   BnoDriver imuDriver;  
 #else
   MpuDriver imuDriver;
@@ -71,7 +71,7 @@ const signed char orientationMatrix[9] = {
   SerialRainSensorDriver rainDriver(robotDriver);
   SerialLiftSensorDriver liftDriver(robotDriver);
   SerialBuzzerDriver buzzerDriver(robotDriver);
-#elif DRV_SIM_ROBOT
+#elif defined(DRV_SIM_ROBOT)
   SimRobotDriver robotDriver;
   SimMotorDriver motorDriver(robotDriver);
   SimBatteryDriver batteryDriver(robotDriver);
@@ -206,8 +206,6 @@ void resetOverallMotionTimeout(){
 void updateGPSMotionCheckTime(){
   nextGPSMotionCheckTime = millis() + GPS_MOTION_DETECTION_TIMEOUT * 1000;     
 }
-
-
 
 
 
@@ -401,6 +399,9 @@ void outputConfig(){
   #ifdef MOTOR_DRIVER_BRUSHLESS_MOW_JYQD
     CONSOLE.println("MOTOR_DRIVER_BRUSHLESS_MOW_JYQD");
   #endif 
+  #ifdef MOTOR_DRIVER_BRUSHLESS_MOW_OWL
+    CONSOLE.println("MOTOR_DRIVER_BRUSHLESS_MOW_OWL");
+  #endif 
 
   #ifdef MOTOR_DRIVER_BRUSHLESS_GEARS_DRV8308
     CONSOLE.println("MOTOR_DRIVER_BRUSHLESS_GEARS_DRV8308");
@@ -413,6 +414,9 @@ void outputConfig(){
   #endif     
   #ifdef MOTOR_DRIVER_BRUSHLESS_GEARS_JYQD
     CONSOLE.println("MOTOR_DRIVER_BRUSHLESS_GEARS_JYQD");
+  #endif
+  #ifdef MOTOR_DRIVER_BRUSHLESS_GEARS_OWL
+    CONSOLE.println("MOTOR_DRIVER_BRUSHLESS_GEARS_OWL");
   #endif
   
   CONSOLE.print("MOTOR_FAULT_CURRENT: ");
@@ -727,6 +731,7 @@ void detectSensorMalfunction(){
 bool detectLift(){  
   #ifdef ENABLE_LIFT_DETECTION
     if (liftDriver.triggered()) {
+      CONSOLE.println("LIFT triggered");
       return true;            
     }  
   #endif 

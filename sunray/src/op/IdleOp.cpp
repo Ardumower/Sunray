@@ -31,8 +31,9 @@ void IdleOp::run(){
         if (millis() - startTime > 2000) {
             CONSOLE.println("IDLE->CHARGE: idle time more than 2secs => assuming robot is not in dock");
             dockOp.setInitiatedByOperator(true);
-            battery.setIsDocked(false);
-        }             
+            battery.setIsDocked(false);            
+        }        
+        if (initiatedByOperator) dockOp.setInitiatedByOperator(true); // manual stop => manual dock
         changeOp(chargeOp);
     }    
 }

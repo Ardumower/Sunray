@@ -83,7 +83,7 @@
 
 //#define DEBUG 1
 
-#define VER "RM18,1.1.15"
+#define VER "RM18,1.1.16"
 
 #define pinSwdCLK          PA14
 #define pinSwdSDA          PA13
@@ -436,9 +436,9 @@ void readSensors(){
 
   // rain (lift low-pass filtering)  
   rain = analogRead(pinRain);  
-  w = 0.5;
+  w = 0.99;
   rainLP = w * rainLP + (1.0-w) * ((float)rain);
-  raining = (rainLP > 10);
+  raining = (rainLP > 50);
 
   // lift
   liftRight = analogRead(pinLift1);
