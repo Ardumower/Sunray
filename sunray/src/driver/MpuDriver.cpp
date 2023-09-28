@@ -83,6 +83,10 @@ bool MpuDriver::isDataAvail(){
     // computeEulerAngles can be used -- after updating the
     // quaternion values -- to estimate roll, pitch, and yaw
     //  toEulerianAngle(imu.calcQuat(imu.qw), imu.calcQuat(imu.qx), imu.calcQuat(imu.qy), imu.calcQuat(imu.qz), imu.roll, imu.pitch, imu.yaw);
+    quatW = mpu.qw;
+    quatX = mpu.qx;
+    quatY = mpu.qy;
+    quatZ = mpu.qz;
     mpu.computeEulerAngles(false);      
     //CONSOLE.print(imu.ax);
     //CONSOLE.print(",");

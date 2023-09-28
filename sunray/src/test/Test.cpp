@@ -288,7 +288,7 @@ void BumperTest::run(){
 // ----------------------------------
 
 void Tester::begin(){
-  currentTest.begin();
+  //currentTest.begin();
   nextTestTime = 0;
 }
 
