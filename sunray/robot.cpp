@@ -124,6 +124,9 @@ float stateTemp = 20; // degreeC
 unsigned long stateInMotionLastTime = 0;
 bool stateChargerConnected = false;
 bool stateInMotionLP = false; // robot is in angular or linear motion? (with motion low-pass filtering)
+float linearSpeedSetLast = 0;
+bool linearSpeedSetDeadTimeIsSet = false;
+unsigned long linearSpeedSetDeadTime = 0;
 
 unsigned long lastFixTime = 0;
 int fixTimeout = 0;
@@ -670,8 +673,21 @@ bool robotShouldMove(){
   /*CONSOLE.print(motor.linearSpeedSet);
   CONSOLE.print(",");
   CONSOLE.println(motor.angularSpeedSet / PI * 180.0);  */
+  if (motor.linearSpeedSet * linearSpeedSetLast < 0){
+    // direction change
+    linearSpeedSetDeadTime = millis() + 10000;
+    linearSpeedSetDeadTimeIsSet = true;
+  }
+  linearSpeedSetLast = motor.linearSpeedSet;
+  if (linearSpeedSetDeadTimeIsSet){
+    if (millis() < linearSpeedSetDeadTime){
+      return false;  // wait dead-time (due to direction change)
+    }
+    linearSpeedSetDeadTimeIsSet = false;    
+  }
   return ( fabs(motor.linearSpeedSet) > 0.001 );
 }
+
 
 bool robotShouldMoveForward(){
    return ( motor.linearSpeedSet > 0.001 );
