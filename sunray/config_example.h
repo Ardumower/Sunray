@@ -346,7 +346,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define GPS_POSITION_OFFSET_UP 0.0 // offse to add upwards (cm), set to ground level for tilt compensation (-24 cm for standard ardumower) 
 
 #define INVALID_GPS_TIMEOUT 0 // time in seconds to navigate with invalid GPS
-#define IGNORE_GPS_FIX_AFTER_INVALID 3.0 // time in seconds to ignore GPS fix after going into invalid solution
+
+#define IGNORE_GPS_FIX_AFTER_INVALID 0.0 // time in seconds to ignore GPS fix after recovering from invalid solution
+#define IGNORE_GPS_FIX_AFTER_JUMP 0.0 // time in seconds to ignore GPS fix after fix jump detected
 
 
 // ------ obstacle detection and avoidance  -------------------------
