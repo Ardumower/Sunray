@@ -212,7 +212,7 @@ void computeRobotState(){
   stateRightTicks = motor.motorRightTicks;    
     
   float distLeft = ((float)leftDelta) / ((float)motor.ticksPerCm);
-  float distRight = ((float)rightDelta) / ((float)motor.ticksPerCm);
+  float distRight = ((float)rightDelta) / ((float)motor.ticksPerCm);  
   float distOdometry = (distLeft + distRight) / 2.0;
   float deltaOdometry = -(distLeft - distRight) / motor.wheelBaseCm;  
 
@@ -258,8 +258,17 @@ void computeRobotState(){
   if (fabs(motor.linearSpeedSet) < 0.001)  
     resetLastPos = true;
 
+  // detect fix jumps before heading fusion
+  if (gps.solutionAvail && gps.solution == SOL_FIXED && sqrt( sq(posN-lastPosN)+sq(posE-lastPosE) ) > 0.2)
+    lastFixJumpTime = millis();
+  // set last invalid time
+  if (gps.solutionAvail && gps.solution == SOL_INVALID)
+    lastInvalidTime = millis();
+
   if ((gps.solutionAvail) &&
-    ((gps.solution == SOL_FIXED && millis() > lastInvalidTime + IGNORE_GPS_FIX_AFTER_INVALID * 1000.0)
+    ((gps.solution == SOL_FIXED 
+      && millis() > lastInvalidTime + IGNORE_GPS_FIX_AFTER_INVALID * 1000.0
+      && millis() > lastFixJumpTime + IGNORE_GPS_FIX_AFTER_JUMP * 1000.0)
     || (gps.solution == SOL_FLOAT))  
   )
   {
@@ -284,7 +293,7 @@ void computeRobotState(){
       float diffLastPosDelta = distancePI(stateDelta, lastPosDelta);                 
       if (fabs(diffLastPosDelta) /PI * 180.0 < 10
       && (fabs(motor.linearSpeedSet) > 0)
-      && (fabs(motor.angularSpeedSet) /PI *180.0 < 45) ) // make sure robot is not turningz
+      && (fabs(motor.angularSpeedSet) /PI *180.0 < 45) ) // make sure robot is not turning
       {
         stateDeltaGPS = scalePI(atan2(posN-lastPosN, posE-lastPosE));    
         if (motor.linearSpeedSet < 0)
@@ -330,10 +339,6 @@ void computeRobotState(){
     vec3_t pos = forward * (distOdometry/100.0);
     stateX += pos.x;
     stateY += pos.y;
-
-    // set last invalid time
-    if (gps.solutionAvail && gps.solution == SOL_INVALID)
-      lastInvalidTime = millis();
   }
   
   if (stateOp == OP_MOW) statMowDistanceTraveled += distOdometry/100.0;
