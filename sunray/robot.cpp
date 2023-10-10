@@ -673,7 +673,7 @@ bool robotShouldMove(){
   CONSOLE.println(motor.angularSpeedSet / PI * 180.0);  */
   if (motor.linearSpeedSet * linearSpeedSetLast < 0){
     // direction change
-    linearSpeedSetDeadTime = millis() + 10000;
+    linearSpeedSetDeadTime = millis() + 20000;
     linearSpeedSetDeadTimeIsSet = true;
   }
   linearSpeedSetLast = motor.linearSpeedSet;
