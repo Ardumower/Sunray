@@ -259,11 +259,22 @@ void computeRobotState(){
     resetLastPos = true;
 
   // detect fix jumps before heading fusion
-  if (gps.solutionAvail && gps.solution == SOL_FIXED && sqrt( sq(posN-lastPosN)+sq(posE-lastPosE) ) > 0.2)
+  if (gps.solutionAvail && gps.solution == SOL_FIXED
+  && sqrt( sq(posN-lastPosN)+sq(posE-lastPosE) ) > 0.2
+  && millis() > lastFixJumpTime + IGNORE_GPS_FIX_AFTER_JUMP * 1000.0
+  )
+  {
+    gps.solutionAvail = false;
     lastFixJumpTime = millis();
+    lastPosN = posN;
+    lastPosE = posE;
+  }
   // set last invalid time
   if (gps.solutionAvail && gps.solution == SOL_INVALID)
+  {
+    gps.solutionAvail = false;
     lastInvalidTime = millis();
+  }
 
   if ((gps.solutionAvail) &&
     ((gps.solution == SOL_FIXED 
