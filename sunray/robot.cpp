@@ -57,13 +57,13 @@ const signed char orientationMatrix[9] = {
 };
 
 #ifdef DRV_SIM_ROBOT
-  extern SimImuDriver imuDriver;
+  SimImuDriver imuDriver(robotDriver);
 #elif defined(BNO055)
-  extern BnoDriver imuDriver;  
+  BnoDriver imuDriver;
 #elif defined(ICM20948)
-  extern IcmDriver imuDriver;  
+  IcmDriver imuDriver;
 #else
-  extern MpuDriver imuDriver;
+  MpuDriver imuDriver;
 #endif
 #ifdef DRV_SERIAL_ROBOT
   SerialRobotDriver robotDriver;
