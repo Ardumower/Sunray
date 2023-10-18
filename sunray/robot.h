@@ -16,6 +16,7 @@
 #include "src/driver/SimRobotDriver.h"
 #include "src/driver/MpuDriver.h"
 #include "src/driver/BnoDriver.h"
+#include "src/driver/IcmDriver.h"
 #include "battery.h"
 #include "ble.h"
 #include "pinman.h"
@@ -135,8 +136,10 @@ extern int motorErrorCounter;
 
 #ifdef DRV_SIM_ROBOT
   extern SimImuDriver imuDriver;
-#elif defined(BNO055)
+#elif BNO055
   extern BnoDriver imuDriver;  
+#elif ICM20948
+  extern IcmDriver imuDriver;  
 #else
   extern MpuDriver imuDriver;
 #endif
