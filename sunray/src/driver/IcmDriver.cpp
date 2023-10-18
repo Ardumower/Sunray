@@ -48,7 +48,7 @@ bool IcmDriver::begin(){
   success &= (icm.resetDMP() == ICM_20948_Stat_Ok);
   success &= (icm.resetFIFO() == ICM_20948_Stat_Ok);
   success &= (icm.lowPower(false) == ICM_20948_Stat_Ok);
-  //20hzt and biases here
+  //TODO: Add bias settings here
   CONSOLE.println("using imu driver: IcmDriver");
   return success;
 }
