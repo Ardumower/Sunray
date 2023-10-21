@@ -72,7 +72,7 @@ bool IcmDriver::isDataAvail(){
             double q2 = ((double)data.Quat6.Data.Q2) / 1073741824.0;
             double q3 = ((double)data.Quat6.Data.Q3) / 1073741824.0;
 
-            double q0 = sqrt(1.0 - ((q1 * q1) + (q2 * q2) + (q3 * q3)));
+            double q0 = sqrt(1.0 - min((q1 * q1) + (q2 * q2) + (q3 * q3), 1.0));
 
             double q2sqr = q2 * q2;
 
