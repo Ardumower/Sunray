@@ -1674,6 +1674,11 @@ float Map::calcHeuristic(Point &pos0, Point &pos1) {
   //return distance(pos0, pos1) ;  
 }
   
+
+// given a start node, we check potential next node with all obstacle nodes:
+// 1. if start node is outside perimeter, it must be within a certain distance to section point with perimeter and must have section count of one
+// 2. if start node is inside exclusion, it must be within a certain distance to section point with exclusion  
+// 3. otherwise: line between start node and next node node must not intersect any obstacle  
   
 int Map::findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, int startIdx) {
   Point dbgSrcPt(4.2, 6.2);
