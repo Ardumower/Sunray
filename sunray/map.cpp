@@ -1146,26 +1146,25 @@ bool Map::mowingCompleted(){
   return (mowPointsIdx >= mowPoints.numPoints-1);
 } 
 
-// find start point for path finder on line from src to dst
-// that is insider perimeter and outside exclusions
+// check if point is inside perimeter and outside exclusions/obstacles
 bool Map::checkpoint(float x, float y){
   Point src;
   src.setXY(x, y);
   if (!maps.pointIsInsidePolygon( maps.perimeterPoints, src)){
-    return true;
+    return false;
   }
   for (int i=0; i < maps.exclusions.numPolygons; i++){
     if (maps.pointIsInsidePolygon( maps.exclusions.polygons[i], src)){
-       return true;
+       return false;
     }
   } 
   for (int i=0; i < obstacles.numPolygons; i++){
     if (maps.pointIsInsidePolygon( maps.obstacles.polygons[i], src)){
-       return true;
+       return false;
     }
   }  
 
-  return false;
+  return true;
 }
 
 // find start point for path finder on line from src to dst
