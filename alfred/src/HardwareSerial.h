@@ -18,7 +18,7 @@ class HardwareSerial : public Stream {
     virtual int peek(void) { return 0; }
     virtual int read(void) { return 0; }
     virtual void flush(void) {}
-    virtual size_t write(uint8_t) {}
+    virtual size_t write(uint8_t) { return 0; }
     inline size_t write(unsigned long n) { return write((uint8_t)n); }
     inline size_t write(long n) { return write((uint8_t)n); }
     inline size_t write(unsigned int n) { return write((uint8_t)n); }

@@ -28,7 +28,7 @@ void NTRIPClient::connectNTRIP(){
   stop(); //Need to call "stop" function for next request.  
   */
   CONSOLE.println("Requesting MountPoint's Raw data");  
-  if(!reqRaw(NTRIP_HOST,NTRIP_PORT,NTRIP_MOUNT,NTRIP_USER,NTRIP_PASS)){
+  if(!reqRaw((char*)NTRIP_HOST,NTRIP_PORT,(char*)NTRIP_MOUNT,(char*)NTRIP_USER,(char*)NTRIP_PASS)){
     CONSOLE.println("Error requesting MointPoint");
   } else {
     CONSOLE.println("Requesting MountPoint is OK");
