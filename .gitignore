@@ -2,3 +2,5 @@
 /alfred/build/**
 /build/**
 /.vscode/**
+alfred/sunray
+alfred/CMakeFiles/**
