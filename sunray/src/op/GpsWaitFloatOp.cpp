@@ -24,6 +24,9 @@ void GpsWaitFloatOp::begin(){
     //mow = false;
     motor.setLinearAngularSpeed(0,0, false); 
     motor.setMowState(false);     
+
+    // store entry time to trigger GPS reboot
+    gpsReinitTime = millis() + 60000;
 }
 
 
@@ -35,6 +38,13 @@ void GpsWaitFloatOp::run(){
     if ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT)){        
         changeOp(*nextOp);
     }     
+// reboot GPS every 60s if no change
+    if(millis() > gpsReinitTime){
+        Console.print("GPSWaitFloat: Rebooting GPS...");
+        gps.reboot();
+        gpsReinitTime = millis() + 60000;
+    }
 }
+
 
 

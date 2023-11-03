@@ -52,8 +52,9 @@ void KidnapWaitOp::run(){
       changeOp(errorOp);
       return;
     }
-    if (GPS_REBOOT_RECOVERY) {           
-      gps.reboot();   // try to recover from false GPS fix     
+    // if we see an invalid gps signal try to recover by rebooting GPS
+    if (GPS_REBOOT_RECOVERY && gps.solution < 2 && gps.accuracy > 0.1) {           
+      gps.reboot();     
     }
   }
 }

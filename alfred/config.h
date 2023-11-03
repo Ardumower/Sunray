@@ -44,6 +44,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
    
 */
 
+#include "version.h"
 
 
 #ifdef __cplusplus
@@ -113,7 +114,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // more info here: https://wiki.ardumower.de/index.php?title=Ardumower_Chassis_%27mountain_mod%27)
 #define FREEWHEEL_IS_AT_BACKSIDE   false   // default Ardumower: true   (change to false, if your freewheel is at frontside) - this is used for obstacle avoidance
 #define WHEEL_BASE_CM         39         // wheel-to-wheel distance (cm)        
-#define WHEEL_DIAMETER        205        // wheel diameter (mm)                 
+#define WHEEL_DIAMETER        220        // wheel diameter (mm)                 
+
 
 //#define ENABLE_ODOMETRY_ERROR_DETECTION  true    // use this to detect odometry erros
 #define ENABLE_ODOMETRY_ERROR_DETECTION  false
@@ -144,10 +146,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define MOTOR_DRIVER_BRUSHLESS_MOW_A4931  1    // uncomment for brushless A3931 driver and mowing motor
 //#define MOTOR_DRIVER_BRUSHLESS_GEARS_DRV8308  1   // uncomment for brushless DRV8308 driver and gear/traction motors 
 //#define MOTOR_DRIVER_BRUSHLESS_GEARS_A4931  1   // uncomment for brushless A4931 driver and gear/traction motors
-
-#define MOTOR_FAULT_CURRENT 3.0    // gear motors fault current (amps)
+// laut meinen Messungen seit 08/2022 bei nassem Untergrund und höherem Gras auf jeden Fall mehr als 4.0A
+#define MOTOR_FAULT_CURRENT 4.5    // gear motors fault current (amps)
 #define MOTOR_TOO_LOW_CURRENT 0.005   // gear motor too low current (amps), set to zero (0) to disable
-#define MOTOR_OVERLOAD_CURRENT 0.8    // gear motors overload current (amps)
+#define MOTOR_OVERLOAD_CURRENT 2.0    // gear motors overload current (amps)
 
 //#define USE_LINEAR_SPEED_RAMP  true      // use a speed ramp for the linear speed
 #define USE_LINEAR_SPEED_RAMP  false      // do not use a speed ramp 
@@ -171,7 +173,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define MOW_FAULT_CURRENT 8.0       // mowing motor fault current (amps)
 #define MOW_TOO_LOW_CURRENT 0.005   // mowing motor too low current (amps) , set to zero (0) to disable
-#define MOW_OVERLOAD_CURRENT 2.0    // mowing motor overload current (amps)
+#define MOW_OVERLOAD_CURRENT 2.5    // mowing motor overload current (amps)
 
 // should the direction of mowing motor toggle each start? (yes: true, no: false)
 #define MOW_TOGGLE_DIR       true
@@ -354,10 +356,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // detect robot being kidnapped? robot will try GPS recovery if distance to tracked path is greater than a certain value
 // (false GPS fix recovery), and if that fails go into error 
-#define KIDNAP_DETECT true  // recommended
+#define KIDNAP_DETECT false  // recommended
 //#define KIDNAP_DETECT false   
-#define KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE 1.0  // allowed path tolerance (m) 
-#define KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK 0.2  // allowed path tolerance (m)
+#define KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE 2.0  // allowed path tolerance (m) 
+#define KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK 1.0  // allowed path tolerance (m)
 #define KIDNAP_DETECT_DISTANCE_DOCK_UNDOCK 2  // distance from dock in (m) to use KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK
 
 // ------ docking --------------------------------------
@@ -377,6 +379,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DOCK_UNDOCK_TRACKSLOW_DISTANCE 5 // set distance (m) from dock for trackslow (speed limit)
 
 #define UNDOCK_IGNORE_GPS_DISTANCE 2 // set distance (m) from dock to ignore gps while undocking
+
+#define DOCK_MAX_TRY 3    // set a value for max docking attempts before giving up => leads to very messy structure in front of docking station otherwise; manual invervention needed then.
 
 // ---- path tracking -----------------------------------
 

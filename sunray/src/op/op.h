@@ -110,6 +110,7 @@ class MowOp: public Op {
   public:
     bool lastMapRoutingFailed;
     int mapRoutingFailedCounter;
+    int mapSkippedWaypoints;
     MowOp();
     virtual String name() override;
     virtual void begin() override;
@@ -149,6 +150,7 @@ class DockOp: public Op {
     unsigned long dockReasonRainAutoStartTime;
     bool lastMapRoutingFailed;
     int mapRoutingFailedCounter;
+    int dockingAttempts;
     DockOp();
     virtual String name() override;
     virtual void begin() override;
@@ -201,6 +203,8 @@ class KidnapWaitOp: public Op {
 class GpsRebootRecoveryOp: public Op {
   public:
     unsigned long retryOperationTime;
+    unsigned long retryLastRestartTime = 0L;
+    unsigned short consecutiveRestarts = 1;
     virtual String name() override;
     virtual void begin() override;
     virtual void end() override;
@@ -210,6 +214,7 @@ class GpsRebootRecoveryOp: public Op {
 // wait for gps fix
 class GpsWaitFixOp: public Op {
   public:
+    unsigned long gpsReinitTime;
     virtual String name() override;
     virtual void begin() override;
     virtual void end() override;
@@ -219,6 +224,7 @@ class GpsWaitFixOp: public Op {
 // wait for gps signal (float or fix)
 class GpsWaitFloatOp: public Op {
   public:
+    unsigned long gpsReinitTime;
     virtual String name() override;
     virtual void begin() override;
     virtual void end() override;

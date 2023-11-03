@@ -93,3 +93,17 @@ target_include_directories(sunray PRIVATE src ${FIRMWARE_PATH}/src)
 #ADD_LIBRARY( arduino_linux STATIC ${pi_sources} )
 #target_include_directories(arduino_linux PRIVATE src)
 
+message("--add git hash to version string for compiled binary--")
+# Get the latest abbreviated commit hash of the working branch
+execute_process(
+    COMMAND git log -1 --format=%h
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    OUTPUT_VARIABLE GITHASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+set(pre_configure_file ${CMAKE_CURRENT_LIST_DIR}/version.cpp.in)
+set(post_configure_file ${CMAKE_CURRENT_LIST_DIR}/version.cpp)
+configure_file(${pre_configure_file} ${post_configure_file} @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/version.h ${FIRMWARE_PATH}/version.h COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/version.cpp ${FIRMWARE_PATH}/version.cpp COPYONLY)
