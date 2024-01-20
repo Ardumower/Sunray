@@ -98,13 +98,13 @@ sudo apt-get -y install cmake
 sudo apt-get -y install libbluetooth-dev
 ```
 
-## How to use Linux-software-based I2C driver on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
-The Raspberry CPU-based I2C driver may have issues for specific IMU chips (MPU etc.). You can switch to a software-based driver like this:
+## How to use Bit-bangling-based I2C driver on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
+The Raspberry CPU-based I2C driver may have issues for specific IMU chips (MPU etc.) due to missing I2C SCL recovery, missing I2C clock stretching etc. You can switch to a software-based driver (aka 'bit-bangling') like this:
 1. Run 'sudo raspi-config' and disable the ARM I2C driver
 2. Run 'sudo nano /boot/config.txt' and add this line to activate the software-based I2C driver:
 dtoverlay=i2c-gpio,bus=1,i2c_gpio_sda=2,i2c_gpio_scl=3
-4. Reboot ('sudo reboot')
-5. Verify the I2C bus is working (e.g. a MPU 6050 IMU should be detected at address 69): 
+3. Reboot ('sudo reboot')
+4. Verify the I2C bus is working (e.g. a MPU 6050 IMU should be detected at address 69): 
 sudo i2cdetect -y 1
 
 ## How to compile 'OpenOCD' on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
