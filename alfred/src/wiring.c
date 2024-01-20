@@ -19,6 +19,7 @@
 
 #define ARDUINO_MAIN
 #include <errno.h>
+ #include <unistd.h>
 #include "Arduino.h"
 
 
