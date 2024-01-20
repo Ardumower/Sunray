@@ -71,6 +71,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define ICM20948
 #define MPU_ADDR 0x69  // I2C address (0x68 if AD0=LOW, 0x69 if AD0=HIGH)
 
+// imu fifo rate (Hz)
+#define IMU_FIFO_RATE 5
+
 // should the mower turn off if IMU is tilt over? (yes: uncomment line, no: comment line)
 #define ENABLE_TILT_DETECTION  1
 
