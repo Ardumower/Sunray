@@ -39,7 +39,8 @@ bool IcmDriver::begin(){
   success &= (icm.initializeDMP() == ICM_20948_Stat_Ok);
   
   success &= (icm.enableDMPSensor(INV_ICM20948_SENSOR_GAME_ROTATION_VECTOR) == ICM_20948_Stat_Ok);
-  success &= (icm.setDMPODRrate(DMP_ODR_Reg_Quat6, 2) == ICM_20948_Stat_Ok);
+  int odrate = 55.0 / IMU_FIFO_RATE - 0.5;
+  success &= (icm.setDMPODRrate(DMP_ODR_Reg_Quat6, odrate) == ICM_20948_Stat_Ok);
   //success &= (icm.enableDMPSensor(INV_ICM20948_SENSOR_ORIENTATION) == ICM_20948_Stat_Ok);
   //success &= (icm.setDMPODRrate(DMP_ODR_Reg_Quat9, 2) == ICM_20948_Stat_Ok);
   
