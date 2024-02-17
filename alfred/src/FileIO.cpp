@@ -19,6 +19,7 @@
 #include <FileIO.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <dirent.h>
 #include <Console.h>
 
 namespace BridgeLib {
@@ -38,7 +39,7 @@ File::~File() {
 //File::File(const char *_filename, const char * _mode, BridgeClass &b){
   
 File::File(const char *_filename, const char * _mode){
-  //::printf("File filename=%s  mode=%s  %d\n", _filename, _mode, this);
+  ::printf("File filename=%s  mode=%s\n", _filename, _mode);
   _file = NULL;
   _dir = NULL;
   _name = NULL;
@@ -50,13 +51,13 @@ File::File(const char *_filename, const char * _mode){
   //}
 
 
-  _name = (char *)malloc(strlen(_filename)+1);
-  strcpy(_name, _filename);
+  //_name = (char *)malloc(strlen(_filename)+1);
+  ///strcpy(_name, _filename);
   //maybe not for folders?
   //if(S_ISREG(_st.st_mode)){
     //::printf("regular file...\n");
   _file = fopen(_filename, _mode);
-  //::printf("_file=%d\n", _file);
+  ::printf("_fopen=%d\n", _file);
   //} else {
   //  ::printf("folder...\n");
   //  _dir = opendir(_filename);
@@ -64,17 +65,17 @@ File::File(const char *_filename, const char * _mode){
 }
 
 const char *File::name() {
-  if( ((long)_file) <= 0 && ((long)_dir <= 0) ) return 0;
+  if( (fileno(_file) == 0) && (dirfd(_dir) == 0) ) return 0;
   return _name;
 }
 
 File::operator bool() {
-  return ((long)_file > 0) || ((long)_dir > 0);
+  return ( (fileno(_file) != 0) || (dirfd(_dir) != 0) );
 }
 
 
 size_t File::write(const char *buf){
-  if( ((long)_file) <= 0) {
+  if( fileno(_file) == 0) {
     return 0;
     ::printf("file write error: file not open!\n");   
   }
@@ -82,7 +83,7 @@ size_t File::write(const char *buf){
 } 
     
 size_t File::write(const uint8_t *buf, size_t size) {
-  if( ((long)_file) <= 0) {    
+  if( fileno(_file) == 0) {    
     ::printf("file write error: file not open!\n");
     return 0;
   }
@@ -90,7 +91,7 @@ size_t File::write(const uint8_t *buf, size_t size) {
 }
 
 size_t File::write(uint8_t c) {
-  if( ((long)_file) <= 0) {
+  if( fileno(_file) == 0) {    
     ::printf("file write error: file not open!\n");
     return 0;
   }    
@@ -98,12 +99,12 @@ size_t File::write(uint8_t c) {
 }
 
 void File::flush() {
-  if( ((long)_file) <= 0) return;
+  if( fileno(_file) == 0) return;
   fflush(_file);
 }
 
 int File::read(void *buff, uint16_t nbyte) {
-  if( ((long)_file) <= 0) {
+  if( fileno(_file) == 0) {    
     ::printf("file read error: file not open!\n");  
     return -1;
   }
@@ -111,7 +112,7 @@ int File::read(void *buff, uint16_t nbyte) {
 }
 
 int File::read() {
-  if( ((long)_file) <= 0) {
+  if( fileno(_file) == 0) {    
     ::printf("file read error: file not open!\n");      
     return -1;
   }
@@ -119,7 +120,7 @@ int File::read() {
 }
 
 int File::peek() {
-  if( ((long)_file) <= 0) return -1;
+  if( fileno(_file) == 0) return -1;
   size_t pos = position();
   int c = getc(_file);
   if(c >= 0)
@@ -128,22 +129,22 @@ int File::peek() {
 }
 
 int File::available() {
-  if( ((long)_file) <= 0) return 0;
+  if( fileno(_file) == 0) return 0;
   return size() - position();
 }
 
 boolean File::seek(uint32_t position) {//SEEK_CUR, SEEK_END, and SEEK_SET
-  if( ((long)_file) <= 0) return false;
+  if( fileno(_file) == 0) return false;
   return fseek(_file, position, 0) != -1; //seek to position from 0
 }
 
 uint32_t File::position() {
-  if( ((long)_file) <= 0) return 0;
+  if( fileno(_file) == 0) return 0;
   return ftell(_file);
 }
 
 uint32_t File::size() {
-  if( ((long)_file)  <= 0) return 0;
+  if( fileno(_file) == 0) return 0;
   struct stat s = {0};
   if (stat(_name, &s) == 0) {
     return s.st_size;
@@ -168,7 +169,7 @@ void File::close() {
 }
 
 boolean File::isDirectory() {
-  return ((long)_dir) > 0;
+  return ( dirfd(_dir) != 0 );
 }
 
 File File::openNextFile(const char * mode){
@@ -188,7 +189,7 @@ File File::openNextFile(const char * mode){
 }
 
 void File::rewindDirectory(void){
-  if( ((long)_dir) <= 0) return;
+  if( dirfd(_dir) == 0) return;    
   closedir(_dir);
   _dir = opendir(_name);
 }

@@ -196,7 +196,7 @@ void Battery::run(){
       badChargerContactState = false;
       if (chargerConnectedState){
         if (!chargingCompleted){
-          if (chargingVoltBatteryVoltDiff < -1.0){
+          if (chargingVoltBatteryVoltDiff < -3.0){  // allow larger resistance (as mower chassis is getting older) 
           //if (batteryVoltageSlope < 0){
             badChargerContactState = true;
             DEBUG(F("CHARGER BAD CONTACT chgV="));
