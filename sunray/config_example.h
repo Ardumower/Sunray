@@ -348,8 +348,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define ALLOW_ROUTE_OUTSIDE_PERI_METER 1.0   // max. distance (m) to allow routing from outside perimeter 
 // (increase if you get 'no map route' errors near perimeter)
 
-#define OBSTACLE_DETECTION_ROTATION true // detect robot rotation stuck (requires IMU)
-// #define OBSTACLE_DETECTION_ROTATION false   // NOTE: recommended to turn this off for slope environment   
+//#define OBSTACLE_DETECTION_ROTATION true // detect robot rotation stuck (requires IMU)
+#define OBSTACLE_DETECTION_ROTATION false   // NOTE: recommended to turn this off for slope environment   
 
 #define OBSTACLE_AVOIDANCE true   // try to find a way around obstacle
 //#define OBSTACLE_AVOIDANCE false  // stop robot on obstacle
@@ -385,7 +385,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // ---- path tracking -----------------------------------
 
 // below this robot-to-target distance (m) a target is considered as reached
-#define TARGET_REACHED_TOLERANCE 0.05
+#define TARGET_REACHED_TOLERANCE 0.1
 
 // stanley control for path tracking - determines gain how fast to correct for lateral path errors
 #define STANLEY_CONTROL_P_NORMAL  3.0   // 3.0 for path tracking control (angular gain) when mowing
