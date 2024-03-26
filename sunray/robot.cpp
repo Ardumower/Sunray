@@ -27,6 +27,7 @@
 #include "ble.h"
 #include "motor.h"
 #include "src/driver/AmRobotDriver.h"
+#include "src/driver/CanRobotDriver.h"
 #include "src/driver/SerialRobotDriver.h"
 #include "src/driver/MpuDriver.h"
 #include "src/driver/BnoDriver.h"
@@ -71,6 +72,15 @@ const signed char orientationMatrix[9] = {
   SerialRainSensorDriver rainDriver(robotDriver);
   SerialLiftSensorDriver liftDriver(robotDriver);
   SerialBuzzerDriver buzzerDriver(robotDriver);
+#elif defined(DRV_CAN_ROBOT)
+  CanRobotDriver robotDriver;
+  CanMotorDriver motorDriver(robotDriver);
+  CanBatteryDriver batteryDriver(robotDriver);
+  CanBumperDriver bumperDriver(robotDriver);
+  CanStopButtonDriver stopButton(robotDriver);
+  CanRainSensorDriver rainDriver(robotDriver);
+  CanLiftSensorDriver liftDriver(robotDriver);
+  CanBuzzerDriver buzzerDriver(robotDriver);
 #elif defined(DRV_SIM_ROBOT)
   SimRobotDriver robotDriver;
   SimMotorDriver motorDriver(robotDriver);

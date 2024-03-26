@@ -16,14 +16,15 @@ typedef struct can_frame_t {
         unsigned long usecs;   // timestamp microseconds
 } can_frame_t;
 
+// base class interface (implementation in subclasses)
 class CAN
 {
   public:
-    virtual bool begin() = 0;
-    virtual bool available() = 0;  
-    virtual bool read(can_frame_t &frame) = 0;  
-    virtual bool write(can_frame_t frame) = 0;
-    virtual bool close() = 0;
+    virtual bool begin() { return false; };
+    virtual bool available() { return false; };  
+    virtual bool read(can_frame_t &frame) { return false; };  
+    virtual bool write(can_frame_t frame) { return false; };
+    virtual bool close() { return false; };
   private:
     
 };

@@ -12,6 +12,7 @@
 #include "motor.h"
 #include "config.h"
 #include "src/driver/AmRobotDriver.h"
+#include "src/driver/CanRobotDriver.h"
 #include "src/driver/SerialRobotDriver.h"
 #include "src/driver/SimRobotDriver.h"
 #include "src/driver/MpuDriver.h"
@@ -113,6 +114,15 @@ extern int motorErrorCounter;
   extern SerialRainSensorDriver rainDriver;
   extern SerialLiftSensorDriver liftDriver;  
   extern SerialBuzzerDriver buzzerDriver;
+#elif DRV_CAN_ROBOT
+  extern CanRobotDriver robotDriver;
+  extern CanMotorDriver motorDriver;
+  extern CanBatteryDriver batteryDriver;
+  extern CanBumperDriver bumperDriver;
+  extern CanStopButtonDriver stopButton;
+  extern CanRainSensorDriver rainDriver;
+  extern CanLiftSensorDriver liftDriver;  
+  extern CanBuzzerDriver buzzerDriver;
 #elif DRV_SIM_ROBOT
   extern SimRobotDriver robotDriver;
   extern SimMotorDriver motorDriver;

@@ -1,0 +1,857 @@
+// Ardumower Sunray 
+// Copyright (c) 2013-2020 by Alexander Grau, Grau GmbH
+// Licensed GPLv3 for open source use
+// or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
+
+
+#include "CanRobotDriver.h"
+#include "../../config.h"
+#include "../../ioboard.h"
+
+#define COMM  ROBOT
+
+//#define DEBUG_CAN_ROBOT 1
+
+void CanRobotDriver::begin(){
+  CONSOLE.println("using robot driver: CanRobotDriver");
+  COMM.begin(ROBOT_BAUDRATE);
+  can.begin();
+  encoderTicksLeft = 0;
+  encoderTicksRight = 0;
+  encoderTicksMow = 0;
+  chargeVoltage = 0;
+  chargeCurrent = 0;  
+  batteryVoltage = 28;
+  cpuTemp = 30;
+  mowCurr = 0;
+  motorLeftCurr = 0;
+  motorRightCurr = 0;
+  resetMotorTicks = true;
+  batteryTemp = 0;
+  triggeredLeftBumper = false;
+  triggeredRightBumper = false;
+  triggeredRain = false;
+  triggeredStopButton = false;
+  triggeredLift = false;
+  motorFault = false;
+  mcuCommunicationLost = true;
+  nextSummaryTime = 0;
+  nextConsoleTime = 0; 
+  nextMotorTime = 0;
+  nextTempTime = 0;
+  nextWifiTime = 0;
+  nextLedTime = 0;
+  ledPanelInstalled = true;
+  cmdMotorResponseCounter = 0;
+  cmdSummaryResponseCounter = 0;
+  cmdMotorCounter = 0;
+  cmdSummaryCounter = 0;
+  requestLeftPwm = requestRightPwm = requestMowPwm = 0;
+  robotID = "XX";
+  ledStateWifiInactive = false;
+  ledStateWifiConnected = false;
+  ledStateGpsFix = false;
+  ledStateGpsFloat = false;
+  ledStateShutdown = false;  
+  ledStateError = false;
+  ledStateShutdown = false;
+
+  #ifdef __linux__
+    CONSOLE.println("reading robot ID...");
+    Process p;
+    p.runShellCommand("ip link show eth0 | grep link/ether | awk '{print $2}'");
+	  robotID = p.readString();    
+    robotID.trim();
+    
+    CONSOLE.println("ioboard init");
+
+    // IMU/fan power-on code (Alfred-PCB-specific) 
+
+    // switch-on IMU via port-expander PCA9555     
+    setImuPowerState(true);
+    
+    // switch-on fan via port-expander PCA9555     
+    setFanPowerState(true);
+    
+    // select IMU via multiplexer TCA9548A 
+    ioI2cMux(MUX_I2C_ADDR, SLAVE_IMU_MPU, true);  // Alfred dev PCB with buzzer
+    ioI2cMux(MUX_I2C_ADDR, SLAVE_BUS0, true); // Alfred dev PCB without buzzer    
+
+    // select EEPROM via multiplexer TCA9548A 
+    ioI2cMux(MUX_I2C_ADDR, SLAVE_EEPROM, true);  
+
+    // select ADC via multiplexer TCA9548A 
+    ioI2cMux(MUX_I2C_ADDR, SLAVE_ADC, true);
+    
+    // buzzer test
+    if (false){
+      CONSOLE.println("buzzer test");    
+      ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, true);
+      delay(500);
+      ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, false);    
+    }
+
+    // LEDs
+    CONSOLE.println("turning LEDs green");
+    if (!setLedState(1, true, false)){
+      CONSOLE.println("LED panel communication failed - assuming no LED panel installed");
+    }
+    setLedState(2, true, false);
+    setLedState(3, true, false);
+  
+    // start ADC
+    CONSOLE.println("starting ADC");    
+    ioAdcStart(ADC_I2C_ADDR, false, true);
+
+    // ADC test    
+    if (true){    
+      for (int idx=1; idx < 9; idx++){
+        ioAdcMux(idx);            
+        ioAdcTrigger(ADC_I2C_ADDR);
+        delay(5);
+        float v = ioAdc(ADC_I2C_ADDR);
+        CONSOLE.print("ADC S");
+        CONSOLE.print(idx);
+        CONSOLE.print("=");
+        CONSOLE.println(v);   
+      }
+    }    
+
+    // EEPROM test
+    if (false){
+      CONSOLE.println("EEPROM test");
+      ioEepromWriteByte( EEPROM_I2C_ADDR, 0, 42);
+      delay(50);
+      int v = ioEepromReadByte( EEPROM_I2C_ADDR, 0);
+      CONSOLE.print("EEPROM=");
+      CONSOLE.println(v);
+    }
+
+  #endif
+}
+
+bool CanRobotDriver::setLedState(int ledNumber, bool greenState, bool redState){
+  if (!ledPanelInstalled) return false;
+  if (ledNumber == 1){
+    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, greenState);
+    if (!ledPanelInstalled) return false;
+    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, redState);        
+    if (!ledPanelInstalled) return false;  
+  }
+  else if (ledNumber == 2){
+    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, greenState);
+    if (!ledPanelInstalled) return false;    
+    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, redState);        
+    if (!ledPanelInstalled) return false;    
+  }
+  else if (ledNumber == 3){
+    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, greenState);
+    if (!ledPanelInstalled) return false;    
+    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, redState);        
+    if (!ledPanelInstalled) return false;    
+  }
+  return true;
+}
+
+bool CanRobotDriver::setFanPowerState(bool state){
+  CONSOLE.print("FAN POWER STATE ");
+  CONSOLE.println(state);
+  return ioExpanderOut(EX1_I2C_ADDR, EX1_FAN_POWER_PORT, EX1_FAN_POWER_PIN, state);
+}
+
+bool CanRobotDriver::setImuPowerState(bool state){
+  CONSOLE.print("IMU POWER STATE ");
+  CONSOLE.println(state);  
+  return ioExpanderOut(EX1_I2C_ADDR, EX1_IMU_POWER_PORT, EX1_IMU_POWER_PIN, state);
+}  
+
+bool CanRobotDriver::getRobotID(String &id){
+  id = robotID;
+  return true;
+}
+
+bool CanRobotDriver::getMcuFirmwareVersion(String &name, String &ver){
+  name = mcuFirmwareName;
+  ver = mcuFirmwareVersion;
+  return true;
+}
+
+float CanRobotDriver::getCpuTemperature(){
+  #ifdef __linux__
+    return cpuTemp;
+  #else
+    return -9999;
+  #endif
+}
+
+void CanRobotDriver::updateCpuTemperature(){
+  #ifdef __linux__
+    //unsigned long startTime = millis();
+    String s;        
+    while (cpuTempProcess.available()) s+= (char)cpuTempProcess.read();
+    if (s.length() > 0) {
+      cpuTemp = s.toFloat() / 1000.0;    
+      //CONSOLE.print("updateCpuTemperature cpuTemp=");
+      //CONSOLE.println(cpuTemp);
+    }
+    cpuTempProcess.runShellCommand("cat /sys/class/thermal/thermal_zone0/temp");      
+    //unsigned long duration = millis() - startTime;        
+    //CONSOLE.print("updateCpuTemperature duration: ");
+    //CONSOLE.println(duration);        
+  #endif
+}
+
+void CanRobotDriver::updateWifiConnectionState(){
+  #ifdef __linux__
+    //unsigned long startTime = millis();   
+    String s; 
+    while (wifiStatusProcess.available()) s+= (char)wifiStatusProcess.read(); 
+    if (s.length() > 0){    
+      s.trim();
+      //CONSOLE.print("updateWifiConnectionState state=");
+      //CONSOLE.println(s);
+      // DISCONNECTED, SCANNING, INACTIVE, COMPLETED 
+      //CONSOLE.println(s);
+      ledStateWifiConnected = (s == "COMPLETED");
+      ledStateWifiInactive = (s == "INACTIVE");                   
+    }  
+    wifiStatusProcess.runShellCommand("wpa_cli -i wlan0 status | grep wpa_state | cut -d '=' -f2");  
+    //unsigned long duration = millis() - startTime;        
+    //CONSOLE.print("updateWifiConnectionState duration: ");
+    //CONSOLE.println(duration);
+  #endif
+}
+
+// send CAN request to MCU
+void CanRobotDriver::sendRequest(String s){
+  byte crc = 0;
+  for (int i=0; i < s.length(); i++) crc += s[i];
+  s += F(",0x");
+  if (crc <= 0xF) s += F("0");
+  s += String(crc, HEX);  
+  s += F("\r\n");             
+  #ifdef DEBUG_CAN_ROBOT
+    CONSOLE.print("CanRobot request: ");
+    CONSOLE.println(s);  
+  #endif
+  //cmdResponse = s;
+  COMM.print(s);  
+}
+
+
+// request MCU SW version
+void CanRobotDriver::requestVersion(){
+  String req;
+  req += "AT+V";  
+  sendRequest(req);
+}
+
+
+// request MCU summary
+void CanRobotDriver::requestSummary(){
+  String req;
+  req += "AT+S";  
+  sendRequest(req);
+  cmdSummaryCounter++;
+}
+
+
+// request MCU motor PWM
+void CanRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
+  String req;
+  req += "AT+M,";
+  req += rightPwm;      
+  req += ",";
+  req += leftPwm;    
+  req += ",";  
+  req += mowPwm;
+  //if (abs(mowPwm) > 0)
+  //  req += "1";
+  //else
+  //  req += "0";  
+  sendRequest(req);
+  cmdMotorCounter++;
+}
+
+void CanRobotDriver::motorResponse(){
+  if (cmd.length()<6) return;  
+  int counter = 0;
+  int lastCommaIdx = 0;
+  for (int idx=0; idx < cmd.length(); idx++){
+    char ch = cmd[idx];
+    //Serial.print("ch=");
+    //Serial.println(ch);
+    if ((ch == ',') || (idx == cmd.length()-1)){
+      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
+      float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();      
+      if (counter == 1){                            
+        encoderTicksRight = intValue;  // ag
+      } else if (counter == 2){
+        encoderTicksLeft = intValue;   // ag
+      } else if (counter == 3){
+        encoderTicksMow = intValue;
+      } else if (counter == 4){
+        chargeVoltage = floatValue;
+      } else if (counter == 5){
+        triggeredLeftBumper = (intValue != 0);
+      } else if (counter == 6){
+        triggeredLift = (intValue != 0);
+      } else if (counter == 7){
+        triggeredStopButton = (intValue != 0);
+      } 
+      counter++;
+      lastCommaIdx = idx;
+    }    
+  }
+  if (triggeredStopButton){
+    //CONSOLE.println("STOPBUTTON");
+  }
+  //CONSOLE.println(encoderTicksMow);
+  cmdMotorResponseCounter++;
+  mcuCommunicationLost=false;
+}
+
+
+void CanRobotDriver::versionResponse(){
+  if (cmd.length()<6) return;  
+  int counter = 0;
+  int lastCommaIdx = 0;
+  for (int idx=0; idx < cmd.length(); idx++){
+    char ch = cmd[idx];
+    //Serial.print("ch=");
+    //Serial.println(ch);
+    if ((ch == ',') || (idx == cmd.length()-1)){
+      String s = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1);
+      if (counter == 1){                            
+        mcuFirmwareName = s;
+      } else if (counter == 2){
+        mcuFirmwareVersion = s;
+      } 
+      counter++;
+      lastCommaIdx = idx;
+    }    
+  }
+  CONSOLE.print("MCU FIRMWARE: ");
+  CONSOLE.print(mcuFirmwareName);
+  CONSOLE.print(",");
+  CONSOLE.println(mcuFirmwareVersion);
+}
+
+
+void CanRobotDriver::summaryResponse(){
+  if (cmd.length()<6) return;  
+  int counter = 0;
+  int lastCommaIdx = 0;
+  for (int idx=0; idx < cmd.length(); idx++){
+    char ch = cmd[idx];
+    //Serial.print("ch=");
+    //Serial.println(ch);
+    if ((ch == ',') || (idx == cmd.length()-1)){
+      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();      
+      float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();      
+      if (counter == 1){                            
+        batteryVoltage = floatValue;
+      } else if (counter == 2){
+        chargeVoltage = floatValue;
+      } else if (counter == 3){
+        chargeCurrent = floatValue;
+      } else if (counter == 4){
+        triggeredLift = (intValue != 0);
+      } else if (counter == 5){
+        triggeredLeftBumper = (intValue != 0);
+      } else if (counter == 6){
+        triggeredRain = (intValue != 0);
+      } else if (counter == 7){
+        motorFault = (intValue != 0);
+      } else if (counter == 8){
+        //CONSOLE.println(cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1));
+        mowCurr = floatValue;
+      } else if (counter == 9){
+        motorLeftCurr = floatValue;
+      } else if (counter == 10){
+        motorRightCurr = floatValue;
+      } else if (counter == 11){
+        batteryTemp = floatValue;
+      } 
+      counter++;
+      lastCommaIdx = idx;
+    }    
+  }
+  cmdSummaryResponseCounter++;
+  /*CONSOLE.print("motor currents=");
+  CONSOLE.print(mowCurr);
+  CONSOLE.print(",");
+  CONSOLE.print(motorLeftCurr);
+  CONSOLE.print(",");
+  CONSOLE.println(motorRightCurr);*/
+  //CONSOLE.print("batteryTemp=");
+  //CONSOLE.println(batteryTemp);
+}
+
+// process response
+void CanRobotDriver::processResponse(bool checkCrc){
+  cmdResponse = "";      
+  if (cmd.length() < 4) return;
+  byte expectedCrc = 0;
+  int idx = cmd.lastIndexOf(',');
+  if (idx < 1){
+    if (checkCrc){
+      CONSOLE.println("CanRobot: CRC ERROR");
+      return;
+    }
+  } else {
+    for (int i=0; i < idx; i++) expectedCrc += cmd[i];  
+    String s = cmd.substring(idx+1, idx+5);
+    int crc = strtol(s.c_str(), NULL, 16);  
+    if (expectedCrc != crc){
+      if (checkCrc){
+        CONSOLE.print("CanRobot: CRC ERROR");
+        CONSOLE.print(crc,HEX);
+        CONSOLE.print(",");
+        CONSOLE.print(expectedCrc,HEX);
+        CONSOLE.println();
+        return;  
+      }      
+    } else {
+      #ifdef DEBUG_CAN_ROBOT
+        CONSOLE.print("CanRobot resp:");
+        CONSOLE.println(cmd);
+      #endif
+      // remove CRC      
+      cmd = cmd.substring(0, idx);      
+    }    
+  }     
+  if (cmd[0] == 'M') motorResponse();
+  if (cmd[0] == 'S') summaryResponse();
+  if (cmd[0] == 'V') versionResponse();
+}
+
+
+// process console input
+void CanRobotDriver::processComm(){
+  char ch;      
+  if (COMM.available()){
+    //battery.resetIdle();  
+    while ( COMM.available() ){               
+      ch = COMM.read();          
+      if ((ch == '\r') || (ch == '\n')) {        
+        //CONSOLE.println(cmd);
+        processResponse(true);              
+        //CONSOLE.print(cmdResponse);    
+        cmd = "";
+      } else if (cmd.length() < 500){
+        cmd += ch;
+      }
+    }
+  }     
+}
+
+void CanRobotDriver::updatePanelLEDs(){
+  if (ledStateShutdown) {
+    setLedState(1, false, false);
+    setLedState(2, false, false);
+    setLedState(3, false, false);        
+    return;    
+  }
+  // panel led numbers (top-down): 2,3,1   
+  // idle/error status
+  if (ledStateError){
+    setLedState(2, false, true);
+  } else {
+    setLedState(2, true, false);
+  }
+  // gps status
+  if (ledStateGpsFix){
+    setLedState(3, true, false); 
+  } 
+  else if (ledStateGpsFloat) {
+    setLedState(3, false, true);
+  } else {
+    setLedState(3, false, false);    
+  }
+  // wifi status
+  if (ledStateWifiConnected){ 
+    setLedState(1, true, false);
+  } else if (ledStateWifiInactive) {
+    setLedState(1, false, true);
+  } else {
+    setLedState(1, false, false);
+  }
+}
+
+void CanRobotDriver::run(){  
+  processComm();
+  if (millis() > nextMotorTime){
+    nextMotorTime = millis() + 20; // 50 hz
+    while (can.available()){
+      can_frame_t frame;
+      can.read(frame);
+    }
+    requestMotorPwm(requestLeftPwm, requestRightPwm, requestMowPwm);    
+  }
+  if (millis() > nextSummaryTime){
+    nextSummaryTime = millis() + 500; // 2 hz
+    requestSummary();
+  }
+  if (millis() > nextConsoleTime){
+    nextConsoleTime = millis() + 1000;  // 1 hz    
+    if (!mcuCommunicationLost){
+      if (mcuFirmwareName == ""){
+        requestVersion();
+      }
+    }    
+    if ((cmdMotorCounter > 0) && (cmdMotorResponseCounter == 0)){
+      CONSOLE.println("WARN: resetting motor ticks");
+      resetMotorTicks = true;
+      mcuCommunicationLost = true;
+    }    
+    if ( (cmdMotorResponseCounter < 30) ) { // || (cmdSummaryResponseCounter == 0) ){
+      CONSOLE.print("WARN: CanRobot unmet communication frequency: motorFreq=");
+      CONSOLE.print(cmdMotorCounter);
+      CONSOLE.print("/");
+      CONSOLE.print(cmdMotorResponseCounter);
+      CONSOLE.print("  summaryFreq=");
+      CONSOLE.print(cmdSummaryCounter);
+      CONSOLE.print("/");
+      CONSOLE.println(cmdSummaryResponseCounter);
+      if (cmdMotorResponseCounter == 0){
+        // FIXME: maybe reset motor PID controls here?
+      }
+    }     
+    cmdMotorCounter=cmdMotorResponseCounter=cmdSummaryCounter=cmdSummaryResponseCounter=0;    
+  }  
+  if (millis() > nextLedTime){
+    nextLedTime = millis() + 3000;  // 3 sec
+    updatePanelLEDs();
+  }
+  if (millis() > nextTempTime){
+    nextTempTime = millis() + 59000; // 59 sec
+    updateCpuTemperature();
+    if (cpuTemp < 60){      
+      setFanPowerState(false);
+    } else if (cpuTemp > 65){
+      setFanPowerState(true);
+    }
+  }
+  if (millis() > nextWifiTime){
+    nextWifiTime = millis() + 7000; // 7 sec
+    updateWifiConnectionState();
+  }
+}
+
+
+// ------------------------------------------------------------------------------------
+
+CanMotorDriver::CanMotorDriver(CanRobotDriver &sr): canRobot(sr){
+} 
+
+void CanMotorDriver::begin(){
+  lastEncoderTicksLeft=0;
+  lastEncoderTicksRight=0;
+  lastEncoderTicksMow=0;         
+}
+
+void CanMotorDriver::run(){
+}
+
+void CanMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  
+  //canRobot.requestMotorPwm(leftPwm, rightPwm, mowPwm);
+  canRobot.requestLeftPwm = leftPwm;
+  canRobot.requestRightPwm = rightPwm;
+  // Alfred mowing motor driver seem to start start mowing motor more successfully with full PWM (100%) values...  
+  if (mowPwm > 0) mowPwm = 255;
+    else if (mowPwm < 0) mowPwm = -255;
+  canRobot.requestMowPwm = mowPwm;
+}
+
+void CanMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &mowFault){
+  leftFault = canRobot.motorFault;
+  rightFault = canRobot.motorFault;
+  if (canRobot.motorFault){
+    CONSOLE.print("canRobot: motorFault (lefCurr=");
+    CONSOLE.print(canRobot.motorLeftCurr);
+    CONSOLE.print(" rightCurr=");
+    CONSOLE.print(canRobot.motorRightCurr);
+    CONSOLE.print(" mowCurr=");
+    CONSOLE.println(canRobot.mowCurr);
+  }
+  mowFault = false;
+}
+
+void CanMotorDriver::resetMotorFaults(){
+  CONSOLE.println("canRobot: resetting motor fault");
+  //canRobot.requestMotorPwm(1, 1, 0);
+  //delay(1);
+  //canRobot.requestMotorPwm(0, 0, 0);
+}
+
+void CanMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) {  
+  //leftCurrent = 0.5;
+  //rightCurrent = 0.5;
+  //mowCurrent = 0.8;
+  leftCurrent = canRobot.motorLeftCurr;
+  rightCurrent = canRobot.motorRightCurr;
+  mowCurrent = canRobot.mowCurr;
+}
+
+void CanMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
+  if (canRobot.mcuCommunicationLost) {
+    //CONSOLE.println("getMotorEncoderTicks: no ticks!");    
+    leftTicks = rightTicks = 0; mowTicks = 0;
+    return;
+  }
+  if (canRobot.resetMotorTicks){
+    canRobot.resetMotorTicks = false;
+    //CONSOLE.println("getMotorEncoderTicks: resetMotorTicks");
+    lastEncoderTicksLeft = canRobot.encoderTicksLeft;
+    lastEncoderTicksRight = canRobot.encoderTicksRight;
+    lastEncoderTicksMow = canRobot.encoderTicksMow;
+  }
+  leftTicks = canRobot.encoderTicksLeft - lastEncoderTicksLeft;
+  rightTicks = canRobot.encoderTicksRight - lastEncoderTicksRight;
+  mowTicks = canRobot.encoderTicksMow - lastEncoderTicksMow;
+  if (leftTicks > 1000){
+    leftTicks = 0;
+  }
+  if (rightTicks > 1000){
+    rightTicks = 0;
+  } 
+  if (mowTicks > 1000){
+    mowTicks = 0;
+  }
+  lastEncoderTicksLeft = canRobot.encoderTicksLeft;
+  lastEncoderTicksRight = canRobot.encoderTicksRight;
+  lastEncoderTicksMow = canRobot.encoderTicksMow;
+}
+
+
+// ------------------------------------------------------------------------------------
+
+CanBatteryDriver::CanBatteryDriver(CanRobotDriver &sr) : canRobot(sr){
+  mcuBoardPoweredOn = true;
+  nextADCTime = 0;
+  nextTempTime = 0;
+  batteryTemp = 0;
+  adcTriggered = false;
+  linuxShutdownTime = 0;
+}
+
+void CanBatteryDriver::begin(){
+}
+
+void CanBatteryDriver::run(){
+  if (millis() > nextTempTime){
+    nextTempTime = millis() + 57000; // 57 sec
+    updateBatteryTemperature();
+  }
+}    
+
+void CanBatteryDriver::updateBatteryTemperature(){
+  #ifdef __linux__
+    //unsigned long startTime = millis();
+    String s;        
+    while (batteryTempProcess.available()) s+= (char)batteryTempProcess.read();
+    if (s.length() > 0) {
+      batteryTemp = s.toFloat() / 1000.0;    
+      //CONSOLE.print("updateBatteryTemperature batteryTemp=");
+      //CONSOLE.println(batteryTemp);
+    }
+    batteryTempProcess.runShellCommand("cat /sys/class/thermal/thermal_zone1/temp");  
+    //unsigned long duration = millis() - startTime;        
+    //CONSOLE.print("updateBatteryTemperature duration: ");
+    //CONSOLE.println(duration);        
+  #endif
+}
+
+
+float CanBatteryDriver::getBatteryTemperature(){
+  #ifdef __linux__
+    return -9999; //batteryTemp; // linux reported bat temp not useful as seem to be constant 31 degree
+  #else
+    return -9999;
+  #endif
+}
+
+float CanBatteryDriver::getBatteryVoltage(){
+  #ifdef __linux__
+    // detect if MCU PCB is switched-off
+    if (millis() > nextADCTime){
+      if (!adcTriggered){
+        // trigger ADC measurement (mcuAna)
+        ioAdcMux(ADC_MCU_ANA);
+        ioAdcTrigger(ADC_I2C_ADDR);   
+        adcTriggered = true; 
+        nextADCTime = millis() + 5;    
+      } else {           
+        nextADCTime = millis() + 1000;
+        adcTriggered = false;
+        float v = ioAdc(ADC_I2C_ADDR);
+        mcuBoardPoweredOn = true;
+        if (v < 0){
+          CONSOLE.println("ERROR reading ADC channel mcuAna!");
+          // reset ADC
+          ioAdcStart(ADC_I2C_ADDR, false, true);
+        } else {
+          if ((v >0) && (v < 0.8)){
+            // no mcuAna, MCU PCB is probably switched off
+            CONSOLE.print("mcuAna=");
+            CONSOLE.println(v);      
+            CONSOLE.println("MCU PCB powered OFF!");
+            mcuBoardPoweredOn = false;        
+          }
+        }
+      }
+    }    
+    if (canRobot.mcuCommunicationLost){
+      // return 0 volt if MCU PCB is connected and powered-off (Linux will shutdown)
+      //if (!mcuBoardPoweredOn) return 0;
+      // return 28 volts if MCU PCB is not connected (so Linux can be tested without MCU PCB 
+      // and will not shutdown if mower is not connected)      
+      return 28;      
+    }
+  #endif         
+  return canRobot.batteryVoltage;
+}
+
+float CanBatteryDriver::getChargeVoltage(){
+  return canRobot.chargeVoltage;
+}
+    
+float CanBatteryDriver::getChargeCurrent(){
+  return canRobot.chargeCurrent;
+} 
+
+void CanBatteryDriver::enableCharging(bool flag){
+}
+
+
+void CanBatteryDriver::keepPowerOn(bool flag){
+  #ifdef __linux__
+    if (flag){
+      // keep power on
+      linuxShutdownTime = 0;
+      canRobot.ledStateShutdown = false;
+    } else {
+      // shutdown linux - request could be for two reasons:
+      // 1. battery voltage sent by MUC-PCB seem to be too low 
+      // 2. MCU-PCB is powered-off 
+      if (linuxShutdownTime == 0){
+        linuxShutdownTime = millis() + 5000; // some timeout 
+        // turn off panel LEDs
+        canRobot.ledStateShutdown = true;
+        canRobot.updatePanelLEDs();        
+      }
+      if (millis() > linuxShutdownTime){
+        linuxShutdownTime = millis() + 10000; // re-trigger linux command after 10 secs
+        CONSOLE.println("LINUX will SHUTDOWN!");
+        // switch-off fan via port-expander PCA9555     
+        canRobot.setFanPowerState(false);
+        Process p;
+        p.runShellCommand("shutdown now");
+      }
+    }   
+  #endif  
+}
+
+
+// ------------------------------------------------------------------------------------
+
+CanBumperDriver::CanBumperDriver(CanRobotDriver &sr): canRobot(sr){
+}
+
+void CanBumperDriver::begin(){
+}
+
+void CanBumperDriver::run(){
+
+}
+
+bool CanBumperDriver::obstacle(){
+  return (canRobot.triggeredLeftBumper || canRobot.triggeredRightBumper); 
+}
+
+bool CanBumperDriver::getLeftBumper(){
+  return (canRobot.triggeredLeftBumper);
+}
+
+bool CanBumperDriver::getRightBumper(){
+  return (canRobot.triggeredRightBumper);
+}	
+
+void CanBumperDriver::getTriggeredBumper(bool &leftBumper, bool &rightBumper){
+  leftBumper = canRobot.triggeredLeftBumper;
+  rightBumper = canRobot.triggeredRightBumper;
+}  	  		    
+
+
+// ------------------------------------------------------------------------------------
+
+
+CanStopButtonDriver::CanStopButtonDriver(CanRobotDriver &sr): canRobot(sr){
+}
+
+void CanStopButtonDriver::begin(){
+}
+
+void CanStopButtonDriver::run(){
+
+}
+
+bool CanStopButtonDriver::triggered(){
+  return (canRobot.triggeredStopButton); 
+}
+
+// ------------------------------------------------------------------------------------
+
+
+CanRainSensorDriver::CanRainSensorDriver(CanRobotDriver &sr): canRobot(sr){
+}
+
+void CanRainSensorDriver::begin(){
+}
+
+void CanRainSensorDriver::run(){
+
+}
+
+bool CanRainSensorDriver::triggered(){
+  return (canRobot.triggeredRain); 
+}
+
+// ------------------------------------------------------------------------------------
+
+CanLiftSensorDriver::CanLiftSensorDriver(CanRobotDriver &sr): canRobot(sr){
+}
+
+void CanLiftSensorDriver::begin(){
+}
+
+void CanLiftSensorDriver::run(){
+}
+
+bool CanLiftSensorDriver::triggered(){
+  return (canRobot.triggeredLift);
+}
+
+
+// ------------------------------------------------------------------------------------
+
+CanBuzzerDriver::CanBuzzerDriver(CanRobotDriver &sr): canRobot(sr){
+}
+
+void CanBuzzerDriver::begin(){
+}
+
+void CanBuzzerDriver::run(){
+}
+
+void CanBuzzerDriver::noTone(){
+  ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, false);
+}
+
+void CanBuzzerDriver::tone(int freq){
+  ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, true);
+}
+
+
+
