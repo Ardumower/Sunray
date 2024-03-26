@@ -26,7 +26,7 @@
 
 
 
-//#define CAN_DEBUG 1
+#define CAN_DEBUG 1
 
 
 void *canThreadFun(void *user_data)
@@ -110,15 +110,26 @@ bool LinuxCAN::run(){
 	struct timeval tv;
 	ioctl(sock, SIOCGSTAMP_OLD, &tv);
 	
-	fifoRx[fifoRxEnd].idx = frameCounterRx;
-	fifoRx[fifoRxEnd].secs =tv.tv_sec;
-	fifoRx[fifoRxEnd].usecs = tv.tv_usec;
 
-	fifoRx[fifoRxEnd].can_id = frame.can_id;
-	fifoRx[fifoRxEnd].can_dlc = frame.can_dlc;
-	for (int i=0; i < sizeof(frame.data); i++) fifoRx[fifoRxEnd].data[i] = frame.data[i]; 
-	if (fifoRxEnd == CAN_FIFO_FRAMES_RX-1) fifoRxEnd = 0; 
-	  else fifoRxEnd++;
+	int nextFifoRxEnd = fifoRxEnd;
+	if (nextFifoRxEnd == CAN_FIFO_FRAMES_RX-1) nextFifoRxEnd = 0; 
+	  else nextFifoRxEnd++;
+	
+	if (nextFifoRxEnd != fifoRxStart){
+		// no fifoRx overflow 
+		fifoRx[fifoRxEnd].idx = frameCounterRx;
+		fifoRx[fifoRxEnd].secs =tv.tv_sec;
+		fifoRx[fifoRxEnd].usecs = tv.tv_usec;
+
+		fifoRx[fifoRxEnd].can_id = frame.can_id;
+		fifoRx[fifoRxEnd].can_dlc = frame.can_dlc;
+		for (int i=0; i < sizeof(frame.data); i++) fifoRx[fifoRxEnd].data[i] = frame.data[i]; 
+		fifoRxEnd = nextFifoRxEnd;
+	} else {
+		// fifoRx overflow
+		fprintf(stderr, "CAN: FIFO RX overflow\n");
+		fifoRxEnd = fifoRxStart;
+	}
 
 	frameCounterRx++;
 	
