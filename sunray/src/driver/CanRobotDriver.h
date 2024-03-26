@@ -16,6 +16,93 @@
 #endif
 
 
+
+// -----CAN frame data types----------------
+
+#define OWL_DRIVE_MSG_ID 300
+#define MY_NODE_ID 60 
+
+#define LEFT_MOTOR_NODE_ID    1
+#define RIGHT_MOTOR_NODE_ID   2
+#define MOW_MOTOR_NODE_ID     3
+
+typedef union canNodeType_t {   
+    uint8_t byteVal[2];
+    struct __attribute__ ((__packed__)) {   
+        uint16_t sourceNodeID : 6;   // 6 bits for source node ID (valid node IDs: 1-62)
+        uint16_t destNodeID   : 6;   // 6 bits for destination node ID (valid node IDs: 1-62, value 63 means all nodes)    
+        uint8_t reserved     : 4;   // 4 bits reserved
+    } sourceAndDest;     
+} __attribute__((packed)) canNodeType_t;
+
+// what action to do...
+enum canCmdType_t: uint8_t {
+    can_cmd_info       = 0,  // broadcast something
+    can_cmd_request    = 1,  // request something
+    can_cmd_set        = 2,  // set something
+    can_cmd_save       = 3,  // save something        
+};
+
+// which variable to use for the action...
+enum canValueType_t: uint8_t {
+    can_val_target          = 0, // target
+    can_val_voltage         = 1, // voltage
+    can_val_current         = 2, // current
+    can_val_velocity        = 3, // velocity
+    can_val_angle           = 4, // angle
+    can_val_motion_ctl_mode = 5, // motion control mode
+    can_val_cfg_mem         = 6, // config memory
+    can_val_motor_enable    = 7, // motor enable state
+    can_val_pAngleP         = 8, // angle P controller
+    can_val_velocityLimit   = 9, // max. velocity of the position control (rad/s)
+    can_val_pidVelocityP    = 10, // velocity P   
+    can_val_pidVelocityI    = 11, // velocity I   
+    can_val_pidVelocityD    = 12, // velocity D
+    can_val_pidVelocityRamp = 13, // velocity PID output ramp  (max. output change/s)
+    can_val_lpfVelocityTf   = 14, // velocity low-pass filtering time constant (sec)
+    can_val_error           = 15, // error status
+    can_val_upload_firmware = 16, // upload file (to upload new firmware)
+    can_val_firmware_crc    = 17, // firmware flash memory CRC (to verify firmware integrity)        
+    can_val_firmware_ver    = 18, // firmware version
+    can_val_broadcast_rx_enable  = 19, // broadcast receive enable state       
+    can_val_fifo_target     = 20, // add target (to drive within one clock duration) to FIFO 
+    can_val_endswitch_allow_pos_neg_dtargets = 21, // pos/neg delta targets allowed at end-switch?
+    can_val_reboot          = 22, // reboot MCU
+    can_val_endswitch       = 23, // end-switch status
+    can_val_fifo_clock      = 24, // FIFO clock signal (process FIFO)
+    can_val_control_error   = 25, // control error (setpoint-actual)
+    can_val_fifo_target_ack_result_val = 26, // which variable to send in an 'can_val_fifo_target' acknowledge     
+    can_val_detected_supply_voltage = 27,  // detected supply voltage
+    can_val_angle_add       = 28,  // add angle 
+    can_val_pwm_speed       = 29,  // pwm-speed (-1.0...1.0  =  classic motor controller compatiblity)
+    can_val_odo_ticks       = 30,  // odometry ticks (encoder ticks   =  classic motor controller compatiblity)
+};
+
+// motor driver error values
+enum errType_t: uint8_t {
+    err_ok           = 0, // everything OK
+    err_no_comm      = 1, // no CAN communication
+    err_no_settings  = 2, // no settings
+    err_undervoltage = 3, // undervoltage triggered
+    err_overvoltage  = 4, // overvoltage triggered
+    err_overcurrent  = 5, // overcurrent triggered
+    err_overtemp     = 6, // over-temperature triggered    
+};
+
+// which data the variable has, CAN data can be different variants 
+typedef union {
+    uint8_t byteVal[4];  // either 4 bytes
+    int32_t intValue;    // either integer (4 bytes)
+    float floatVal;      // either float (4 bytes)
+    struct __attribute__ ((__packed__)) ofs_val_t {   // either short (2 bytes) offset and 1 byte
+        uint16_t ofsVal;
+        uint8_t  byteVal;
+    } ofsAndByte;
+} __attribute__((packed)) canDataType_t;
+
+
+
+
 class CanRobotDriver: public RobotDriver {
   public:
     String robotID;
@@ -51,12 +138,8 @@ class CanRobotDriver: public RobotDriver {
     void requestMotorPwm(int leftPwm, int rightPwm, int mowPwm);
     void requestSummary();
     void requestVersion();
-    void updatePanelLEDs();
     void updateCpuTemperature();
     void updateWifiConnectionState();
-    bool setLedState(int ledNumber, bool greenState, bool redState);
-    bool setFanPowerState(bool state);
-    bool setImuPowerState(bool state);
   protected:    
     bool ledPanelInstalled;
     #ifdef __linux__
@@ -78,9 +161,9 @@ class CanRobotDriver: public RobotDriver {
     int cmdSummaryCounter;
     int cmdMotorResponseCounter;
     int cmdSummaryResponseCounter;
-    void sendRequest(String s);
-    void processComm();
-    void processResponse(bool checkCrc);
+    void sendCanData(int destNodeId, canCmdType_t cmd, canValueType_t val, canDataType_t data);
+    void sendSerialRequest(String s);
+    void processResponse();
     void motorResponse();
     void summaryResponse();
     void versionResponse();

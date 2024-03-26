@@ -63,107 +63,8 @@ void CanRobotDriver::begin(){
 	  robotID = p.readString();    
     robotID.trim();
     
-    CONSOLE.println("ioboard init");
-
-    // IMU/fan power-on code (Alfred-PCB-specific) 
-
-    // switch-on IMU via port-expander PCA9555     
-    setImuPowerState(true);
-    
-    // switch-on fan via port-expander PCA9555     
-    setFanPowerState(true);
-    
-    // select IMU via multiplexer TCA9548A 
-    ioI2cMux(MUX_I2C_ADDR, SLAVE_IMU_MPU, true);  // Alfred dev PCB with buzzer
-    ioI2cMux(MUX_I2C_ADDR, SLAVE_BUS0, true); // Alfred dev PCB without buzzer    
-
-    // select EEPROM via multiplexer TCA9548A 
-    ioI2cMux(MUX_I2C_ADDR, SLAVE_EEPROM, true);  
-
-    // select ADC via multiplexer TCA9548A 
-    ioI2cMux(MUX_I2C_ADDR, SLAVE_ADC, true);
-    
-    // buzzer test
-    if (false){
-      CONSOLE.println("buzzer test");    
-      ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, true);
-      delay(500);
-      ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, false);    
-    }
-
-    // LEDs
-    CONSOLE.println("turning LEDs green");
-    if (!setLedState(1, true, false)){
-      CONSOLE.println("LED panel communication failed - assuming no LED panel installed");
-    }
-    setLedState(2, true, false);
-    setLedState(3, true, false);
-  
-    // start ADC
-    CONSOLE.println("starting ADC");    
-    ioAdcStart(ADC_I2C_ADDR, false, true);
-
-    // ADC test    
-    if (true){    
-      for (int idx=1; idx < 9; idx++){
-        ioAdcMux(idx);            
-        ioAdcTrigger(ADC_I2C_ADDR);
-        delay(5);
-        float v = ioAdc(ADC_I2C_ADDR);
-        CONSOLE.print("ADC S");
-        CONSOLE.print(idx);
-        CONSOLE.print("=");
-        CONSOLE.println(v);   
-      }
-    }    
-
-    // EEPROM test
-    if (false){
-      CONSOLE.println("EEPROM test");
-      ioEepromWriteByte( EEPROM_I2C_ADDR, 0, 42);
-      delay(50);
-      int v = ioEepromReadByte( EEPROM_I2C_ADDR, 0);
-      CONSOLE.print("EEPROM=");
-      CONSOLE.println(v);
-    }
-
   #endif
 }
-
-bool CanRobotDriver::setLedState(int ledNumber, bool greenState, bool redState){
-  if (!ledPanelInstalled) return false;
-  if (ledNumber == 1){
-    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_GREEN_PORT, EX3_LED1_GREEN_PIN, greenState);
-    if (!ledPanelInstalled) return false;
-    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED1_RED_PORT, EX3_LED1_RED_PIN, redState);        
-    if (!ledPanelInstalled) return false;  
-  }
-  else if (ledNumber == 2){
-    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_GREEN_PORT, EX3_LED2_GREEN_PIN, greenState);
-    if (!ledPanelInstalled) return false;    
-    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED2_RED_PORT, EX3_LED2_RED_PIN, redState);        
-    if (!ledPanelInstalled) return false;    
-  }
-  else if (ledNumber == 3){
-    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_GREEN_PORT, EX3_LED3_GREEN_PIN, greenState);
-    if (!ledPanelInstalled) return false;    
-    ledPanelInstalled = ioExpanderOut(EX3_I2C_ADDR, EX3_LED3_RED_PORT, EX3_LED3_RED_PIN, redState);        
-    if (!ledPanelInstalled) return false;    
-  }
-  return true;
-}
-
-bool CanRobotDriver::setFanPowerState(bool state){
-  CONSOLE.print("FAN POWER STATE ");
-  CONSOLE.println(state);
-  return ioExpanderOut(EX1_I2C_ADDR, EX1_FAN_POWER_PORT, EX1_FAN_POWER_PIN, state);
-}
-
-bool CanRobotDriver::setImuPowerState(bool state){
-  CONSOLE.print("IMU POWER STATE ");
-  CONSOLE.println(state);  
-  return ioExpanderOut(EX1_I2C_ADDR, EX1_IMU_POWER_PORT, EX1_IMU_POWER_PIN, state);
-}  
 
 bool CanRobotDriver::getRobotID(String &id){
   id = robotID;
@@ -171,8 +72,8 @@ bool CanRobotDriver::getRobotID(String &id){
 }
 
 bool CanRobotDriver::getMcuFirmwareVersion(String &name, String &ver){
-  name = mcuFirmwareName;
-  ver = mcuFirmwareVersion;
+  name = "OWL";
+  ver = "0.0.1";
   return true;
 }
 
@@ -222,265 +123,109 @@ void CanRobotDriver::updateWifiConnectionState(){
   #endif
 }
 
-// send CAN request to MCU
-void CanRobotDriver::sendRequest(String s){
-  byte crc = 0;
-  for (int i=0; i < s.length(); i++) crc += s[i];
-  s += F(",0x");
-  if (crc <= 0xF) s += F("0");
-  s += String(crc, HEX);  
-  s += F("\r\n");             
-  #ifdef DEBUG_CAN_ROBOT
-    CONSOLE.print("CanRobot request: ");
-    CONSOLE.println(s);  
-  #endif
-  //cmdResponse = s;
-  COMM.print(s);  
+
+// send CAN request 
+void CanRobotDriver::sendCanData(int destNodeId, canCmdType_t cmd, canValueType_t val, canDataType_t data){        
+    can_frame_t frame;
+    frame.can_id = OWL_DRIVE_MSG_ID;    
+    if (cmd == can_cmd_request){
+      frame.can_dlc = 4;
+    } else {
+      frame.can_dlc = 8;
+    }
+    canNodeType_t node;
+    node.sourceAndDest.sourceNodeID = MY_NODE_ID;
+    node.sourceAndDest.destNodeID = destNodeId;    
+    frame.data[0] = node.byteVal[0];
+    frame.data[1] = node.byteVal[1];    
+    frame.data[2] = cmd;    
+    frame.data[3] = val;
+    frame.data[4] = data.byteVal[0];
+    frame.data[5] = data.byteVal[1];
+    frame.data[6] = data.byteVal[2];
+    frame.data[7] = data.byteVal[3];
+    can.write(frame);
 }
+
 
 
 // request MCU SW version
 void CanRobotDriver::requestVersion(){
-  String req;
-  req += "AT+V";  
-  sendRequest(req);
 }
 
 
 // request MCU summary
 void CanRobotDriver::requestSummary(){
-  String req;
-  req += "AT+S";  
-  sendRequest(req);
-  cmdSummaryCounter++;
 }
 
 
 // request MCU motor PWM
 void CanRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
-  String req;
-  req += "AT+M,";
-  req += rightPwm;      
-  req += ",";
-  req += leftPwm;    
-  req += ",";  
-  req += mowPwm;
-  //if (abs(mowPwm) > 0)
-  //  req += "1";
-  //else
-  //  req += "0";  
-  sendRequest(req);
+  canDataType_t data;
+  data.floatVal = ((float)leftPwm) / 255.0;  
+  sendCanData(LEFT_MOTOR_NODE_ID, can_cmd_set, can_val_pwm_speed, data);
+  data.floatVal = ((float)rightPwm) / 255.0;  
+  sendCanData(RIGHT_MOTOR_NODE_ID, can_cmd_set, can_val_pwm_speed, data);
+  data.floatVal = ((float)mowPwm) / 255.0;  
+  sendCanData(MOW_MOTOR_NODE_ID, can_cmd_set, can_val_pwm_speed, data);
   cmdMotorCounter++;
 }
 
 void CanRobotDriver::motorResponse(){
-  if (cmd.length()<6) return;  
-  int counter = 0;
-  int lastCommaIdx = 0;
-  for (int idx=0; idx < cmd.length(); idx++){
-    char ch = cmd[idx];
-    //Serial.print("ch=");
-    //Serial.println(ch);
-    if ((ch == ',') || (idx == cmd.length()-1)){
-      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
-      float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();      
-      if (counter == 1){                            
-        encoderTicksRight = intValue;  // ag
-      } else if (counter == 2){
-        encoderTicksLeft = intValue;   // ag
-      } else if (counter == 3){
-        encoderTicksMow = intValue;
-      } else if (counter == 4){
-        chargeVoltage = floatValue;
-      } else if (counter == 5){
-        triggeredLeftBumper = (intValue != 0);
-      } else if (counter == 6){
-        triggeredLift = (intValue != 0);
-      } else if (counter == 7){
-        triggeredStopButton = (intValue != 0);
-      } 
-      counter++;
-      lastCommaIdx = idx;
-    }    
-  }
-  if (triggeredStopButton){
-    //CONSOLE.println("STOPBUTTON");
-  }
-  //CONSOLE.println(encoderTicksMow);
   cmdMotorResponseCounter++;
   mcuCommunicationLost=false;
 }
 
 
 void CanRobotDriver::versionResponse(){
-  if (cmd.length()<6) return;  
-  int counter = 0;
-  int lastCommaIdx = 0;
-  for (int idx=0; idx < cmd.length(); idx++){
-    char ch = cmd[idx];
-    //Serial.print("ch=");
-    //Serial.println(ch);
-    if ((ch == ',') || (idx == cmd.length()-1)){
-      String s = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1);
-      if (counter == 1){                            
-        mcuFirmwareName = s;
-      } else if (counter == 2){
-        mcuFirmwareVersion = s;
-      } 
-      counter++;
-      lastCommaIdx = idx;
-    }    
-  }
-  CONSOLE.print("MCU FIRMWARE: ");
-  CONSOLE.print(mcuFirmwareName);
-  CONSOLE.print(",");
-  CONSOLE.println(mcuFirmwareVersion);
 }
 
 
 void CanRobotDriver::summaryResponse(){
-  if (cmd.length()<6) return;  
-  int counter = 0;
-  int lastCommaIdx = 0;
-  for (int idx=0; idx < cmd.length(); idx++){
-    char ch = cmd[idx];
-    //Serial.print("ch=");
-    //Serial.println(ch);
-    if ((ch == ',') || (idx == cmd.length()-1)){
-      int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();      
-      float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();      
-      if (counter == 1){                            
-        batteryVoltage = floatValue;
-      } else if (counter == 2){
-        chargeVoltage = floatValue;
-      } else if (counter == 3){
-        chargeCurrent = floatValue;
-      } else if (counter == 4){
-        triggeredLift = (intValue != 0);
-      } else if (counter == 5){
-        triggeredLeftBumper = (intValue != 0);
-      } else if (counter == 6){
-        triggeredRain = (intValue != 0);
-      } else if (counter == 7){
-        motorFault = (intValue != 0);
-      } else if (counter == 8){
-        //CONSOLE.println(cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1));
-        mowCurr = floatValue;
-      } else if (counter == 9){
-        motorLeftCurr = floatValue;
-      } else if (counter == 10){
-        motorRightCurr = floatValue;
-      } else if (counter == 11){
-        batteryTemp = floatValue;
-      } 
-      counter++;
-      lastCommaIdx = idx;
-    }    
-  }
-  cmdSummaryResponseCounter++;
-  /*CONSOLE.print("motor currents=");
-  CONSOLE.print(mowCurr);
-  CONSOLE.print(",");
-  CONSOLE.print(motorLeftCurr);
-  CONSOLE.print(",");
-  CONSOLE.println(motorRightCurr);*/
-  //CONSOLE.print("batteryTemp=");
-  //CONSOLE.println(batteryTemp);
 }
 
 // process response
-void CanRobotDriver::processResponse(bool checkCrc){
-  cmdResponse = "";      
-  if (cmd.length() < 4) return;
-  byte expectedCrc = 0;
-  int idx = cmd.lastIndexOf(',');
-  if (idx < 1){
-    if (checkCrc){
-      CONSOLE.println("CanRobot: CRC ERROR");
-      return;
+void CanRobotDriver::processResponse(){
+  can_frame_t frame;
+  while (can.available()){
+    if (can.read(frame)){
+        canNodeType_t node;
+        node.byteVal[0] = frame.data[0];
+        node.byteVal[1] = frame.data[1];    
+      
+        int cmd = frame.data[2];     
+        canValueType_t val = ((canValueType_t)frame.data[3]);            
+        canDataType_t data;
+        data.byteVal[0] = frame.data[4];
+        data.byteVal[1] = frame.data[5];
+        data.byteVal[2] = frame.data[6];
+        data.byteVal[3] = frame.data[7];    
+
+        if (cmd == can_cmd_info){
+            // info value (volt, velocity, position, ...)
+            switch (val){              
+              case can_val_odo_ticks:
+                switch(node.sourceAndDest.sourceNodeID){
+                  case LEFT_MOTOR_NODE_ID:
+                    encoderTicksLeft = data.ofsAndByte.ofsVal;
+                    break;
+                  case RIGHT_MOTOR_NODE_ID:
+                    encoderTicksRight = data.ofsAndByte.ofsVal;
+                    break;
+                  case MOW_MOTOR_NODE_ID:
+                    encoderTicksMow = data.ofsAndByte.ofsVal;
+                    break;
+                }                
+                break;
+                            
+            }
+        }     
     }
-  } else {
-    for (int i=0; i < idx; i++) expectedCrc += cmd[i];  
-    String s = cmd.substring(idx+1, idx+5);
-    int crc = strtol(s.c_str(), NULL, 16);  
-    if (expectedCrc != crc){
-      if (checkCrc){
-        CONSOLE.print("CanRobot: CRC ERROR");
-        CONSOLE.print(crc,HEX);
-        CONSOLE.print(",");
-        CONSOLE.print(expectedCrc,HEX);
-        CONSOLE.println();
-        return;  
-      }      
-    } else {
-      #ifdef DEBUG_CAN_ROBOT
-        CONSOLE.print("CanRobot resp:");
-        CONSOLE.println(cmd);
-      #endif
-      // remove CRC      
-      cmd = cmd.substring(0, idx);      
-    }    
-  }     
-  if (cmd[0] == 'M') motorResponse();
-  if (cmd[0] == 'S') summaryResponse();
-  if (cmd[0] == 'V') versionResponse();
-}
-
-
-// process console input
-void CanRobotDriver::processComm(){
-  char ch;      
-  if (COMM.available()){
-    //battery.resetIdle();  
-    while ( COMM.available() ){               
-      ch = COMM.read();          
-      if ((ch == '\r') || (ch == '\n')) {        
-        //CONSOLE.println(cmd);
-        processResponse(true);              
-        //CONSOLE.print(cmdResponse);    
-        cmd = "";
-      } else if (cmd.length() < 500){
-        cmd += ch;
-      }
-    }
-  }     
-}
-
-void CanRobotDriver::updatePanelLEDs(){
-  if (ledStateShutdown) {
-    setLedState(1, false, false);
-    setLedState(2, false, false);
-    setLedState(3, false, false);        
-    return;    
-  }
-  // panel led numbers (top-down): 2,3,1   
-  // idle/error status
-  if (ledStateError){
-    setLedState(2, false, true);
-  } else {
-    setLedState(2, true, false);
-  }
-  // gps status
-  if (ledStateGpsFix){
-    setLedState(3, true, false); 
-  } 
-  else if (ledStateGpsFloat) {
-    setLedState(3, false, true);
-  } else {
-    setLedState(3, false, false);    
-  }
-  // wifi status
-  if (ledStateWifiConnected){ 
-    setLedState(1, true, false);
-  } else if (ledStateWifiInactive) {
-    setLedState(1, false, true);
-  } else {
-    setLedState(1, false, false);
   }
 }
 
 void CanRobotDriver::run(){  
-  processComm();
+  processResponse();
   if (millis() > nextMotorTime){
     nextMotorTime = millis() + 20; // 50 hz
     while (can.available()){
@@ -522,15 +267,15 @@ void CanRobotDriver::run(){
   }  
   if (millis() > nextLedTime){
     nextLedTime = millis() + 3000;  // 3 sec
-    updatePanelLEDs();
+    //updatePanelLEDs();
   }
   if (millis() > nextTempTime){
     nextTempTime = millis() + 59000; // 59 sec
     updateCpuTemperature();
     if (cpuTemp < 60){      
-      setFanPowerState(false);
+      //setFanPowerState(false);
     } else if (cpuTemp > 65){
-      setFanPowerState(true);
+      //setFanPowerState(true);
     }
   }
   if (millis() > nextWifiTime){
@@ -656,7 +401,7 @@ void CanBatteryDriver::updateBatteryTemperature(){
       //CONSOLE.print("updateBatteryTemperature batteryTemp=");
       //CONSOLE.println(batteryTemp);
     }
-    batteryTempProcess.runShellCommand("cat /sys/class/thermal/thermal_zone1/temp");  
+    batteryTempProcess.runShellCommand("cat /sys/class/thermal/thermal_zone0/temp");  
     //unsigned long duration = millis() - startTime;        
     //CONSOLE.print("updateBatteryTemperature duration: ");
     //CONSOLE.println(duration);        
@@ -739,13 +484,13 @@ void CanBatteryDriver::keepPowerOn(bool flag){
         linuxShutdownTime = millis() + 5000; // some timeout 
         // turn off panel LEDs
         canRobot.ledStateShutdown = true;
-        canRobot.updatePanelLEDs();        
+        //canRobot.updatePanelLEDs();        
       }
       if (millis() > linuxShutdownTime){
         linuxShutdownTime = millis() + 10000; // re-trigger linux command after 10 secs
         CONSOLE.println("LINUX will SHUTDOWN!");
         // switch-off fan via port-expander PCA9555     
-        canRobot.setFanPowerState(false);
+        //canRobot.setFanPowerState(false);
         Process p;
         p.runShellCommand("shutdown now");
       }
