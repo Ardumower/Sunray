@@ -1,6 +1,8 @@
 // Ardumower Sunray 
 
-// Linux CAN bus 
+// Linux CAN bus class (with FIFO)
+
+// docs:  https://www.kernel.org/doc/html/next/networking/can.html
 
 
 #ifdef __linux__
@@ -24,22 +26,36 @@
 
 
 
+//#define CAN_DEBUG 1
+
+
+void *canThreadFun(void *user_data)
+{
+    LinuxCAN *can = (LinuxCAN*)user_data;
+	while (true){
+	  can->run();
+      //usleep(300);
+	}
+	return NULL;
+}
+
+
 
 LinuxCAN::LinuxCAN(){
   sock = -1;
 }
 
 bool LinuxCAN::begin(){  
-  if ((sock = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
+   	if ((sock = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
 		perror("ERROR starting CAN socket");
 		return false;
 	}
 
-  struct ifreq ifr;
-  strcpy(ifr.ifr_name, "can0" );
-	ioctl(sock, SIOCGIFINDEX, &ifr);
+  	struct ifreq ifr;
+  	strcpy(ifr.ifr_name, "can0" );
+  	ioctl(sock, SIOCGIFINDEX, &ifr);
 
-  struct sockaddr_can addr;
+  	struct sockaddr_can addr;
 	memset(&addr, 0, sizeof(addr));
 	addr.can_family = AF_CAN;
 	addr.can_ifindex = ifr.ifr_ifindex;
@@ -48,32 +64,66 @@ bool LinuxCAN::begin(){
 		perror("ERROR binding CAN socket");
 		return false;
 	}
-  return true;
-}
 
-
-bool LinuxCAN::read(can_frame_t &frame){	
-	struct can_frame fr;
-	int nbytes = ::read(sock, &fr, sizeof(struct can_frame));
-
-	if (nbytes < 0) {
-		perror("ERROR reading CAN socket");
-		return false;
-	}
-	//printf("nbytes=%d\n", nbytes);
-
-	//printf("CAN: 0x%03X [%d] ",fr.can_id, fr.can_dlc);
-	//for (int i = 0; i < fr.can_dlc; i++)
-	//	printf("%02X ",fr.data[i]);
-	//printf("\r\n");
-
-	frame.can_id = fr.can_id;
-	frame.can_dlc = fr.can_dlc;
-	for (int i=0; i < 8; i++) frame.data[i] = fr.data[i]; 
-
+	Serial.println("linuxcan: server listening");
+  	pthread_create(&thread_id, NULL, canThreadFun, (void*)this);
 	return true;
 }
 
+bool LinuxCAN::available(){
+	return (fifoRxStart != fifoRxEnd); 
+}
+
+bool LinuxCAN::read(can_frame_t &frame){	
+	if (fifoRxStart == fifoRxEnd) return false;
+	//printf("can: rx_frames=%d\n", frameCounterRx);
+
+	frame.idx = fifoRx[fifoRxStart].idx;
+	frame.secs = fifoRx[fifoRxStart].secs;
+	frame.usecs = fifoRx[fifoRxStart].usecs;
+	
+	frame.can_id = fifoRx[fifoRxStart].can_id;
+	frame.can_dlc = fifoRx[fifoRxStart].can_dlc;
+	for (int i=0; i < sizeof(frame.data); i++) frame.data[i] = fifoRx[fifoRxStart].data[i];
+	if (fifoRxStart == CAN_FIFO_FRAMES_RX-1) fifoRxStart = 0; 
+	  else fifoRxStart++;
+
+	#if defined(CAN_DEBUG)
+		printf("frame %d, secs: %d, usecs: %d, CAN: 0x%03X [%d] ", frame.idx, frame.secs, frame.usecs, frame.can_id, frame.can_dlc);
+		for (int i = 0; i < frame.can_dlc; i++)
+			printf("%02X ",frame.data[i]);
+		printf("\r\n");
+	#endif
+
+	return false;
+}
+
+
+bool LinuxCAN::run(){
+	struct can_frame frame;	
+	int nbytes = ::read(sock, &frame, sizeof(struct can_frame));		
+	
+	if (nbytes <= 0) {
+		//perror("ERROR reading CAN socket");
+		return false;
+	}
+	struct timeval tv;
+	ioctl(sock, SIOCGSTAMP_OLD, &tv);
+	
+	fifoRx[fifoRxEnd].idx = frameCounterRx;
+	fifoRx[fifoRxEnd].secs =tv.tv_sec;
+	fifoRx[fifoRxEnd].usecs = tv.tv_usec;
+
+	fifoRx[fifoRxEnd].can_id = frame.can_id;
+	fifoRx[fifoRxEnd].can_dlc = frame.can_dlc;
+	for (int i=0; i < sizeof(frame.data); i++) fifoRx[fifoRxEnd].data[i] = frame.data[i]; 
+	if (fifoRxEnd == CAN_FIFO_FRAMES_RX-1) fifoRxEnd = 0; 
+	  else fifoRxEnd++;
+
+	frameCounterRx++;
+	
+	return true;
+}
 
 bool LinuxCAN::write(can_frame_t frame){
   	struct can_frame fr; 
@@ -89,11 +139,11 @@ bool LinuxCAN::write(can_frame_t frame){
 
 
 bool LinuxCAN::close(){
-  if (::close(sock) < 0) {
-		perror("ERROR closing CAN socket");
-		return false;
+	if (::close(sock) < 0) {
+			perror("ERROR closing CAN socket");
+			return false;
 	}
-  return true;
+	return true;
 }
 
 
