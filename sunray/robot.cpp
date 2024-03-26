@@ -31,6 +31,7 @@
 #include "src/driver/SerialRobotDriver.h"
 #include "src/driver/MpuDriver.h"
 #include "src/driver/BnoDriver.h"
+#include "src/driver/IcmDriver.h"
 #include "battery.h"
 #include "gps.h"
 #include "src/ublox/ublox.h"
@@ -59,7 +60,9 @@ const signed char orientationMatrix[9] = {
 #ifdef DRV_SIM_ROBOT
   SimImuDriver imuDriver(robotDriver);
 #elif defined(BNO055)
-  BnoDriver imuDriver;  
+  BnoDriver imuDriver;
+#elif defined(ICM20948)
+  IcmDriver imuDriver;
 #else
   MpuDriver imuDriver;
 #endif
@@ -918,7 +921,8 @@ void run(){
   
   // IMU
   if (millis() > nextImuTime){
-    nextImuTime = millis() + 150;        
+    int ims = 750 / IMU_FIFO_RATE;
+    nextImuTime = millis() + ims;        
     //imu.resetFifo();    
     if (imuIsCalibrating) {
       activeOp->onImuCalibration();             
