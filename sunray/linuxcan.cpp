@@ -25,8 +25,7 @@
 #include <Arduino.h>
 
 
-
-#define CAN_DEBUG 1
+//#define CAN_DEBUG 1
 
 
 void *canThreadFun(void *user_data)
@@ -95,7 +94,7 @@ bool LinuxCAN::read(can_frame_t &frame){
 		printf("\r\n");
 	#endif
 
-	return false;
+	return true;
 }
 
 
@@ -144,6 +143,8 @@ bool LinuxCAN::write(can_frame_t frame){
 	if (::write(sock, &fr, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
 		perror("ERROR writing CAN socket");
 		return false;
+	} else {
+		frameCounterTx++;
 	}
   	return true;
 }

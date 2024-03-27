@@ -8,13 +8,13 @@
 #include "../../config.h"
 #include "../../ioboard.h"
 
-#define COMM  ROBOT
+//#define COMM  ROBOT
 
 //#define DEBUG_CAN_ROBOT 1
 
 void CanRobotDriver::begin(){
   CONSOLE.println("using robot driver: CanRobotDriver");
-  COMM.begin(ROBOT_BAUDRATE);
+  //COMM.begin(ROBOT_BAUDRATE);
   can.begin();
   encoderTicksLeft = 0;
   encoderTicksRight = 0;
@@ -196,6 +196,7 @@ void CanRobotDriver::processResponse(){
   can_frame_t frame;
   while (can.available()){
     if (can.read(frame)){
+        //CONSOLE.println("can.read");                
         canNodeType_t node;
         node.byteVal[0] = frame.data[0];
         node.byteVal[1] = frame.data[1];    
@@ -209,18 +210,23 @@ void CanRobotDriver::processResponse(){
         data.byteVal[3] = frame.data[7];    
 
         if (cmd == can_cmd_info){
+            //CONSOLE.println("can_cmd_info");                
             // info value (volt, velocity, position, ...)
             switch (val){              
               case can_val_odo_ticks:
                 switch(node.sourceAndDest.sourceNodeID){
                   case LEFT_MOTOR_NODE_ID:
+                    //CONSOLE.println("encoderTicksLeft");
                     encoderTicksLeft = data.ofsAndByte.ofsVal;
+                    motorResponse();
                     break;
                   case RIGHT_MOTOR_NODE_ID:
                     encoderTicksRight = data.ofsAndByte.ofsVal;
+                    motorResponse();
                     break;
                   case MOW_MOTOR_NODE_ID:
                     encoderTicksMow = data.ofsAndByte.ofsVal;
+                    motorResponse();
                     break;
                 }                
                 break;
@@ -247,6 +253,21 @@ void CanRobotDriver::run(){
   }
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;  // 1 hz    
+    if (true){
+      CONSOLE.print("CAN: tx=");
+      CONSOLE.print(can.frameCounterTx);
+      CONSOLE.print(" rx=");
+      CONSOLE.print(can.frameCounterRx);    
+      CONSOLE.print(" ticks=");
+      CONSOLE.print(encoderTicksLeft);
+      CONSOLE.print(","); 
+      CONSOLE.print(encoderTicksRight);
+      CONSOLE.print(" pwm=");
+      CONSOLE.print(requestLeftPwm);
+      CONSOLE.print(","); 
+      CONSOLE.println(requestRightPwm);  
+    }
+
     if (!mcuCommunicationLost){
       if (mcuFirmwareName == ""){
         requestVersion();
@@ -362,13 +383,13 @@ void CanMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &
   leftTicks = canRobot.encoderTicksLeft - lastEncoderTicksLeft;
   rightTicks = canRobot.encoderTicksRight - lastEncoderTicksRight;
   mowTicks = canRobot.encoderTicksMow - lastEncoderTicksMow;
-  if (leftTicks > 1000){
+  if (leftTicks > 5000){
     leftTicks = 0;
   }
-  if (rightTicks > 1000){
+  if (rightTicks > 5000){
     rightTicks = 0;
   } 
-  if (mowTicks > 1000){
+  if (mowTicks > 5000){
     mowTicks = 0;
   }
   lastEncoderTicksLeft = canRobot.encoderTicksLeft;
@@ -425,35 +446,7 @@ float CanBatteryDriver::getBatteryTemperature(){
 }
 
 float CanBatteryDriver::getBatteryVoltage(){
-  #ifdef __linux__
-    // detect if MCU PCB is switched-off
-    if (millis() > nextADCTime){
-      if (!adcTriggered){
-        // trigger ADC measurement (mcuAna)
-        ioAdcMux(ADC_MCU_ANA);
-        ioAdcTrigger(ADC_I2C_ADDR);   
-        adcTriggered = true; 
-        nextADCTime = millis() + 5;    
-      } else {           
-        nextADCTime = millis() + 1000;
-        adcTriggered = false;
-        float v = ioAdc(ADC_I2C_ADDR);
-        mcuBoardPoweredOn = true;
-        if (v < 0){
-          CONSOLE.println("ERROR reading ADC channel mcuAna!");
-          // reset ADC
-          ioAdcStart(ADC_I2C_ADDR, false, true);
-        } else {
-          if ((v >0) && (v < 0.8)){
-            // no mcuAna, MCU PCB is probably switched off
-            CONSOLE.print("mcuAna=");
-            CONSOLE.println(v);      
-            CONSOLE.println("MCU PCB powered OFF!");
-            mcuBoardPoweredOn = false;        
-          }
-        }
-      }
-    }    
+  #ifdef __linux__        
     if (canRobot.mcuCommunicationLost){
       // return 0 volt if MCU PCB is connected and powered-off (Linux will shutdown)
       //if (!mcuBoardPoweredOn) return 0;

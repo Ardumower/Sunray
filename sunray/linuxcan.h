@@ -40,7 +40,6 @@ class LinuxCAN : public CAN
     int fifoRxStart = 0;
     int fifoRxEnd = 0;
     pthread_t thread_id;
-    unsigned long frameCounterRx = 0; 
     int sock;
 };
 

@@ -45,8 +45,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 */
 
 
-//#define DRV_SERIAL_ROBOT  1     // Linux (Alfred)
-#define DRV_CAN_ROBOT  1     // Linux (owlRobotics platform)
+#define DRV_SERIAL_ROBOT  1     // Linux (Alfred)
+//#define DRV_CAN_ROBOT  1     // Linux (owlRobotics platform)
 //#define DRV_ARDUMOWER     1   // keep this for Ardumower
 //#define DRV_SIM_ROBOT     1   // simulation
 
@@ -126,6 +126,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define TICKS_PER_REVOLUTION  1300 / 2    // 1194/2  odometry ticks per wheel revolution
 
 #define TICKS_PER_REVOLUTION  320     // odometry ticks per wheel revolution (RM24)
+//#define TICKS_PER_REVOLUTION  975     // odometry ticks per wheel revolution (owlRobotics platform)
 
 
 // ----- gear motors --------------------------------------------------

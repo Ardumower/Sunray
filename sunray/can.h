@@ -20,6 +20,8 @@ typedef struct can_frame_t {
 class CAN
 {
   public:
+    unsigned long frameCounterTx = 0; 
+    unsigned long frameCounterRx = 0; 
     virtual bool begin() { return false; };
     virtual bool available() { return false; };  
     virtual bool read(can_frame_t &frame) { return false; };  
