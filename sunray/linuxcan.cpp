@@ -28,6 +28,11 @@
 //#define CAN_DEBUG 1
 
 
+// https://github.com/spotify/linux/blob/master/include/asm-generic/sockios.h
+#define SIOCGSTAMP_KERNEL	0x8906		/* Get stamp (timeval) */
+
+
+
 void *canThreadFun(void *user_data)
 {
     LinuxCAN *can = (LinuxCAN*)user_data;
@@ -107,7 +112,7 @@ bool LinuxCAN::run(){
 		return false;
 	}
 	struct timeval tv;
-	ioctl(sock, SIOCGSTAMP_OLD, &tv);
+	ioctl(sock, SIOCGSTAMP_KERNEL, &tv);
 	
 
 	int nextFifoRxEnd = fifoRxEnd;
