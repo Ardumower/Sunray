@@ -171,6 +171,9 @@ unsigned long loopTimeTimer = 0;
 unsigned long wdResetTimer = millis();
 //##################################################################################
 
+unsigned long liftTimeout = 0;
+unsigned long bumperTimeout = 0;
+
 bool wifiFound = false;
 char ssid[] = WIFI_SSID;      // your network SSID (name)
 char pass[] = WIFI_PASS;        // your network password
@@ -774,22 +777,36 @@ bool detectObstacle(){
   
   #ifdef ENABLE_LIFT_DETECTION
     #ifdef LIFT_OBSTACLE_AVOIDANCE
-      if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (liftDriver.triggered()) ) {
-        CONSOLE.println("lift sensor obstacle!");    
-        statMowBumperCounter++;
-        triggerObstacle();    
-        return true;
+      if (liftDriver.triggered()) {
+        if (liftTimeout == 0) {
+          liftTimeout = millis() + BUMPER_DEADTIME;
+        } else if (liftTimeout < millis()) {
+          liftTimeout = 0;
+          CONSOLE.println("lift sensor obstacle!");    
+          statMowBumperCounter++;
+          triggerObstacle();    
+          return true;
+        }
+      } else {
+        liftTimeout = 0;
       }
     #endif
   #endif
 
-  if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (bumper.obstacle()) ){  
-    CONSOLE.println("bumper obstacle!");    
-    statMowBumperCounter++;
-    triggerObstacle();    
-    return true;
+  if (bumper.obstacle()) {
+    if (bumperTimeout == 0) {
+      bumperTimeout = millis() + BUMPER_DEADTIME;
+    } else if (bumperTimeout < millis()) {
+      bumperTimeout = 0;
+      CONSOLE.println("bumper obstacle!");    
+      statMowBumperCounter++;
+      triggerObstacle();    
+      return true;
+    }
+  } else {
+    bumperTimeout = 0;
   }
-  
+
   if (sonar.obstacle() && (maps.wayMode != WAY_DOCK)){
     CONSOLE.println("sonar obstacle!");    
     statMowSonarCounter++;
