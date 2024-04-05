@@ -10,6 +10,8 @@
 ## Description <a name="description"></a>
 Sunray firmware is an alternative Firmware (experimental) for...
 
+![sunray_platform](https://github.com/Ardumower/Sunray/assets/11735886/5d3d561a-d0eb-4028-98d9-260ea340c903)
+
 Platform | Hardware required 
 --- | ---
 Ardumower | Ardumower kit mowing and gear motors, PCB 1.3, Adafruit Grand Central M4 (or Arduino Due) and ArduSimple RTK kit
