@@ -1,0 +1,23 @@
+# This is an OpenOCD script that connects Raspberry Pi to the STM32 and dumps the firmware to a file.
+
+#debug_level 4
+
+init
+targets
+reset halt
+
+echo "----Dumping flash image to file----"
+
+
+# https://wrongbaud.github.io/posts/stm-xbox-jtag/
+# https://leo.leung.xyz/wiki/Openocd
+
+
+# show flash list
+flash list
+
+# dump 512KB from bank0
+flash read_bank 0 /home/pi/sunray_install/firmware/dump.bin 0x0 0x80000
+
+exit
+
