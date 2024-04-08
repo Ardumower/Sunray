@@ -122,9 +122,22 @@ void Sonar::run() {
 
   if (millis() > timeoutTime) {
     if (!added) {
-      if (sonarIdx == 0) sonarLeftMeasurements.add(MAX_DURATION);
-      else if (sonarIdx == 1) sonarCenterMeasurements.add(MAX_DURATION);
-      else sonarRightMeasurements.add(MAX_DURATION);
+      unsigned int td;
+      if (sonarIdx == 0) {
+        sonarLeftMeasurements.add(MAX_DURATION);
+        sonarLeftMeasurements.getMedian(td);
+        distanceLeft = convertCm(td);
+      }
+      else if (sonarIdx == 1) {
+        sonarCenterMeasurements.add(MAX_DURATION);
+        sonarCenterMeasurements.getMedian(td);
+        distanceCenter = convertCm(td);
+      }
+      else if (sonarIdx == 2) {
+        sonarRightMeasurements.add(MAX_DURATION);
+        sonarRightMeasurements.getMedian(td);
+        distanceRight = convertCm(td);
+      }
     }
     //if (millis() > nextSonarTime){
     sonarIdx = (sonarIdx + 1) % 3;
