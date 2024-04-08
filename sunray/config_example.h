@@ -300,6 +300,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define BAT_SWITCH_OFF_IDLE  false         // switch off if idle (JP8 must be set to autom.)
 #define BAT_SWITCH_OFF_UNDERVOLTAGE  true  // switch off if undervoltage (JP8 must be set to autom.)
 
+// in case an INA226 sensor is installed to measure the battery voltage more accurately
+#define INA226_BATT_VOLT // comment out if no INA226 is used measuring battery voltage
+#define INA226_ADDRESS 0x40
 
 // ------ GPS ------------------------------------------
 // ------- RTK GPS module -----------------------------------
@@ -382,6 +385,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DOCK_UNDOCK_TRACKSLOW_DISTANCE 5 // set distance (m) from dock for trackslow (speed limit)
 
 #define UNDOCK_IGNORE_GPS_DISTANCE 2 // set distance (m) from dock to ignore gps while undocking
+
+#define DOCK_SPEED 0.07 // speed to dock (m/s)
 
 // ---- path tracking -----------------------------------
 
