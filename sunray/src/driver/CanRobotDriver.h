@@ -13,6 +13,8 @@
 #ifdef __linux__
   #include <Process.h>
   #include "../../linuxcan.h"
+#else 
+  #include "../../can.h"
 #endif
 
 
