@@ -64,9 +64,13 @@ public:
 
   // gfvalvo's flash string helper code: https://forum.arduino.cc/index.php?topic=533118.msg3634809#msg3634809
   void debugPrint(const char *);
+  #ifndef __linux__
   void debugPrint(const __FlashStringHelper *);
+  #endif
   void debugPrintln(const char *);
+  #ifndef __linux__
   void debugPrintln(const __FlashStringHelper *);
+  #endif
   void doDebugPrint(char (*)(const char *), const char *, bool newLine = false);
 
   void debugPrintf(int i);

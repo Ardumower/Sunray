@@ -22,7 +22,7 @@ extern "C"
 {
 #endif /* __cplusplus */
 
-extern int memcmp(const void *, const void *, size_t); // Avoid compiler warnings
+//extern int memcmp(const void *, const void *, size_t); // Avoid compiler warnings
 
 // Define if the DMP will be supported
 // Note: you must have 14290/14301 Bytes of program memory available to store the DMP firmware!

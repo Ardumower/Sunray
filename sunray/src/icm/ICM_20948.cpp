@@ -33,22 +33,26 @@ void ICM_20948::debugPrint(const char *line)
   doDebugPrint([](const char *ptr) { return *ptr; }, line);
 }
 
+#ifndef __linux__
 void ICM_20948::debugPrint(const __FlashStringHelper *line)
 {
   doDebugPrint([](const char *ptr) { return (char)pgm_read_byte_near(ptr); },
                (const char *)line);
 }
+#endif
 
 void ICM_20948::debugPrintln(const char *line)
 {
   doDebugPrint([](const char *ptr) { return *ptr; }, line, true);
 }
 
+#ifndef __linux__
 void ICM_20948::debugPrintln(const __FlashStringHelper *line)
 {
   doDebugPrint([](const char *ptr) { return (char)pgm_read_byte_near(ptr); },
                (const char *)line, true);
 }
+#endif
 
 void ICM_20948::doDebugPrint(char (*funct)(const char *), const char *string, bool newLine)
 {
