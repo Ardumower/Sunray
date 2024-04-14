@@ -921,7 +921,7 @@ void run(){
   
   // IMU
   if (millis() > nextImuTime){
-    int ims = 1000 / IMU_FIFO_RATE;
+    int ims = 750 / IMU_FIFO_RATE;
     nextImuTime = millis() + ims;        
     //imu.resetFifo();    
     if (imuIsCalibrating) {
