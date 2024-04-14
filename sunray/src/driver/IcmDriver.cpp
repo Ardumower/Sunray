@@ -92,6 +92,12 @@ bool IcmDriver::isDataAvail(){
             double t3 = +2.0 * (q0 * q3 + q1 * q2);
             double t4 = +1.0 - 2.0 * (q2sqr + q3 * q3);
             yaw = atan2(t3, t4);
+
+            // quaternion
+            quatW = q3;
+            quatX = q0;
+            quatY = q1;
+            quatZ = q2;
         }
         return true;
     }
