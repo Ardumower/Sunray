@@ -65,11 +65,11 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // see Wiki for wiring, how to position the module, and to configure the I2C pullup jumpers:   
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#IMU.2C_sensor_fusion
 
-//#define MPU6050
+#define MPU6050
 //#define MPU9150
 //#define MPU9250   // also choose this for MPU9255
 //#define BNO055
-#define ICM20948
+//#define ICM20948
 #define MPU_ADDR 0x69  // I2C address (0x68 if AD0=LOW, 0x69 if AD0=HIGH)
 
 // imu fifo rate (Hz)
