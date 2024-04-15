@@ -1209,6 +1209,17 @@ int dmp_set_interrupt_mode(unsigned char mode)
     }
 }
 
+
+int logicalRightShift(int x, int n) {
+    return (unsigned)x >> n;
+}
+int arithmeticRightShift(int x, int n) {
+    if (x < 0 && n > 0)
+        return x >> n | ~(~0U >> n);
+    else
+        return x >> n;
+}
+
 /**
  *  @brief      Get one packet from the FIFO.
  *  If @e sensors does not contain a particular sensor, disregard the data
@@ -1267,10 +1278,17 @@ int dmp_read_fifo(short *gyro, short *accel, long *quat,
          * Let's start by scaling down the quaternion data to avoid long long
          * math.
          */
+        // bugfix ( long number can be signed either 32 or 64 bit - https://github.com/Ardumower/Sunray/issues/150 )
+        quat_q14[0] = arithmeticRightShift(quat[0], 16);
+        quat_q14[1] = arithmeticRightShift(quat[1], 16);
+        quat_q14[2] = arithmeticRightShift(quat[2], 16);
+        quat_q14[3] = arithmeticRightShift(quat[3], 16);
+        /*
         quat_q14[0] = quat[0] >> 16;
         quat_q14[1] = quat[1] >> 16;
         quat_q14[2] = quat[2] >> 16;
         quat_q14[3] = quat[3] >> 16;
+        */
         quat_mag_sq = quat_q14[0] * quat_q14[0] + quat_q14[1] * quat_q14[1] +
             quat_q14[2] * quat_q14[2] + quat_q14[3] * quat_q14[3];
         if ((quat_mag_sq < QUAT_MAG_SQ_MIN) ||

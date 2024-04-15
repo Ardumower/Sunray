@@ -273,7 +273,7 @@ void BnoDriver::run(){
 
 bool BnoDriver::isDataAvail(){
     if (millis() < nextUpdateTime) return false;
-    nextUpdateTime = millis() + 200; // 5 Hz
+    nextUpdateTime = millis() + IMU_FIFO_RATE; // 5 Hz
     sensors_event_t event; 
     
     selectChip();

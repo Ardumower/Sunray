@@ -144,6 +144,7 @@ void WiFiClass::setDNS(IPAddress dns_server1, IPAddress dns_server2)
 int WiFiClass::disconnect()
 {
     //return WiFiDrv::disconnect();
+	return 0;
 }
 
 void WiFiClass::findWifiInterface(){
@@ -229,6 +230,7 @@ int WiFiClass::signalLevel(){
 		}
 	}
     close(fd);
+	return iwstats.qual.level - 256;
 }
 
 
@@ -277,16 +279,16 @@ IPAddress WiFiClass::localIP()
 
 IPAddress WiFiClass::subnetMask()
 {
-	//IPAddress ret;
+	IPAddress ret;
 	//WiFiDrv::getSubnetMask(ret);
-	//return ret;
+	return ret;	
 }
 
 IPAddress WiFiClass::gatewayIP()
 {
-	//IPAddress ret;
+	IPAddress ret;
 	//WiFiDrv::getGatewayIP(ret);
-	//return ret;
+	return ret;
 }
 
 char* WiFiClass::SSID()
@@ -403,6 +405,7 @@ uint8_t WiFiClass::status()
 
 int WiFiClass::hostByName(const char* aHostname, IPAddress& aResult)
 {
+	return 0;
 }
 
 WiFiClass WiFi;

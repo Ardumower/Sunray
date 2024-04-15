@@ -47,7 +47,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 
 
-//#define DRV_SERIAL_ROBOT  1
+//#define DRV_SERIAL_ROBOT  1   // Linux (Alfred)
+//#define DRV_CAN_ROBOT  1      // Linux (owlRobotics platform)
 #define DRV_ARDUMOWER     1   // keep this for Ardumower
 //#define DRV_SIM_ROBOT     1   // simulation
 
@@ -64,11 +65,15 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // see Wiki for wiring, how to position the module, and to configure the I2C pullup jumpers:   
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#IMU.2C_sensor_fusion
 
-//#define MPU6050
+#define MPU6050
 //#define MPU9150
-#define MPU9250   // also choose this for MPU9255
+//#define MPU9250   // also choose this for MPU9255
 //#define BNO055
+//#define ICM20948
 #define MPU_ADDR 0x69  // I2C address (0x68 if AD0=LOW, 0x69 if AD0=HIGH)
+
+// imu fifo rate (Hz)
+#define IMU_FIFO_RATE 5
 
 // should the mower turn off if IMU is tilt over? (yes: uncomment line, no: comment line)
 #define ENABLE_TILT_DETECTION  1
@@ -323,7 +328,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // detect if robot is actually moving (obstacle detection via GPS feedback)
 #define GPS_MOTION_DETECTION          true    // if robot is not moving trigger obstacle avoidance (recommended)
 //#define GPS_MOTION_DETECTION        false   // ignore if robot is not moving
-#define GPS_MOTION_DETECTION_TIMEOUT  5      // timeout for motion (secs)
+#define GPS_MOTION_DETECTION_TIMEOUT  8      // timeout for motion (secs)
 
 // configure ublox f9p with optimal settings (will be stored in f9p RAM only)
 // NOTE: due to a PCB1.3 bug GPS_RX pin is not working and you have to fix this by a wire:
@@ -358,8 +363,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define ALLOW_ROUTE_OUTSIDE_PERI_METER 1.0   // max. distance (m) to allow routing from outside perimeter 
 // (increase if you get 'no map route' errors near perimeter)
 
-#define OBSTACLE_DETECTION_ROTATION true // detect robot rotation stuck (requires IMU)
-// #define OBSTACLE_DETECTION_ROTATION false   // NOTE: recommended to turn this off for slope environment   
+//#define OBSTACLE_DETECTION_ROTATION true // detect robot rotation stuck (requires IMU)
+#define OBSTACLE_DETECTION_ROTATION false   // NOTE: recommended to turn this off for slope environment   
 
 #define OBSTACLE_AVOIDANCE true   // try to find a way around obstacle
 //#define OBSTACLE_AVOIDANCE false  // stop robot on obstacle
@@ -396,7 +401,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // ---- path tracking -----------------------------------
 
 // below this robot-to-target distance (m) a target is considered as reached
-#define TARGET_REACHED_TOLERANCE 0.05
+#define TARGET_REACHED_TOLERANCE 0.1
 
 // stanley control for path tracking - determines gain how fast to correct for lateral path errors
 #define STANLEY_CONTROL_P_NORMAL  3.0   // 3.0 for path tracking control (angular gain) when mowing
@@ -609,6 +614,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define SERIAL_BUFFER_SIZE 1024
 
 #ifdef BNO055
+  #define MPU9250   // just to make mpu driver happy to compile something
+#endif
+
+#ifdef ICM20948
   #define MPU9250   // just to make mpu driver happy to compile something
 #endif
 

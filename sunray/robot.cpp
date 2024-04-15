@@ -27,9 +27,11 @@
 #include "ble.h"
 #include "motor.h"
 #include "src/driver/AmRobotDriver.h"
+#include "src/driver/CanRobotDriver.h"
 #include "src/driver/SerialRobotDriver.h"
 #include "src/driver/MpuDriver.h"
 #include "src/driver/BnoDriver.h"
+#include "src/driver/IcmDriver.h"
 #include "battery.h"
 #include "gps.h"
 #include "src/ublox/ublox.h"
@@ -58,7 +60,9 @@ const signed char orientationMatrix[9] = {
 #ifdef DRV_SIM_ROBOT
   SimImuDriver imuDriver(robotDriver);
 #elif defined(BNO055)
-  BnoDriver imuDriver;  
+  BnoDriver imuDriver;
+#elif defined(ICM20948)
+  IcmDriver imuDriver;
 #else
   MpuDriver imuDriver;
 #endif
@@ -71,6 +75,15 @@ const signed char orientationMatrix[9] = {
   SerialRainSensorDriver rainDriver(robotDriver);
   SerialLiftSensorDriver liftDriver(robotDriver);
   SerialBuzzerDriver buzzerDriver(robotDriver);
+#elif defined(DRV_CAN_ROBOT)
+  CanRobotDriver robotDriver;
+  CanMotorDriver motorDriver(robotDriver);
+  CanBatteryDriver batteryDriver(robotDriver);
+  CanBumperDriver bumperDriver(robotDriver);
+  CanStopButtonDriver stopButton(robotDriver);
+  CanRainSensorDriver rainDriver(robotDriver);
+  CanLiftSensorDriver liftDriver(robotDriver);
+  CanBuzzerDriver buzzerDriver(robotDriver);
 #elif defined(DRV_SIM_ROBOT)
   SimRobotDriver robotDriver;
   SimMotorDriver motorDriver(robotDriver);
@@ -671,6 +684,7 @@ bool robotShouldMove(){
   return ( fabs(motor.linearSpeedSet) > 0.001 );
 }
 
+
 bool robotShouldMoveForward(){
    return ( motor.linearSpeedSet > 0.001 );
 }
@@ -907,7 +921,8 @@ void run(){
   
   // IMU
   if (millis() > nextImuTime){
-    nextImuTime = millis() + 30;        
+    int ims = 750 / IMU_FIFO_RATE;
+    nextImuTime = millis() + ims;        
     //imu.resetFifo();    
     if (imuIsCalibrating) {
       activeOp->onImuCalibration();             

@@ -21,7 +21,7 @@
 #endif
 
 
-#define SUPER_SPIKE_ELIMINATOR 1  // advanced spike elimination  (experimental, comment out to disable)
+//#define SUPER_SPIKE_ELIMINATOR 1  // advanced spike elimination  (experimental, comment out to disable)
 
 
 volatile int odomTicksLeft  = 0;

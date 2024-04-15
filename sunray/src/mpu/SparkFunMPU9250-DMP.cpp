@@ -612,6 +612,9 @@ float MPU9250_DMP::calcQuat(long axis)
 	
 float MPU9250_DMP::qToFloat(long number, unsigned char q)
 {	
+  // bugfix ( long number can be signed either 32 or 64 bit - https://github.com/Ardumower/Sunray/issues/150 )
+  int32_t n = number; // operation below assumes signed 32 bit 
+
   /*unsigned long mask = 0;
 	for (int i=0; i<q; i++)
 	{
@@ -619,7 +622,7 @@ float MPU9250_DMP::qToFloat(long number, unsigned char q)
 	}
 	return (number >> q) + ((number & mask) / (float) (2<<(q-1)));*/
   // https://github.com/sparkfun/SparkFun_MPU-9250-DMP_Arduino_Library/issues/5
-  return (float)((double)number / (double)(1 << q));
+  return (float)((double)n / (double)(1 << q));
 }
 
 void MPU9250_DMP::computeEulerAngles(bool degrees)
