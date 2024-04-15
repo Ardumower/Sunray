@@ -292,7 +292,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // Alfred according to code: 7x https://www.akkuteile.de/samsung-inr-18650-15m-1500mah-3-7v-powertoolzelle_100699_2585
 // Entladeschlussspannung: 2,5V
 
-#define GO_HOME_VOLTAGE   7*2.5*1.1  // Schlussspannung plus 10% Puffer
+#define GO_HOME_VOLTAGE   20.0  // Schlussspannung plus 10% Puffer: ~ 7*2.5*1.1
 // The battery will charge if both battery voltage is below that value and charging current is above that value.
 #define BAT_FULL_VOLTAGE  29.4  // start mowing again at this voltage
 #define BAT_FULL_CURRENT  -0.1   // start mowing again below this charging current (amps)
