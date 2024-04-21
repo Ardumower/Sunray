@@ -103,8 +103,16 @@ For Raspberry PI, you may have to adjust the serial path for the Alfred MCU UART
 ```
 #define SERIAL_ROBOT_PATH "/dev/ttyS0" 
 ```
-You can find out the correct UART serial path using: 'dmesg | grep uart'.
-
+You can find out the correct UART serial path using: 'dmesg | grep uart'. NOTE: you may have to stop running services accessing the UART serial path:
+```
+# find out processes accessing the UART serial path:
+sudo lsof /dev/ttyS0
+# list all running services:
+sudo systemctl list-units --type=service --state=running
+# stopping/disabling service
+sudo systemctl stop serial-getty@ttyS0.service
+sudo systemctl disable serial-getty@ttyS0.service
+```
 ## How to use more robust Bit-bangling-based instead ARM-based I2C driver on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
 The Raspberry CPU-based I2C driver has certain issues (e.g. missing clock stretching for BNO055, missing SCL recovery in noisy environment etc.) You can switch from the Raspberry ARM-I2C-driver to a more robust software-based driver (aka 'bit-bangling') like this:
 1. Run 'sudo raspi-config' and disable the ARM I2C driver
