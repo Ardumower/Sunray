@@ -1,3 +1,0 @@
-/home/alex/Sunray/python/build/CMakeFiles/rebuild_cache.dir
-/home/alex/Sunray/python/build/CMakeFiles/edit_cache.dir
-/home/alex/Sunray/python/build/CMakeFiles/pysunray.dir
