@@ -125,6 +125,9 @@ sudo i2cdetect -y 1
 ## How to compile 'OpenOCD' on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
 OpenOCD is used to flash the Alfred MCU firmware via GPIO interface (SWD emulation). Run this in your 'pi' home folder. The compiled binary ('openocd') can be found in folder 'src'. The binary will be called by the flash script ('~/sunray_install/flash.sh') to flash the Alfred MCU firmware. 
 ```
+sudo apt-get -y install libusb-1.0-0
+sudo apt-get -y install libusb-1.0-0-dev
+sudo apt-get -y install pkg-config
 sudo apt-get -y install libtool
 git clone --recursive https://github.com/lupyuen/openocd-spi
 cd openocd-spi
