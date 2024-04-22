@@ -20,6 +20,7 @@ project(pysunray)
 add_definitions(-DNO_MAIN)
 add_definitions(-DBLE_PROTOCOL_DABBLE)
 ## add_definitions(-DBLE_PROTOCOL_SUNRAY)
+## add_definitions(-DCUSTOM_SETTINGS -DINCLUDE_GAMEPAD_MODULE)
 
 
 ## enable_language(C)
@@ -71,7 +72,7 @@ message("CMAKE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR}")
 
 
 
-file(GLOB_RECURSE sunray_cpp ${FIRMWARE_PATH}/**.cpp)
+file(GLOB_RECURSE sunray_cpp ${FIRMWARE_PATH}/**.cpp dabble/**.cpp)
 list(FILTER sunray_cpp EXCLUDE REGEX ${EXCLUDE_REGEX})
 message("---sunray_cpp---")
 foreach (filename ${sunray_cpp})

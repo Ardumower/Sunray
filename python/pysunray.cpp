@@ -11,6 +11,7 @@
 #include <pybind11/pybind11.h>
 //#include <pybind11/eigen.h>
 #include "BleUartServer.h"
+#include "dabble/DabbleESP32.h"
 #include "robot.h"
 
 namespace py = pybind11;
@@ -73,11 +74,42 @@ PYBIND11_MODULE(pysunray, m) {
     //.def_readonly("v_gamma", &MyClass::v_gamma, byref)
     ;
 
+    py::class_<ModuleParent>(m, "ModuleParent")
+    ;
+
+    py::class_<DabbleClass>(m, "DabbleClass")
+    .def(py::init<>())  
+    .def("begin", &DabbleClass::begin)   
+    .def("processInput", &DabbleClass::processInput)   
+    //.def_readonly("v_data", &MyClass::v_data, byref)
+    //.def_readonly("v_gamma", &MyClass::v_gamma, byref)
+    ;
+
+    py::class_<GamePadModule, ModuleParent>(m, "GamePadModule")
+    .def(py::init<>())  
+    .def("isUpPressed", &GamePadModule::isUpPressed)    
+    .def("isDownPressed", &GamePadModule::isDownPressed)
+    .def("isLeftPressed", &GamePadModule::isLeftPressed)
+    .def("isRightPressed", &GamePadModule::isRightPressed)
+    .def("isSquarePressed", &GamePadModule::isSquarePressed)
+    .def("isCirclePressed", &GamePadModule::isCirclePressed)
+    .def("isCrossPressed", &GamePadModule::isCrossPressed)
+    .def("isTrianglePressed", &GamePadModule::isTrianglePressed)
+    .def("isStartPressed", &GamePadModule::isStartPressed)
+    .def("getAngle", &GamePadModule::getAngle)
+    .def("getRadius", &GamePadModule::getRadius)
+    .def("getXaxisData", &GamePadModule::getXaxisData)
+    .def("getYaxisData", &GamePadModule::getYaxisData)
+    ;
+
 
     // globals
     m.attr("_motor") = &motor;
     m.attr("_SerialBLE") = &SerialBLE;
     m.attr("_robotDriver") = &robotDriver;
+    m.attr("_Dabble") = &Dabble;
+    m.attr("_GamePad") = &GamePad;
+
 }
 
 

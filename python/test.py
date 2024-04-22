@@ -15,25 +15,34 @@ import time
 import pysunray as sun
 
 print('--------------start------------')
-time.sleep(2.0)
+#time.sleep(2.0)
 
 #ble = sun.BleUartServer()
 ble = sun._SerialBLE
-ble.begin(115200)
+#ble.begin(115200)
+dabble = sun._Dabble
+gamepad = sun._GamePad
 
 mot = sun._motor
 driver = sun._robotDriver
 driver.begin()
 
+dabble.begin('test')
+
+
 while True:
-    if ble.available():
+    '''if ble.available():
         s = ''
         while ble.available():
             s +=chr(ble.read())
-        print(s)
+        print(s)'''
+    
+    dabble.processInput() 
+    if (gamepad.isUpPressed()):
+        print('isUpPressed')
 
     #print('.')
-    time.sleep(0.1)
+    time.sleep(0.01)
 
     mot.setLinearAngularSpeed(0, 0, True)
     driver.run()

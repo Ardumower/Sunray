@@ -50,7 +50,12 @@ LinuxCAN::LinuxCAN(){
 }
 
 bool LinuxCAN::begin(){  
-   	if ((sock = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
+   	#ifndef __arm__
+		sock = -1;
+		Serial.println("ERROR starting CAN socket (disabled on non-ARM systems)");
+		return false;
+	#endif 
+	if ((sock = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
 		perror("ERROR starting CAN socket");
 		return false;
 	}
@@ -66,6 +71,7 @@ bool LinuxCAN::begin(){
 
 	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		perror("ERROR binding CAN socket");
+		sock = 0;
 		return false;
 	}
 
@@ -141,7 +147,9 @@ bool LinuxCAN::run(){
 }
 
 bool LinuxCAN::write(can_frame_t frame){
-  	struct can_frame fr; 
+  	if (sock < 0) return false; 
+	//Serial.println("LinuxCAN::write");
+	struct can_frame fr; 
 	fr.can_id = frame.can_id;
 	fr.can_dlc = frame.can_dlc;
 	for (int i=0; i < 8; i++) fr.data[i] = frame.data[i]; 
@@ -156,6 +164,7 @@ bool LinuxCAN::write(can_frame_t frame){
 
 
 bool LinuxCAN::close(){
+	if (socket < 0) return false;
 	if (::close(sock) < 0) {
 			perror("ERROR closing CAN socket");
 			return false;
