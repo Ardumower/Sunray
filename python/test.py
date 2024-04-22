@@ -17,16 +17,17 @@ import pysunray as sun
 print('--------------start------------')
 #time.sleep(2.0)
 
-#ble = sun.BleUartServer()
-ble = sun._SerialBLE
-#ble.begin(115200)
+# Dabble App
 dabble = sun._Dabble
 gamepad = sun._GamePad
 
+#ble = sun.BleUartServer()
+ble = sun._SerialBLE
 mot = sun._motor
 driver = sun._robotDriver
-driver.begin()
 
+#ble.begin(115200)
+driver.begin()
 dabble.begin('test')
 
 
