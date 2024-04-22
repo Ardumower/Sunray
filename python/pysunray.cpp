@@ -47,9 +47,11 @@ PYBIND11_MODULE(pysunray, m) {
     
     // motor
     py::class_<Motor>(m, "Motor")
-    .def(py::init<>())
-    .def("begin", &Motor::begin)         
+    .def(py::init<>())    
+    .def("begin", &Motor::begin)
+    .def("run", &Motor::run)             
     .def("setLinearAngularSpeed", &Motor::setLinearAngularSpeed)         
+    .def("setMowState", &Motor::setMowState)         
     ;
 
     

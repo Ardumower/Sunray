@@ -10,6 +10,7 @@
 #  2. sudo /home/alex/miniconda3/envs/py38/bin/python test.py
 
 import sys
+import os
 sys.path.append("./build/")
 import time
 import pysunray as sun
@@ -30,6 +31,11 @@ driver = sun._robotDriver
 driver.begin()
 dabble.begin('test')
 
+toolOn = False
+maxSpeed = 0.5
+
+buttonTimeout = 0
+
 
 while True:
     '''if ble.available():
@@ -39,15 +45,37 @@ while True:
         print(s)'''
     
     dabble.processInput() 
-    if (gamepad.isUpPressed()):
-        print('isUpPressed')
+
+    x = gamepad.getXaxisData()
+    y = gamepad.getYaxisData()
+
+    if time.time() > buttonTimeout:
+        if gamepad.isUpPressed():
+            print('isUpPressed')
+        elif gamepad.isSquarePressed():
+            os.system('shutdown now')
+        elif gamepad.isCirclePressed():
+            toolOn = not toolOn
+            buttonTimeout = time.time() + 0.5
+        elif gamepad.isCrossPressed():
+            maxSpeed = 0.5
+        elif gamepad.isTrianglePressed():
+            maxSpeed = 1.0
+
+    
+    linearSpeed = y / 6.0 * 0.2
+    angularSpeed = x / 6.0 * 0.1 
+
+    print('x', round(x, 1), 'y', round(y, 1), toolOn)
+
+    mot.setLinearAngularSpeed(linearSpeed, angularSpeed, True)
+    mot.setMowState(toolOn);   
+    mot.run()
+
+    driver.run()
 
     #print('.')
     time.sleep(0.01)
 
-    mot.setLinearAngularSpeed(0, 0, True)
-    driver.run()
-
-    
 
 
