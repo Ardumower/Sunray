@@ -18,6 +18,9 @@ cmake_minimum_required(VERSION 3.7)
 project(pysunray)
 
 add_definitions(-DNO_MAIN)
+add_definitions(-DBLE_PROTOCOL_DABBLE)
+## add_definitions(-DBLE_PROTOCOL_SUNRAY)
+
 
 ## enable_language(C)
 ## enable_language(CXX)
