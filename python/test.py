@@ -40,7 +40,7 @@ maxAngularSpeed = 0.1
 
 buttonTimeout = 0
 nextInfoTime = 0
-
+loopsPerSec = 0
 
 # main loop
 while True:
@@ -92,9 +92,10 @@ while True:
 
     # print values to console
     if time.time() > nextInfoTime:
-        nextInfoTime = time.time() + 0.5        
-        print('linearSpeed', round(linearSpeed, 2), 'angularSpeed', round(angularSpeed, 2), 
+        nextInfoTime = time.time() + 1.0        
+        print('f=', loopsPerSec, 'linearSpeed', round(linearSpeed, 3), 'angularSpeed', round(angularSpeed, 3), 
               'toolOn', toolOn, 'x', round(x, 1), 'y', round(y, 1))
+        loopsPerSec = 0
 
     # send speeds to motor
     mot.setLinearAngularSpeed(linearSpeed, angularSpeed, True)
@@ -102,8 +103,10 @@ while True:
     mot.run()
     driver.run()
 
+    loopsPerSec += 1
+
     #print('.')
-    time.sleep(0.01)
+    #time.sleep(0.001)
 
 
 

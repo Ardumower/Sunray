@@ -46,6 +46,7 @@ void CanRobotDriver::begin(){
   cmdSummaryResponseCounter = 0;
   cmdMotorCounter = 0;
   cmdSummaryCounter = 0;
+  consoleCounter = 0;
   requestLeftPwm = requestRightPwm = requestMowPwm = 0;
   robotID = "XX";
   ledStateWifiInactive = false;
@@ -253,7 +254,12 @@ void CanRobotDriver::run(){
   }
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;  // 1 hz    
-    if (true){
+    bool printConsole = false;
+    if (consoleCounter == 10){
+      printConsole = true;
+      consoleCounter = 0;
+    }
+    if (printConsole){
       CONSOLE.print("CAN: tx=");
       CONSOLE.print(can.frameCounterTx);
       CONSOLE.print(" rx=");
@@ -292,6 +298,7 @@ void CanRobotDriver::run(){
       }
     }     
     cmdMotorCounter=cmdMotorResponseCounter=cmdSummaryCounter=cmdSummaryResponseCounter=0;    
+    consoleCounter++;
   }  
   if (millis() > nextLedTime){
     nextLedTime = millis() + 3000;  // 3 sec

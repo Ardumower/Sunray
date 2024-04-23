@@ -159,6 +159,7 @@ class CanRobotDriver: public RobotDriver {
     unsigned long nextTempTime;
     unsigned long nextWifiTime;
     unsigned long nextLedTime;
+    int consoleCounter;
     int cmdMotorCounter;
     int cmdSummaryCounter;
     int cmdMotorResponseCounter;
