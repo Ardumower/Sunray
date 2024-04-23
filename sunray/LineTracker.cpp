@@ -73,6 +73,8 @@ void trackLine(bool runControl){
     //angleToTargetFits = true;
   }
 
+  if (!angleToTargetFits) CONSOLE.println("!angleToTargetFits");
+
   if (!angleToTargetFits){
     // angular control (if angle to far away, rotate to next waypoint)
     linear = 0;
@@ -117,13 +119,18 @@ void trackLine(bool runControl){
        ) 
     {
       linear = 0.1; // reduce speed when approaching/leaving waypoints          
+      //CONSOLE.println("SLOW: approach")
     } 
     else {
-      if (gps.solution == SOL_FLOAT)        
+      if (gps.solution == SOL_FLOAT){        
         linear = min(setSpeed, 0.1); // reduce speed for float solution
-      else
+        //CONSOLE.println("SLOW: float");
+      } else
         linear = setSpeed;         // desired speed
-      if (sonar.nearObstacle()) linear = 0.1; // slow down near obstacles
+      if (sonar.nearObstacle()) {
+        linear = 0.1; // slow down near obstacles
+        //CONSOLE.println("SLOW: sonar");      
+      }
     }      
     // slow down speed in case of overload and overwrite all prior speed 
     if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
@@ -132,6 +139,7 @@ void trackLine(bool runControl){
       }
       printmotoroverload = true;
       linear = 0.1;  
+      //CONSOLE.println("SLOW: overload");
     } else {
       printmotoroverload = false;
     }   
