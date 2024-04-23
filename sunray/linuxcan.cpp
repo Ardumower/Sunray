@@ -50,11 +50,11 @@ LinuxCAN::LinuxCAN(){
 }
 
 bool LinuxCAN::begin(){  
-   	#ifndef __arm__
+   	/*#ifndef __arm__
 		sock = -1;
 		Serial.println("ERROR starting CAN socket (disabled on non-ARM systems)");
 		return false;
-	#endif 
+	#endif*/ 
 	if ((sock = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
 		perror("ERROR starting CAN socket");
 		return false;
