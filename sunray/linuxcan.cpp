@@ -164,7 +164,7 @@ bool LinuxCAN::write(can_frame_t frame){
 
 
 bool LinuxCAN::close(){
-	if (socket < 0) return false;
+	if (sock < 0) return false;
 	if (::close(sock) < 0) {
 			perror("ERROR closing CAN socket");
 			return false;
