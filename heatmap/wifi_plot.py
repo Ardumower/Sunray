@@ -39,8 +39,8 @@ heatPingAvg = heat_image_cv.HeatImageCV('ping_avg', 0, 3, 'sec pingTimeAvg', cv2
 heatPingMax = heat_image_cv.HeatImageCV('ping_max', 0, 5, 'sec pingTimeMax', cv2.COLORMAP_JET, False)  #  ping time (0 good ... 10 bad)
 heatAP = heat_image_cv.HeatImageCV('ap', 0, 20, 'access point', None, True)  #  access points (0..30) 
 heatGPS = heat_image_cv.HeatImageCV('gps', 0, 3, ['gps invalid', 'gps float', 'gps fix'], None, True)  #  GPS solution (0..30) 
-heatNumSV = heat_image_cv.HeatImageCV('sv', 0, 60, '#SV', cv2.COLORMAP_JET, False)  #  number satellites (0 bad ... 50 good)
-heatNumDSV = heat_image_cv.HeatImageCV('dsv', 0, 60, '#DSV', cv2.COLORMAP_JET, False)  #  number DGPS satellites (0 bad ... 50 good)
+heatNumSV = heat_image_cv.HeatImageCV('gps_sv', 20, 50, '#SV', cv2.COLORMAP_JET, False)  #  number satellites (0 bad ... 50 good)
+heatNumDSV = heat_image_cv.HeatImageCV('gps_dsv', 20, 50, '#DSV', cv2.COLORMAP_JET, False)  #  number DGPS satellites (0 bad ... 50 good)
 
 
 data = None  
@@ -112,7 +112,7 @@ def analyseLog():
         robotY = float(robotY)
         robotGpsSol = int(robotGpsSol)
         gpsNumSV = int(gpsNumSV)
-        gpsNumSVdpgs = int(gpsNumSVdpgs)        
+        gpsNumSVdgps = int(gpsNumSVdgps)        
         signalLevelAvg = float(signalLevelAvg)
         signalLevelMin = float(signalLevelMin)
         signalLevelMax = float(signalLevelMax)
