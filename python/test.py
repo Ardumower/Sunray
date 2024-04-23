@@ -18,7 +18,7 @@ import pysunray as sun
 print('--------------start------------')
 #time.sleep(2.0)
 
-# Dabble App
+# connect to Dabble App
 dabble = sun._Dabble
 gamepad = sun._GamePad
 
@@ -31,12 +31,16 @@ driver = sun._robotDriver
 driver.begin()
 dabble.begin('test')
 
+# some default values
 toolOn = False
-maxSpeed = 0.5
+maxLinearSpeed = 0.1
+maxAngularSpeed = 0.1
 
 buttonTimeout = 0
+nextInfoTime = 0
 
 
+# main loop
 while True:
     '''if ble.available():
         s = ''
@@ -44,34 +48,56 @@ while True:
             s +=chr(ble.read())
         print(s)'''
     
+    # get gamepad input
     dabble.processInput() 
 
+    # get gamepad analog values (x, y)
     x = gamepad.getXaxisData()
     y = gamepad.getYaxisData()
 
-    if time.time() > buttonTimeout:
-        if gamepad.isUpPressed():
-            print('isUpPressed')
-        elif gamepad.isSquarePressed():
-            os.system('shutdown now')
-        elif gamepad.isCirclePressed():
-            toolOn = not toolOn
-            buttonTimeout = time.time() + 0.5
-        elif gamepad.isCrossPressed():
-            maxSpeed = 0.5
-        elif gamepad.isTrianglePressed():
-            maxSpeed = 1.0
+    # decide the motor speed to send based on digital input buttons
+    if gamepad.isUpPressed():
+        linearSpeed = maxLinearSpeed
+        angularSpeed = 0
+    elif gamepad.isDownPressed():
+        linearSpeed = -maxLinearSpeed
+        angularSpeed = 0            
+    elif gamepad.isLeftPressed():
+        linearSpeed = 0
+        angularSpeed = maxAngularSpeed        
+    elif gamepad.isRightPressed():
+        linearSpeed = 0
+        angularSpeed = -maxAngularSpeed        
+    else:
+        # no gamepad direction (up/down/left/right) button pressed => use analog values (x, y)
+        if time.time() > buttonTimeout:    
+            if gamepad.isSquarePressed():
+                print('isSquarePressed - shutdown system...')
+                os.system('shutdown now')
+            elif gamepad.isCirclePressed():
+                print('isCirclePressed')
+                toolOn = not toolOn
+                buttonTimeout = time.time() + 0.5
+            elif gamepad.isCrossPressed():
+                print('isCrossPressed')
+                maxLinearSpeed = 0.1
+            elif gamepad.isTrianglePressed():
+                print('isTrianglePressed')                
+                maxLinearSpeed = 0.2
 
-    
-    linearSpeed = y / 6.0 * 0.2
-    angularSpeed = x / 6.0 * 0.1 
+        linearSpeed = y / 6.0 * maxLinearSpeed
+        angularSpeed = x / 6.0 * maxAngularSpeed 
 
-    print('x', round(x, 1), 'y', round(y, 1), toolOn)
+    # print values to console
+    if time.time() > nextInfoTime:
+        nextInfoTime = time.time() + 0.5        
+        print('linearSpeed', round(linearSpeed, 2), 'angularSpeed', round(angularSpeed, 2), 
+              'toolOn', toolOn, 'x', round(x, 1), 'y', round(y, 1))
 
+    # send speeds to motor
     mot.setLinearAngularSpeed(linearSpeed, angularSpeed, True)
     mot.setMowState(toolOn);   
     mot.run()
-
     driver.run()
 
     #print('.')
