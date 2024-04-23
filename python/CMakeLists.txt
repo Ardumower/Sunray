@@ -1,7 +1,9 @@
 #
 # Compiles Sunray Python wrapper for Raspberry pi
 #
-#  install pybind11 with:  pip install "pybind11[global]"
+#  install pybind11 with:  
+#     sudo apt install pybind11-dev 
+#     pip install "pybind11[global]"
 #
 #  cmake .. 
 #  cmake -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ ..

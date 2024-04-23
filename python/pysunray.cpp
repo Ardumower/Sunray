@@ -1,6 +1,8 @@
 // Python wrappers for Sunray
 
-// install pybind11 with:  pip install "pybind11[global]"
+//  install pybind11 with:  
+//     sudo apt install pybind11-dev 
+//     pip install "pybind11[global]"
 
 // to run the python interpreter as sudo:
 //  1. which python  =>    /home/alex/miniconda3/envs/py38/bin/python
