@@ -11,7 +11,8 @@
 #  1. which python  =>    /home/alex/miniconda3/envs/py38/bin/python
 #  2. sudo /home/alex/miniconda3/envs/py38/bin/python test.py
 #
-# NOTE: this demo uses the Sunray framework to control motors, so you need to ensure the following is set correctly in 'sunray/config.h':
+# NOTE: this demo uses the Sunray framework (Sunray motor speed control, drivers etc.) to control motors, 
+#  so you need to ensure the following is set correctly in 'sunray/config.h':
 #  1. #define DRV_CAN_ROBOT  1                // Linux (owlRobotics platform)
 #  2. #define TICKS_PER_REVOLUTION  975       // odometry ticks per wheel revolution (owlRobotics platform)
 #  3. #define MOTOR_LEFT_SWAP_DIRECTION 1     // uncomment to swap left motor direction
