@@ -27,16 +27,19 @@ gamepad = sun._GamePad
 #ble = sun.BleUartServer()
 ble = sun._SerialBLE
 mot = sun._motor
-driver = sun._robotDriver
+robotDriver = sun._robotDriver
+motorDriver = sun._motorDriver
 
 #ble.begin(115200)
-driver.begin()
+robotDriver.begin()
+motorDriver.begin()
+mot.begin()
 dabble.begin('test')
 
 # some default values
 toolOn = False
 maxLinearSpeed = 0.1
-maxAngularSpeed = 0.1
+maxAngularSpeed = 0.5
 
 buttonTimeout = 0
 nextInfoTime = 0
@@ -101,7 +104,8 @@ while True:
     mot.setLinearAngularSpeed(linearSpeed, angularSpeed, True)
     mot.setMowState(toolOn);   
     mot.run()
-    driver.run()
+    robotDriver.run()
+    motorDriver.run()
 
     loopsPerSec += 1
 

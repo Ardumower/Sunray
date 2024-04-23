@@ -33,11 +33,19 @@ PYBIND11_MODULE(pysunray, m) {
     py::class_<RobotDriver>(m, "RobotDriver")
     ;
 
+    py::class_<MotorDriver>(m, "MotorDriver")
+    ;
+
     // SerialRobotDriver
     py::class_<SerialRobotDriver, RobotDriver>(m, "SerialRobotDriver")    
     .def(py::init<>())  
     .def("begin", &SerialRobotDriver::begin)         
     .def("run", &SerialRobotDriver::run)         
+    ;
+
+    py::class_<SerialMotorDriver, MotorDriver>(m, "SerialMotorDriver")    
+    .def("begin", &SerialMotorDriver::begin)         
+    .def("run", &SerialMotorDriver::run)         
     ;
 
     // CanRobotDriver
@@ -47,6 +55,12 @@ PYBIND11_MODULE(pysunray, m) {
     .def("run", &CanRobotDriver::run)         
     ;
     
+    py::class_<CanMotorDriver, MotorDriver>(m, "CanMotorDriver")    
+    .def("begin", &CanMotorDriver::begin)         
+    .def("run", &CanMotorDriver::run)         
+    ;
+
+
     // motor
     py::class_<Motor>(m, "Motor")
     .def(py::init<>())    
@@ -111,6 +125,7 @@ PYBIND11_MODULE(pysunray, m) {
     m.attr("_motor") = &motor;
     m.attr("_SerialBLE") = &SerialBLE;
     m.attr("_robotDriver") = &robotDriver;
+    m.attr("_motorDriver") = &motorDriver;    
     m.attr("_Dabble") = &Dabble;
     m.attr("_GamePad") = &GamePad;
 
