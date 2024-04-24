@@ -6,8 +6,8 @@ import time
 
 
 ROBOT_CON_PASS = "123456" # robot connection password
-ROBOT_HOST = "192.168.2.56" # some remote machine
-#ROBOT_HOST = "127.0.0.1"  # local host
+#ROBOT_HOST = "192.168.2.56" # some remote machine
+ROBOT_HOST = "127.0.0.1"  # local host
 ROBOT_PORT = 80  # The port used by the robot HTTP server
 URL = 'http://' + ROBOT_HOST + ':' + str(ROBOT_PORT)
 DEBUG = False
