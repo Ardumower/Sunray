@@ -3,11 +3,15 @@
 import socket
 import requests
 import time
+import os 
 
 
 ROBOT_CON_PASS = "123456" # robot connection password
-#ROBOT_HOST = "192.168.2.56" # some remote machine
-ROBOT_HOST = "127.0.0.1"  # local host
+if "ROBOT_HTTP_IP" in os.environ:
+    ROBOT_HOST = os.environ["ROBOT_HTTP_IP"]
+else:
+    #ROBOT_HOST = "192.168.2.56" # some remote machine
+    ROBOT_HOST = "127.0.0.1"  # local host
 ROBOT_PORT = 80  # The port used by the robot HTTP server
 URL = 'http://' + ROBOT_HOST + ':' + str(ROBOT_PORT)
 DEBUG = False
