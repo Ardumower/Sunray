@@ -7,8 +7,8 @@ import os
 
 
 ROBOT_CON_PASS = "123456" # robot connection password
-if "ROBOT_HTTP_IP" in os.environ:
-    ROBOT_HOST = os.environ["ROBOT_HTTP_IP"]
+if "ROBOT_HOST_IP" in os.environ:
+    ROBOT_HOST = os.environ["ROBOT_HOST_IP"]
 else:
     #ROBOT_HOST = "192.168.2.56" # some remote machine
     ROBOT_HOST = "127.0.0.1"  # local host
