@@ -5,6 +5,7 @@
 2. [Sunray for Ardumower](#sunray_ardumower)
 3. [Sunray for Alfred](#sunray_alfred)
 4. [Sunray Simulator](#sunray_sim)
+5. [Further topics](#further_topics)
    
 
 ## Description <a name="description"></a>
@@ -217,5 +218,9 @@ for _ in `seq 1 30`; do
   sleep 2.0    
 done;
 ```
+
+## Further topics <a name="further_topics"></a>
+Generating robot heatmaps (WiFi/GPS signal quality etc.):
+https://forum.ardumower.de/threads/advanced-topic-generate-wifi-gps-heatmaps-with-sunray-on-alfred-or-ardumower-with-connected-raspberry-pi.25078/
 
 
