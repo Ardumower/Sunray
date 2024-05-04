@@ -81,6 +81,7 @@ void loop(){
       gps.relPosN = y;
       gps.relPosE = x;
       gps.relPosD = z;
+      gps.solution = SOL_FIXED;
     } 
 
     // https://stackoverflow.com/questions/23227024/difference-between-spin-and-rate-sleep-in-ros
