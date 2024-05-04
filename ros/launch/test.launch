@@ -1,0 +1,8 @@
+<launch>
+
+	
+	<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen">
+	</node>
+
+
+</launch>

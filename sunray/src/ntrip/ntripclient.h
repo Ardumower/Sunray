@@ -6,7 +6,7 @@
 #include <BridgeClient.h>
   //#include <WiFiClient.h>
 #include <Arduino.h>
-#include <base64.h>
+#include "base64.h"
 
 // TODO: should not extend WiFiClient to make it reusable
 class NTRIPClient : public WiFiClient{
