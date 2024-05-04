@@ -75,6 +75,11 @@ void loop(){
       float y = transform.getOrigin().y();
       float z = transform.getOrigin().z();    
       ROS_INFO("x=%.2f  y=%.2f  z=%.2f", x, y, z);
+
+      // let the magic happen (here we transfer ROS localization into Sunray GPS localization) 
+      gps.relPosN = y;
+      gps.relPosE = x;
+      gps.relPosD = z;
     } 
 
     // https://stackoverflow.com/questions/23227024/difference-between-spin-and-rate-sleep-in-ros
