@@ -78,8 +78,8 @@ void loop(){
       ROS_INFO("x=%.2f  y=%.2f  z=%.2f", x, y, z);
 
       // let the magic happen (here we transfer ROS localization into Sunray GPS localization) 
-      gps.relPosN = y;
-      gps.relPosE = x;
+      gps.relPosN = x;
+      gps.relPosE = -y;
       gps.relPosD = z;
       gps.solution = SOL_FIXED;
     } 
