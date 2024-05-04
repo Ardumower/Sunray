@@ -36,6 +36,7 @@
 #include "gps.h"
 #include "src/ublox/ublox.h"
 #include "src/skytraq/skytraq.h"
+#include "src/lidar/lidar.h"
 #include "helper.h"
 #include "buzzer.h"
 #include "rcmodel.h"
@@ -108,6 +109,8 @@ Battery battery;
 PinManager pinMan;
 #ifdef DRV_SIM_ROBOT
   SimGpsDriver gps(robotDriver);
+#elif GPS_LIDAR
+  LiDAR gps;
 #elif GPS_SKYTRAQ
   SKYTRAQ gps;
 #else 

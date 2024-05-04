@@ -28,6 +28,7 @@
 #include "map.h"   
 #include "src/ublox/ublox.h"
 #include "src/skytraq/skytraq.h"
+#include "src/lidar/lidar.h"
 #ifdef __linux__
   #include <BridgeClient.h>
   #include "src/ntrip/ntripclient.h"
@@ -166,6 +167,8 @@ extern Map maps;
 extern TimeTable timetable;
 #ifdef DRV_SIM_ROBOT
   extern SimGpsDriver gps;
+#elif GPS_LIDAR
+  extern LiDAR gps;
 #elif GPS_SKYTRAQ
   extern SKYTRAQ gps;
 #else

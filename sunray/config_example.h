@@ -319,6 +319,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 //#define GPS_USE_TCP 1                    // comment out for serial gps, activate for TCP client-based GPS
 //#define GPS_SKYTRAQ  1               // comment out for ublox gps, uncomment for skytraq gps/NMEA
+// #define GPS_LIDAR 1                    // decomment for LiDAR
 
 #define REQUIRE_VALID_GPS  true       // mower will pause if no float and no fix GPS solution during mowing (recommended)
 //#define REQUIRE_VALID_GPS  false    // mower will continue to mow if no float or no fix solution (not recommended)
