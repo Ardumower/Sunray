@@ -4,7 +4,7 @@
     <description>
       This package provides foo capability.
     </description>
-    <maintainer email="foo@foo">Foo</maintainer>
+    <maintainer email="foo@willowgarage.com">Foo</maintainer>
     <license>BSD</license>    
     
     <buildtool_depend>catkin</buildtool_depend>
