@@ -56,6 +56,7 @@ void loop(){
     if (ros::ok()) {
     double tim = ros::Time::now().toSec(); 
 
+    // lookup ROS localization (mathematically, a frame transformation) 
     tf::StampedTransform transform;
     try{
         //  http://wiki.ros.org/tf/Tutorials/Time%20travel%20with%20tf%20%28C%2B%2B%29
