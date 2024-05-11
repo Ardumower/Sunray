@@ -94,11 +94,13 @@ sudo ./flash.sh
 2. Choose 'Build+Flash NGP firmware (Sunray-compatible)'
 
 
-## How to compile 'Sunray for Alfred' on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
+## How to compile 'Sunray for Alfred' on a Raspberry PI (OS Lite 64 bit, Debian Bookworm)
 Before running above commands, install required libs:
 ```
-sudo apt-get -y install cmake
-sudo apt-get -y install libbluetooth-dev
+sudo apt-get update && sudo apt-get upgarde -y
+sudo apt-get install -y
+sudo apt-get -y install cmake -y
+sudo apt-get -y install libbluetooth-dev -y
 ```
 For Raspberry PI, you may have to adjust the serial path for the Alfred MCU UART connection in 'alfred/config.h': 
 ```
