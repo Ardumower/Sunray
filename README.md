@@ -54,7 +54,7 @@ Run this on your Alfred Linux terminal:
 ```
 ## clone repository ##
 cd ~
-git clone https://github.com/Ardumower/Sunray.git
+git clone -b dev --single-branch  https://github.com/Novus4K/Sunray.git
 
 ## compile sunray (NOTE: 'make' will always copy config.h in current makefile folder into Sunray source folder) ##
 cd ~/Sunray/alfred/build
