@@ -5,7 +5,8 @@
 2. [Sunray for Ardumower](#sunray_ardumower)
 3. [Sunray for Alfred](#sunray_alfred)
 4. [Sunray Simulator](#sunray_sim)
-5. [Further topics](#further_topics)
+5. [alternative user interface](#CaSSAndRA)
+6. [Further topics](#further_topics)
    
 
 ## Description <a name="description"></a>
@@ -97,8 +98,8 @@ sudo ./flash.sh
 ## How to compile 'Sunray for Alfred' on a Raspberry PI (OS Lite 64 bit, Debian Bookworm)
 Before running above commands, install required libs:
 ```
-sudo apt-get update && sudo apt-get upgarde -y
-sudo apt-get install -y
+sudo apt-get update && sudo apt-get upgrade -y
+sudo apt-get install git -y
 sudo apt-get -y install cmake -y
 sudo apt-get -y install libbluetooth-dev -y
 ```
@@ -220,6 +221,13 @@ for _ in `seq 1 30`; do
   sleep 2.0    
 done;
 ```
+## alternative user interface <a name="CaSSAndRA"></a>
+(Cascaded Sunray Server And Rover Application)
+https://github.com/EinEinfach/CaSSAndRA
+
+
+CaSSAndRA is a Python server application that allows you to control the Ardumower (or Alfred) with the Sunray firmware. The server application runs on a separate computer and can communicate with the Sunray firmware.
+
 
 ## Further topics <a name="further_topics"></a>
 Generating robot heatmaps (WiFi/GPS signal quality etc.):
