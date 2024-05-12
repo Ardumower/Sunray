@@ -73,7 +73,7 @@ void trackLine(bool runControl){
     //angleToTargetFits = true;
   }
 
-  if (!angleToTargetFits) CONSOLE.println("!angleToTargetFits");
+  //if (!angleToTargetFits) CONSOLE.println("!angleToTargetFits");
 
   if (!angleToTargetFits){
     // angular control (if angle to far away, rotate to next waypoint)
