@@ -65,6 +65,7 @@ make
 
 ## install new sunray executable ##
 sudo systemctl stop sunray
+mkdir ~/sunray_install
 cp sunray ~/sunray_install/
 sudo systemctl start sunray
 ```
