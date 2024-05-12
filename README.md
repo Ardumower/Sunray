@@ -56,6 +56,8 @@ Run this on your Alfred Linux terminal (in your Alfred home folder):
 ## clone repository ##
 cd ~
 git clone -b dev --single-branch  https://github.com/Novus4K/Sunray.git
+cp -r ~/Sunray/sunray_install/ ~/
+sudo cp ~/sunray_install/config_files/sunray/sunray.service /etc/systemd/system/
 
 ## compile sunray (NOTE: 'make' will always copy config.h in current makefile folder into Sunray source folder) ##
 cd ~/Sunray/alfred/build
