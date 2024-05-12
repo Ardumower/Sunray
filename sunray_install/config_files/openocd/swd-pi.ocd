@@ -1,0 +1,43 @@
+
+# OpenOCD script for using Raspberry Pi as SWD Programmer for STM32
+
+# VSCode debugger searches this folder for OpenOCD scripts
+add_script_search_dir openocd/scripts
+
+# Select the Linux GPIO interface for Raspberry Pi (SWD transport)
+#interface bcm2835spi
+interface sysfsgpio
+
+# minimal swd setup
+# https://wiki.banana-pi.org/Banana_Pi_BPI-M4#GPIO_PIN_define
+# SWD banana-pi wiring:
+# CON1-P18 	SWDIO   GPIO-10  (raspi GPIO24)
+# CON1-P22 	SWCLK 	GPIO-47  (raspi GPIO25)
+# CON1-P16 	SRST2 	GPIO-11  (raspi GPIO23)  -- main MCU
+# CON1-P24 	SRST1 	GPIO-20  (raspi GPIO8)   -- perim MCU
+
+sysfsgpio_swdio_num 10
+sysfsgpio_swclk_num 47
+sysfsgpio_srst_num 11
+
+# Set the SPI speed in kHz
+#bcm2835spi_speed 31200  # 31.2 MHz
+#bcm2835spi_speed 500  # 31.2 MHz
+#bcm2835spi_speed 250  # 31.2 MHz
+
+transport select swd
+
+reset_config srst_only
+reset_config srst_nogate
+reset_config connect_assert_srst
+
+# Select STM32 as target
+#source [find target/stm32f0x.cfg]
+source [find target/stm32f1x.cfg]
+
+adapter_nsrst_delay 100
+adapter_nsrst_assert_width 100
+
+#init
+#targets
+#reset halt
