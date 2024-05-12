@@ -49,7 +49,7 @@ https://github.com/Ardumower/Sunray/releases
 NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' firmware. The code for all steps will require a Linux system (either the Alfred, a Raspberry PI or some PC).
 
 ## How to install code and compile 'Sunray for Alfred' (required only once)
-Run this on your Alfred Linux terminal:
+Run this on your Alfred Linux terminal (in your Alfred home folder):
 
 ```
 ## clone repository ##
@@ -76,6 +76,8 @@ git pull
 
 ## compile sunray (NOTE: 'make' will always copy config.h in current makefile folder into Sunray source folder) ##
 cd ~/Sunray/alfred/build
+rm -Rf *
+cmake ..
 make
 
 ## install new sunray executable ##
