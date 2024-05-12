@@ -685,8 +685,6 @@ void cmdStats(){
   s += ",";
   s += statMowImuNoRotationSpeedCounter;
   s += ",";
-  s += statMowGPSNoSpeedCounter;
-  s += ",";
   s += statMowRotationTimeoutCounter;
   cmdAnswer(s);  
 }
