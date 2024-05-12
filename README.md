@@ -76,6 +76,8 @@ git pull
 
 ## compile sunray (NOTE: 'make' will always copy config.h in current makefile folder into Sunray source folder) ##
 cd ~/Sunray/alfred/build
+rm -Rf *
+cmake ..
 make
 
 ## install new sunray executable ##
