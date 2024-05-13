@@ -165,16 +165,18 @@ void CanRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   canDataType_t data;
 
   data.floatVal = ((float)leftPwm) / 255.0;  
-  sendCanData(LEFT_MOTOR_NODE_ID, can_cmd_set, can_val_pwm_speed, data);  
-  sendCanData(LEFT_MOTOR_NODE_ID, can_cmd_request, can_val_odo_ticks, data);    
+  sendCanData(1, can_cmd_set, can_val_pwm_speed, data);  
+  sendCanData(4, can_cmd_set, can_val_pwm_speed, data);  
+  sendCanData(1, can_cmd_request, can_val_odo_ticks, data);    
   
   data.floatVal = ((float)rightPwm) / 255.0;    
-  sendCanData(RIGHT_MOTOR_NODE_ID, can_cmd_set, can_val_pwm_speed, data);
-  sendCanData(RIGHT_MOTOR_NODE_ID, can_cmd_request, can_val_odo_ticks, data);    
+  sendCanData(2, can_cmd_set, can_val_pwm_speed, data);
+  sendCanData(3, can_cmd_set, can_val_pwm_speed, data);  
+  sendCanData(2, can_cmd_request, can_val_odo_ticks, data);    
   
-  data.floatVal = ((float)mowPwm) / 255.0;  
-  sendCanData(MOW_MOTOR_NODE_ID, can_cmd_set, can_val_pwm_speed, data);
-  sendCanData(MOW_MOTOR_NODE_ID, can_cmd_request, can_val_odo_ticks, data);      
+  //data.floatVal = ((float)mowPwm) / 255.0;  
+  //sendCanData(MOW_MOTOR_NODE_ID, can_cmd_set, can_val_pwm_speed, data);
+  //sendCanData(MOW_MOTOR_NODE_ID, can_cmd_request, can_val_odo_ticks, data);      
 
   cmdMotorCounter++;
 }

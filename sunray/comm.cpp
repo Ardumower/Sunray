@@ -86,6 +86,18 @@ void cmdTuneParam(){
             case 3: 
               stanleyTrackingSlowK = floatValue;
               break;
+            case 4:
+              motor.motorLeftPID.Kp = floatValue;
+              motor.motorRightPID.Kp = floatValue;              
+              break;
+            case 5:
+              motor.motorLeftPID.Ki = floatValue;
+              motor.motorRightPID.Ki = floatValue;
+              break;
+            case 6:
+              motor.motorLeftPID.Kd = floatValue;
+              motor.motorRightPID.Kd = floatValue;              
+              break;
           } 
       } 
       counter++;

@@ -56,6 +56,8 @@ class Motor {
     float motorRightSenseLPNorm;
     unsigned long motorMowSpinUpTime;
     bool motorRecoveryState;    
+    PID motorLeftPID;
+    PID motorRightPID;        
     void begin();
     void run();      
     void test();
@@ -90,8 +92,6 @@ class Motor {
     unsigned long nextRecoverMotorFaultTime;
     int motorLeftTicksZero;    
     int motorRightTicksZero;    
-    PID motorLeftPID;
-    PID motorRightPID;        
     bool setLinearAngularSpeedTimeoutActive;
     unsigned long setLinearAngularSpeedTimeout;    
     void speedPWM ( int pwmLeft, int pwmRight, int pwmMow );
