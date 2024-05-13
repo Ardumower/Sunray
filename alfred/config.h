@@ -155,7 +155,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define MOTOR_PID_KD     0.01   // 0.01 do not change 0.03
 
 #define MOTOR_LEFT_SWAP_DIRECTION 1  // uncomment to swap left motor direction
-//#define MOTOR_RIGHT_SWAP_DIRECTION 1  // uncomment to swap right motor direction
+#define MOTOR_RIGHT_SWAP_DIRECTION 1  // uncomment to swap right motor direction
 
 
 // ----- mowing motor -------------------------------------------------
