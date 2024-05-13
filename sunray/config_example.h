@@ -135,6 +135,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // #define TICKS_PER_REVOLUTION  304     // odometry ticks per wheel revolution (RM18)
 //#define TICKS_PER_REVOLUTION  975     // odometry ticks per wheel revolution (owlRobotics platform)
+//#define TICKS_PER_REVOLUTION  90     // odometry ticks per wheel revolution (hoverboard motor)
 
 
 // ----- gear motors --------------------------------------------------
