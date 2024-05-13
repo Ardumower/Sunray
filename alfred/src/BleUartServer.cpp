@@ -158,7 +158,7 @@ static void msrmt_ccc_write_cb(struct gatt_db_attribute *attrib,
 	BleUartServer *server = (BleUartServer*)user_data;
 	pthread_mutex_lock( &server->rxMutex );  	
 	uint8_t ecode = 0;
-	::printf("BLE: msrmt_ccc_write_cb len=%d\n", (int)len);
+	//::printf("BLE: msrmt_ccc_write_cb len=%d\n", (int)len);
 	if (len == 2){
 		if (value[0] == 0x00){	  	
 			server->msrmt_enabled = false;
