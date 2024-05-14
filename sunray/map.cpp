@@ -1013,7 +1013,7 @@ bool Map::startMowing(float stateX, float stateY){
     Point src;
     Point dst;
     src.setXY(stateX, stateY);
-    if (wayMode == WAY_DOCK){
+    if ((wayMode == WAY_DOCK) && (dockPoints.numPoints > 0)) {
       src.assign(dockPoints.points[0]);
     } else {
       wayMode = WAY_FREE;      

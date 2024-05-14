@@ -7,7 +7,7 @@
 #define MOTOR_H
 
 #include "pid.h"
-
+#include "lowpass_filter.h"
 
 // selected motor
 enum MotorSelect {MOTOR_LEFT, MOTOR_RIGHT, MOTOR_MOW} ;
@@ -56,6 +56,10 @@ class Motor {
     float motorRightSenseLPNorm;
     unsigned long motorMowSpinUpTime;
     bool motorRecoveryState;    
+    PID motorLeftPID;
+    PID motorRightPID;    
+    LowPassFilter motorLeftLpf;
+    LowPassFilter motorRightLpf;        
     void begin();
     void run();      
     void test();
@@ -90,8 +94,6 @@ class Motor {
     unsigned long nextRecoverMotorFaultTime;
     int motorLeftTicksZero;    
     int motorRightTicksZero;    
-    PID motorLeftPID;
-    PID motorRightPID;        
     bool setLinearAngularSpeedTimeoutActive;
     unsigned long setLinearAngularSpeedTimeout;    
     void speedPWM ( int pwmLeft, int pwmRight, int pwmMow );

@@ -86,6 +86,22 @@ void cmdTuneParam(){
             case 3: 
               stanleyTrackingSlowK = floatValue;
               break;
+            case 4:
+              motor.motorLeftPID.Kp = floatValue;
+              motor.motorRightPID.Kp = floatValue;              
+              break;
+            case 5:
+              motor.motorLeftPID.Ki = floatValue;
+              motor.motorRightPID.Ki = floatValue;
+              break;
+            case 6:
+              motor.motorLeftPID.Kd = floatValue;
+              motor.motorRightPID.Kd = floatValue;              
+              break;
+            case 7:
+              motor.motorLeftLpf.Tf = floatValue;
+              motor.motorRightLpf.Tf = floatValue;              
+              break;
           } 
       } 
       counter++;
@@ -674,6 +690,18 @@ void cmdStats(){
   s += statMowGPSMotionTimeoutCounter;
   s += ",";
   s += statMowDurationMotorRecovery;
+  s += ",";
+  s += statMowLiftCounter;
+  s += ",";
+  s += statMowGPSNoSpeedCounter;  
+  s += ",";
+  s += statMowToFCounter;
+  s += ",";
+  s += statMowDiffIMUWheelYawSpeedCounter;
+  s += ",";
+  s += statMowImuNoRotationSpeedCounter;
+  s += ",";
+  s += statMowRotationTimeoutCounter;
   cmdAnswer(s);  
 }
 
@@ -703,6 +731,12 @@ void cmdClearStats(){
   statMowLiftCounter = 0;
   statMowGPSMotionTimeoutCounter = 0;
   statGPSJumps = 0;
+  statMowToFCounter = 0;
+  statMowDiffIMUWheelYawSpeedCounter = 0;
+  statMowImuNoRotationSpeedCounter = 0;
+  statMowGPSNoSpeedCounter = 0;
+  statMowRotationTimeoutCounter = 0;
+  statMowToFCounter = 0;
   cmdAnswer(s);  
 }
 

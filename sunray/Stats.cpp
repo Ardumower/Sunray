@@ -25,7 +25,13 @@ unsigned long statMowBumperCounter = 0;
 unsigned long statMowSonarCounter = 0;
 unsigned long statMowLiftCounter = 0;
 unsigned long statMowGPSMotionTimeoutCounter = 0;
+unsigned long statMowGPSNoSpeedCounter = 0;
+unsigned long statMowRotationTimeoutCounter = 0;
+unsigned long statMowImuNoRotationSpeedCounter = 0;
+unsigned long statMowDiffIMUWheelYawSpeedCounter = 0;
 unsigned long statGPSJumps = 0; // counter
+unsigned long statMowToFCounter = 0;
+
 float statTempMin = 9999; 
 float statTempMax = -9999; 
 float statMowMaxDgpsAge = 0; // seconds

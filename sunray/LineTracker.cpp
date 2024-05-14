@@ -10,6 +10,7 @@
 #include "helper.h"
 #include "pid.h"
 #include "src/op/op.h"
+#include "Stats.h"
 
 
 //PID pidLine(0.2, 0.01, 0); // not used
@@ -73,7 +74,7 @@ void trackLine(bool runControl){
     //angleToTargetFits = true;
   }
 
-  if (!angleToTargetFits) CONSOLE.println("!angleToTargetFits");
+  //if (!angleToTargetFits) CONSOLE.println("!angleToTargetFits");
 
   if (!angleToTargetFits){
     // angular control (if angle to far away, rotate to next waypoint)
@@ -180,6 +181,7 @@ void trackLine(bool runControl){
         //if ( (GPS_SPEED_DETECTION) && (!maps.isUndocking()) ) { 
         if (GPS_SPEED_DETECTION) {         
           CONSOLE.println("gps no speed => obstacle!");
+          statMowGPSNoSpeedCounter++;
           triggerObstacle();
           return;
         }

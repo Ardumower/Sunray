@@ -39,7 +39,7 @@
 #include "timetable.h"
 
 
-#define VER "Sunray,1.0.320"
+#define VER "Sunray,1.0.322"
 
 // operation types
 enum OperationType {
@@ -147,6 +147,8 @@ extern int motorErrorCounter;
 
 #ifdef DRV_SIM_ROBOT
   extern SimImuDriver imuDriver;
+#elif defined(GPS_LIDAR)
+  LidarImuDriver imuDriver;
 #elif defined(BNO055)
   extern BnoDriver imuDriver;  
 #elif defined(ICM20948)
@@ -168,7 +170,7 @@ extern TimeTable timetable;
 #ifdef DRV_SIM_ROBOT
   extern SimGpsDriver gps;
 #elif GPS_LIDAR
-  extern LiDAR gps;
+  extern LidarGpsDriver gps;
 #elif GPS_SKYTRAQ
   extern SKYTRAQ gps;
 #else

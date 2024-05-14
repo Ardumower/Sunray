@@ -9,7 +9,7 @@
 
 
 
-LiDAR::LiDAR()
+LidarGpsDriver::LidarGpsDriver()
 {
   iTOW = 0;
   numSV = 0;
@@ -40,35 +40,66 @@ LiDAR::LiDAR()
   dayOfWeek = 0; 
 }
 
-void LiDAR::begin(){
+void LidarGpsDriver::begin(){
   CONSOLE.println("using gps driver: LiDAR");    
   
 }
 
-void LiDAR::begin(HardwareSerial& bus,uint32_t baud)
+void LidarGpsDriver::begin(HardwareSerial& bus,uint32_t baud)
 {	
   CONSOLE.println("LiDAR::begin serial");
   begin();
 }
 
 /* starts the tcp communication */
-void LiDAR::begin(Client &client, char *host, uint16_t port)
+void LidarGpsDriver::begin(Client &client, char *host, uint16_t port)
 {
-  CONSOLE.println("LiDAR::begin tcp");
+  CONSOLE.println("LidarGpsDriver::begin tcp");
   begin();
 }
 
-bool LiDAR::configure(){  
+bool LidarGpsDriver::configure(){  
   CONSOLE.println("using LiDAR..."); 
   return true;
 }
 
-void LiDAR::reboot(){
+void LidarGpsDriver::reboot(){
   CONSOLE.println("reboot LiDAR..."); 
 }
 
-void LiDAR::run(){
+void LidarGpsDriver::run(){
 
 }
+
+// ---------------------------------------------------------
+
+
+LidarImuDriver::LidarImuDriver(){    
+}
+
+void LidarImuDriver::detect(){
+  imuFound = true;
+}
+
+
+bool LidarImuDriver::begin(){ 
+  return true;
+}
+
+
+void LidarImuDriver::run(){
+}
+
+
+bool LidarImuDriver::isDataAvail(){
+
+    return true;
+}         
+    
+void LidarImuDriver::resetData(){
+    
+}
+
+
 
 

@@ -60,6 +60,8 @@ const signed char orientationMatrix[9] = {
 
 #ifdef DRV_SIM_ROBOT
   SimImuDriver imuDriver(robotDriver);
+#elif defined(GPS_LIDAR)
+  LidarImuDriver imuDriver;
 #elif defined(BNO055)
   BnoDriver imuDriver;
 #elif defined(ICM20948)
@@ -110,7 +112,7 @@ PinManager pinMan;
 #ifdef DRV_SIM_ROBOT
   SimGpsDriver gps(robotDriver);
 #elif GPS_LIDAR
-  LiDAR gps;
+  LidarGpsDriver gps;
 #elif GPS_SKYTRAQ
   SKYTRAQ gps;
 #else 
@@ -770,6 +772,7 @@ bool detectObstacle(){
           //CONSOLE.println(avg);
           if (avg < TOF_OBSTACLE_CM * 10){
             CONSOLE.println("ToF obstacle!");    
+            statMowToFCounter++;
             triggerObstacle();                
             return true; 
           }
@@ -782,7 +785,8 @@ bool detectObstacle(){
     #ifdef LIFT_OBSTACLE_AVOIDANCE
       if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (liftDriver.triggered()) ) {
         CONSOLE.println("lift sensor obstacle!");    
-        statMowBumperCounter++;
+        //statMowBumperCounter++;
+        statMowLiftCounter++;
         triggerObstacle();    
         return true;
       }
@@ -797,9 +801,9 @@ bool detectObstacle(){
   }
   
   if (sonar.obstacle() && (maps.wayMode != WAY_DOCK)){
-    CONSOLE.println("sonar obstacle!");    
-    statMowSonarCounter++;
     if (SONAR_TRIGGER_OBSTACLES){
+      CONSOLE.println("sonar obstacle!");            
+      statMowSonarCounter++;
       triggerObstacle();
       return true;
     }        
@@ -840,6 +844,7 @@ bool detectObstacleRotation(){
   if (!OBSTACLE_DETECTION_ROTATION) return false; 
   if (millis() > angularMotionStartTime + 15000) { // too long rotation time (timeout), e.g. due to obstacle
     CONSOLE.println("too long rotation time (timeout) for requested rotation => assuming obstacle");
+    statMowRotationTimeoutCounter++;
     triggerObstacleRotation();
     return true;
   }
@@ -857,12 +862,14 @@ bool detectObstacleRotation(){
     if (millis() > angularMotionStartTime + 3000) {                  
       if (fabs(stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s yaw speed, e.g. due to obstacle
         CONSOLE.println("no IMU rotation speed detected for requested rotation => assuming obstacle");    
+        statMowImuNoRotationSpeedCounter++;
         triggerObstacleRotation();
         return true;      
       }
     }
     if (diffIMUWheelYawSpeedLP > 10.0/180.0 * PI) {  // yaw speed difference between wheels and IMU more than 8 degree/s, e.g. due to obstacle
       CONSOLE.println("yaw difference between wheels and IMU for requested rotation => assuming obstacle");            
+      statMowDiffIMUWheelYawSpeedCounter++;
       triggerObstacleRotation();
       return true;            
     }    

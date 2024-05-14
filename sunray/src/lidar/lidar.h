@@ -15,9 +15,9 @@
 #include "../../gps.h"
 #include "../driver/RobotDriver.h"
 
-class LiDAR : public GpsDriver {
+class LidarGpsDriver : public GpsDriver {
   public:
-    LiDAR();    
+    LidarGpsDriver();    
     void begin();
     void begin(Client &client, char *host, uint16_t port) override;
     void begin(HardwareSerial& bus,uint32_t baud) override;
@@ -27,5 +27,18 @@ class LiDAR : public GpsDriver {
   private:
 
 };
+
+
+class LidarImuDriver: public ImuDriver {    
+  public:    
+    LidarImuDriver();    
+    void detect() override;
+    bool begin() override;    
+    void run() override;
+    bool isDataAvail() override;         
+    void resetData() override;        
+};
+
+
 
 #endif
