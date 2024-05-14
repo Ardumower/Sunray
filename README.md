@@ -47,17 +47,28 @@ https://github.com/Ardumower/Sunray/releases
 
 # Sunray for Alfred / Sunray for Raspberry PI <a name="sunray_alfred"></a>
 
-NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' firmware. The code for all steps will require a Linux system (either the Alfred, a Raspberry PI or some PC).
+NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' firmware. The code for all steps will require a Linux system (either the Alfred, a Raspberry PI or some PC). This guide and software works only with the default raspberry PI user "pi".
+
+## How to compile 'Sunray for Alfred' on a Raspberry PI (OS Lite 64 bit, Debian Bookworm)
+first run the following commands to install required minimal software:
+```
+sudo apt-get -y update && sudo apt-get upgrade
+sudo apt-get -y install git
+sudo apt-get -y install cmake
+sudo apt-get -y install libbluetooth-dev
+```
 
 ## How to install code and compile 'Sunray for Alfred' (required only once)
+ 
+
 Run this on your Alfred Linux terminal (in your Alfred home folder):
 
 ```
 ## clone repository ##
 cd ~
-git clone -b dev --single-branch  https://github.com/Novus4K/Sunray.git
-cp -r ~/Sunray/sunray_install/ ~/
-sudo cp ~/sunray_install/config_files/sunray/sunray.service /etc/systemd/system/
+git clone -b master --single-branch  https://github.com/Ardumower/Sunray.git
+sudo cp ~/Sunray/alfred/config_files/sunray/sunray.service /lib/systemd/system
+
 
 ## compile sunray (NOTE: 'make' will always copy config.h in current makefile folder into Sunray source folder) ##
 cd ~/Sunray/alfred/build
@@ -100,14 +111,8 @@ sudo ./flash.sh
 2. Choose 'Build+Flash NGP firmware (Sunray-compatible)'
 
 
-## How to compile 'Sunray for Alfred' on a Raspberry PI (OS Lite 64 bit, Debian Bookworm)
-Before running above commands, install required libs:
-```
-sudo apt-get update && sudo apt-get upgrade -y
-sudo apt-get install git -y
-sudo apt-get -y install cmake -y
-sudo apt-get -y install libbluetooth-dev -y
-```
+
+## Adjust the serial path for the Alfred MCU UART connection
 For Raspberry PI, you may have to adjust the serial path for the Alfred MCU UART connection in 'alfred/config.h': 
 ```
 #define SERIAL_ROBOT_PATH "/dev/ttyS0" 
@@ -122,14 +127,23 @@ sudo systemctl list-units --type=service --state=running
 sudo systemctl stop serial-getty@ttyS0.service
 sudo systemctl disable serial-getty@ttyS0.service
 ```
-## How to use more robust Bit-bangling-based instead ARM-based I2C driver on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
+## How to use more robust Bit-bangling-based instead ARM-based I2C driver on a Raspberry PI (OS Lite 64 bit, Debian Bookworm)
 The Raspberry CPU-based I2C driver has certain issues (e.g. missing clock stretching for BNO055, missing SCL recovery in noisy environment etc.) You can switch from the Raspberry ARM-I2C-driver to a more robust software-based driver (aka 'bit-bangling') like this:
-1. Run 'sudo raspi-config' and disable the ARM I2C driver
-2. Run 'sudo nano /boot/config.txt' and add this line to activate the software-based I2C driver:
-dtoverlay=i2c-gpio,bus=1,i2c_gpio_sda=2,i2c_gpio_scl=3
-3. Reboot ('sudo reboot')
-4. Verify the I2C bus is working (e.g. a MPU 6050 IMU should be detected at address 69): 
-sudo i2cdetect -y 1
+1. disable the ARM I2C driver in the raspi-config. You can open it with the following comand
+   
+   ``sudo raspi-config``
+2. Open the config file with a editor.
+
+   ``sudo nano /boot/fimrware/config.txt`` 
+3. Add this line at the end of the file to activate the software-based I2C driver.
+   
+   ``dtoverlay=i2c-gpio,bus=1,i2c_gpio_sda=2,i2c_gpio_scl=3``
+4. Reboot the Raspberry.
+
+   ``sudo reboot``
+5. Verify the I2C bus is working (e.g. a MPU 6050 IMU should be detected at address 69):
+
+   ``sudo i2cdetect -y 1``
 
 ## How to compile 'OpenOCD' on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
 OpenOCD is used to flash the Alfred MCU firmware via GPIO interface (SWD emulation). Run this in your 'pi' home folder. The compiled binary ('openocd') can be found in folder 'src'. The binary will be called by the flash script ('~/sunray_install/flash.sh') to flash the Alfred MCU firmware. 
