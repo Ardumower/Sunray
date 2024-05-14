@@ -56,11 +56,48 @@ void loop(){
     if (ros::ok()) {
     double tim = ros::Time::now().toSec(); 
 
+    float x = 0;
+    float y = 0;
+    float z = 0;
+    
+    double roll, pitch, yaw;
+        
+        
     // lookup ROS localization (mathematically, a frame transformation) 
     tf::StampedTransform transform;
     try{
         //  http://wiki.ros.org/tf/Tutorials/Time%20travel%20with%20tf%20%28C%2B%2B%29
         tfListener->lookupTransform("map", "gps_link",  ros::Time(0), transform); // target_frame, source_frame
+    
+        x = transform.getOrigin().x();
+        y = transform.getOrigin().y();
+        z = transform.getOrigin().z();
+        
+        // https://gist.github.com/LimHyungTae/2499a68ea8ee4d8a876a149858a5b08e
+        tf::Quaternion q = transform.getRotation(); 
+        
+        //float yaw = tf::getYaw(q); 
+        
+        tf::Matrix3x3 m;  
+        m.setRotation(q);  //  quaternion -> rotation Matrix 
+        
+        // rotation Matrix -> rpy 
+        m.getRPY(roll, pitch, yaw);
+      
+        // let the magic happen (here we transfer ROS localization into Sunray GPS localization) 
+        gps.relPosN = x;
+        gps.relPosE = -y;
+        gps.relPosD = z;
+        gps.solution = SOL_FIXED;
+
+        imuDriver.quatX = q.x(); // quaternion
+        imuDriver.quatY = q.y(); // quaternion
+        imuDriver.quatZ = q.z(); // quaternion        
+        imuDriver.quatW = q.w(); // quaternion      
+        imuDriver.roll = roll; // euler radiant
+        imuDriver.pitch = pitch; // euler radiant
+        imuDriver.yaw = yaw;   // euler radiant
+
     }
     catch (tf::TransformException ex){
         if (tim > nextErrorTime){
@@ -69,19 +106,11 @@ void loop(){
           //ros::Duration(0.2).sleep();
         }
     }
+ 
 
     if (tim > nextPrintTime){
       nextPrintTime = tim + 10.0;
-      float x = transform.getOrigin().x();
-      float y = transform.getOrigin().y();
-      float z = transform.getOrigin().z();    
-      ROS_INFO("x=%.2f  y=%.2f  z=%.2f", x, y, z);
-
-      // let the magic happen (here we transfer ROS localization into Sunray GPS localization) 
-      gps.relPosN = x;
-      gps.relPosE = -y;
-      gps.relPosD = z;
-      gps.solution = SOL_FIXED;
+      ROS_INFO("ROS: x=%.2f  y=%.2f  z=%.2f yaw=%.2f", x, y, z, yaw/3.1415*180.0);
     } 
 
     // https://stackoverflow.com/questions/23227024/difference-between-spin-and-rate-sleep-in-ros

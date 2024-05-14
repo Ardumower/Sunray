@@ -60,6 +60,8 @@ const signed char orientationMatrix[9] = {
 
 #ifdef DRV_SIM_ROBOT
   SimImuDriver imuDriver(robotDriver);
+#elif defined(GPS_LIDAR)
+  LidarImuDriver imuDriver;
 #elif defined(BNO055)
   BnoDriver imuDriver;
 #elif defined(ICM20948)
@@ -110,7 +112,7 @@ PinManager pinMan;
 #ifdef DRV_SIM_ROBOT
   SimGpsDriver gps(robotDriver);
 #elif GPS_LIDAR
-  LiDAR gps;
+  LidarGpsDriver gps;
 #elif GPS_SKYTRAQ
   SKYTRAQ gps;
 #else 
