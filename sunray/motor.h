@@ -7,7 +7,7 @@
 #define MOTOR_H
 
 #include "pid.h"
-
+#include "lowpass_filter.h"
 
 // selected motor
 enum MotorSelect {MOTOR_LEFT, MOTOR_RIGHT, MOTOR_MOW} ;
@@ -57,7 +57,9 @@ class Motor {
     unsigned long motorMowSpinUpTime;
     bool motorRecoveryState;    
     PID motorLeftPID;
-    PID motorRightPID;        
+    PID motorRightPID;    
+    LowPassFilter motorLeftLpf;
+    LowPassFilter motorRightLpf;        
     void begin();
     void run();      
     void test();

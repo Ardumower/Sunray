@@ -98,6 +98,10 @@ void cmdTuneParam(){
               motor.motorLeftPID.Kd = floatValue;
               motor.motorRightPID.Kd = floatValue;              
               break;
+            case 7:
+              motor.motorLeftLpf.Tf = floatValue;
+              motor.motorRightLpf.Tf = floatValue;              
+              break;
           } 
       } 
       counter++;
