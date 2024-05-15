@@ -102,6 +102,13 @@ void cmdTuneParam(){
               motor.motorLeftLpf.Tf = floatValue;
               motor.motorRightLpf.Tf = floatValue;              
               break;
+            case 8:
+              motor.motorLeftPID.output_ramp = floatValue;
+              motor.motorRightPID.output_ramp = floatValue;              
+              break;
+            case 9:
+              motor.pwmMax = floatValue;
+              break;
           } 
       } 
       counter++;
