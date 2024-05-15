@@ -154,6 +154,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define MOTOR_PID_KP     0.5    // 0.5 do not change 2.0 (for non-Ardumower motors or if the motor speed control is too fast you may try: KP=1.0, KI=0, KD=0)
 #define MOTOR_PID_KI     0.01   // 0.01 do not change 0.03
 #define MOTOR_PID_KD     0.01   // 0.01 do not change 0.03
+#define MOTOR_PID_LIMIT  255    // output limit - do not change 255
+#define MOTOR_PID_RAMP   0      // output derivative limit - do not change 0
+
 
 #define MOTOR_LEFT_SWAP_DIRECTION 1  // uncomment to swap left motor direction
 #define MOTOR_RIGHT_SWAP_DIRECTION 1  // uncomment to swap right motor direction

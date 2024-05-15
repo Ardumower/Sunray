@@ -11,7 +11,7 @@
 
 
 void Motor::begin() {
-	pwmMax = 255;
+	pwmMax = MOTOR_PID_LIMIT;
  
   #ifdef MAX_MOW_PWM
     if (MAX_MOW_PWM <= 255) {
@@ -514,6 +514,7 @@ void Motor::control(){
   motorLeftPID.y_min = -pwmMax;
   motorLeftPID.y_max = pwmMax;
   motorLeftPID.max_output = pwmMax;
+  motorLeftPID.output_ramp = MOTOR_PID_RAMP;
   motorLeftPID.compute();
   motorLeftPWMCurr = motorLeftPWMCurr + motorLeftPID.y;
   if (motorLeftRpmSet >= 0) motorLeftPWMCurr = min( max(0, (int)motorLeftPWMCurr), pwmMax); // 0.. pwmMax
@@ -527,6 +528,7 @@ void Motor::control(){
   motorRightPID.y_min = -pwmMax;
   motorRightPID.y_max = pwmMax;
   motorRightPID.max_output = pwmMax;
+  motorRightPID.output_ramp = MOTOR_PID_RAMP;
   motorRightPID.compute();
   motorRightPWMCurr = motorRightPWMCurr + motorRightPID.y;
   if (motorRightRpmSet >= 0) motorRightPWMCurr = min( max(0, (int)motorRightPWMCurr), pwmMax);  // 0.. pwmMax
