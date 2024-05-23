@@ -64,9 +64,12 @@ echo "CMD=$CMD"
 
 
 if [ -d "/home/pi/Sunray/alfred/build" ]; then
+  # state and map files will be written here 
   cd /boot/sunray
+  # pick sunray from here
   /usr/bin/stdbuf -oL -eL /home/pi/Sunray/alfred/build/sunray
 else
+  # pick sunray from here  
   /usr/bin/stdbuf -oL -eL $PWD/build/sunray
 fi 
 
