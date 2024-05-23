@@ -12,10 +12,10 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
-if [ ! -d "/home/pi/Sunray/alfred/build" ]; then
-  echo "install Sunray first!"
-  exit
-fi
+# if [ ! -d "/home/pi/Sunray/alfred/build" ]; then
+#  echo "install Sunray first!"
+#  exit
+# fi
 
 if [[ `pidof sunray` != "" ]]; then
   echo "Sunray linux app already running! Exiting..."
@@ -45,7 +45,7 @@ btmgmt -i hci0 power on
 
 echo "----waiting for TCP connections to be closed from previous sessions----"
 echo "Waiting TCP port 80 to be closed..."
-for _ in `seq 1 30`; do 
+for _ in `seq 1 10`; do 
   RES=$(netstat -ant | grep -w 80)
   #RES=$(lsofs -i:80)
   #RES=$(fuser 80/tcp) 
@@ -61,11 +61,14 @@ done;
 echo "----starting sunray----"
 echo "CMD=$CMD"
     
-cd /boot/sunray
 
 
-/usr/bin/stdbuf -oL -eL /home/pi/Sunray/alfred/build/sunray
-
+if [ -d "/home/pi/Sunray/alfred/build" ]; then
+  cd /boot/sunray
+  /usr/bin/stdbuf -oL -eL /home/pi/Sunray/alfred/build/sunray
+else
+  /usr/bin/stdbuf -oL -eL $PWD/build/sunray
+fi 
 
 # debug mode
 # exec gdbserver :1234 /home/pi/sunray_install/sunray "$@"
