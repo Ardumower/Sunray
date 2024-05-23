@@ -97,10 +97,10 @@ if [ ! -d "/etc/motion" ]; then
 fi
 
 
-if [ ! -d "/home/pi/sunray_install" ]; then
-  echo "run install.sh first!"
-  exit
-fi
+# if [ ! -d "/home/pi/Sunray" ]; then
+#  echo "install Sunray first!"
+#  exit
+# fi
 
 #systemctl status sunray
 #systemctl status motion
