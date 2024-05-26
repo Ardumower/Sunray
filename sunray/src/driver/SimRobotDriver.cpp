@@ -521,9 +521,10 @@ void SimGpsDriver::run(){
         //CONSOLE.print(",");
         //CONSOLE.println(millis());
         if (millis() > resetTime + 2000){
-          solution = SOL_FLOAT;
+          solution = SOL_FIXED;
         } 
       }
+      /*
       // switch to RTK FLOAT from time to time
       if (random(1000) < 5){
         if (solution == SOL_FLOAT) solution = SOL_FIXED;
@@ -534,11 +535,13 @@ void SimGpsDriver::run(){
         relPosE += floatX;
         relPosN += floatY; 
       }      
+      
       if (random(100) < 50) floatX = min(1.5, floatX+0.01);
         else floatX = max(-1.5, floatX-0.01);
       if (random(100) < 50) floatY = min(1.5, floatY+0.01);
         else floatY = max(-1.5, floatY-0.01);
-      
+      */
+
       if (solution == SOL_FIXED){
         accuracy = 0.01;
         hAccuracy = accuracy;
