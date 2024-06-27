@@ -71,7 +71,7 @@ bool LinuxCAN::begin(){
 
 	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		perror("ERROR binding CAN socket");
-		sock = 0;
+		sock = -1;
 		return false;
 	}
 
@@ -110,7 +110,8 @@ bool LinuxCAN::read(can_frame_t &frame){
 
 
 bool LinuxCAN::run(){
-	struct can_frame frame;	
+	if (sock < 0) return false;
+	struct can_frame frame;		
 	int nbytes = ::read(sock, &frame, sizeof(struct can_frame));		
 	
 	if (nbytes <= 0) {
