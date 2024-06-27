@@ -64,7 +64,11 @@ foreach (filename ${pi_sources})
 endforeach()
 
 message("--copy config.h to sunray source--")
-configure_file(${CMAKE_SOURCE_DIR}/config.h ${FIRMWARE_PATH}/config.h COPYONLY)
+if (NOT DEFINED CONFIG_FILE)
+    set(CONFIG_FILE config.h)
+endif()
+message("CONFIG_FILE ${CONFIG_FILE}")
+configure_file(${CMAKE_SOURCE_DIR}/config.h ${CONFIG_FILE} COPYONLY)
 
 message("main file ${FIRMWARE_PATH}/sunray.ino")
 
