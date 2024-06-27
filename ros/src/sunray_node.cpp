@@ -67,7 +67,7 @@ void loop(){
     tf::StampedTransform transform;
     try{
         //  http://wiki.ros.org/tf/Tutorials/Time%20travel%20with%20tf%20%28C%2B%2B%29
-        tfListener->lookupTransform("map", "gps_link",  ros::Time(0), transform); // target_frame, source_frame
+        tfListener->lookupTransform("robot/odom", "gps_link",  ros::Time(0), transform); // target_frame, source_frame
     
         x = transform.getOrigin().x();
         y = transform.getOrigin().y();
@@ -85,10 +85,11 @@ void loop(){
         m.getRPY(roll, pitch, yaw);
       
         // let the magic happen (here we transfer ROS localization into Sunray GPS localization) 
-        gps.relPosN = x;
-        gps.relPosE = -y;
+        gps.relPosN = y;
+        gps.relPosE = x;
         gps.relPosD = z;
         gps.solution = SOL_FIXED;
+        gps.solutionAvail = true;
 
         imuDriver.quatX = q.x(); // quaternion
         imuDriver.quatY = q.y(); // quaternion
@@ -109,8 +110,8 @@ void loop(){
  
 
     if (tim > nextPrintTime){
-      nextPrintTime = tim + 10.0;
-      ROS_INFO("ROS: x=%.2f  y=%.2f  z=%.2f yaw=%.2f", x, y, z, yaw/3.1415*180.0);
+      nextPrintTime = tim + 0.5;
+      ROS_WARN("ROS: x=%.2f  y=%.2f  z=%.2f yaw=%.2f", x, y, z, yaw/3.1415*180.0);
     } 
 
     // https://stackoverflow.com/questions/23227024/difference-between-spin-and-rate-sleep-in-ros
