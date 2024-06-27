@@ -2,8 +2,10 @@
 
 
 # build Sunray ROS node
+cd build
 cmake ..
 make
+cd ..
 
 
 # run Sunray ROS node 
