@@ -319,8 +319,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define REQUIRE_VALID_GPS  true       // mower will pause if no float and no fix GPS solution during mowing (recommended)
 //#define REQUIRE_VALID_GPS  false    // mower will continue to mow if no float or no fix solution (not recommended)
 
-#define GPS_SPEED_DETECTION true  // will detect obstacles via GPS feedback (no speed)
-//#define GPS_SPEED_DETECTION false
+//#define GPS_SPEED_DETECTION true  // will detect obstacles via GPS feedback (no speed)
+#define GPS_SPEED_DETECTION false
 
 // detect if robot is actually moving (obstacle detection via GPS feedback)
 #define GPS_MOTION_DETECTION          true    // if robot is not moving trigger obstacle avoidance
