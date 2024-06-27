@@ -84,7 +84,6 @@ message("Using firmware path ${FIRMWARE_PATH}")
 message("CMAKE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR}")
 
 
-
 file(GLOB_RECURSE sunray_cpp ${FIRMWARE_PATH}/**.cpp)
 list(FILTER sunray_cpp EXCLUDE REGEX ${EXCLUDE_REGEX})
 message("---sunray_cpp---")
@@ -106,6 +105,18 @@ file(GLOB_RECURSE pi_sources ../alfred/src/**.cpp ../alfred/src/**.c)
 foreach (filename ${pi_sources})
     message(${filename})
 endforeach()
+
+
+message("--copy CONFIG_FILE to sunray source--")
+if (NOT DEFINED CONFIG_FILE)
+    set(CONFIG_FILE ${CMAKE_SOURCE_DIR}/../alfred/config.h)
+endif()
+message("CONFIG_FILE: ${CONFIG_FILE}  (to set config file, use: cmake -D CONFIG_FILE=myconfig.h ..)")
+if(NOT EXISTS "${CONFIG_FILE}")
+    message( FATAL_ERROR "CONFIG_FILE does not exist: ${CONFIG_FILE}")
+endif()
+
+configure_file(${CONFIG_FILE} ${FIRMWARE_PATH}/config.h COPYONLY)
 
 
 set_source_files_properties(src/sunray_node.cpp PROPERTIES LANGUAGE CXX)

@@ -72,7 +72,7 @@ if(NOT EXISTS "${CONFIG_FILE}")
     message( FATAL_ERROR "CONFIG_FILE does not exist: ${CONFIG_FILE}")
 endif()
 
-configure_file(${CMAKE_SOURCE_DIR}/config.h ${CONFIG_FILE} COPYONLY)
+configure_file(${CONFIG_FILE} ${FIRMWARE_PATH}/config.h COPYONLY)
 
 message("main file ${FIRMWARE_PATH}/sunray.ino")
 
