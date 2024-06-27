@@ -67,8 +67,9 @@ void loop(){
     tf::StampedTransform transform;
     try{
         //  http://wiki.ros.org/tf/Tutorials/Time%20travel%20with%20tf%20%28C%2B%2B%29
-        tfListener->lookupTransform("robot/odom", "gps_link",  ros::Time(0), transform); // target_frame, source_frame
-    
+        //tfListener->lookupTransform("robot/odom", "gps_link",  ros::Time(0), transform); // target_frame, source_frame
+        tfListener->lookupTransform("map", "gps_link",  ros::Time(0), transform); // target_frame, source_frame
+  
         x = transform.getOrigin().x();
         y = transform.getOrigin().y();
         z = transform.getOrigin().z();
