@@ -221,13 +221,13 @@ for _ in `seq 1 30`; do
 done;
 ```
 
-Another issue might be that you are running the executable as user (and not 'root') - To allow a normal user to run a TCP server on port 80:
+Another issue might be that you are running the executable as normal user (and not 'root' user) - To allow a normal user to run a TCP server on port 80:
 ```
 setcap 'cap_net_bind_service=+ep' /path/to/program 
 ```
 
 ## Fixing issue: 'error while loading shared libraries: libtf2_ros.so: cannot open shared object file: No such file or directory'
-If running the Sunray firmware as an ROS node and get above error message, you might have to run this:  
+If running the Sunray firmware as an ROS node and getting above error message, you might have to run this:  
 ```
 sudo ldconfig /opt/ros/melodic/lib/ 
 ```
