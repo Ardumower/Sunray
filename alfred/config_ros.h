@@ -170,7 +170,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define MAX_MOW_PWM 200  // use this to permanently reduce mowing motor power (255=max)
 
 #define MOW_FAULT_CURRENT 8.0       // mowing motor fault current (amps)
-#define MOW_TOO_LOW_CURRENT 0.005   // mowing motor too low current (amps) , set to zero (0) to disable
+#define MOW_TOO_LOW_CURRENT 0.00   // mowing motor too low current (amps) , set to zero (0) to disable
 #define MOW_OVERLOAD_CURRENT 2.0    // mowing motor overload current (amps)
 
 // should the direction of mowing motor toggle each start? (yes: true, no: false)
@@ -182,17 +182,17 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define ENABLE_OVERLOAD_DETECTION  false    // robot will slow down on overload
 
 // should the motor fault (error) detection be enabled? 
-#define ENABLE_FAULT_DETECTION  true
-//#define ENABLE_FAULT_DETECTION  false       // use this if you keep getting 'motor error'
+//#define ENABLE_FAULT_DETECTION  true
+#define ENABLE_FAULT_DETECTION  false       // use this if you keep getting 'motor error'
 
-#define ENABLE_RPM_FAULT_DETECTION  true     // use mow rpm signal to detect a motor fault (requires mowing motor with rpm output!)
-//#define ENABLE_RPM_FAULT_DETECTION  false     // do not use mow rpm signal to detect a motor fault
+//#define ENABLE_RPM_FAULT_DETECTION  true     // use mow rpm signal to detect a motor fault (requires mowing motor with rpm output!)
+#define ENABLE_RPM_FAULT_DETECTION  false     // do not use mow rpm signal to detect a motor fault
 
 // should the robot trigger obstacle avoidance on motor errors if motor recovery failed?
 #define ENABLE_FAULT_OBSTACLE_AVOIDANCE true  
 
 // shall the mow motor be activated for normal operation? Deactivate this option for GPS tests and path tracking running tests
-#define ENABLE_MOW_MOTOR true // Default is true, set false for testing purpose to switch off mow motor permanently
+#define ENABLE_MOW_MOTOR false // Default is true, set false for testing purpose to switch off mow motor permanently
 
 
 // ------ WIFI module (ESP8266 ESP-01 with ESP firmware 2.2.1) --------------------------------
