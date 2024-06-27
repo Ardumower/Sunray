@@ -148,7 +148,7 @@ extern int motorErrorCounter;
 #ifdef DRV_SIM_ROBOT
   extern SimImuDriver imuDriver;
 #elif defined(GPS_LIDAR)
-  LidarImuDriver imuDriver;
+  extern LidarImuDriver imuDriver;
 #elif defined(BNO055)
   extern BnoDriver imuDriver;  
 #elif defined(ICM20948)
