@@ -604,7 +604,47 @@ void AmBatteryDriver::run(){
     
 float AmBatteryDriver::getBatteryVoltage(){
   float voltage = ((float)ADC2voltage(analogRead(pinBatteryVoltage))) * batteryFactor;
-  return voltage;  
+
+#ifdef INA226_BATT_VOLT
+
+  // talking to sensor?
+  byte error = 1;
+  Wire.beginTransmission(INA226_ADDRESS);
+  error = Wire.endTransmission();
+
+  if (error == 0)
+  {
+    // Read bus voltage from the INA226
+    uint8_t response[2]; // Assuming response is 2 bytes, 2 retries, 0x02 is address to read bus voltage
+    I2CreadFrom(INA226_ADDRESS, 0x02, 2, response, 2);
+    // Combine bytes to get voltage value (assuming big-endian format)
+    uint16_t rawValue = (response[0] << 8) | response[1];
+
+    // Convert raw value to voltage (LSB = 1.25mV)
+    float INA226voltage = rawValue * 1.25 / 1000.0; // LSB = 1.25mV
+
+    // CONSOLE.print("INA226 batt voltage:");
+    // CONSOLE.println(INA226voltage);
+
+    // CONSOLE.print("analog batt voltage:");
+    // CONSOLE.println(voltage);
+
+    // check if INA226 voltage and analog voltage are in range, otherwise something is wrong with INA
+    if (abs(INA226voltage - voltage) < 4) // if within 4 volt, take over more accurate ina value
+    {
+      voltage = INA226voltage;
+      // CONSOLE.print("correct INA226 battery:");
+      // CONSOLE.println(INA226voltage);
+    }
+    // else
+    // {
+    //   // CONSOLE.println("analog and INA226 battery voltage are out of range, default back to analog voltage");
+    // }
+  }
+
+#endif
+
+  return voltage;
 }
 
 float AmBatteryDriver::getChargeVoltage(){

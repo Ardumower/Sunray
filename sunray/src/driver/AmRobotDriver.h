@@ -11,7 +11,7 @@
 #include <Arduino.h>
 #include "RobotDriver.h"
 #include "../../SparkFunHTU21D.h"
-
+#include "../../i2c.h"
 
 #ifndef __linux__
 

@@ -679,7 +679,46 @@ void start(){
   #endif
 }
 
+#ifdef INA226_BATT_VOLT
+  // ina 226, tried to reuse the functions from i2c.h/cpp
+  I2CScanner();
 
+  byte error = 1;
+
+  Wire.beginTransmission(INA226_ADDRESS);
+  error = Wire.endTransmission();
+  if (error == 0)
+  {
+    // Configure the INA226
+    uint16_t config = 0;
+
+    // Set bus voltage range to 32V (V_BUS_CT = 0b10)
+    config |= (0x2 << 9);
+
+    // Set bus voltage conversion time to 140us (VBUS_CT = 0b01)
+    config |= (0x1 << 5);
+
+    // Set averaging mode to 64 samples (AVG = 0b10)
+    config |= (0x2 << 3);
+
+    // Set continuous shunt and bus voltage conversions (CONT_SHUNT = CONT_BUS = 1)
+    config |= (0x1 << 2); // CONT_SHUNT
+    config |= (0x1 << 3); // CONT_BUS
+
+    // Enable the INA226 (ENABLE = 1)
+    config |= 0x1;
+
+    // Write configuration to the configuration register (0x00)
+    I2CwriteTo(INA226_ADDRESS, 0x00, config & 0xFF); // Writing low byte
+    I2CwriteTo(INA226_ADDRESS, 0x01, config >> 8);   // Writing high byte
+  }
+  else
+  {
+    CONSOLE.println("INA226 not found");
+  }
+
+#endif
+}
 
 // should robot move?
 bool robotShouldMove(){
