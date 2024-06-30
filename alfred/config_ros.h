@@ -128,7 +128,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // ...for the brushless motor april 2021   https://wiki.ardumower.de/index.php?title=Datei:BLUnit.JPG
 //#define TICKS_PER_REVOLUTION  1300 / 2    // 1194/2  odometry ticks per wheel revolution
 
-#define TICKS_PER_REVOLUTION  320     // odometry ticks per wheel revolution (RM24)
+#define TICKS_PER_REVOLUTION  600     // odometry ticks per wheel revolution (RM24/owlRobotics platform)
 //#define TICKS_PER_REVOLUTION  975     // odometry ticks per wheel revolution (owlRobotics platform)
 //#define TICKS_PER_REVOLUTION  90     // odometry ticks per wheel revolution (hoverboard motor)
 
