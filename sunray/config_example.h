@@ -352,6 +352,16 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define CPG_CONFIG_FILTER_NCNOTHRS 10   // C/N0 Threshold #SVs: 10 (robust), 6 (less robust)
 #define CPG_CONFIG_FILTER_CNOTHRS  30   // 30 dbHz (robust), 13 dbHz (less robust)
 
+#define GPS_POSITION_OFFSET_ENABLED false // enable gps antenna position correction offset?
+#define GPS_POSITION_OFFSET_FORWARD 0.0 // offset to add fordwards (cm)
+#define GPS_POSITION_OFFSET_RIGHT 0.0 // offset to add to the right (cm)
+#define GPS_POSITION_OFFSET_UP 0.0 // offse to add upwards (cm), set to ground level for tilt compensation (-24 cm for standard ardumower) 
+
+#define INVALID_GPS_TIMEOUT 0 // time in seconds to navigate with invalid GPS
+
+#define IGNORE_GPS_FIX_AFTER_INVALID 0.0 // time in seconds to ignore GPS fix after recovering from invalid solution
+#define IGNORE_GPS_FIX_AFTER_JUMP 0.0 // time in seconds to ignore GPS fix after fix jump detected
+
 
 // ------ obstacle detection and avoidance  -------------------------
 
@@ -393,6 +403,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DOCK_UNDOCK_TRACKSLOW_DISTANCE 5 // set distance (m) from dock for trackslow (speed limit)
 
 #define UNDOCK_IGNORE_GPS_DISTANCE 2 // set distance (m) from dock to ignore gps while undocking
+
 
 // ---- path tracking -----------------------------------
 
