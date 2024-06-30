@@ -76,10 +76,10 @@ void LidarGpsDriver::run(){
 
 LidarImuDriver::LidarImuDriver(){    
   dataAvail = false;
+  imuFound = false;
 }
 
-void LidarImuDriver::detect(){
-  imuFound = false;
+void LidarImuDriver::detect(){  
 }
 
 
