@@ -37,6 +37,7 @@ class LidarImuDriver: public ImuDriver {
     void run() override;
     bool isDataAvail() override;         
     void resetData() override;        
+    bool dataAvail;
 };
 
 

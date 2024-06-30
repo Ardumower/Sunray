@@ -31,7 +31,8 @@ double nextPrintTime = 0;
 
 
 void setup(){  
- 
+
+  imuDriver.imuFound = true;
   start();
 
   // Initialize the node
@@ -99,7 +100,7 @@ void loop(){
         imuDriver.roll = roll; // euler radiant
         imuDriver.pitch = pitch; // euler radiant
         imuDriver.yaw = yaw;   // euler radiant
-
+        imuDriver.dataAvail = true;        
     }
     catch (tf::TransformException ex){
         if (tim > nextErrorTime){
