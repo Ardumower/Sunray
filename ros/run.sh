@@ -13,6 +13,11 @@ cd build
 ip link set can0 up type can bitrate 1000000    
 
 
+echo "---------all processes using the CAN bus------------"
+sudo lsof | grep -i can_raw
+echo "----------------------------------------------------"
+
+
 # run Sunray ROS node 
 sudo setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node
 . devel/setup.bash
