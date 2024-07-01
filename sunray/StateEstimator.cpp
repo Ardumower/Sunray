@@ -252,18 +252,20 @@ void computeRobotState(){
           if (motor.linearSpeedSet < 0) stateDeltaGPS = scalePI(stateDeltaGPS + PI); // consider if driving reverse
           //stateDeltaGPS = scalePI(2*PI-gps.heading+PI/2);
           float diffDelta = distancePI(stateDelta, stateDeltaGPS);                 
-          if (    ((gps.solution == SOL_FIXED) && (maps.useGPSfixForDeltaEstimation ))
-              || ((gps.solution == SOL_FLOAT) && (maps.useGPSfloatForDeltaEstimation)) )
-          {   // allows planner to use float solution?         
-            if (fabs(diffDelta/PI*180) > 45){ // IMU-based heading too far away => use GPS heading
-              stateDelta = stateDeltaGPS;
-              stateDeltaIMU = 0;
-            } else {
-              // delta fusion (complementary filter, see above comment)
-              stateDeltaGPS = scalePIangles(stateDeltaGPS, stateDelta);
-              stateDelta = scalePI(fusionPI(0.9, stateDelta, stateDeltaGPS));               
-            }            
-          }
+          #ifndef GPS_LIDAR
+            if (    ((gps.solution == SOL_FIXED) && (maps.useGPSfixForDeltaEstimation ))
+                || ((gps.solution == SOL_FLOAT) && (maps.useGPSfloatForDeltaEstimation)) )
+            {   // allows planner to use float solution?         
+              if (fabs(diffDelta/PI*180) > 45){ // IMU-based heading too far away => use GPS heading
+                stateDelta = stateDeltaGPS;
+                stateDeltaIMU = 0;
+              } else {
+                // delta fusion (complementary filter, see above comment)
+                stateDeltaGPS = scalePIangles(stateDeltaGPS, stateDelta);
+                stateDelta = scalePI(fusionPI(0.9, stateDelta, stateDeltaGPS));               
+              }            
+            }
+          #endif
         }
       }
       lastPosN = posN;
@@ -292,8 +294,12 @@ void computeRobotState(){
   if (stateOp == OP_MOW) statMowDistanceTraveled += distOdometry/100.0;
   
   if ((imuDriver.imuFound) && (maps.useIMU)) {
-    // IMU available and should be used by planner
-    stateDelta = scalePI(stateDelta + stateDeltaIMU );          
+    #ifdef GPS_LIDAR
+      stateDelta = imuDriver.yaw; 
+    #else
+      // IMU available and should be used by planner    
+      stateDelta = scalePI(stateDelta + stateDeltaIMU );          
+    #endif  
   } else {
     // odometry
     stateDelta = scalePI(stateDelta + deltaOdometry);  
