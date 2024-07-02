@@ -126,9 +126,9 @@ void CanRobotDriver::updateWifiConnectionState(){
 
 
 // send CAN request 
-void CanRobotDriver::sendCanData(int destNodeId, canCmdType_t cmd, canValueType_t val, canDataType_t data){        
+void CanRobotDriver::sendCanData(int msgId, int destNodeId, canCmdType_t cmd, int val, canDataType_t data){        
     can_frame_t frame;
-    frame.can_id = OWL_DRIVE_MSG_ID;    
+    frame.can_id = msgId;    
     if (cmd == can_cmd_request){
       frame.can_dlc = 4;
     } else {
@@ -157,6 +157,9 @@ void CanRobotDriver::requestVersion(){
 
 // request MCU summary
 void CanRobotDriver::requestSummary(){
+  canDataType_t data;
+  data.floatVal = 0;
+  sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_battery_voltage, data );    
 }
 
 
@@ -165,16 +168,16 @@ void CanRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   canDataType_t data;
 
   data.floatVal = ((float)leftPwm) / 255.0;  
-  sendCanData(LEFT_MOTOR_NODE_ID, can_cmd_set, can_val_pwm_speed, data);  
-  sendCanData(LEFT_MOTOR_NODE_ID, can_cmd_request, can_val_odo_ticks, data);    
+  sendCanData(OWL_DRIVE_MSG_ID, LEFT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);  
+  sendCanData(OWL_DRIVE_MSG_ID, LEFT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_odo_ticks, data);    
   
   data.floatVal = ((float)rightPwm) / 255.0;    
-  sendCanData(RIGHT_MOTOR_NODE_ID, can_cmd_set, can_val_pwm_speed, data);
-  sendCanData(RIGHT_MOTOR_NODE_ID, can_cmd_request, can_val_odo_ticks, data);    
+  sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
+  sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_odo_ticks, data);    
   
   data.floatVal = ((float)mowPwm) / 255.0;  
-  sendCanData(MOW_MOTOR_NODE_ID, can_cmd_set, can_val_pwm_speed, data);
-  sendCanData(MOW_MOTOR_NODE_ID, can_cmd_request, can_val_odo_ticks, data);      
+  sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
+  sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_odo_ticks, data);      
 
   cmdMotorCounter++;
 }
@@ -203,37 +206,51 @@ void CanRobotDriver::processResponse(){
         node.byteVal[1] = frame.data[1];    
       
         int cmd = frame.data[2];     
-        canValueType_t val = ((canValueType_t)frame.data[3]);            
+        int val = frame.data[3];            
         canDataType_t data;
         data.byteVal[0] = frame.data[4];
         data.byteVal[1] = frame.data[5];
         data.byteVal[2] = frame.data[6];
         data.byteVal[3] = frame.data[7];    
 
-        if (cmd == can_cmd_info){
-            //CONSOLE.println("can_cmd_info");                
-            // info value (volt, velocity, position, ...)
-            switch (val){              
-              case can_val_odo_ticks:
-                switch(node.sourceAndDest.sourceNodeID){
-                  case LEFT_MOTOR_NODE_ID:
-                    //CONSOLE.println("encoderTicksLeft");
-                    encoderTicksLeft = data.ofsAndByte.ofsVal;
-                    motorResponse();
+        switch (frame.can_id){
+          case OWL_DRIVE_MSG_ID:
+            if (cmd == can_cmd_info){
+                //CONSOLE.println("can_cmd_info");                
+                // info value (volt, velocity, position, ...)
+                switch (val){                            
+                  case owldrv::can_val_odo_ticks:
+                    switch(node.sourceAndDest.sourceNodeID){
+                      case LEFT_MOTOR_NODE_ID:
+                        //CONSOLE.println("encoderTicksLeft");
+                        encoderTicksLeft = data.ofsAndByte.ofsVal;
+                        motorResponse();
+                        break;
+                      case RIGHT_MOTOR_NODE_ID:
+                        encoderTicksRight = data.ofsAndByte.ofsVal;
+                        motorResponse();
+                        break;
+                      case MOW_MOTOR_NODE_ID:
+                        encoderTicksMow = data.ofsAndByte.ofsVal;
+                        motorResponse();
+                        break;
+                    }                
                     break;
-                  case RIGHT_MOTOR_NODE_ID:
-                    encoderTicksRight = data.ofsAndByte.ofsVal;
-                    motorResponse();
-                    break;
-                  case MOW_MOTOR_NODE_ID:
-                    encoderTicksMow = data.ofsAndByte.ofsVal;
-                    motorResponse();
-                    break;
-                }                
-                break;
-                            
+                                
+                }
             }
-        }     
+            break;
+          case OWL_CONTROL_MSG_ID:
+            if (cmd == can_cmd_info){
+              switch (val){
+                case owlctl::can_val_battery_voltage:
+                  batteryVoltage = data.floatVal;
+                  break;
+              }
+            }
+            break;
+
+        } 
     }
   }
 }
