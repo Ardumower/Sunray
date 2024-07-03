@@ -9,6 +9,22 @@ make
 cd build
 
 
+echo "----bluetooth devices----"
+hcitool dev
+# configure bluetooth BLE module
+echo "----BLE config----"
+echo 12 > /sys/kernel/debug/bluetooth/hci0/conn_min_interval  # 24   6
+echo 20 > /sys/kernel/debug/bluetooth/hci0/conn_max_interval  # 40   6
+echo 1 > /sys/kernel/debug/bluetooth/hci0/conn_latency       # 0    1
+btmgmt -i hci0 power off
+btmgmt -i hci0 le on
+btmgmt -i hci0 bredr off
+btmgmt -i hci0 connectable on
+btmgmt -i hci0 name "fuxtec"
+btmgmt -i hci0 advertising on
+btmgmt -i hci0 power on
+
+
 # setup CAN bus
 ip link set can0 up type can bitrate 1000000    
 
