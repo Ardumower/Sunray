@@ -24,6 +24,12 @@ fi
 
 
 # -----------------------------------------
+echo "setup CAN interface..."
+echo "NOTE: you may have to edit boot config to enable CAN driver (see https://github.com/owlRobotics-GmbH/owlRobotPlatform)"
+ip link set can0 up type can bitrate 1000000
+
+
+# -----------------------------------------
 echo "----bluetooth devices----"
 hcitool dev
 # configure bluetooth BLE module
@@ -56,6 +62,7 @@ for _ in `seq 1 10`; do
   # echo -n .  
   sleep 2.0     
 done; 
+
 
 
 echo "----starting sunray----"
