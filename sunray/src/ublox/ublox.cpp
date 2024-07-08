@@ -44,6 +44,27 @@ void UBLOX::begin(){
   this->chksumErrorCounter = 0;
   this->dgpsChecksumErrorCounter = 0;
   this->dgpsPacketCounter = 0;
+
+  // relPosN... PAYLOAD: ofs=8size=4     2D,6,0,0,        relPosN: 15.81
+  /*
+  payload[8] = 0x2D;
+  payload[9] = 0x06;
+  payload[10] = 0x00;
+  payload[11] = 0x00;  
+  relPosN = ((float)(int)this->unpack_int32(8))/100.0;              
+  CONSOLE.print("test relPosN=");
+  CONSOLE.println(relPosN);
+  
+  // relPosE... PAYLOAD: ofs=12size=4    95,F9,FF,FF,     relPosE: 42949656.00  
+  payload[12] = 0x95;
+  payload[13] = 0xF9;
+  payload[14] = 0xFF;
+  payload[15] = 0xFF;   
+  relPosE = ((float)(int)this->unpack_int32(12))/100.0;
+  CONSOLE.print("test relPosE=");
+  CONSOLE.println(relPosE);
+  exit(0);
+  */
 }
 
 void UBLOX::begin(Client &client, char *host, uint16_t port){
@@ -513,10 +534,10 @@ void UBLOX::dispatchMessage() {
             break;
           case 0x3C: 
             { // UBX-NAV-RELPOSNED              
-              iTOW = (unsigned long)this->unpack_int32(4);
-              relPosN = ((float)this->unpack_int32(8))/100.0;
-              relPosE = ((float)this->unpack_int32(12))/100.0;
-              relPosD = ((float)this->unpack_int32(16))/100.0;              
+              iTOW = (unsigned long)this->unpack_int32(4);              
+              relPosN = ((float)(int)this->unpack_int32(8))/100.0;              
+              relPosE = ((float)(int)this->unpack_int32(12))/100.0;
+              relPosD = ((float)(int)this->unpack_int32(16))/100.0;              
               solution = (SolType)((this->unpack_int32(60) >> 3) & 3);              
               solutionAvail = true;
               solutionTimeout=millis() + 1000;              
@@ -582,7 +603,19 @@ long UBLOX::unpack_int8(int offset) {
 }
 
 long UBLOX::unpack(int offset, int size) {
-
+    // relPosN... PAYLOAD: ofs=8size=4     2D,6,0,0,        relPosN: 15.81
+    // relPosE... PAYLOAD: ofs=12size=4    95,F9,FF,FF,     relPosE: 42949656.00
+    if (verbose){
+      CONSOLE.print("UNPACK: ofs=");
+      CONSOLE.print(offset);
+      CONSOLE.print(" size=");
+      CONSOLE.println(size);
+      for (int i=0; i < size; i++){        
+          CONSOLE.print((byte)this->payload[offset+i], HEX);
+          CONSOLE.print(",");
+      }
+      CONSOLE.println();              
+    }
     long value = 0; // four bytes on most Arduinos
 
     for (int k=0; k<size; ++k) {
