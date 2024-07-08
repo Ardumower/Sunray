@@ -245,11 +245,13 @@ void CanRobotDriver::processResponse(){
               switch (val){
                 case owlctl::can_val_battery_voltage:
                   float voltage = data.floatVal; 
+                  /*
                   if (voltage > batteryVoltage + 0.5){
                     chargeVoltage = voltage;
                   } else if (voltage < batteryVoltage -0.5){                    
                     chargeVoltage = 0;                  
                   }
+                  */
                   batteryVoltage = voltage;
                   break;
               }
