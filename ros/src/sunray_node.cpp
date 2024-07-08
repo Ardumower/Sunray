@@ -92,6 +92,7 @@ void loop(){
         gps.relPosD = z;
         gps.solution = SOL_FIXED;
         gps.solutionAvail = true;
+        gps.dgpsAge = millis();
 
         imuDriver.quatX = q.x(); // quaternion
         imuDriver.quatY = q.y(); // quaternion
