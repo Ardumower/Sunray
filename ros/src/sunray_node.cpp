@@ -100,8 +100,7 @@ void loop(){
         imuDriver.quatW = q.w(); // quaternion      
         imuDriver.roll = roll; // euler radiant
         imuDriver.pitch = pitch; // euler radiant
-        imuDriver.yaw = yaw;   // euler radiant
-        imuDriver.dataAvail = true;        
+        imuDriver.yaw = yaw;   // euler radiant                
     }
     catch (tf::TransformException ex){
         if (tim > nextErrorTime){
@@ -111,6 +110,8 @@ void loop(){
         }
     }
  
+    // pretend IMU avail (so firmware does not try to calibrate IMU if no ROS pose available)
+    imuDriver.dataAvail = true; 
 
     if (tim > nextPrintTime){
       nextPrintTime = tim + 0.5;
