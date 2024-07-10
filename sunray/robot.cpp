@@ -787,6 +787,7 @@ bool detectObstacle(){
     #ifdef LIFT_OBSTACLE_AVOIDANCE
       if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (liftDriver.triggered()) ) {
         CONSOLE.println("lift sensor obstacle!");    
+        Logger.event(EVT_LIFTED_OBSTACLE);
         //statMowBumperCounter++;
         statMowLiftCounter++;
         triggerObstacle();    
@@ -797,6 +798,7 @@ bool detectObstacle(){
 
   if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (bumper.obstacle()) ){  
     CONSOLE.println("bumper obstacle!");    
+    Logger.event(EVT_BUMPER_OBSTACLE);
     statMowBumperCounter++;
     triggerObstacle();    
     return true;

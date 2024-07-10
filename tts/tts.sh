@@ -46,6 +46,7 @@ if true; then
         "bumper_obstacle"                "Bumper! Umfahre Hindernis."
         "lifted_obstacle"                "Angehoben! Umfahre Hindernis."
         "ground_obstacle"                "Hindernis am Boden! Umfahre Hindernis."
+        "no_robot_motion_obstacle"       "Ich bewege mich nicht. Umfahre Hindernis."
         "rain_docking"                   "Es regnet. Ich fahre nach Hause."
         "temperature_high_docking"       "Es ist zu heiss. Ich fahre nach Hause."
         "temperature_low_docking"        "Es ist zu kalt. Ich fahre nach Hause."        
