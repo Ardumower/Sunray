@@ -67,6 +67,8 @@ if true; then
         "triggered_obstacle"             "Hindernis ausgelöst. Umfahre Hindernis."
         "idle_timeout"                   "Ich bin inaktiv. Bitte schalte mich aus."                      
         "charger_connected"              "Ladevorrichtung angeschossen! Ich lade meine Batterie auf."        
+        "dock_recovery"                  "Ladekontakt verloren. Ich versuche nochmal."
+        "dock_recovery_giveup"           "Ladekontakt verloren. Bitte lade mich auf."
         "lidar_relocalization"           "LiDAR-Position unbekannt. Ich lokalisiere mich neu."
         "lidar_mapping_completed"        "LiDAR-Kartierung abgeschlossen."
     )

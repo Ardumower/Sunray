@@ -182,6 +182,12 @@ void EventLogger::event(EventCode evt, const String &additionalData) {
             case EVT_CHARGER_CONNECTED:
                 evtText = TXT_CHARGER_CONNECTED;
                 break; 
+            case EVT_DOCK_RECOVERY:
+                evtText = TXT_DOCK_RECOVERY;
+                break; 
+            case EVT_DOCK_RECOVERY_GIVEUP:
+                evtText = TXT_DOCK_RECOVERY_GIVEUP;
+                break; 
             case EVT_LIDAR_RELOCALIZATION:
                 evtText = TXT_LIDAR_RELOCALIZATION;
                 break; 

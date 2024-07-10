@@ -64,6 +64,8 @@
 #define TXT_USER_UPLOAD_TIMETABLE           F("user_timetable_map")
 #define TXT_IDLE_TIMEOUT                    F("idle_timeout")
 #define TXT_CHARGER_CONNECTED               F("charger_connected")
+#define TXT_DOCK_RECOVERY                   F("dock_recovery")
+#define TXT_DOCK_RECOVERY_GIVEUP            F("dock_recovery_giveup")
 #define TXT_LIDAR_RELOCALIZATION            F("lidar_relocalization")
 #define TXT_LIDAR_MAPPING_COMPLETED         F("lidar_mapping_completed")
 
@@ -124,6 +126,8 @@ enum EventCode {
     EVT_USER_UPLOAD_TIME_TABLE,
     EVT_IDLE_TIMEOUT,
     EVT_CHARGER_CONNECTED,
+    EVT_DOCK_RECOVERY,
+    EVT_DOCK_RECOVERY_GIVEUP,
     EVT_LIDAR_RELOCALIZATION,
     EVT_LIDAR_MAPPING_COMPLETED,
 };
