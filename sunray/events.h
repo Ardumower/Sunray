@@ -43,6 +43,7 @@
 #define TXT_BUMPER_OBSTACLE                 F("bumper_obstacle")
 #define TXT_LIFTED_OBSTACLE                 F("lifted_obstacle")
 #define TXT_GROUND_OBSTACLE                 F("ground_obstacle")
+#define TXT_TRIGGERED_OBSTACLE              F("triggered_obstacle")
 #define TXT_NO_ROBOT_MOTION_OBSTACLE        F("no_robot_motion_obstacle")
 #define TXT_ANGULAR_MOTION_TIMEOUT_OBSTACLE F("angular_motion_timeout")
 #define TXT_IMU_NO_ROTATION_OBSTACLE        F("imu_no_rotation_obstacle")
@@ -100,6 +101,7 @@ enum EventCode {
     EVT_IMU_NO_ROTATION_OBSTACLE, 
     EVT_IMU_WHEEL_DIFFERENCE_OBSTACLE,
     EVT_GROUND_OBSTACLE,
+    EVT_TRIGGERED_OBSTACLE,
     EVT_RAIN_DOCKING,
     EVT_TEMPERATURE_HIGH_DOCKING,
     EVT_TEMPERATURE_LOW_DOCKING,

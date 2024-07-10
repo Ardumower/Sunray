@@ -137,6 +137,9 @@ void EventLogger::event(EventCode evt, const String &additionalData) {
             case EVT_IMU_WHEEL_DIFFERENCE_OBSTACLE:
                 evtText = TXT_IMU_WHEEL_DIFFERENCE_OBSTACLE;
                 break;
+            case EVT_TRIGGERED_OBSTACLE:
+                evtText = TXT_TRIGGERED_OBSTACLE;
+                break;
             case EVT_RAIN_DOCKING:
                 evtText = TXT_RAIN_DOCKING;
                 break;

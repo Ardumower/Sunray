@@ -482,6 +482,7 @@ void cmdVersion(){
 void cmdObstacle(){
   String s = F("O");
   cmdAnswer(s);  
+  Logger.event(EVT_TRIGGERED_OBSTACLE);
   triggerObstacle();  
 }
 
