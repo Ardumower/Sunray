@@ -823,6 +823,7 @@ bool detectObstacle(){
     if (delta < 0.05){
       if (GPS_MOTION_DETECTION){
         CONSOLE.println("gps no motion => obstacle!");
+        Logger.event(EVT_NO_ROBOT_MOTION_OSTACLE);    
         statMowGPSMotionTimeoutCounter++;
         triggerObstacle();
         return true;
