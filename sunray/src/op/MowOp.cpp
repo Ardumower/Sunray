@@ -182,6 +182,7 @@ void MowOp::onOdometryError(){
     if (ENABLE_ODOMETRY_ERROR_DETECTION){
         CONSOLE.println("error: odometry error!");    
         stateSensor = SENS_ODOMETRY_ERROR;
+        Logger.event(EVT_ERROR_ODOMETRY);
         changeOp(errorOp);
     }
 }

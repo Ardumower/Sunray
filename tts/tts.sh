@@ -36,6 +36,7 @@ if true; then
         "error_motor_overload"           "Fehler! Motor-Überlastung. Bitte erneut starten."
         "error_motor_error"              "Fehler! Motor-Fehler. Ich versuche nochmal."
         "error_motor_error_giveup"       "Fehler! Motor-Fehler. Bitte erneut starten."
+        "error_odometry"                 "Fehler! Odometrie-Fehler. Bitte erneut starten."
         "error_no_dock_route"            "Fehler! Kein Nach-Hause-Pfad definiert."     
         "error_no_map_points"            "Fehler! Leere Karte. Bitte Karte hochladen."   
         "robot_tilted"                   "Ich wurde gekippt! Bitte erneut starten."

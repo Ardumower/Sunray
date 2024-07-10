@@ -95,6 +95,9 @@ void EventLogger::event(EventCode evt, const String &additionalData) {
             case EVT_ERROR_MOTOR_ERROR_GIVEUP:
                 evtText = TXT_ERROR_MOTOR_ERROR_GIVEUP;
                 break;
+            case EVT_ERROR_ODOMETRY:
+                evtText = TXT_ERROR_ODOMETRY;
+                break;
             case EVT_ERROR_NO_DOCK_ROUTE:
                 evtText = TXT_ERROR_NO_DOCK_ROUTE;
                 break;
