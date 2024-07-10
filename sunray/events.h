@@ -37,6 +37,7 @@
 #define TXT_ERROR_NO_MAP_POINTS             F("error_no_map_points")
 #define TXT_ROBOT_TILTED                    F("robot_tilted")
 #define TXT_ERROR_NO_MAP_ROUTE              F("error_no_map_route")
+#define TXT_ERROR_NO_MAP_ROUTE_GIVEUP       F("error_no_map_route_giveup")
 #define TXT_NO_GPS_POSITION                 F("no_gps_position")
 #define TXT_GPS_JUMP                        F("gps_jump")
 #define TXT_GPS_BAD                         F("gps_bad")
@@ -94,6 +95,7 @@ enum EventCode {
     EVT_ERROR_NO_DOCK_ROUTE,
     EVT_ERROR_NO_MAP_POINTS,
     EVT_ROBOT_TILTED,
+    EVT_ERROR_NO_MAP_ROUTE_GIVEUP,    
     EVT_ERROR_NO_MAP_ROUTE,
     EVT_NO_GPS_POSITION,
     EVT_GPS_JUMP,

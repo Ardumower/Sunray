@@ -104,6 +104,9 @@ void EventLogger::event(EventCode evt, const String &additionalData) {
             case EVT_ERROR_NO_MAP_ROUTE:
                 evtText = TXT_ERROR_NO_MAP_ROUTE;
                 break;
+            case EVT_ERROR_NO_MAP_ROUTE_GIVEUP:
+                evtText = TXT_ERROR_NO_MAP_ROUTE_GIVEUP;
+                break;
             case EVT_ERROR_NO_MAP_POINTS:
                 evtText = TXT_ERROR_NO_MAP_POINTS;
                 break;

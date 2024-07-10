@@ -65,9 +65,11 @@ void MowOp::begin(){
         if (mapRoutingFailedCounter > 60){
             CONSOLE.println("error: too many map routing errors!");
             stateSensor = SENS_MAP_NO_ROUTE;
+            Logger.event(EVT_ERROR_NO_MAP_ROUTE_GIVEUP);
             changeOp(errorOp);      
         } else {    
-        changeOp(gpsRebootRecoveryOp, true);
+            Logger.event(EVT_ERROR_NO_MAP_ROUTE);
+            changeOp(gpsRebootRecoveryOp, true);
         }
     } else {
         lastMapRoutingFailed = false;
@@ -223,6 +225,7 @@ void MowOp::onMotorError(){
     } else {
         CONSOLE.println("no obstacle avoidance activated on motor errors, giving up");    
         stateSensor = SENS_MOTOR_ERROR;
+        Logger.event(EVT_ERROR_MOTOR_ERROR_GIVEUP);
         changeOp(errorOp);        
         return;
     }
