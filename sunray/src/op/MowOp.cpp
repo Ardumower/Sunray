@@ -189,6 +189,7 @@ void MowOp::onMotorOverload(){
     if (motor.motorOverloadDuration > 20000){
         CONSOLE.println("error: motor overload!");    
         stateSensor = SENS_OVERLOAD;
+        Logger.event(EVT_ERROR_MOTOR_OVERLOAD);
         changeOp(errorOp);
         return;
     }
@@ -206,6 +207,7 @@ void MowOp::onMotorError(){
             if (maps.wayMode != WAY_DOCK){
                 if (motorErrorCounter < 5){                     
                     //stateSensor = SENS_MOTOR_ERROR;
+                    Logger.event(EVT_ERROR_MOTOR_ERROR);            
                     changeOp(escapeReverseOp, true);     // trigger obstacle avoidance 
                     return;
                 }
@@ -214,7 +216,7 @@ void MowOp::onMotorError(){
             CONSOLE.println("error: motor error - giving up!");
             motorErrorCounter = 0;
             stateSensor = SENS_MOTOR_ERROR;
-            Logger.event(EVT_ERROR_MOTOR_ERROR);
+            Logger.event(EVT_ERROR_MOTOR_ERROR_GIVEUP);
             changeOp(errorOp);
             return;      
         }  

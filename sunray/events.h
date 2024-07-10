@@ -32,6 +32,7 @@
 #define TXT_ERROR_MOW_MOTOR_GIVEUP          F("error_mow_motor_giveup")
 #define TXT_ERROR_MOTOR_OVERLOAD            F("error_motor_overload")
 #define TXT_ERROR_MOTOR_ERROR               F("error_motor_error")
+#define TXT_ERROR_MOTOR_ERROR_GIVEUP        F("error_motor_error_giveup")
 #define TXT_ERROR_NO_DOCK_ROUTE             F("error_no_dock_route")
 #define TXT_ERROR_NO_MAP_POINTS             F("error_no_map_points")
 #define TXT_ROBOT_TILTED                    F("robot_tilted")
@@ -89,6 +90,7 @@ enum EventCode {
     EVT_ERROR_MOW_MOTOR_GIVEUP,
     EVT_ERROR_MOTOR_OVERLOAD,
     EVT_ERROR_MOTOR_ERROR,
+    EVT_ERROR_MOTOR_ERROR_GIVEUP,    
     EVT_ERROR_NO_DOCK_ROUTE,
     EVT_ERROR_NO_MAP_POINTS,
     EVT_ROBOT_TILTED,
