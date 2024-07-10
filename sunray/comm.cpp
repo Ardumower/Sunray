@@ -515,7 +515,7 @@ void cmdTriggerWatchdog(){
   #ifdef __linux__
     Logger.event(EVT_SYSTEM_RESTARTING);
     Process p;
-    p.runShellCommand("reboot");    
+    p.runShellCommand("sleep 3; reboot");    
   #else
     triggerWatchdog = true;  
   #endif
