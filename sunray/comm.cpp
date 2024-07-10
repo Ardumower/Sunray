@@ -513,7 +513,7 @@ void cmdTriggerWatchdog(){
   cmdAnswer(s);  
   setOperation(OP_IDLE);
   #ifdef __linux__
-    Logger.event(EVT_SYSTEM_STARTED);
+    Logger.event(EVT_SYSTEM_RESTARTING);
     Process p;
     p.runShellCommand("reboot");    
   #else
@@ -535,6 +535,7 @@ void cmdSwitchOffRobot(){
   String s = F("Y3");
   cmdAnswer(s);  
   setOperation(OP_IDLE);
+  Logger.event(EVT_SYSTEM_SHUTTING_DOWN);
   battery.switchOff();
 }
 
