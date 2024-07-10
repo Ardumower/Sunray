@@ -823,7 +823,7 @@ bool detectObstacle(){
     if (delta < 0.05){
       if (GPS_MOTION_DETECTION){
         CONSOLE.println("gps no motion => obstacle!");
-        Logger.event(EVT_NO_ROBOT_MOTION_OSTACLE);    
+        Logger.event(EVT_NO_ROBOT_MOTION_OBSTACLE);    
         statMowGPSMotionTimeoutCounter++;
         triggerObstacle();
         return true;
@@ -849,6 +849,7 @@ bool detectObstacleRotation(){
   if (!OBSTACLE_DETECTION_ROTATION) return false; 
   if (millis() > angularMotionStartTime + 15000) { // too long rotation time (timeout), e.g. due to obstacle
     CONSOLE.println("too long rotation time (timeout) for requested rotation => assuming obstacle");
+    Logger.event(EVT_ANGULAR_MOTION_TIMEOUT_OBSTACLE);
     statMowRotationTimeoutCounter++;
     triggerObstacleRotation();
     return true;
@@ -868,6 +869,7 @@ bool detectObstacleRotation(){
       if (fabs(stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s yaw speed, e.g. due to obstacle
         CONSOLE.println("no IMU rotation speed detected for requested rotation => assuming obstacle");    
         statMowImuNoRotationSpeedCounter++;
+        Logger.event(EVT_IMU_NO_ROTATION_OBSTACLE);    
         triggerObstacleRotation();
         return true;      
       }
@@ -875,6 +877,7 @@ bool detectObstacleRotation(){
     if (diffIMUWheelYawSpeedLP > 10.0/180.0 * PI) {  // yaw speed difference between wheels and IMU more than 8 degree/s, e.g. due to obstacle
       CONSOLE.println("yaw difference between wheels and IMU for requested rotation => assuming obstacle");            
       statMowDiffIMUWheelYawSpeedCounter++;
+      Logger.event(EVT_IMU_WHEEL_DIFFERENCE_OBSTACLE);            
       triggerObstacleRotation();
       return true;            
     }    
