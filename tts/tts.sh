@@ -66,7 +66,7 @@ if true; then
         "user_timetable_upload"          "Zeitplan wurde hochgeladen."        
         "triggered_obstacle"             "Hindernis ausgelöst. Umfahre Hindernis."
         "idle_timeout"                   "Ich bin inaktiv. Bitte schalte mich aus."                      
-        "charger_connected"              "Ladevorrichtung angeschossen! Ich lade meine Batterie auf."        
+        "charger_connected"              "Ladevorrichtung angeschlossen! Ich lade meine Batterie auf."        
         "dock_recovery"                  "Ladekontakt verloren. Ich versuche nochmal."
         "dock_recovery_giveup"           "Ladekontakt verloren. Bitte lade mich auf."
         "lidar_relocalization"           "LiDAR-Position unbekannt. Ich lokalisiere mich neu."
