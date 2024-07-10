@@ -12,6 +12,7 @@
 #include "Stats.h"
 #include "helper.h"
 #include "i2c.h"
+#include "events.h"
 
 
 float stateX = 0;  // position-east (m)
@@ -79,7 +80,10 @@ bool startIMU(bool forceIMU){
      }
      watchdogReset();          
   }  
-  if (!imuDriver.imuFound) return false;  
+  if (!imuDriver.imuFound) {
+    Logger.event(EVT_ERROR_IMU_NOT_CONNECTED);
+    return false;
+  }  
   counter = 0;  
   while (true){    
     if (imuDriver.begin()) break;
@@ -91,11 +95,12 @@ bool startIMU(bool forceIMU){
     if (counter > 5){
       //stateSensor = SENS_IMU_TIMEOUT;
       activeOp->onImuError();
+      Logger.event(EVT_ERROR_IMU_NOT_CONNECTED);    
       //setOperation(OP_ERROR);      
       //buzzer.sound(SND_STUCK, true);            
       return false;
     }
-    watchdogReset();     
+    watchdogReset();       
   }              
   imuIsCalibrating = true;   
   nextImuCalibrationSecond = millis() + 1000;

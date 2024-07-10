@@ -6,6 +6,7 @@
 #include "Arduino.h"
 #include "ublox.h"
 #include "../../config.h"
+#include "../../events.h"
 #include "SparkFun_Ublox_Arduino_Library.h" 
 
 
@@ -108,6 +109,7 @@ bool UBLOX::configure(){
     CONSOLE.println(_baud);        
     if (configGPS.begin(*_bus)) break;    
     CONSOLE.println(F("ERROR: GPS receiver is not responding"));            
+    //Logger.event(EVT_ERROR_GPS_NOT_CONNECTED);
     CONSOLE.println("trying baud 38400");    
     _bus->begin(38400);
     if (configGPS.begin(*_bus)) {
@@ -117,6 +119,7 @@ bool UBLOX::configure(){
     }
     _bus->begin(_baud);
     CONSOLE.println(F("ERROR: GPS receiver is not responding"));                
+    Logger.event(EVT_ERROR_GPS_NOT_CONNECTED);
   }
         
   CONSOLE.println("GPS receiver found!");

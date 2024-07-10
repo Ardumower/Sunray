@@ -9,6 +9,7 @@
 #include "mqtt.h"
 #include "httpserver.h"
 #include "ble.h"
+#include "events.h"
 
 #ifdef __linux__
   #include <BridgeClient.h>
@@ -272,6 +273,7 @@ void cmdTimetable(){
     stateSensor = SENS_MEM_OVERFLOW;
     setOperation(OP_ERROR);
   } else {
+    Logger.event(EVT_USER_UPLOAD_TIME_TABLE);
     saveState();
   }
 }
@@ -473,6 +475,7 @@ void cmdVersion(){
   CONSOLE.print(" encryptChallenge=");  
   CONSOLE.println(encryptChallenge);
   cmdAnswer(s);
+  Logger.event(EVT_APP_CONNECTED);
 }
 
 // request add obstacle
@@ -509,6 +512,7 @@ void cmdTriggerWatchdog(){
   cmdAnswer(s);  
   setOperation(OP_IDLE);
   #ifdef __linux__
+    Logger.event(EVT_SYSTEM_STARTED);
     Process p;
     p.runShellCommand("reboot");    
   #else
@@ -521,6 +525,7 @@ void cmdGNSSReboot(){
   String s = F("Y2");
   cmdAnswer(s);  
   CONSOLE.println("GNNS reboot");
+  Logger.event(EVT_GPS_RESTARTED);    
   gps.reboot();
 }
 

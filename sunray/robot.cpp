@@ -48,6 +48,7 @@
 #include "src/test/test.h"
 #include "bumper.h"
 #include "mqtt.h"
+#include "events.h"
 
 // #define I2C_SPEED  10000
 #define _BV(x) (1 << (x))
@@ -677,6 +678,7 @@ void start(){
     robotDriver.setSimRobotPosState(stateX, stateY, stateDelta);
     tester.begin();
   #endif
+  //Logger.event(EVT_SYSTEM_STARTED);
 }
 
 

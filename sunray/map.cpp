@@ -6,6 +6,7 @@
 #include "robot.h"
 #include "config.h"
 #include "StateEstimator.h"
+#include "events.h"
 #include <Arduino.h>
 
 
@@ -653,6 +654,7 @@ void Map::finishedUploadingMap(){
     }
   #endif
   mapCRC = calcMapCRC();
+  Logger.event(EVT_USER_UPLOAD_MAP);
   dump();
   save();
 }
@@ -990,6 +992,7 @@ bool Map::startDocking(float stateX, float stateY){
     }
   } else {
     CONSOLE.println("ERROR: no points");
+    Logger.event(EVT_ERROR_NO_MAP_POINTS);
     return false; 
   }
 }
@@ -1026,6 +1029,7 @@ bool Map::startMowing(float stateX, float stateY){
         return true;
       } else {
         CONSOLE.println("ERROR: no path");
+        Logger.event(EVT_ERROR_NO_MAP_ROUTE);
         return false;      
       }
     } else {
@@ -1033,6 +1037,7 @@ bool Map::startMowing(float stateX, float stateY){
       return false;
     }
   } else {
+    Logger.event(EVT_ERROR_NO_MAP_POINTS);
     CONSOLE.println("ERROR: no points");
     return false; 
   }
