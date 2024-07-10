@@ -30,6 +30,8 @@
 #define TXT_ERROR_MOW_MOTOR_OVERLOAD        F("error_mow_motor_overload")
 #define TXT_ERROR_MOW_MOTOR_TOO_MANY        F("error_mow_motor_too_many")
 #define TXT_ERROR_MOW_MOTOR_GIVEUP          F("error_mow_motor_giveup")
+#define TXT_ERROR_MOTOR_OVERLOAD            F("error_motor_overload")
+#define TXT_ERROR_MOTOR_ERROR               F("error_motor_error")
 #define TXT_ERROR_NO_DOCK_ROUTE             F("error_no_dock_route")
 #define TXT_ERROR_NO_MAP_POINTS             F("error_no_map_points")
 #define TXT_ROBOT_TILTED                    F("robot_tilted")
@@ -51,6 +53,7 @@
 #define TXT_RAIN_DOCKING                    F("rain_docking")
 #define TXT_TEMPERATURE_HIGH_DOCKING        F("temperature_high_docking")
 #define TXT_TEMPERATURE_LOW_DOCKING         F("temperature_low_docking")
+#define TXT_TEMPERATURE_OUT_OF_RANGE_DOCK   F("temperature_out_of_range")
 #define TXT_USER_STOP                       F("user_stop")
 #define TXT_USER_START                      F("user_start")
 #define TXT_USER_DOCK                       F("user_dock")
@@ -84,6 +87,8 @@ enum EventCode {
     EVT_ERROR_MOW_MOTOR_OVERLOAD,
     EVT_ERROR_MOW_MOTOR_TOO_MANY,
     EVT_ERROR_MOW_MOTOR_GIVEUP,
+    EVT_ERROR_MOTOR_OVERLOAD,
+    EVT_ERROR_MOTOR_ERROR,
     EVT_ERROR_NO_DOCK_ROUTE,
     EVT_ERROR_NO_MAP_POINTS,
     EVT_ROBOT_TILTED,
@@ -105,6 +110,7 @@ enum EventCode {
     EVT_RAIN_DOCKING,
     EVT_TEMPERATURE_HIGH_DOCKING,
     EVT_TEMPERATURE_LOW_DOCKING,
+    EVT_TEMPERATURE_OUT_OF_RANGE_DOCK,
     EVT_USER_STOP,
     EVT_USER_START,
     EVT_USER_DOCK,

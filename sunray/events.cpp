@@ -86,6 +86,12 @@ void EventLogger::event(EventCode evt, const String &additionalData) {
             case EVT_ERROR_MOW_MOTOR_GIVEUP:
                 evtText = TXT_ERROR_MOW_MOTOR_GIVEUP;
                 break;
+            case EVT_ERROR_MOTOR_OVERLOAD:
+                evtText = TXT_ERROR_MOTOR_OVERLOAD;
+                break;
+            case EVT_ERROR_MOTOR_ERROR:
+                evtText = TXT_ERROR_MOTOR_ERROR;
+                break;
             case EVT_ERROR_NO_DOCK_ROUTE:
                 evtText = TXT_ERROR_NO_DOCK_ROUTE;
                 break;

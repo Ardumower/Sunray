@@ -10,6 +10,7 @@
 #include "../../LineTracker.h"
 #include "../../Stats.h"
 #include "../../map.h"
+#include "../../events.h"
 
 
 MowOp::MowOp(){
@@ -102,6 +103,7 @@ void MowOp::run(){
 void MowOp::onRainTriggered(){
     if (DOCKING_STATION){
         CONSOLE.println("RAIN TRIGGERED");
+        Logger.event(EVT_RAIN_DOCKING);
         stateSensor = SENS_RAIN;
         dockOp.dockReasonRainTriggered = true;
         #ifdef DRV_SIM_ROBOT
@@ -117,6 +119,7 @@ void MowOp::onRainTriggered(){
 void MowOp::onTempOutOfRangeTriggered(){
     if (DOCKING_STATION){
         CONSOLE.println("TEMP OUT-OF-RANGE TRIGGERED");
+        Logger.event(EVT_TEMPERATURE_OUT_OF_RANGE_DOCK);
         stateSensor = SENS_TEMP_OUT_OF_RANGE;
         dockOp.dockReasonRainTriggered = true;
         dockOp.dockReasonRainAutoStartTime = millis() + 60000 * 60; // try again after one hour      
@@ -127,6 +130,7 @@ void MowOp::onTempOutOfRangeTriggered(){
 
 void MowOp::onBatteryLowShouldDock(){    
     CONSOLE.println("BATTERY LOW TRIGGERED - DOCKING");
+    Logger.event(EVT_BATTERY_LOW_DOCK);
     dockOp.setInitiatedByOperator(false);
     changeOp(dockOp);
 }
@@ -210,6 +214,7 @@ void MowOp::onMotorError(){
             CONSOLE.println("error: motor error - giving up!");
             motorErrorCounter = 0;
             stateSensor = SENS_MOTOR_ERROR;
+            Logger.event(EVT_ERROR_MOTOR_ERROR);
             changeOp(errorOp);
             return;      
         }  
@@ -239,6 +244,7 @@ void MowOp::onGpsFixTimeout(){
         if (!maps.isUndocking()){
 #endif
             stateSensor = SENS_GPS_FIX_TIMEOUT;
+            Logger.event(EVT_GPS_BAD);
             changeOp(gpsWaitFixOp, true);
         }
     }
@@ -252,6 +258,7 @@ void MowOp::onGpsNoSignal(){
         if (!maps.isUndocking()){
 #endif
             stateSensor = SENS_GPS_INVALID;
+            Logger.event(EVT_NO_GPS_POSITION);
             changeOp(gpsWaitFloatOp, true);
         }
     }
@@ -262,12 +269,14 @@ void MowOp::onKidnapped(bool state){
         stateSensor = SENS_KIDNAPPED;      
         motor.setLinearAngularSpeed(0,0, false); 
         motor.setMowState(false);    
+        Logger.event(EVT_GPS_JUMP);
         changeOp(kidnapWaitOp, true); 
     }
 }
 
 void MowOp::onNoFurtherWaypoints(){
     CONSOLE.println("mowing finished!");
+    Logger.event(EVT_MOWING_COMPLETED);
     timetable.setMowingCompletedInCurrentTimeFrame(true);
     if (!finishAndRestart){             
         if (DOCKING_STATION){
@@ -282,11 +291,13 @@ void MowOp::onNoFurtherWaypoints(){
 
 void MowOp::onImuTilt(){
     stateSensor = SENS_IMU_TILT;
+    Logger.event(EVT_ROBOT_TILTED);
     changeOp(errorOp);
 }
 
 void MowOp::onImuError(){
     stateSensor = SENS_IMU_TIMEOUT;
+    Logger.event(EVT_ERROR_IMU_TIMEOUT);
     changeOp(errorOp);
 }
 
