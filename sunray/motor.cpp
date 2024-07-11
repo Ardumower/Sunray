@@ -123,11 +123,15 @@ void Motor::begin() {
 }
 
 void Motor::setMowMaxPwm( int val ){
+  CONSOLE.print("Motor::setMowMaxPwm ");
+  CONSOLE.println(val);
   pwmMaxMow = val;
 }
 
 void Motor::setMowHeightMillimeter( int val )
 {
+  CONSOLE.print("Motor::setMowHeightMillimeter ");
+  CONSOLE.println(val);
   mowHeightMillimeter = val;
 }
 
