@@ -162,7 +162,9 @@ void cmdControl(){
       } else if (counter == 8){
           if (intValue >= 0) sonar.enabled = (intValue == 1);
       } else if (counter == 9){
-         if (intValue >= 0) motor.setMowMaxPwm(intValue);
+          if (intValue >= 0) motor.setMowMaxPwm(intValue);
+      } else if (counter == 10){
+          motor.setMowHeightMillimeter(intValue);
       }
       counter++;
       lastCommaIdx = idx;

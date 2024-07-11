@@ -24,6 +24,8 @@ void Motor::begin() {
   
   pwmSpeedOffset = 1.0;
   
+  mowHeightMillimeter = 30;
+
   //ticksPerRevolution = 1060/2;
   ticksPerRevolution = TICKS_PER_REVOLUTION;
 	wheelBaseCm = WHEEL_BASE_CM;    // wheel-to-wheel distance (cm) 36
@@ -122,6 +124,11 @@ void Motor::begin() {
 
 void Motor::setMowMaxPwm( int val ){
   pwmMaxMow = val;
+}
+
+void Motor::setMowHeightMillimeter( int val )
+{
+  mowHeightMillimeter = val;
 }
 
 void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
