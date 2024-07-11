@@ -390,6 +390,10 @@ void AmMotorDriver::run(){
 }
 
 
+void AmMotorDriver::setMowHeight(int mowHeightMillimeter){
+}
+
+
 // brushed/brushless motor driver
 //(8-bit PWM=255, 10-bit PWM=1023)
 // example logic:

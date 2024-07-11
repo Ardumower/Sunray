@@ -79,6 +79,8 @@ void SimMotorDriver::begin(){
 void SimMotorDriver::run(){
 }
 
+void SimMotorDriver::setMowHeight(int mowHeightMillimeter){
+}
 
 // linear: m/s
 // angular: rad/s

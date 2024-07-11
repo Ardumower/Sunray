@@ -359,13 +359,16 @@ void CanMotorDriver::begin(){
 void CanMotorDriver::run(){
 }
 
+void CanMotorDriver::setMowHeight(int mowHeightMillimeter){
+}
+
 void CanMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  
   //canRobot.requestMotorPwm(leftPwm, rightPwm, mowPwm);
   canRobot.requestLeftPwm = leftPwm;
   canRobot.requestRightPwm = rightPwm;
   // Alfred mowing motor driver seem to start start mowing motor more successfully with full PWM (100%) values...  
-  if (mowPwm > 0) mowPwm = 255;
-    else if (mowPwm < 0) mowPwm = -255;
+  //if (mowPwm > 0) mowPwm = 255;
+  //  else if (mowPwm < 0) mowPwm = -255;
   canRobot.requestMowPwm = mowPwm;
 }
 

@@ -31,7 +31,9 @@ class MotorDriver {
   public:    
     virtual void begin() = 0;
     virtual void run() = 0;
-    
+
+    // set mowing height in millimeters
+    virtual void setMowHeight(int mowHeightMillimeter) = 0;        
     // set pwm (0-255), positive: forward, negative: backwards
     virtual void setMotorPwm(int leftPwm, int rightPwm, int mowPwm) = 0;
     // get motor faults

@@ -55,6 +55,7 @@ class SimMotorDriver: public MotorDriver {
     SimMotorDriver(SimRobotDriver &sr);
     void begin() override;
     void run() override;
+    void setMowHeight(int mowHeightMillimeter) override;
     void setMotorPwm(int leftPwm, int rightPwm, int mowPwm) override;
     void getMotorFaults(bool &leftFault, bool &rightFault, bool &mowFault) override;
     void resetMotorFaults()  override;
