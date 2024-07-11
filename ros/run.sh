@@ -20,7 +20,7 @@ btmgmt -i hci0 power off
 btmgmt -i hci0 le on
 btmgmt -i hci0 bredr off
 btmgmt -i hci0 connectable on
-btmgmt -i hci0 name "fuxtec"
+btmgmt -i hci0 name "ROS robot"
 btmgmt -i hci0 advertising on
 btmgmt -i hci0 power on
 
