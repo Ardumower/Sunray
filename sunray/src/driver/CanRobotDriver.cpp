@@ -48,6 +48,10 @@ void CanRobotDriver::begin(){
   cmdSummaryCounter = 0;
   consoleCounter = 0;
   requestLeftPwm = requestRightPwm = requestMowPwm = 0;
+  requestMowHeightMillimeter = 30;
+  motorHeightAngleEndswitch = 0;
+  motorHeightAngleCurr = 0;
+  motorHeightFoundEndswitch = false;
   robotID = "XX";
   ledStateWifiInactive = false;
   ledStateWifiConnected = false;
@@ -174,11 +178,18 @@ void CanRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   data.floatVal = ((float)rightPwm) / 255.0;    
   sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
   sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_odo_ticks, data);    
-  
-  data.floatVal = ((float)mowPwm) / 255.0;  
-  sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
-  sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_odo_ticks, data);      
 
+  if (true){
+    // cutter speed (voltage control)
+    data.floatVal = ((float)mowPwm) / 255.0;    
+    sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
+  } else {
+    // cutter speed (velocity control)
+    data.floatVal = ((float)mowPwm) / 255.0 * 10.0;   // TODO: convert 0..255 to target velocity (motor radiant/sec)  
+    sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_velocity, data);
+  }
+  sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_odo_ticks, data);
+ 
   cmdMotorCounter++;
 }
 
@@ -187,6 +198,17 @@ void CanRobotDriver::motorResponse(){
   mcuCommunicationLost=false;
 }
 
+void CanRobotDriver::requestMowHeight(int mowHeightMillimeter){
+  canDataType_t data;
+  if (motorHeightFoundEndswitch){    
+    data.floatVal = (((float)mowHeightMillimeter) * 1.0) - motorHeightAngleEndswitch;  // TODO: convert millimeter to motor angle radiant    
+  } else {
+    data.floatVal = -1000;   // unreachable target (find endswitch)   
+  }
+  sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_target, data);  
+  sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_angle, data);  
+  sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_endswitch, data);  
+} 
 
 void CanRobotDriver::versionResponse(){
 }
@@ -219,6 +241,21 @@ void CanRobotDriver::processResponse(){
                 //CONSOLE.println("can_cmd_info");                
                 // info value (volt, velocity, position, ...)
                 switch (val){                            
+                  case owldrv::can_val_endswitch:
+                    switch(node.sourceAndDest.sourceNodeID){
+                      case MOW_HEIGHT_MOTOR_NODE_ID:  
+                        motorHeightFoundEndswitch = (data.byteVal[0] != 0);
+                        if (motorHeightFoundEndswitch) motorHeightAngleEndswitch = motorHeightAngleCurr; 
+                        break;
+                    }
+                    break;
+                  case owldrv::can_val_angle:
+                    switch(node.sourceAndDest.sourceNodeID){
+                      case MOW_HEIGHT_MOTOR_NODE_ID:  
+                        motorHeightAngleCurr = data.floatVal;
+                        break;
+                    }
+                    break;
                   case owldrv::can_val_odo_ticks:
                     switch(node.sourceAndDest.sourceNodeID){
                       case LEFT_MOTOR_NODE_ID:
@@ -279,6 +316,7 @@ void CanRobotDriver::run(){
   }
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;  // 1 hz    
+    requestMowHeight(requestMowHeightMillimeter);
     bool printConsole = false;
     if (consoleCounter == 10){
       printConsole = true;
@@ -360,6 +398,7 @@ void CanMotorDriver::run(){
 }
 
 void CanMotorDriver::setMowHeight(int mowHeightMillimeter){
+  canRobot.requestMowHeightMillimeter = mowHeightMillimeter;
 }
 
 void CanMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  

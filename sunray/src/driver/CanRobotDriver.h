@@ -21,16 +21,19 @@
 
 // -----CAN frame data types----------------
 
-#define OWL_DRIVE_MSG_ID   300
-#define OWL_CONTROL_MSG_ID 200
+#define OWL_DRIVE_MSG_ID   300  // owlDrive PCB 
+#define OWL_CONTROL_MSG_ID 200  // owlControl PCB 
 
 #define MY_NODE_ID 60 
 
-#define LEFT_MOTOR_NODE_ID    1
+// owlDrive PCB 
+#define LEFT_MOTOR_NODE_ID    1 
 #define RIGHT_MOTOR_NODE_ID   2
 #define MOW_MOTOR_NODE_ID     3
+#define MOW_HEIGHT_MOTOR_NODE_ID     20
 
-#define CONTROL_NODE_ID       1
+#define CONTROL_NODE_ID       1 // owlControl PCB 
+
 
 typedef union canNodeType_t {   
     uint8_t byteVal[2];
@@ -126,7 +129,8 @@ class CanRobotDriver: public RobotDriver {
     String mcuFirmwareVersion;
     int requestLeftPwm;
     int requestRightPwm;
-    int requestMowPwm;        
+    int requestMowPwm;   
+    int requestMowHeightMillimeter;         
     unsigned long encoderTicksLeft;
     unsigned long encoderTicksRight;
     unsigned long encoderTicksMow;
@@ -138,6 +142,9 @@ class CanRobotDriver: public RobotDriver {
     float mowCurr;
     float motorLeftCurr;
     float motorRightCurr;
+    float motorHeightAngleCurr;
+    float motorHeightAngleEndswitch;
+    bool motorHeightFoundEndswitch;
     bool resetMotorTicks;
     float batteryTemp;
     float cpuTemp;
@@ -152,6 +159,7 @@ class CanRobotDriver: public RobotDriver {
     bool getMcuFirmwareVersion(String &name, String &ver) override;
     float getCpuTemperature() override;
     void requestMotorPwm(int leftPwm, int rightPwm, int mowPwm);
+    void requestMowHeight(int mowHeightMillimeter);
     void requestSummary();
     void requestVersion();
     void updateCpuTemperature();
