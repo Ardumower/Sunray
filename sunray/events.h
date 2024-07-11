@@ -10,6 +10,7 @@
 
 #include <Arduino.h>
 
+// keep text in flash memory (do not consume RAM memory for this)
 #define TXT_UNKNOWN                         F("unknown_event")
 #define TXT_SYSTEM_STARTING                 F("system_starting")
 #define TXT_SYSTEM_STARTED                  F("system_started")
@@ -72,7 +73,7 @@
 #define TXT_LIDAR_MAPPING_COMPLETED         F("lidar_mapping_completed")
 
 
-// Event-Codes als enum
+// event codes 
 enum EventCode {
     EVT_SYSTEM_STARTING,
     EVT_SYSTEM_STARTED,
