@@ -11,6 +11,7 @@
 #include "pid.h"
 #include "src/op/op.h"
 #include "Stats.h"
+#include "events.h"
 
 
 //PID pidLine(0.2, 0.01, 0); // not used
@@ -136,6 +137,7 @@ void trackLine(bool runControl){
     // slow down speed in case of overload and overwrite all prior speed 
     if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
       if (!printmotoroverload) {
+          Logger.event(EVT_MOTOR_OVERLOAD_REDUCE_SPEED);
           CONSOLE.println("motor overload detected: reduce linear speed to 0.1");
       }
       printmotoroverload = true;
@@ -182,6 +184,7 @@ void trackLine(bool runControl){
         if (GPS_SPEED_DETECTION) {         
           CONSOLE.println("gps no speed => obstacle!");
           statMowGPSNoSpeedCounter++;
+          Logger.event(EVT_NO_GPS_SPEED_OBSTACLE);
           triggerObstacle();
           return;
         }

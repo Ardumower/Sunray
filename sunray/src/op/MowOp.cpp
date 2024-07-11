@@ -249,8 +249,7 @@ void MowOp::onGpsFixTimeout(){
 #else
         if (!maps.isUndocking()){
 #endif
-            stateSensor = SENS_GPS_FIX_TIMEOUT;
-            Logger.event(EVT_GPS_BAD);
+            stateSensor = SENS_GPS_FIX_TIMEOUT;            
             changeOp(gpsWaitFixOp, true);
         }
     }
@@ -263,8 +262,7 @@ void MowOp::onGpsNoSignal(){
 #else
         if (!maps.isUndocking()){
 #endif
-            stateSensor = SENS_GPS_INVALID;
-            Logger.event(EVT_NO_GPS_POSITION);
+            stateSensor = SENS_GPS_INVALID;            
             changeOp(gpsWaitFloatOp, true);
         }
     }
@@ -274,8 +272,7 @@ void MowOp::onKidnapped(bool state){
     if (state){
         stateSensor = SENS_KIDNAPPED;      
         motor.setLinearAngularSpeed(0,0, false); 
-        motor.setMowState(false);    
-        Logger.event(EVT_GPS_JUMP);
+        motor.setMowState(false);            
         changeOp(kidnapWaitOp, true); 
     }
 }

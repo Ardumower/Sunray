@@ -52,6 +52,8 @@ if true; then
         "lifted_obstacle"                "Angehoben! Umfahre Hindernis."
         "ground_obstacle"                "Hindernis am Boden! Umfahre Hindernis."
         "no_robot_motion_obstacle"       "Ich bewege mich nicht. Umfahre Hindernis."
+        "no_gps_speed_obstacle"          "Keine GPS-Geschwindigkeit vorhanden. Umfahre Hindernis." 
+        "motor_overload_reduce_speed"    "Motor-Überlastung. Ich reduziere die Geschwindigkeit."
         "angular_motion_timeout"         "Zeiüberschreitung beim Drehen. Umfahre Hindernis."
         "imu_no_rotation_obstacle"       "Keine IMU-Drehung feststellbar. Umfahre Hindernis."
         "imu_wheel_difference_obstacle"  "Unterschied zwischen IMU und Rad. Umfahre Hindernis."

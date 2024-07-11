@@ -143,6 +143,9 @@ void EventLogger::event(EventCode evt, const String &additionalData) {
             case EVT_NO_ROBOT_MOTION_OBSTACLE:
                 evtText = TXT_NO_ROBOT_MOTION_OBSTACLE;
                 break;
+            case EVT_NO_GPS_SPEED_OBSTACLE:
+                evtText = TXT_NO_GPS_SPEED_OBSTACLE;
+                break;
             case EVT_ANGULAR_MOTION_TIMEOUT_OBSTACLE:
                 evtText = TXT_ANGULAR_MOTION_TIMEOUT_OBSTACLE;
                 break;
@@ -154,6 +157,9 @@ void EventLogger::event(EventCode evt, const String &additionalData) {
                 break;
             case EVT_TRIGGERED_OBSTACLE:
                 evtText = TXT_TRIGGERED_OBSTACLE;
+                break;
+            case EVT_MOTOR_OVERLOAD_REDUCE_SPEED:
+                evtText = TXT_MOTOR_OVERLOAD_REDUCE_SPEED;
                 break;
             case EVT_RAIN_DOCKING:
                 evtText = TXT_RAIN_DOCKING;
