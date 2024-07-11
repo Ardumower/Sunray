@@ -109,7 +109,7 @@ endforeach()
 
 message("--copy CONFIG_FILE to sunray source--")
 if (NOT DEFINED CONFIG_FILE)
-    set(CONFIG_FILE ${CMAKE_SOURCE_DIR}/../alfred/config_ros.h)
+    set(CONFIG_FILE ${CMAKE_SOURCE_DIR}/../alfred/config_fuxtec_ros.h)
 endif()
 message("CONFIG_FILE: ${CONFIG_FILE}  (to set config file, use: cmake -D CONFIG_FILE=myconfig.h ..)")
 if(NOT EXISTS "${CONFIG_FILE}")
