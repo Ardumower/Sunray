@@ -419,7 +419,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define BUZZER_ENABLE 1 // comment to disable
 
-#define TTS_PATH "../../tts/de/"    // path for speakable events (.mp3 files) 
+#define TTS_PATH "../tts/de/"    // path for speakable events (.mp3 files) 
 
 
 // ------ experimental options  -------------------------
