@@ -55,6 +55,8 @@ then
   echo "installing audio player..."
   apt install -y libsox-fmt-mp3 sox
 fi
+# set default volume 
+amixer -D pulse sset Master 100%
 
 
 echo "----waiting for TCP connections to be closed from previous sessions----"
