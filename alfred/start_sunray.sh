@@ -50,6 +50,7 @@ btmgmt -i hci0 power on
 
 
 # setup audio interface
+# https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/SystemWide/
 if ! command -v play &> /dev/null
 then 
   echo "installing audio player..."
@@ -57,6 +58,9 @@ then
 fi
 # show audio devices
 aplay -l
+# restart pulseaudio daemon as root
+killall pulseaudio
+pulseaudio -D 
 # set default volume 
 amixer -D pulse sset Master 100%
 
