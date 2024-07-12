@@ -86,6 +86,11 @@ function list(){
   service --status-all
 }
 
+function showlog(){
+  echo "show log..."
+  journalctl -f -u sunray
+}
+
 if [ "$EUID" -ne 0 ]
   then echo "Please run as root (sudo)"
   exit
@@ -117,6 +122,7 @@ options=("Start sunray service"
   "Start display manager"   
   "Stop display manager"   
   "List services"   
+  "Show log"
   "Quit")
 select opt in "${options[@]}"
 do
@@ -155,6 +161,10 @@ do
             ;;                                        
         "List services")
             list
+            break
+            ;;                                        
+        "Show log")
+            showlog
             break
             ;;                                        
         "Quit")
