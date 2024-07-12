@@ -41,5 +41,17 @@ class LidarImuDriver: public ImuDriver {
 };
 
 
+class LidarBumperDriver: public BumperDriver {
+  public:
+    LidarBumperDriver();
+    void begin() override;
+    void run() override;
+    bool obstacle() override;
+    bool getLeftBumper() override;
+    bool getRightBumper() override;
+    void getTriggeredBumper(bool &leftBumper, bool &rightBumper) override;  	  		    
+    bool triggerBumper;
+};
+
 
 #endif

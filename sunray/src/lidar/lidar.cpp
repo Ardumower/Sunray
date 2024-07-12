@@ -105,5 +105,37 @@ void LidarImuDriver::resetData(){
 }
 
 
+// ---------------------------------------------------------
+
+
+LidarBumperDriver::LidarBumperDriver(){ 
+  triggerBumper = false;
+}
+
+
+void LidarBumperDriver::begin(){
+  CONSOLE.println("using bumper driver: LiDAR");    
+}
+
+void LidarBumperDriver::run(){
+
+}
+
+bool LidarBumperDriver::obstacle(){
+  return triggerBumper;
+}
+
+bool LidarBumperDriver::getLeftBumper(){
+  return triggerBumper;
+}
+
+bool LidarBumperDriver::getRightBumper(){
+  return triggerBumper;
+}	
+
+void LidarBumperDriver::getTriggeredBumper(bool &leftBumper, bool &rightBumper){
+  leftBumper = triggerBumper;
+  rightBumper = triggerBumper;
+}  	  		    
 
 

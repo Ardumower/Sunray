@@ -83,7 +83,8 @@ const signed char orientationMatrix[9] = {
   CanRobotDriver robotDriver;
   CanMotorDriver motorDriver(robotDriver);
   CanBatteryDriver batteryDriver(robotDriver);
-  CanBumperDriver bumperDriver(robotDriver);
+  //CanBumperDriver bumperDriver(robotDriver);
+  LidarBumperDriver bumperDriver;  
   CanStopButtonDriver stopButton(robotDriver);
   CanRainSensorDriver rainDriver(robotDriver);
   CanLiftSensorDriver liftDriver(robotDriver);
