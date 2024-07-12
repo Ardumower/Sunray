@@ -230,7 +230,7 @@ String EventLogger::getCurrentTimeStamp() {
 // MP3-Datei abspielen
 void EventLogger::playMP3(String &filename) {
     #ifdef __linux__        
-        String command = "killall play; play --volume 3.0 ";
+        String command = "killall play; play --volume 1.0 ";
         command += filename;
         //Process p;
         CONSOLE.print("RUN: ");
