@@ -49,6 +49,14 @@ btmgmt -i hci0 power on
 # -----------------------------------------
 
 
+# setup audio interface
+if ! command -v play &> /dev/null
+then 
+  echo "installing audio player..."
+  apt install -y libsox-fmt-mp3 sox
+fi
+
+
 echo "----waiting for TCP connections to be closed from previous sessions----"
 echo "Waiting TCP port 80 to be closed..."
 for _ in `seq 1 10`; do 
