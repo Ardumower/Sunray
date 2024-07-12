@@ -78,7 +78,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // should the lift sensor be enabled? (yes: uncomment line, no: comment line)
 //#define ENABLE_LIFT_DETECTION  1
 // should the lift sensor be used for obstacle avoidance (if not, mower will simply go into error if lifted)
-#define LIFT_OBSTACLE_AVOIDANCE 1  
+//#define LIFT_OBSTACLE_AVOIDANCE 1  
 
 // ------- SD card map load/resume and logging ---------------------------------
 // all serial console output can be logged to a (FAT32 formatted) SD card
@@ -186,8 +186,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define ENABLE_FAULT_DETECTION  true
 //#define ENABLE_FAULT_DETECTION  false       // use this if you keep getting 'motor error'
 
-#define ENABLE_RPM_FAULT_DETECTION  true     // use mow rpm signal to detect a motor fault (requires mowing motor with rpm output!)
-//#define ENABLE_RPM_FAULT_DETECTION  false     // do not use mow rpm signal to detect a motor fault
+//#define ENABLE_RPM_FAULT_DETECTION  true     // use mow rpm signal to detect a motor fault (requires mowing motor with rpm output!)
+#define ENABLE_RPM_FAULT_DETECTION  false     // do not use mow rpm signal to detect a motor fault
 
 // should the robot trigger obstacle avoidance on motor errors if motor recovery failed?
 #define ENABLE_FAULT_OBSTACLE_AVOIDANCE true  
@@ -259,7 +259,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define SONAR_RIGHT_OBSTACLE_CM  10      // stop mowing operation below this distance (cm) 
 
 // ------ rain sensor ----------------------------------------------------------
-#define RAIN_ENABLE true                 // if activated, mower will dock when rain sensor triggers
+#define RAIN_ENABLE false                 // if activated, mower will dock when rain sensor triggers
 //#define RAIN_ENABLE false
 
 // ------ time-of-flight distance sensor (VL53L0X) -----------------------------
@@ -273,7 +273,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // see Wiki on how to install bumperduino or freewheel sensor:
 // https://wiki.ardumower.de/index.php?title=Bumper_sensor
 // https://wiki.ardumower.de/index.php?title=Free_wheel_sensor
-#define BUMPER_ENABLE true
+#define BUMPER_ENABLE false
 //#define BUMPER_ENABLE false
 #define BUMPER_DEADTIME 1000  		// linear motion dead-time (ms) after bumper is allowed to trigger
 #define BUMPER_TRIGGER_DELAY  0		// bumper must be active for (ms) to trigger
@@ -291,7 +291,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define CURRENT_FACTOR 1.98   // PCB1.4 (non-bridged INA169, max. 2.5A)
 //#define CURRENT_FACTOR 2.941  // PCB1.4 (bridged INA169, max. 5A)
 
-#define GO_HOME_VOLTAGE   25.5  // start going to dock below this voltage
+#define GO_HOME_VOLTAGE   20.5  // start going to dock below this voltage
 // The battery will charge if both battery voltage is below that value and charging current is above that value.
 #define BAT_FULL_VOLTAGE  30.0  // start mowing again at this voltage
 #define BAT_FULL_CURRENT  -0.1   // start mowing again below this charging current (amps)
