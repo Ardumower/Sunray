@@ -164,7 +164,7 @@ void cmdControl(){
       } else if (counter == 9){
           if (intValue >= 0) motor.setMowMaxPwm(intValue);
       } else if (counter == 10){
-          motor.setMowHeightMillimeter(intValue);
+          if (intValue >= 0) motor.setMowHeightMillimeter(intValue);
       }
       counter++;
       lastCommaIdx = idx;
