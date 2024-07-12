@@ -53,8 +53,10 @@ btmgmt -i hci0 power on
 if ! command -v play &> /dev/null
 then 
   echo "installing audio player..."
-  apt install -y libsox-fmt-mp3 sox
+  apt install -y libsox-fmt-mp3 sox mplayer
 fi
+# show audio devices
+aplay -l
 # set default volume 
 amixer -D pulse sset Master 100%
 
