@@ -83,8 +83,8 @@ done;
 
 echo "----starting sunray----"
 echo "CMD=$CMD"
-    
 
+echo "working dir:$PWD"    
 
 #if [ -d "/home/pi/Sunray/alfred/build" ]; then
   # state and map files will be written here 
