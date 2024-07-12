@@ -86,15 +86,15 @@ echo "CMD=$CMD"
     
 
 
-if [ -d "/home/pi/Sunray/alfred/build" ]; then
+#if [ -d "/home/pi/Sunray/alfred/build" ]; then
   # state and map files will be written here 
-  cd /boot/sunray
+#  cd /boot/sunray
   # pick sunray from here
   /usr/bin/stdbuf -oL -eL /home/pi/Sunray/alfred/build/sunray
-else
+#else
   # pick sunray from here  
   /usr/bin/stdbuf -oL -eL $PWD/build/sunray
-fi 
+#fi 
 
 # debug mode
 # exec gdbserver :1234 /home/pi/sunray_install/sunray "$@"
