@@ -30,7 +30,7 @@
 #define LEFT_MOTOR_NODE_ID    1 
 #define RIGHT_MOTOR_NODE_ID   2
 #define MOW_MOTOR_NODE_ID     3
-#define MOW_HEIGHT_MOTOR_NODE_ID     20
+#define MOW_HEIGHT_MOTOR_NODE_ID     8
 
 #define CONTROL_NODE_ID       1 // owlControl PCB 
 
