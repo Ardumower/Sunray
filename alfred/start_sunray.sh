@@ -31,6 +31,7 @@ ip link set can0 up type can bitrate 1000000
 
 # -----------------------------------------
 echo "----bluetooth devices----"
+systemctl enable bluetooth.service
 hcitool dev
 # configure bluetooth BLE module
 echo "----BLE config----"
