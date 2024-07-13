@@ -60,7 +60,7 @@ fi
 aplay -l
 # restart pulseaudio daemon as root
 killall pulseaudio
-pulseaudio -D 
+pulseaudio -D --system --disallow-exit --disallow-module-loading
 # set default volume 
 amixer -D pulse sset Master 100%
 
