@@ -158,6 +158,7 @@ NOTE: This step is only required if you don't use the Alfred Linux SD card image
 
 ```
 echo "----bluetooth devices----"
+systemctl enable bluetooth.service
 hcitool dev
 # configure bluetooth BLE module
 echo "----BLE config----"
