@@ -10,8 +10,49 @@ echo "PWD=$PWD"
 CMD=""
 
 
+function build_sunray() {
+  if [ "$EUID" -eq 0 ]
+    then echo "Please run as non-root (not sudo)"
+    exit
+  fi
+  PS3='Please choose config: '
+  options=("Alfred" "owlMower" "Sim" "Fuxtec_ROS")
+  select opt in "${options[@]}"
+  do
+      case $opt in
+          "Alfred")
+              CONFIG_FILE="config.h"
+              break
+              ;;
+          "owlMower")
+              CONFIG_FILE="config_owlmower.h"
+              break
+              ;;
+          "Sim")
+              CONFIG_FILE="config_sim.h"
+              break
+              ;;
+          "Fuxtec_ROS")
+              CONFIG_FILE="config_fuxtec_ros.h"
+              break
+              ;;
+          *) echo "invalid option $REPLY";;
+      esac
+  done
+  CONFIG_PATHNAME=$PWD/$CONFIG_FILE
+  cd build
+  rm -Rf 
+  cmake -D CONFIG_FILE=$CONFIG_PATHNAME ..
+  make 
+}
+
+
 # start USB camera streaming web server 
 function start_cam_service() {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
   if [[ `pidof motion` != "" ]]; then
         echo "motion app already running! Exiting..."
         exit
@@ -28,6 +69,10 @@ function start_cam_service() {
 }
 
 function stop_cam_service() {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
   echo "stopping motion service..."
   systemctl stop motion
   systemctl disable motion
@@ -35,6 +80,10 @@ function stop_cam_service() {
 }
 
 function start_sunray_service() {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi  
   if [[ `pidof sunray` != "" ]]; then
         echo "Sunray linux app already running! Exiting..."
         exit
@@ -54,6 +103,10 @@ function start_sunray_service() {
 }
 
 function stop_sunray_service() {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
   # disable sunray service
   echo "stopping sunray service..."
   systemctl stop sunray
@@ -62,26 +115,46 @@ function stop_sunray_service() {
 }
 
 function start_log_service(){
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi  
   echo "starting logging service..."
   service rsyslog start
 }
 
 function stop_log_service(){
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
   echo "stopping logging service..."
   service rsyslog stop
 }
 
 function start_dm(){
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
   echo "starting display manager..."
   service lightdm start
 }
 
 function stop_dm(){
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
   echo "stopping display manager..."
   service lightdm stop
 }
 
 function list(){
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
   echo "listing services..."
   service --status-all
 }
@@ -91,14 +164,11 @@ function showlog(){
   journalctl -f -u sunray
 }
 
-if [ "$EUID" -ne 0 ]
-  then echo "Please run as root (sudo)"
-  exit
-fi
+
 
 if [ ! -d "/etc/motion" ]; then
   echo installing motion...
-  apt install motion
+  sudo apt install motion
 fi
 
 
@@ -113,7 +183,9 @@ fi
 
 # show menu
 PS3='Please enter your choice: '
-options=("Start sunray service" 
+options=( 
+  "Build sunray executable"
+  "Start sunray service"
   "Stop sunray service" 
   "Start camera service"  
   "Stop camera service"
@@ -127,6 +199,10 @@ options=("Start sunray service"
 select opt in "${options[@]}"
 do
     case $opt in
+        "Build sunray executable")
+            build_sunray
+            break
+            ;;
         "Start sunray service")
             start_sunray_service
             break
