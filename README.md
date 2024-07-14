@@ -59,6 +59,8 @@ git clone https://github.com/Ardumower/Sunray.git
 ## compile sunray (NOTE: 'make' will always copy config.h in current makefile folder into Sunray source folder) ##
 cd ~/Sunray/alfred/build
 rm -Rf *
+(NOTE: next command will use Alfred 'config.h',
+ to use another config use:  cmake -D CONFIG_FILE=/home/pi/Sunray/alfred/config_owlmower.h .. )
 cmake ..
 make
 
@@ -77,6 +79,8 @@ git pull
 ## compile sunray (NOTE: 'make' will always copy config.h in current makefile folder into Sunray source folder) ##
 cd ~/Sunray/alfred/build
 rm -Rf *
+(NOTE: next command will use Alfred 'config.h',
+ to use another config use:  cmake -D CONFIG_FILE=/home/pi/Sunray/alfred/config_owlmower.h .. )
 cmake ..
 make
 
