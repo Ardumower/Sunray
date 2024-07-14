@@ -40,6 +40,9 @@ function build_sunray() {
       esac
   done
   CONFIG_PATHNAME=$PWD/$CONFIG_FILE
+  rm -f CMakeCache.txt
+  rm -f cmake_install.cmake
+  rm -Rf CMakeFiles
   cd build
   rm -Rf 
   cmake -D CONFIG_FILE=$CONFIG_PATHNAME ..
