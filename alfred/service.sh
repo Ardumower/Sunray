@@ -183,7 +183,10 @@ function showlog(){
   journalctl -f -u sunray
 }
 
-
+function kernel_log(){
+  echo "kernel log..."
+  dmesg -wH
+}
 
 if [ ! -d "/etc/motion" ]; then
   echo installing motion...
@@ -203,18 +206,13 @@ fi
 # show menu
 PS3='Please enter your choice: '
 options=( 
-  "Build sunray executable"
-  "Rebuild sunray executable"
-  "Start sunray service"
-  "Stop sunray service" 
-  "Start camera service"  
-  "Stop camera service"
-  "Start logging service"
-  "Stop logging service"
-  "Start display manager"   
-  "Stop display manager"   
+  "Build sunray executable" "Rebuild sunray executable"
+  "Start sunray service" "Stop sunray service" 
+  "Start camera service" "Stop camera service"
+  "Start logging service" "Stop logging service"
+  "Start display manager" "Stop display manager"   
   "List services"   
-  "Show log"
+  "Show log" "Kernel log"
   "Quit")
 select opt in "${options[@]}"
 do
@@ -266,7 +264,11 @@ do
         "Show log")
             showlog
             break
-            ;;                                        
+            ;;     
+        "Kernel log")
+            kernel_log
+            break
+            ;;                                   
         "Quit")
             break
             ;;
