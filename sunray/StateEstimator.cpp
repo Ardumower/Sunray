@@ -215,7 +215,7 @@ void computeRobotState(){
     
   float distLeft = ((float)leftDelta) / ((float)motor.ticksPerCm);
   float distRight = ((float)rightDelta) / ((float)motor.ticksPerCm);
-  if ( (abs(distLeft) > 10.0) ||  (abs(distLeft) > 10.0) ) {
+  if ( (abs(distLeft) > 10.0) ||  (abs(distRight) > 10.0) ) {
     CONSOLE.print("computeRobotState WARN: distOdometry too large - distLeft=");
     CONSOLE.print(distLeft);
     CONSOLE.print(", distRight=");
