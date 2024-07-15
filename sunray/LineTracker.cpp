@@ -33,7 +33,7 @@ float trackerDiffDelta = 0;
 bool stateKidnapped = false;
 bool printmotoroverload = false;
 bool trackerDiffDelta_positive = false;
-
+float lastLineDist = 0;
 
 // control robot velocity (linear,angular) to track line to next waypoint (target)
 // uses a stanley controller for line tracking
@@ -51,6 +51,25 @@ void trackLine(bool runControl){
   trackerDiffDelta = distancePI(stateDelta, targetDelta);                         
   lateralError = distanceLineInfinite(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
   float distToPath = distanceLine(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
+
+  float lineDist = maps.distanceToTargetPoint(lastTarget.x(), lastTarget.y());
+  if (abs(lineDist-lastLineDist ) > 0.0) {
+    CONSOLE.print("distToPath=");
+    CONSOLE.print(distToPath);
+    CONSOLE.print(" x=");
+    CONSOLE.print(stateX);
+    CONSOLE.print(" y=");    
+    CONSOLE.print(stateY);
+    CONSOLE.print(" lastX=");    
+    CONSOLE.print(lastTarget.x());
+    CONSOLE.print(" lastY=");    
+    CONSOLE.print(lastTarget.y());
+    CONSOLE.print(" tgX=");    
+    CONSOLE.print(target.x());
+    CONSOLE.print(" tgY=");    
+    CONSOLE.println(target.y());
+    lastLineDist = lineDist;
+  }
   float targetDist = maps.distanceToTargetPoint(stateX, stateY);
   
   float lastTargetDist = maps.distanceToLastTargetPoint(stateX, stateY);  

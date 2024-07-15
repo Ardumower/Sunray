@@ -48,7 +48,7 @@ void CanRobotDriver::begin(){
   cmdSummaryCounter = 0;
   consoleCounter = 0;
   requestLeftPwm = requestRightPwm = requestMowPwm = 0;
-  requestMowHeightMillimeter = 30;
+  requestMowHeightMillimeter = 50;
   motorHeightAngleEndswitch = 0;
   motorHeightAngleCurr = 0;
   motorHeightFoundEndswitch = false;
@@ -209,11 +209,11 @@ void CanRobotDriver::requestMowHeight(int mowHeightMillimeter){
   if (motorHeightFoundEndswitch){    
     // convert millimeter to motor angle radiant    
     data.floatVal = motorHeightAngleEndswitch - (((float)(heightEndSwitchMillimeter-mowHeightMillimeter)) * motorAnglePerMillimeter);  
-    CONSOLE.print("endswitch found - requestMowHeight: ");
-    CONSOLE.print(data.floatVal);
-    CONSOLE.print("(");
-    CONSOLE.print(mowHeightMillimeter);
-    CONSOLE.println("mm)");    
+    //CONSOLE.print("endswitch found - requestMowHeight: ");
+    //CONSOLE.print(data.floatVal);
+    //CONSOLE.print("(");
+    //CONSOLE.print(mowHeightMillimeter);
+    //CONSOLE.println("mm)");    
   } else {
     data.floatVal = 10000 * motorAnglePerMillimeter;   // unreachable target (10mm) (find endswitch)   
     CONSOLE.print("no endswitch found - requestMowHeight: ");
@@ -261,8 +261,8 @@ void CanRobotDriver::processResponse(){
                         if (data.byteVal[0] != 0){
                           motorHeightFoundEndswitch = true;
                           motorHeightAngleEndswitch = motorHeightAngleCurr; 
-                          CONSOLE.print("found endswitch @angle ");
-                          CONSOLE.println(motorHeightAngleEndswitch);
+                          //CONSOLE.print("found endswitch @angle ");
+                          //CONSOLE.println(motorHeightAngleEndswitch);
                         }
                         break;
                     }

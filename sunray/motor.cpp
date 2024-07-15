@@ -24,7 +24,7 @@ void Motor::begin() {
   
   pwmSpeedOffset = 1.0;
   
-  mowHeightMillimeter = 30;
+  mowHeightMillimeter = 50;
 
   //ticksPerRevolution = 1060/2;
   ticksPerRevolution = TICKS_PER_REVOLUTION;
