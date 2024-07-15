@@ -44,9 +44,19 @@ function build_sunray() {
   rm -f cmake_install.cmake
   rm -Rf CMakeFiles
   cd build
-  rm -Rf 
+  rm -Rf . 
   cmake -D CONFIG_FILE=$CONFIG_PATHNAME ..
   make 
+}
+
+
+function build_sunray() {
+  if [ "$EUID" -eq 0 ]
+    then echo "Please run as non-root (not sudo)"
+    exit
+  fi
+  cd build
+  make
 }
 
 
@@ -188,6 +198,7 @@ fi
 PS3='Please enter your choice: '
 options=( 
   "Build sunray executable"
+  "Rebuild sunray executable"
   "Start sunray service"
   "Stop sunray service" 
   "Start camera service"  
@@ -204,6 +215,10 @@ do
     case $opt in
         "Build sunray executable")
             build_sunray
+            break
+            ;;
+        "Rebuild sunray executable")
+            rebuild_sunray
             break
             ;;
         "Start sunray service")
