@@ -311,7 +311,7 @@ void CanRobotDriver::processResponse(){
             if (cmd == can_cmd_info){
               switch (val){
                 case owlctl::can_val_battery_voltage:
-                  float voltage = data.floatVal; 
+                  batteryVoltage = data.floatVal; 
                   /*
                   if (voltage > batteryVoltage + 0.5){
                     chargeVoltage = voltage;
@@ -319,7 +319,9 @@ void CanRobotDriver::processResponse(){
                     chargeVoltage = 0;                  
                   }
                   */
-                  batteryVoltage = voltage;
+                  break;
+                case owlctl::can_val_bumper_state:
+                  triggeredLeftBumper = triggeredRightBumper = (data.byteVal[0] != 0);                  
                   break;
               }
             }

@@ -94,6 +94,7 @@ namespace owlctl {
   enum canValueType_t: uint8_t {
       can_val_error           = 1, // error status
       can_val_battery_voltage = 2, // voltage
+      can_val_bumper_state    = 3, // bumper status
   };
 }
 
