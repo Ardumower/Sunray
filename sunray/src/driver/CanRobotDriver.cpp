@@ -278,15 +278,18 @@ void CanRobotDriver::processResponse(){
                     switch(node.sourceAndDest.sourceNodeID){
                       case LEFT_MOTOR_NODE_ID:
                         //CONSOLE.println("encoderTicksLeft");
-                        encoderTicksLeft = data.ofsAndByte.ofsVal;
+                        encoderTicksLeft = (unsigned long)data.ofsAndByte.ofsVal;
+                        //CONSOLE.print(encoderTicksLeft);
+                        //CONSOLE.print(",");
+                        //CONSOLE.println(data.ofsAndByte.ofsVal);                        
                         motorResponse();
                         break;
                       case RIGHT_MOTOR_NODE_ID:
-                        encoderTicksRight = data.ofsAndByte.ofsVal;
+                        encoderTicksRight = (unsigned long)data.ofsAndByte.ofsVal;                        
                         motorResponse();
                         break;
                       case MOW_MOTOR_NODE_ID:
-                        encoderTicksMow = data.ofsAndByte.ofsVal;
+                        encoderTicksMow = (unsigned long)data.ofsAndByte.ofsVal;
                         motorResponse();
                         break;
                     }                
@@ -475,13 +478,13 @@ void CanMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &
   leftTicks = canRobot.encoderTicksLeft - lastEncoderTicksLeft;
   rightTicks = canRobot.encoderTicksRight - lastEncoderTicksRight;
   mowTicks = canRobot.encoderTicksMow - lastEncoderTicksMow;
-  if (leftTicks > 5000){
+  if (leftTicks > 1000){
     leftTicks = 0;
   }
-  if (rightTicks > 5000){
+  if (rightTicks > 1000){
     rightTicks = 0;
   } 
-  if (mowTicks > 5000){
+  if (mowTicks > 1000){
     mowTicks = 0;
   }
   lastEncoderTicksLeft = canRobot.encoderTicksLeft;
