@@ -216,11 +216,19 @@ void trackLine(bool runControl){
     if (fabs(distToPath) > allowedPathTolerance){ // actually, this should not happen (except on false GPS fixes or robot being kidnapped...)
       if (!stateKidnapped){
         stateKidnapped = true;
+        CONSOLE.print("KIDNAP_DETECT: stateKidnapped=");
+        CONSOLE.print(stateKidnapped);
+        CONSOLE.print(" distToPath=");
+        CONSOLE.println(distToPath);
         activeOp->onKidnapped(stateKidnapped);
       }            
     } else {
       if (stateKidnapped) {
         stateKidnapped = false;
+        CONSOLE.print("KIDNAP_DETECT: stateKidnapped=");
+        CONSOLE.print(stateKidnapped);
+        CONSOLE.print(" distToPath=");
+        CONSOLE.println(distToPath);
         activeOp->onKidnapped(stateKidnapped);        
       }
     }
