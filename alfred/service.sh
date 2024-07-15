@@ -50,7 +50,7 @@ function build_sunray() {
 }
 
 
-function build_sunray() {
+function rebuild_sunray() {
   if [ "$EUID" -eq 0 ]
     then echo "Please run as non-root (not sudo)"
     exit
