@@ -172,13 +172,15 @@ void CanRobotDriver::requestVersion(){
 void CanRobotDriver::requestSummary(){
   canDataType_t data;
   data.floatVal = 0;
-  sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_battery_voltage, data );    
+  sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_battery_voltage, data );
 }
 
 
 // request MCU motor PWM
 void CanRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   canDataType_t data;
+
+  sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_bumper_state, data );
 
   data.floatVal = ((float)leftPwm) / 255.0;  
   sendCanData(OWL_DRIVE_MSG_ID, LEFT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);  
