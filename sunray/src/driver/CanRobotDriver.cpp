@@ -69,6 +69,15 @@ void CanRobotDriver::begin(){
     robotID.trim();
     
   #endif
+  CONSOLE.print("testing unsigned overflow substraction: ");  
+  //unsigned short lastV = 65534;
+  //unsigned short currV = 1;
+  //unsigned short diffV = currV - lastV;
+  unsigned long lastV = 65534;
+  unsigned long currV = 1;
+  unsigned long diffV = (unsigned short) (currV - lastV);  
+  CONSOLE.println(diffV);
+  //exit(0);
 }
 
 bool CanRobotDriver::getRobotID(String &id){
@@ -278,18 +287,18 @@ void CanRobotDriver::processResponse(){
                     switch(node.sourceAndDest.sourceNodeID){
                       case LEFT_MOTOR_NODE_ID:
                         //CONSOLE.println("encoderTicksLeft");
-                        encoderTicksLeft = (unsigned long)data.ofsAndByte.ofsVal;
+                        encoderTicksLeft = data.ofsAndByte.ofsVal;
                         //CONSOLE.print(encoderTicksLeft);
                         //CONSOLE.print(",");
                         //CONSOLE.println(data.ofsAndByte.ofsVal);                        
                         motorResponse();
                         break;
                       case RIGHT_MOTOR_NODE_ID:
-                        encoderTicksRight = (unsigned long)data.ofsAndByte.ofsVal;                        
+                        encoderTicksRight = data.ofsAndByte.ofsVal;                        
                         motorResponse();
                         break;
                       case MOW_MOTOR_NODE_ID:
-                        encoderTicksMow = (unsigned long)data.ofsAndByte.ofsVal;
+                        encoderTicksMow = data.ofsAndByte.ofsVal;
                         motorResponse();
                         break;
                     }                
@@ -475,9 +484,9 @@ void CanMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &
     lastEncoderTicksRight = canRobot.encoderTicksRight;
     lastEncoderTicksMow = canRobot.encoderTicksMow;
   }
-  leftTicks = canRobot.encoderTicksLeft - lastEncoderTicksLeft;
-  rightTicks = canRobot.encoderTicksRight - lastEncoderTicksRight;
-  mowTicks = canRobot.encoderTicksMow - lastEncoderTicksMow;
+  leftTicks = (unsigned short)(canRobot.encoderTicksLeft - lastEncoderTicksLeft);
+  rightTicks = (unsigned short)(canRobot.encoderTicksRight - lastEncoderTicksRight);
+  mowTicks = (unsigned short)(canRobot.encoderTicksMow - lastEncoderTicksMow);
   if (leftTicks > 1000){
     leftTicks = 0;
   }
