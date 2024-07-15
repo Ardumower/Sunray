@@ -7,6 +7,7 @@
 #include "config.h"
 #include "StateEstimator.h"
 #include "events.h"
+#include "helper.h"
 #include <Arduino.h>
 
 
@@ -473,6 +474,7 @@ float Map::distanceManhattan(Point &pos0, Point &pos1){
 
 
 void Map::begin(){
+  CONSOLE.println("Map::begin");
   memoryCorruptions = 0;
   wayMode = WAY_MOW;
   trackReverse = false;
@@ -494,6 +496,7 @@ void Map::begin(){
   load();
   dump();
   //stressTestMapTransfer();
+  //float distToLine = distanceLineInfinite(12.43, 6.18, 12.42, 6.18, 12.43, 6.18);  
 }
 
 long Map::calcMapCRC(){   
