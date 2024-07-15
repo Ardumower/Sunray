@@ -53,7 +53,7 @@ void trackLine(bool runControl){
   float distToPath = distanceLine(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
 
   float lineDist = maps.distanceToTargetPoint(lastTarget.x(), lastTarget.y());
-  if ((abs(lineDist-lastLineDist ) > 0.0) || (abs(distToPath) > 0.5)) {
+  /*if ((abs(lineDist-lastLineDist ) > 0.0) || (abs(distToPath) > 0.5)) {
     CONSOLE.print("distToPath=");
     CONSOLE.print(distToPath);
     CONSOLE.print(" x=");
@@ -69,7 +69,7 @@ void trackLine(bool runControl){
     CONSOLE.print(" tgY=");    
     CONSOLE.println(target.y());
     lastLineDist = lineDist;
-  }
+  }*/
   float targetDist = maps.distanceToTargetPoint(stateX, stateY);
   
   float lastTargetDist = maps.distanceToLastTargetPoint(stateX, stateY);  
