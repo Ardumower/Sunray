@@ -121,6 +121,7 @@ function ros_run {
   # source ROS setup  
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c '. /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; . devel/setup.bash ; roslaunch sunray_node test.launch' 
+  # rosnode kill -a ; sleep 3
 }
 
 
