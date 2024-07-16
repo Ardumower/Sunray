@@ -35,8 +35,8 @@ function docker_pull_image {
 function docker_build_container {
   # -----------create container...------------------------  
   echo "HOST_MAP_PATH: $HOST_MAP_PATH"
-  echo "enter 'exit' to exit docker container" 
-  docker run --name=$CONTAINER_NAME -t -it --net=host --privileged --env="DISPLAY" --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME     
+  echo "====> enter 'exit' to exit docker container" 
+  docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev --env="DISPLAY" --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME     
 }
 
 function docker_terminal {
@@ -120,7 +120,7 @@ function ros_run {
 
   # source ROS setup  
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c '. /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; . devel/setup.bash ; roslaunch sunray_node test.launch' 
+    bash -c '. /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; roslaunch sunray_node test.launch' 
   # rosnode kill -a ; sleep 3
 }
 
