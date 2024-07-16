@@ -4,8 +4,8 @@
 IMAGE_NAME="ros:melodic-perception-bionic"
 CONTAINER_NAME="ros1"
 HOST_MAP_PATH=`realpath $PWD/..`
-#CONFIG_FILE="/root/Sunray/alfred/config_owlmower.h"
-CONFIG_FILE="/root/Sunray/alfred/config_fuxtec_ros.h"
+CONFIG_FILE="/root/Sunray/alfred/config_owlmower.h"
+#CONFIG_FILE="/root/Sunray/alfred/config_fuxtec_ros.h"
 
 
 function docker_install {
