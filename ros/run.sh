@@ -50,12 +50,12 @@ function docker_prepare_tools {
   # -------------continue container...---------------------
   # allow docker to access host Xserver 
   #xhost +local:*
-  docker start $CONTAINER_NAME && docker exec $CONTAINER_NAME /root/Sunray/ros/install_tools.sh
+  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME /root/Sunray/ros/install_tools.sh
 }
 
 function ros_compile {
   # build Sunray ROS node
-  docker start $CONTAINER_NAME && docker exec $CONTAINER_NAME \
+  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DCONFIG_FILE=$CONFIG_FILE -DROS_EDITION=ROS1"
 }
 
@@ -119,8 +119,8 @@ function ros_run {
   sudo setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node
 
   # source ROS setup  
-  docker start $CONTAINER_NAME && docker exec $CONTAINER_NAME \
-    bash -c '. /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; . devel/setup.bash  ; roslaunch sunray_node test.launch' 
+  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
+    bash -c '. /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; . devel/setup.bash ; roslaunch sunray_node test.launch' 
 }
 
 
