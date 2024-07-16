@@ -69,7 +69,9 @@ done;
 
 
 # run Sunray ROS node 
+# allow non-root to start http server 
 sudo setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node
+# source ROS setup
 . devel/setup.bash
 roslaunch sunray_node test.launch 
 
