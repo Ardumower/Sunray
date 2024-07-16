@@ -63,7 +63,7 @@ include_directories(${catkin_INCLUDE_DIRS})
 ## INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIRS})
 
 
-SET(FIRMWARE_PATH ${CMAKE_SOURCE_DIR}/../sunray)
+SET(FIRMWARE_PATH ${CMAKE_SOURCE_DIR}/../../sunray)
 
 set(CMAKE_CXX_STANDARD 14)
 SET(EXCLUDE_REGEX "agcm4|due|esp")
@@ -100,7 +100,7 @@ endforeach()
 
 
 message("---pi_sources---")
-file(GLOB_RECURSE pi_sources ../alfred/src/**.cpp ../alfred/src/**.c)
+file(GLOB_RECURSE pi_sources ${FIRMWARE_PATH}/../alfred/src/**.cpp ${FIRMWARE_PATH}/../alfred/src/**.c)
 ##list(FILTER pi_sources EXCLUDE REGEX "wiring_main.cpp")
 foreach (filename ${pi_sources})
     message(${filename})
@@ -109,7 +109,7 @@ endforeach()
 
 message("--copy CONFIG_FILE to sunray source--")
 if (NOT DEFINED CONFIG_FILE)
-    set(CONFIG_FILE ${CMAKE_SOURCE_DIR}/../alfred/config_fuxtec_ros.h)
+    set(CONFIG_FILE ${CMAKE_SOURCE_DIR}/../../alfred/config_fuxtec_ros.h)
 endif()
 message("CONFIG_FILE: ${CONFIG_FILE}  (to set config file, use: cmake -D CONFIG_FILE=myconfig.h ..)")
 if(NOT EXISTS "${CONFIG_FILE}")
@@ -126,7 +126,7 @@ set_source_files_properties(src/sunray_node.cpp PROPERTIES COMPILE_FLAGS "-x c++
 ## ADD_LIBRARY( sunray_node SHARED ${pi_sources} ${sunray_cpp} ${sunray_c} )
 add_executable(sunray_node ${pi_sources} ${sunray_cpp} ${sunray_c} src/sunray_node.cpp)
 
-target_include_directories(sunray_node PRIVATE ../alfred/src ../sunray)
+target_include_directories(sunray_node PRIVATE ${FIRMWARE_PATH} ${FIRMWARE_PATH}/../alfred/src)
 target_link_libraries(sunray_node ${catkin_LIBRARIES})
 
 ##set_target_properties(sunray_node PROPERTIES PREFIX "")

@@ -2,11 +2,9 @@
 
 
 # build Sunray ROS node
-cd build
-cmake ..
-make
-
-cd build
+rm -Rf build
+rm -Rf devel
+catkin_make
 
 
 echo "----bluetooth devices----"
