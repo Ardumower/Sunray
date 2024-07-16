@@ -54,7 +54,7 @@ function docker_prepare_tools {
 function ros_compile {
   # build Sunray ROS node
   docker start $CONTAINER_NAME && docker exec $CONTAINER_NAME \
-    bash -c '. /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make'
+    bash -c '. /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DROS_EDITION=ROS1'
 }
 
 function ros_run {

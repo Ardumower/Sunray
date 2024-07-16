@@ -39,8 +39,7 @@ apt install -y ros-melodic-move-base ros-melodic-move-base-msgs \
     ros-melodic-joy ros-melodic-teleop-twist-joy ros-melodic-teb-local-planner ros-melodic-global-planner ros-melodic-gmapping \
     ros-tf2-msgs \
     ros-melodic-tf2-sensor-msgs ros-melodic-map-server ros-melodic-pointcloud-to-laserscan ros-melodic-dwa-local-planner \
-    ros-melodic-octomap ros-melodic-octomap-ros ros-melodic-hector-trajectory-server
-
+    ros-melodic-octomap ros-melodic-octomap-ros ros-melodic-hector-trajectory-server ros-melodic-tf-conversions
 
 
 

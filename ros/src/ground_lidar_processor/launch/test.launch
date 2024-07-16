@@ -1,0 +1,19 @@
+
+<launch>
+
+
+      
+  <include file="$(find livox_ros_driver2)/launch_ROS1/msg_MID360.launch"  />
+
+
+  
+  <!-- Start node -->
+  <node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen" /> 
+
+  <!-- RViz -->
+  <node pkg="rviz" type="rviz" name="test_rviz" args="-d $(find ground_lidar_processor)/launch/test.rviz"/>
+  
+
+
+
+</launch>
