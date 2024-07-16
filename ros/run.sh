@@ -4,6 +4,8 @@
 IMAGE_NAME="ros:melodic-perception-bionic"
 CONTAINER_NAME="ros1"
 HOST_MAP_PATH=`realpath $PWD/..`
+#CONFIG_FILE="/root/Sunray/alfred/config_owlmower.h"
+CONFIG_FILE="/root/Sunray/alfred/config_fuxtec_ros.h"
 
 
 function docker_install {
@@ -54,7 +56,7 @@ function docker_prepare_tools {
 function ros_compile {
   # build Sunray ROS node
   docker start $CONTAINER_NAME && docker exec $CONTAINER_NAME \
-    bash -c '. /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DROS_EDITION=ROS1'
+    bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DCONFIG_FILE=$CONFIG_FILE -DROS_EDITION=ROS1"
 }
 
 function ros_run {
@@ -81,8 +83,6 @@ function ros_run {
   echo "---------all processes using the CAN bus------------"
   sudo lsof | grep -i can_raw
   echo "----------------------------------------------------"
-
-
 
   # setup audio interface
   # https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/SystemWide/
@@ -114,11 +114,13 @@ function ros_run {
   done; 
 
   # run Sunray ROS node 
+  echo "starting sunray ROS node..."
   # allow non-root to start http server 
   sudo setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node
-  # source ROS setup
-  . devel/setup.bash
-  roslaunch sunray_node test.launch 
+
+  # source ROS setup  
+  docker start $CONTAINER_NAME && docker exec $CONTAINER_NAME \
+    bash -c '. /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; . devel/setup.bash  ; roslaunch sunray_node test.launch' 
 }
 
 
