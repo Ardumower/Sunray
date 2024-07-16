@@ -25,25 +25,29 @@ function docker_install {
   sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 }
 
-function docker_build_image {
-  # create ROS docker image
+function docker_pull_image {
+  # -----------pull image...------------------------    
   docker pull "$IMAGE_NAME"
+}
+
+function docker_build_container {
   # -----------create container...------------------------  
   echo "HOST_MAP_PATH: $HOST_MAP_PATH"
-  docker run --name=$CONTAINER_NAME --net=host --privileged --env="DISPLAY" --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME     
+  echo "enter 'exit' to exit docker container" 
+  docker run --name=$CONTAINER_NAME -t -it --net=host --privileged --env="DISPLAY" --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME     
 }
 
 function docker_terminal {
   # -------------continue container...---------------------
   # allow docker to access host Xserver 
-  xhost +local:*
+  #xhost +local:*
   docker start $CONTAINER_NAME && docker attach $CONTAINER_NAME 
 }
 
 function docker_prepare_tools {
   # -------------continue container...---------------------
   # allow docker to access host Xserver 
-  xhost +local:*
+  #xhost +local:*
   docker start $CONTAINER_NAME && docker exec $CONTAINER_NAME /root/Sunray/ros/install_tools.sh
 }
 
@@ -122,7 +126,8 @@ function ros_run {
 PS3='Please enter your choice: '
 options=(
     "Docker install"
-    "Docker build ROS image"
+    "Docker pull ROS image"
+    "Docker build container"
     "Docker prepare ROS tools"
     "Docker run terminal"
     "ROS compile"    
@@ -135,8 +140,12 @@ do
             docker_install
             break
             ;;
-        "Docker build ROS image")
-            docker_build_image
+        "Docker pull ROS image")        
+            docker_pull_image
+            break
+            ;;
+        "Docker build container")
+            docker_build_container
             break
             ;;
         "Docker prepare ROS tools")
