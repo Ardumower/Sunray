@@ -183,6 +183,11 @@ function showlog(){
   journalctl -f -u sunray
 }
 
+function savelog(){
+  echo "saving log.txt..."
+  journalctl -u sunray > log.txt
+}
+
 function kernel_log(){
   echo "kernel log..."
   dmesg -wH
@@ -212,7 +217,7 @@ options=(
   "Start logging service" "Stop logging service"
   "Start display manager" "Stop display manager"   
   "List services"   
-  "Show log" "Kernel log"
+  "Show log" "Save log" "Kernel log"
   "Quit")
 select opt in "${options[@]}"
 do
@@ -265,6 +270,10 @@ do
             showlog
             break
             ;;     
+        "Save log")
+            savelog
+            break
+            ;;
         "Kernel log")
             kernel_log
             break
