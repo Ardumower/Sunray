@@ -27,7 +27,7 @@ function docker_install {
 
 function docker_build_image {
   # create ROS docker image
-  # docker pull "$IMAGE_NAME"
+  docker pull "$IMAGE_NAME"
   # -----------create container...------------------------  
   echo "HOST_MAP_PATH: $HOST_MAP_PATH"
   docker run --name=$CONTAINER_NAME --net=host --privileged --env="DISPLAY" --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME     
