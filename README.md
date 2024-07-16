@@ -236,6 +236,17 @@ If running the Sunray firmware as an ROS node and getting above error message, y
 ```
 sudo ldconfig /opt/ros/melodic/lib/ 
 ```
+
+## How to run motor test etc. on Linux
+To run motor test, sensor test etc. on Linux you need to run the sunray executable manually (without the service). Once the executable is started and outputting console output, you simply enter the desired AT-commands and press ENTER:
+```
+AT+E  motor tet
+AT+F  sensor test
+```
+Alternatively, you can find out the terminal name (with Linux command 'tty') and then send any text from another Linux terminal:
+```
+echo -e "AT+E\r\n"  > /dev/pts/1
+```
  
 ## Further topics <a name="further_topics"></a>
 Generating robot heatmaps (WiFi/GPS signal quality etc.):
