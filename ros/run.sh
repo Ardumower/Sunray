@@ -87,6 +87,7 @@ function ros_run {
   echo "----------------------------------------------------"
 
   # setup audio interface
+  # https://gavv.net/articles/pulseaudio-under-the-hood/
   # https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/SystemWide/
   if ! command -v play &> /dev/null
   then 
