@@ -30,23 +30,44 @@ function docker_install {
 
 function docker_pull_image {
   # -----------pull image...------------------------    
+  if [ "$EUID" -eq 0 ]
+    then echo "Please run as non-root (not sudo)"
+    exit
+  fi
   docker pull "$IMAGE_NAME"
 }
 
 function docker_build_container {
   # -----------create container...------------------------  
+  if [ "$EUID" -eq 0 ]
+    then echo "Please run as non-root (not sudo)"
+    exit
+  fi
+  echo "HOME: $HOME"
+  echo "XDG_RUNTIME_DIR: $XDG_RUNTIME_DIR"
   echo "HOST_MAP_PATH: $HOST_MAP_PATH"
-  #echo "====> enter 'exit' to exit docker container" 
+  echo "IMAGE_NAME: $IMAGE_NAME"
+  echo "====> enter 'exit' to exit docker container" 
   docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
-    --volume=/run/user/${USER_UID}/pulse:/run/user/1000/pulse \
-    --env="DISPLAY" --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME bash -c ""    
+    -e PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native \
+    -v ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native \
+    -v ~/.config/pulse/cookie:/root/.config/pulse/cookie \    
+    --env="DISPLAY" --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME   
 }
 
 function docker_show_containers {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
   docker ps -all
 }
 
 function docker_terminal {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
   # -------------continue container...---------------------
   # allow docker to access host Xserver 
   #xhost +local:*
@@ -54,6 +75,10 @@ function docker_terminal {
 }
 
 function docker_prepare_tools {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi  
   # -------------continue container...---------------------
   # allow docker to access host Xserver 
   #xhost +local:*
@@ -61,12 +86,20 @@ function docker_prepare_tools {
 }
 
 function ros_compile {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi  
   # build Sunray ROS node
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DCONFIG_FILE=$CONFIG_FILE -DROS_EDITION=ROS1"
 }
 
 function ros_run {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi  
   echo "----bluetooth devices----"
   systemctl enable bluetooth.service
   hcitool dev
