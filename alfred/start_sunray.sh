@@ -57,10 +57,11 @@ btmgmt -i hci0 power on
 if ! command -v play &> /dev/null
 then 
   echo "installing audio player..."
-  apt install -y libsox-fmt-mp3 sox mplayer
+  apt install -y libsox-fmt-mp3 sox mplayer alsa-utils pulseaudio
 fi
 # show audio devices
-aplay -l
+#aplay -l
+cat /proc/asound/cards
 # restart pulseaudio daemon as root
 killall pulseaudio
 pulseaudio -D --system --disallow-exit --disallow-module-loading

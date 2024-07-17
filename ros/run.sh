@@ -91,10 +91,11 @@ function ros_run {
   if ! command -v play &> /dev/null
   then 
     echo "installing audio player..."
-    apt install -y libsox-fmt-mp3 sox mplayer
+    apt install -y libsox-fmt-mp3 sox mplayer alsa-utils pulseaudio
   fi
   # show audio devices
-  aplay -l
+  #aplay -l
+  cat /proc/asound/cards
   # restart pulseaudio daemon as root
   killall pulseaudio
   pulseaudio -D --system --disallow-exit --disallow-module-loading
@@ -118,11 +119,11 @@ function ros_run {
   # run Sunray ROS node 
   echo "starting sunray ROS node..."
   # allow non-root to start http server 
-  sudo setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node
+  #sudo setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node
 
   # source ROS setup  
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c '. /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; roslaunch sunray_node test.launch' 
+    bash -c 'export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node test.launch' 
   # rosnode kill -a ; sleep 3
 }
 
