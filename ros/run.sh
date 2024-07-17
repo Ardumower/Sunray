@@ -36,10 +36,10 @@ function docker_pull_image {
 function docker_build_container {
   # -----------create container...------------------------  
   echo "HOST_MAP_PATH: $HOST_MAP_PATH"
-  echo "====> enter 'exit' to exit docker container" 
+  #echo "====> enter 'exit' to exit docker container" 
   docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
     --volume=/run/user/${USER_UID}/pulse:/run/user/1000/pulse \
-    --env="DISPLAY" --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME     
+    --env="DISPLAY" --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME bash -c ""    
 }
 
 function docker_show_containers {
@@ -163,14 +163,14 @@ do
             docker_build_container
             break
             ;;
-        "Docker prepare ROS tools")
-            docker_prepare_tools
-            break
-            ;;
         "Docker show containers")
             docker_show_containers
             break
             ;;            
+        "Docker prepare ROS tools")
+            docker_prepare_tools
+            break
+            ;;
         "Docker run terminal")
             docker_terminal
             break
