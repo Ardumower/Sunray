@@ -173,16 +173,14 @@ function ros_run {
   # allow non-root to start http server 
   #sudo setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node
 
-  # source ROS setup  
-  docker stop $CONTAINER_NAME && start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c 'export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ;  \ 
-            setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ;  \ 
-            roslaunch sunray_node test.launch' 
-  
   #docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
   #  bash -c 'mplayer /root/Sunray/tts/de/temperature_low_docking.mp3'  
   #exit  
 
+  # source ROS setup  
+  docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
+    bash -c "export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node test.launch" 
+  
   # rosnode kill -a ; sleep 3
 }
 
