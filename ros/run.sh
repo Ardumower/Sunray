@@ -142,9 +142,9 @@ options=(
     "Docker install"
     "Docker pull ROS image"
     "Docker build container"
-    "Docker prepare ROS tools"
     "Docker show containers"
     "Docker run terminal"
+    "Docker prepare ROS tools"
     "ROS compile"    
     "ROS run"    
     "Quit")
