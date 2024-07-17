@@ -109,7 +109,6 @@ function ros_run {
 
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c 'export PULSE_SERVER=unix:/root/pulse/native ; export PULSE_COOKIE=/root/pulse/.config/pulse/cookie ; \
-            sudo killall pulseaudio ; sleep 1 ; pulseaudio -D --system --disallow-exit --disallow-module-loading ; \
             mplayer /root/Sunray/tts/de/temperature_low_docking.mp3' 
   exit
 
