@@ -53,7 +53,7 @@ function docker_build_container {
   echo "IMAGE_NAME: $IMAGE_NAME"
   echo "====> enter 'exit' to exit docker container" 
   docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
-    -v /var/run/pulse/native:/var/run/pulse/native \
+    -v /var/run/pulse/native:/root/pulse/native \
     -v /var/run/pulse/.config/pulse/cookie:/root/pulse/.config/pulse/cookie \
     -e DISPLAY=$DISPLAY --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME   
 }
@@ -101,14 +101,16 @@ function ros_compile {
 function ros_run {
   #pulseaudio -k
   sudo killall pulseaudio
+  sleep 1
   pulseaudio -D --system --disallow-exit --disallow-module-loading
   mplayer /home/pi/Sunray/tts/de/temperature_low_docking.mp3
   echo "--------"  
-  exit
+  #exit
 
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c 'export PULSE_SERVER=unix:/var/run/pulse/native ; export PULSE_COOKIE=/root/pulse/.config/pulse/cookie ; \
-            pulseaudio -k ; mplayer /root/Sunray/tts/de/temperature_low_docking.mp3' 
+    bash -c 'export PULSE_SERVER=unix:/root/pulse/native ; export PULSE_COOKIE=/root/pulse/.config/pulse/cookie ; \
+            sudo killall pulseaudio ; sleep 1 ; pulseaudio -D --system --disallow-exit --disallow-module-loading ; \
+            mplayer /root/Sunray/tts/de/temperature_low_docking.mp3' 
   exit
 
   if [ "$EUID" -ne 0 ]
