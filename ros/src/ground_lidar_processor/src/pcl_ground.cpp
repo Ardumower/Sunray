@@ -2,6 +2,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
+#include <std_msgs/Int8.h>
 #include <pcl_ros/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
@@ -22,10 +23,12 @@ public:
         nh.param("ground_height", ground_height_, 0.0);
         nh.param("min_obstacle_size", min_obstacle_size_, 0.1);
         nh.param("lidar_tilt_angle", lidar_tilt_angle_, 15.0); // Neigungswinkel in Grad
-
+    
         point_cloud_sub_ = nh.subscribe("/livox/lidar", 1, &GroundLidarProcessor::pointCloudCallback, this);
         ground_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/ground_points", 10);
         obstacle_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/obstacle_points", 10);
+        obstacle_state_pub_ = nh.advertise<std_msgs::Int8>("/obstacle_state", 10);
+
         soundTimeout = 0;
         obstacleFar = false;
         obstacleNear = false;
@@ -116,7 +119,14 @@ private:
             }
         }
         if (soundTimeout > 0) soundTimeout--;
+
+        std_msgs::Int8 obstMsg;
+        if (obstacleNear) obstMsg.data = 2;
+          else if (obstacleFar) obstMsg.data = 1;
+          else obstMsg.data = 0;
+        obstacle_state_pub_.publish(obstMsg);
     }
+
 
     bool isObstacle(double adjusted_x, double adjusted_y, double adjusted_z, 
         const pcl::PointCloud<pcl::PointXYZI> &cloud)
@@ -143,6 +153,7 @@ private:
     ros::Subscriber point_cloud_sub_;
     ros::Publisher ground_pub_;
     ros::Publisher obstacle_pub_;
+    ros::Publisher obstacle_state_pub_;
 
     bool obstacleNear;
     bool obstacleFar;

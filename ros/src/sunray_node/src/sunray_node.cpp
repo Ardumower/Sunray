@@ -12,6 +12,7 @@
 
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <std_msgs/Int8.h>
 #include <tf/transform_listener.h>
 
 #include "config.h"  
@@ -28,6 +29,12 @@ ros::Rate *rate;
 tf::TransformListener *tfListener;
 double nextErrorTime = 0;
 double nextPrintTime = 0;
+
+
+void obstacleStateCallback(const std_msgs::Int8 &msg)
+{
+  ROS_INFO("obstacleStateCallback %d", msg.data);
+}
 
 
 void setup(){  
@@ -47,7 +54,7 @@ void setup(){
   ROS_INFO("--------------started sunray_node-------------");
 
   rate = new ros::Rate(50);
-
+  ros::Subscriber obstacle_state_sub = node->subscribe("/obstacle_state", 1, &obstacleStateCallback);
 } 
 
 
