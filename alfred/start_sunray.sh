@@ -55,6 +55,7 @@ btmgmt -i hci0 power on
 # setup audio interface
 # https://gavv.net/articles/pulseaudio-under-the-hood/
 # https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/SystemWide/
+# https://unix.stackexchange.com/questions/204522/how-does-pulseaudio-start
 if ! command -v play &> /dev/null
 then 
   echo "installing audio player..."
@@ -65,7 +66,8 @@ fi
 cat /proc/asound/cards
 # restart pulseaudio daemon as root
 killall pulseaudio
-pulseaudio -D --system --disallow-exit --disallow-module-loading
+sleep 1
+pulseaudio -D --system --disallow-exit --disallow-module-loading --verbose
 # set default volume 
 amixer -D pulse sset Master 100%
 

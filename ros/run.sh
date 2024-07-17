@@ -53,8 +53,10 @@ function docker_build_container {
   echo "IMAGE_NAME: $IMAGE_NAME"
   echo "====> enter 'exit' to exit docker container" 
   docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
+    -v /run/user/0/bus:/run/user/0/bus \
+    -e DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/0/bus" \
     -v /var/run/pulse/native:/root/pulse/native \
-    -v /var/run/pulse/.config/pulse/cookie:/root/pulse/.config/pulse/cookie \
+    -v /var/run/pulse/.config/pulse/cookie:/root/.config/pulse/cookie \
     -e DISPLAY=$DISPLAY --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME   
 }
 
@@ -99,16 +101,17 @@ function ros_compile {
 }
 
 function ros_run {
-  #pulseaudio -k
+  #pulseaudio -k  
   sudo killall pulseaudio
   sleep 1
-  pulseaudio -D --system --disallow-exit --disallow-module-loading
+  pulseaudio -D --system --disallow-exit --disallow-module-loading --verbose
   mplayer /home/pi/Sunray/tts/de/temperature_low_docking.mp3
   echo "--------"  
   #exit
 
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c 'export PULSE_SERVER=unix:/root/pulse/native ; export PULSE_COOKIE=/root/pulse/.config/pulse/cookie ; \
+    bash -c 'killall pulseaudio ; sleep 1 ; export PULSE_SERVER=unix:/root/pulse/native ; export PULSE_COOKIE=/root/.config/pulse/cookie ; \
+            export DISPLAY=:0 ; pulseaudio -D --system --disallow-exit --disallow-module-loading --verbose ; \
             mplayer /root/Sunray/tts/de/temperature_low_docking.mp3' 
   exit
 
@@ -144,6 +147,7 @@ function ros_run {
   # setup audio interface
   # https://gavv.net/articles/pulseaudio-under-the-hood/
   # https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/SystemWide/
+  # https://unix.stackexchange.com/questions/204522/how-does-pulseaudio-start
   if ! command -v play &> /dev/null
   then 
     echo "installing audio player..."
