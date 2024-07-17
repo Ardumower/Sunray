@@ -39,20 +39,23 @@ function docker_pull_image {
 
 function docker_build_container {
   # -----------create container...------------------------  
-  if [ "$EUID" -eq 0 ]
-    then echo "Please run as non-root (not sudo)"
+  #if [ "$EUID" -eq 0 ]
+  #  then echo "Please run as non-root (not sudo)"
+  #  exit
+  #fi
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
     exit
-  fi
+  fi  
   echo "HOME: $HOME"
   echo "XDG_RUNTIME_DIR: $XDG_RUNTIME_DIR"
   echo "HOST_MAP_PATH: $HOST_MAP_PATH"
   echo "IMAGE_NAME: $IMAGE_NAME"
   echo "====> enter 'exit' to exit docker container" 
   docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
-    -e PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native \
-    -v ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native \
-    -v ~/.config/pulse/cookie:/root/.config/pulse/cookie \    
-    --env="DISPLAY" --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME   
+    -v /var/run/pulse/native:/var/run/pulse/native \
+    -v /var/run/pulse/.config/pulse/cookie:/root/pulse/.config/pulse/cookie \
+    -e DISPLAY=$DISPLAY --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME   
 }
 
 function docker_show_containers {
@@ -96,6 +99,18 @@ function ros_compile {
 }
 
 function ros_run {
+  #pulseaudio -k
+  sudo killall pulseaudio
+  pulseaudio -D --system --disallow-exit --disallow-module-loading
+  mplayer /home/pi/Sunray/tts/de/temperature_low_docking.mp3
+  echo "--------"  
+  exit
+
+  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
+    bash -c 'export PULSE_SERVER=unix:/var/run/pulse/native ; export PULSE_COOKIE=/root/pulse/.config/pulse/cookie ; \
+            pulseaudio -k ; mplayer /root/Sunray/tts/de/temperature_low_docking.mp3' 
+  exit
+
   if [ "$EUID" -ne 0 ]
     then echo "Please run as root (sudo)"
     exit
@@ -117,7 +132,6 @@ function ros_run {
   btmgmt -i hci0 name "ROS robot"
   btmgmt -i hci0 advertising on
   btmgmt -i hci0 power on
-
 
   # setup CAN bus
   ip link set can0 up type can bitrate 1000000    
@@ -164,7 +178,9 @@ function ros_run {
 
   # source ROS setup  
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c 'export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node test.launch' 
+    bash -c 'export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ;  \ 
+            setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ;  \ 
+            roslaunch sunray_node test.launch' 
   # rosnode kill -a ; sleep 3
 }
 
