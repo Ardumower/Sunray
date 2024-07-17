@@ -167,14 +167,14 @@ do
             docker_show_containers
             break
             ;;            
-        "Docker prepare ROS tools")
-            docker_prepare_tools
-            break
-            ;;
         "Docker run terminal")
             docker_terminal
             break
             ;;            
+        "Docker prepare ROS tools")
+            docker_prepare_tools
+            break
+            ;;
         "ROS compile")
             ros_compile
             break
