@@ -53,10 +53,10 @@ function docker_build_container {
   echo "IMAGE_NAME: $IMAGE_NAME"
   echo "====> enter 'exit' to exit docker container" 
   docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
-    -v /run/user/0/bus:/run/user/0/bus \
-    -e DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/0/bus" \
-    -v /var/run/pulse/native:/root/pulse/native \
-    -v /var/run/pulse/.config/pulse/cookie:/root/.config/pulse/cookie \
+    --env PULSE_SERVER=unix:/tmp/pulse_socket \
+    --volume /tmp/pulse_socket:/tmp/pulse_socket \
+    --volume /etc/machine-id:/etc/machine-id:ro \
+    --device /dev/snd \
     -e DISPLAY=$DISPLAY --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME   
 }
 
@@ -100,21 +100,7 @@ function ros_compile {
     bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DCONFIG_FILE=$CONFIG_FILE -DROS_EDITION=ROS1"
 }
 
-function ros_run {
-  #pulseaudio -k  
-  sudo killall pulseaudio
-  sleep 1
-  pulseaudio -D --system --disallow-exit --disallow-module-loading --verbose
-  mplayer /home/pi/Sunray/tts/de/temperature_low_docking.mp3
-  echo "--------"  
-  #exit
-
-  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c 'killall pulseaudio ; sleep 1 ; export PULSE_SERVER=unix:/root/pulse/native ; export PULSE_COOKIE=/root/.config/pulse/cookie ; \
-            export DISPLAY=:0 ; pulseaudio -D --system --disallow-exit --disallow-module-loading --verbose ; \
-            mplayer /root/Sunray/tts/de/temperature_low_docking.mp3' 
-  exit
-
+function ros_run {    
   if [ "$EUID" -ne 0 ]
     then echo "Please run as root (sudo)"
     exit
@@ -158,10 +144,16 @@ function ros_run {
   cat /proc/asound/cards
   # restart pulseaudio daemon as root
   killall pulseaudio
+  sleep 1
   pulseaudio -D --system --disallow-exit --disallow-module-loading
+  export PULSE_SERVER=unix:/var/run/pulse/native
+  sudo ln -sf /var/run/pulse/native /tmp/pulse_socket
+  sudo chmod 666 /var/run/pulse/native  
   # set default volume 
   amixer -D pulse sset Master 100%
-
+  #mplayer /home/pi/Sunray/tts/de/temperature_low_docking.mp3
+  #exit  
+  
   echo "----waiting for TCP connections to be closed from previous sessions----"
   echo "Waiting TCP port 80 to be closed..."
   for _ in `seq 1 20`; do 
@@ -182,10 +174,15 @@ function ros_run {
   #sudo setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node
 
   # source ROS setup  
-  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
+  docker stop $CONTAINER_NAME && start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c 'export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ;  \ 
             setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ;  \ 
             roslaunch sunray_node test.launch' 
+  
+  #docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
+  #  bash -c 'mplayer /root/Sunray/tts/de/temperature_low_docking.mp3'  
+  #exit  
+
   # rosnode kill -a ; sleep 3
 }
 

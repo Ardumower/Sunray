@@ -11,14 +11,14 @@ else
    exit
 fi
 
-apt update 
-apt-get -y install mplayer psmisc pulseaudio libnotify-bin
-exit
+#apt update 
+#apt-get -y install mplayer psmisc pulseaudio libnotify-bin libsox-fmt-all sox alsa-utils
+#exit
 
 
 apt update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata \
     software-properties-common build-essential sudo nano wget curl git subversion cmake python-pip python3-pip pybind11-dev gfortran \
-    pcl-tools network-manager bluez bluez-tools libbluetooth-dev python-can python3-can can-utils iproute2 psmisc libsox-fmt-mp3 sox \
+    pcl-tools network-manager bluez bluez-tools libbluetooth-dev python-can python3-can can-utils iproute2 psmisc libsox-fmt-all sox \
     mplayer alsa-utils pulseaudio libnotify-bin
 
 
