@@ -6,6 +6,7 @@ CONTAINER_NAME="ros1"
 HOST_MAP_PATH=`realpath $PWD/..`
 CONFIG_FILE="/root/Sunray/alfred/config_owlmower.h"
 #CONFIG_FILE="/root/Sunray/alfred/config_fuxtec_ros.h"
+USER_UID=$(id -u)
 
 
 function docker_install {
@@ -36,7 +37,13 @@ function docker_build_container {
   # -----------create container...------------------------  
   echo "HOST_MAP_PATH: $HOST_MAP_PATH"
   echo "====> enter 'exit' to exit docker container" 
-  docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev --env="DISPLAY" --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME     
+  docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
+    --volume=/run/user/${USER_UID}/pulse:/run/user/1000/pulse \
+    --env="DISPLAY" --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME     
+}
+
+function docker_show_containers {
+  docker ps -all
 }
 
 function docker_terminal {
@@ -136,6 +143,7 @@ options=(
     "Docker pull ROS image"
     "Docker build container"
     "Docker prepare ROS tools"
+    "Docker show containers"
     "Docker run terminal"
     "ROS compile"    
     "ROS run"    
@@ -159,6 +167,10 @@ do
             docker_prepare_tools
             break
             ;;
+        "Docker show containers")
+            docker_show_containers
+            break
+            ;;            
         "Docker run terminal")
             docker_terminal
             break
