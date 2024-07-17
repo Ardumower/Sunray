@@ -68,6 +68,15 @@ function docker_show_containers {
   docker ps -all
 }
 
+function docker_image_from_container {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
+  docker commit $CONTAINER_NAME ros:melodic-perception-bionic-modified
+  docker images -a 
+}
+
 function docker_terminal {
   if [ "$EUID" -ne 0 ]
     then echo "Please run as root (sudo)"
@@ -192,6 +201,7 @@ options=(
     "Docker pull ROS image"
     "Docker build container"
     "Docker show containers"
+    "Docker create image from container"
     "Docker run terminal"
     "Docker prepare ROS tools"
     "ROS compile"    
@@ -222,6 +232,10 @@ do
             ;;            
         "Docker prepare ROS tools")
             docker_prepare_tools
+            break
+            ;;
+        "Docker create image from container")
+            docker_image_from_container
             break
             ;;
         "ROS compile")
