@@ -44,8 +44,19 @@ public:
 private:
     void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg)
     {
+        ROS_INFO("pointCloudCallback begin");
         pcl::PointCloud<pcl::PointXYZI>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZI>());
         pcl::fromROSMsg(*msg, *cloud);
+
+        for (auto &pt : cloud->points)
+        {
+            double x = pt.x * std::cos(lidar_tilt_angle_ * M_PI / 180.0) + pt.z * std::sin(lidar_tilt_angle_ * M_PI / 180.0);
+            double y = pt.z * std::cos(lidar_tilt_angle_ * M_PI / 180.0) - pt.x * std::sin(lidar_tilt_angle_ * M_PI / 180.0);
+            double z = pt.y; // Die Y-Komponente bleibt unverändert
+            pt.x = x;
+            pt.y = y;
+            pt.z = z;
+        }
 
         pcl::PointCloud<pcl::PointXYZI>::Ptr ground_points(new pcl::PointCloud<pcl::PointXYZI>());
         pcl::PointCloud<pcl::PointXYZI>::Ptr obstacle_points(new pcl::PointCloud<pcl::PointXYZI>());
@@ -53,32 +64,26 @@ private:
         // Umwandlung des Neigungswinkels in Radiant
         double tilt_angle_rad = lidar_tilt_angle_ * M_PI / 180.0;
 
-        for (const auto &point : cloud->points)
+        for (const auto &pt : cloud->points)
         {
-            double angle = std::atan2(point.y, point.x);
+            double angle = std::atan2(pt.y, pt.x);
             if (std::abs(angle) > (angle_opening_ / 2.0 * M_PI / 180.0))
                 continue;
 
-            // Berechnung der X- und Z-Koordinaten relativ zur Bodenebene
-            double adjusted_x = point.x * std::cos(tilt_angle_rad) + point.z * std::sin(tilt_angle_rad);
-            double adjusted_y = point.y; // Die Y-Komponente bleibt unverändert
-            // Berechnung der Höhe relativ zur Bodenebene
-            double adjusted_z = point.z * std::cos(tilt_angle_rad) - point.x * std::sin(tilt_angle_rad);
-
-            if (adjusted_x > max_distance_) continue;            
-            if (std::abs(adjusted_y) > max_width_/2) continue;
-            if (adjusted_z > max_height_) continue;
+            if (pt.x > max_distance_) continue;            
+            if (std::abs(pt.y) > max_width_/2) continue;
+            if (pt.z > max_height_) continue;
 
             //if (std::abs(adjusted_z - ground_height_) < 0.05)
-            if (adjusted_z < ground_height_ -  0.05)            
+            if (pt.z < ground_height_ -  0.05)            
             {
-                ground_points->points.push_back(point);
+                ground_points->points.push_back(pt);
             }
             else
             {
-                if (adjusted_z > ground_height_ && isObstacle(adjusted_x, adjusted_y, adjusted_z, *cloud))
+                if (pt.z > ground_height_ && isObstacle(pt.x, pt.y, pt.z, *cloud))
                 {
-                    obstacle_points->points.push_back(point);
+                    obstacle_points->points.push_back(pt);
                 }
             }
         }
@@ -98,10 +103,9 @@ private:
             obstacleFar = true;
         }
         obstacleNear = false;        
-        for (const auto &point : obstacle_points->points)
+        for (const auto &pt : obstacle_points->points)
         {
-            double adjusted_x = point.x * std::cos(tilt_angle_rad) + point.z * std::sin(tilt_angle_rad);
-            if (adjusted_x < near_distance_) obstacleNear = true;            
+            if (pt.x < near_distance_) obstacleNear = true;            
         }
 
         ROS_INFO("obstacle_points: %d  ground_points: %d  far %d, near %d", 
@@ -130,23 +134,20 @@ private:
           else if (obstacleFar) obstMsg.data = 1;
           else obstMsg.data = 0;
         obstacle_state_pub_.publish(obstMsg);
+        ROS_INFO("pointCloudCallback end");        
     }
 
 
-    bool isObstacle(double adjusted_x, double adjusted_y, double adjusted_z, 
+    bool isObstacle(double x, double y, double z, 
         const pcl::PointCloud<pcl::PointXYZI> &cloud)
     {
         int count = 0;
 
         for (const auto &pt : cloud.points)
         {
-            double pt_adjusted_x = pt.x * std::cos(lidar_tilt_angle_ * M_PI / 180.0) + pt.z * std::sin(lidar_tilt_angle_ * M_PI / 180.0);
-            double pt_adjusted_z = pt.z * std::cos(lidar_tilt_angle_ * M_PI / 180.0) - pt.x * std::sin(lidar_tilt_angle_ * M_PI / 180.0);
-            double pt_adjusted_y = pt.y; // Die Y-Komponente bleibt unverändert
-
-            if (std::abs(pt_adjusted_x - adjusted_x) < min_obstacle_size_ &&
-                std::abs(pt_adjusted_y - adjusted_y) < min_obstacle_size_ &&
-                std::abs(pt_adjusted_z - adjusted_z) < min_obstacle_size_)
+            if (std::abs(pt.x - x) < min_obstacle_size_ &&
+                std::abs(pt.y - y) < min_obstacle_size_ &&
+                std::abs(pt.z - z) < min_obstacle_size_)
             {
                 count++;
             }
