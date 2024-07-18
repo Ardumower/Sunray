@@ -27,7 +27,7 @@ public:
         nh.param("near_distance", near_distance_, LIDAR_BUMPER_NEAR_DISTANCE);
         nh.param("ground_height", ground_height_, LIDAR_BUMPER_GROUND_HEIGHT);
         nh.param("min_obstacle_size", min_obstacle_size_, LIDAR_BUMPER_MIN_OBSTACLE_SIZE);
-        nh.param("lidar_tilt_angle", lidar_tilt_angle_, LIDAR_BUMPER_ANGLE_OPENING); // Neigungswinkel in Grad
+        nh.param("lidar_tilt_angle", lidar_tilt_angle_, LIDAR_BUMPER_TILT_ANGLE); // Neigungswinkel in Grad
     
         point_cloud_sub_ = nh.subscribe("/livox/lidar", 1, &GroundLidarProcessor::pointCloudCallback, this);
         ground_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/ground_points", 10);
@@ -46,46 +46,60 @@ private:
     {
         ROS_INFO("pointCloudCallback begin");
         pcl::PointCloud<pcl::PointXYZI>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZI>());
+        pcl::PointCloud<pcl::PointXYZI>::Ptr cloudAdjusted(new pcl::PointCloud<pcl::PointXYZI>());        
         pcl::fromROSMsg(*msg, *cloud);
+        pcl::fromROSMsg(*msg, *cloudAdjusted);
 
-        for (auto &pt : cloud->points)
+        // Umwandlung des Neigungswinkels in Radiant
+        double tilt_angle_rad = lidar_tilt_angle_ * M_PI / 180.0;
+
+        for (int i=0; i < cloud->points.size(); i++)
         {
-            double x = pt.x * std::cos(lidar_tilt_angle_ * M_PI / 180.0) + pt.z * std::sin(lidar_tilt_angle_ * M_PI / 180.0);
-            double y = pt.z * std::cos(lidar_tilt_angle_ * M_PI / 180.0) - pt.x * std::sin(lidar_tilt_angle_ * M_PI / 180.0);
-            double z = pt.y; // Die Y-Komponente bleibt unverändert
-            pt.x = x;
-            pt.y = y;
-            pt.z = z;
+            auto &pt = cloud->points[i];
+            auto &ptAdjusted = cloudAdjusted->points[i];
+            double x = pt.x * std::cos(tilt_angle_rad) + pt.z * std::sin(tilt_angle_rad);
+            double y = pt.y; // Die Y-Komponente bleibt unverändert
+            double z = pt.z * std::cos(tilt_angle_rad) - pt.x * std::sin(tilt_angle_rad);            
+            ptAdjusted.x = x;
+            ptAdjusted.y = y;
+            ptAdjusted.z = z;
+            cloudAdjusted->points[i] = ptAdjusted;
         }
 
         pcl::PointCloud<pcl::PointXYZI>::Ptr ground_points(new pcl::PointCloud<pcl::PointXYZI>());
         pcl::PointCloud<pcl::PointXYZI>::Ptr obstacle_points(new pcl::PointCloud<pcl::PointXYZI>());
 
-        // Umwandlung des Neigungswinkels in Radiant
-        double tilt_angle_rad = lidar_tilt_angle_ * M_PI / 180.0;
+        obstacleFar = false;
+        obstacleNear = false;        
 
-        for (const auto &pt : cloud->points)
+        for (int i=0; i < cloud->points.size(); i++)
         {
+            auto &pt = cloud->points[i];
+            auto &ptAdjusted = cloudAdjusted->points[i];
             double angle = std::atan2(pt.y, pt.x);
             if (std::abs(angle) > (angle_opening_ / 2.0 * M_PI / 180.0))
                 continue;
 
-            if (pt.x > max_distance_) continue;            
-            if (std::abs(pt.y) > max_width_/2) continue;
-            if (pt.z > max_height_) continue;
+            if (ptAdjusted.x > max_distance_) continue;            
+            if (std::abs(ptAdjusted.y) > max_width_/2) continue;
+            if (ptAdjusted.z > max_height_) continue;
 
-            //if (std::abs(adjusted_z - ground_height_) < 0.05)
-            if (pt.z < ground_height_ -  0.05)            
+            //if (std::abs(ptAdjusted.z - ground_height_) < 0.05)
+            if (ptAdjusted.z < ground_height_ -  0.05)            
             {
                 ground_points->points.push_back(pt);
             }
             else
             {
-                if (pt.z > ground_height_ && isObstacle(pt.x, pt.y, pt.z, *cloud))
-                {
-                    obstacle_points->points.push_back(pt);
+                if (!obstacleNear) {
+                    if (ptAdjusted.z > ground_height_ && isObstacle(ptAdjusted.x, ptAdjusted.y, ptAdjusted.z, *cloud))
+                    {                    
+                        obstacle_points->points.push_back(pt);   
+                        obstacleFar = true;
+                        if (pt.x < near_distance_) obstacleNear = true;                                     
+                    }
                 }
-            }
+            }                        
         }
 
         sensor_msgs::PointCloud2 ground_msg;
@@ -98,15 +112,6 @@ private:
         obstacle_msg.header = msg->header;
         obstacle_pub_.publish(obstacle_msg);
 
-        obstacleFar = false;
-        if (obstacle_points->points.size() > 0){
-            obstacleFar = true;
-        }
-        obstacleNear = false;        
-        for (const auto &pt : obstacle_points->points)
-        {
-            if (pt.x < near_distance_) obstacleNear = true;            
-        }
 
         ROS_INFO("obstacle_points: %d  ground_points: %d  far %d, near %d", 
             (int)obstacle_points->points.size(), (int)ground_points->points.size(), 
@@ -150,10 +155,12 @@ private:
                 std::abs(pt.z - z) < min_obstacle_size_)
             {
                 count++;
+                if (count > 5) return true;
             }
         }
 
-        return count > 5;
+        return false;
+        //return count > 5;
     }
 
     ros::Subscriber point_cloud_sub_;
