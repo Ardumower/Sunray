@@ -110,6 +110,7 @@ void LidarImuDriver::resetData(){
 
 LidarBumperDriver::LidarBumperDriver(){ 
   triggerBumper = false;
+  triggerNearObstacle = false;
 }
 
 
@@ -119,6 +120,10 @@ void LidarBumperDriver::begin(){
 
 void LidarBumperDriver::run(){
 
+}
+
+bool LidarBumperDriver::nearObstacle(){
+  return triggerNearObstacle;
 }
 
 bool LidarBumperDriver::obstacle(){

@@ -46,11 +46,13 @@ class LidarBumperDriver: public BumperDriver {
     LidarBumperDriver();
     void begin() override;
     void run() override;
+    bool nearObstacle() override;
     bool obstacle() override;
     bool getLeftBumper() override;
     bool getRightBumper() override;
     void getTriggeredBumper(bool &leftBumper, bool &rightBumper) override;  	  		    
     bool triggerBumper;
+    bool triggerNearObstacle;
 };
 
 

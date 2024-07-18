@@ -764,6 +764,10 @@ void SerialBumperDriver::run(){
 
 }
 
+bool SerialBumperDriver::nearObstacle(){
+  return false;
+}
+
 bool SerialBumperDriver::obstacle(){
   return (serialRobot.triggeredLeftBumper || serialRobot.triggeredRightBumper); 
 }

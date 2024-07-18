@@ -663,6 +663,10 @@ void AmBumperDriver::getTriggeredBumper(bool &leftBumper, bool &rightBumper){
   rightBumper = rightPressed;
 }
 
+bool AmBumperDriver::nearObstacle(){
+  return false;
+}
+
 bool AmBumperDriver::obstacle(){
   return (leftPressed || rightPressed);
 }

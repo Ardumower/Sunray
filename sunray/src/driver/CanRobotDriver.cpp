@@ -619,6 +619,10 @@ void CanBumperDriver::run(){
 
 }
 
+bool CanBumperDriver::nearObstacle(){
+  return false;
+}
+
 bool CanBumperDriver::obstacle(){
   return (canRobot.triggeredLeftBumper || canRobot.triggeredRightBumper); 
 }

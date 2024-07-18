@@ -242,6 +242,7 @@ class CanBumperDriver: public BumperDriver {
     CanBumperDriver(CanRobotDriver &sr);
     void begin() override;
     void run() override;
+    bool nearObstacle() override;
     bool obstacle() override;
     bool getLeftBumper() override;
     bool getRightBumper() override;
