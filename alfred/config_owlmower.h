@@ -53,6 +53,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // ------- Bluetooth4.0/BLE module -----------------------------------
 // see Wiki on how to install the BLE module and configure the jumpers:
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Bluetooth_BLE_UART_module
+#define BLE_NAME      "owlMower" // Bluetooth Low Energy (BLE) name to advertise
 #define ENABLE_PASS   1        // comment out to disable password authentication
 #define PASS          123456   // choose password for WiFi/BLE communication (NOTE: has to match the connection password in the App!)
 
