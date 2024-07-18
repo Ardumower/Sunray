@@ -107,7 +107,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // more info here: https://wiki.ardumower.de/index.php?title=Ardumower_Chassis_%27mountain_mod%27)
 #define FREEWHEEL_IS_AT_BACKSIDE   false   // default Ardumower: true   (change to false, if your freewheel is at frontside) - this is used for obstacle avoidance
 #define WHEEL_BASE_CM         48         // wheel-to-wheel distance (cm)        
-#define WHEEL_DIAMETER        205        // wheel diameter (mm)                 
+#define WHEEL_DIAMETER        260        // wheel diameter (mm)                 
 #define MOWER_SIZE            100         // mower / chassis size / length in cm
 
 //#define ENABLE_ODOMETRY_ERROR_DETECTION  true    // use this to detect odometry erros
