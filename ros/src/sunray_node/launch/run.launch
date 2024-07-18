@@ -1,6 +1,13 @@
 <launch>
 
-	
+
+	<include file="$(find livox_ros_driver2)/launch_ROS1/msg_MID360.launch"  />
+
+
+	<node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen">
+	</node>
+
+
 	<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen">
 	</node>
 
