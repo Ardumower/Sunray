@@ -464,7 +464,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define CONSOLE_BAUDRATE    115200    // baudrate used for console
 //#define CONSOLE_BAUDRATE    921600  // baudrate used for console
 #define BLE_BAUDRATE    115200        // baudrate used for BLE
-#define BLE_NAME      "Ardumower"     // name for BLE module
 #define GPS_BAUDRATE  115200          // baudrate for GPS RTK module
 #define WIFI_BAUDRATE 115200          // baudrate for WIFI module
 #define ROBOT_BAUDRATE 19200         // baudrate for Linux serial robot (non-Ardumower)
