@@ -21,30 +21,16 @@ function build_sunray() {
     then echo "Please run as non-root (not sudo)"
     exit
   fi
+
   PS3='Please choose config: '
-  options=("Alfred" "owlMower" "Sim" "Fuxtec_ROS")
-  select opt in "${options[@]}"
-  do
-      case $opt in
-          "Alfred")
-              CONFIG_FILE="config.h"
-              break
-              ;;
-          "owlMower")
-              CONFIG_FILE="config_owlmower.h"
-              break
-              ;;
-          "Sim")
-              CONFIG_FILE="config_sim.h"
-              break
-              ;;
-          "Fuxtec_ROS")
-              CONFIG_FILE="config_fuxtec_ros.h"
-              break
-              ;;
-          *) echo "invalid option $REPLY";;
-      esac
+  list=$(ls config*.h)
+  IFS=$'\n'
+  select CONFIG_FILE in $list 
+    do test -n "$CONFIG_FILE" && break; 
+  exit; 
   done
+  echo "selected: $CONFIG_FILE"
+
   CONFIG_PATHNAME=$PWD/$CONFIG_FILE
   rm -f CMakeCache.txt
   rm -f cmake_install.cmake
