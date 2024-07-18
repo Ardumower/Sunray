@@ -37,12 +37,15 @@ void obstacleStateCallback(const std_msgs::Int8 &msg)
   //ROS_INFO("obstacleStateCallback %d", msg.data);
   if (msg.data == 1){
     // near obstacle
-    lidarBumper.triggerNearObstacle = false;
+    lidarBumper.triggerNearObstacle = true;
+    lidarBumper.triggerBumper = false;
   } else if (msg.data == 2){
     // obstacle
+    lidarBumper.triggerNearObstacle = false;
     lidarBumper.triggerBumper = true;
   } else {
     // no obstacle
+    lidarBumper.triggerNearObstacle = false;
     lidarBumper.triggerBumper = false;  
   }
 }
