@@ -76,7 +76,7 @@ private:
         {
             auto &pt = cloud->points[i];
             auto &ptAdjusted = cloudAdjusted->points[i];
-            double angle = std::atan2(pt.y, pt.x);
+            double angle = std::atan2(ptAdjusted.y, ptAdjusted.x);
             if (std::abs(angle) > (angle_opening_ / 2.0 * M_PI / 180.0))
                 continue;
 
