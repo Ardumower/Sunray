@@ -85,7 +85,7 @@ function docker_terminal {
   # -------------continue container...---------------------
   # allow docker to access host Xserver 
   #xhost +local:*
-  docker start $CONTAINER_NAME && docker attach $CONTAINER_NAME 
+  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME /bin/bash
 }
 
 function docker_prepare_tools {
