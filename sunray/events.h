@@ -47,6 +47,7 @@
 #define TXT_BATTERY_LOW_DOCK                F("battery_low_dock")
 #define TXT_MOWING_COMPLETED                F("mowing_completed")
 #define TXT_BUMPER_OBSTACLE                 F("bumper_obstacle")
+#define TXT_LIDAR_BUMPER_OBSTACLE           F("lidar_bumper_obstacle")
 #define TXT_LIFTED_OBSTACLE                 F("lifted_obstacle")
 #define TXT_GROUND_OBSTACLE                 F("ground_obstacle")
 #define TXT_TRIGGERED_OBSTACLE              F("triggered_obstacle")
@@ -110,6 +111,7 @@ enum EventCode {
     EVT_BATTERY_LOW_DOCK,
     EVT_MOWING_COMPLETED,
     EVT_BUMPER_OBSTACLE,
+    EVT_LIDAR_BUMPER_OBSTACLE,
     EVT_LIFTED_OBSTACLE,
     EVT_NO_ROBOT_MOTION_OBSTACLE,
     EVT_NO_GPS_SPEED_OBSTACLE,

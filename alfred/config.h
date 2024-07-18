@@ -278,6 +278,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define BUMPER_TRIGGER_DELAY  0		// bumper must be active for (ms) to trigger
 #define BUMPER_MAX_TRIGGER_TIME 30	// if bumpersensor stays permanent triggered mower will stop with bumper error (time in seconds; 0 = disabled)																																				  
 
+// ------ LiDAR bumper ------------------------------------------
+#define LIDAR_BUMPER_ENABLE false
+#define LIDAR_BUMPER_DEADTIME 1000  		// linear motion dead-time (ms) after bumper is allowed to trigger
 
 // ----- battery charging current measurement (INA169) --------------
 // the Marotronics charger outputs max 1.5A 

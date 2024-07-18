@@ -134,6 +134,9 @@ void EventLogger::event(EventCode evt, const String &additionalData) {
             case EVT_BUMPER_OBSTACLE:
                 evtText = TXT_BUMPER_OBSTACLE;
                 break;
+            case EVT_LIDAR_BUMPER_OBSTACLE:
+                evtText = TXT_LIDAR_BUMPER_OBSTACLE;
+                break;
             case EVT_LIFTED_OBSTACLE:
                 evtText = TXT_LIFTED_OBSTACLE;
                 break;

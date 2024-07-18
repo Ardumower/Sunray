@@ -83,8 +83,7 @@ const signed char orientationMatrix[9] = {
   CanRobotDriver robotDriver;
   CanMotorDriver motorDriver(robotDriver);
   CanBatteryDriver batteryDriver(robotDriver);
-  //CanBumperDriver bumperDriver(robotDriver);
-  LidarBumperDriver bumperDriver;  
+  CanBumperDriver bumperDriver(robotDriver);
   CanStopButtonDriver stopButton(robotDriver);
   CanRainSensorDriver rainDriver(robotDriver);
   CanLiftSensorDriver liftDriver(robotDriver);
@@ -122,6 +121,7 @@ PinManager pinMan;
 #endif 
 BLEConfig bleConfig;
 Buzzer buzzer;
+LidarBumperDriver lidarBumper;
 Sonar sonar;
 Bumper bumper;
 VL53L0X tof(VL53L0X_ADDRESS_DEFAULT);
@@ -236,6 +236,7 @@ void sensorTest(){
   while (millis() < stopTime){
     sonar.run();
     bumper.run();
+    lidarBumper.run();
     liftDriver.run();
     if (millis() > nextMeasureTime){
       nextMeasureTime = millis() + 1000;      
@@ -268,6 +269,11 @@ void sensorTest(){
         CONSOLE.print("\t");
         CONSOLE.print(((int)bumper.obstacle()));
         CONSOLE.print("\t");       
+      }
+      if (LIDAR_BUMPER_ENABLE) {
+        CONSOLE.print("LiDAR bumper (triggered): ");
+        CONSOLE.print(((int)lidarBumper.obstacle()));
+        CONSOLE.print("\t");
       }
 	    #ifdef ENABLE_LIFT_DETECTION 
         CONSOLE.print("lift sensor (triggered): ");		
@@ -483,13 +489,15 @@ void outputConfig(){
   CONSOLE.print("RAIN_ENABLE: ");
   CONSOLE.println(RAIN_ENABLE);
   CONSOLE.print("BUMPER_ENABLE: ");
-  CONSOLE.println(BUMPER_ENABLE);
+  CONSOLE.println(BUMPER_ENABLE);  
   CONSOLE.print("BUMPER_DEADTIME: ");
   CONSOLE.println(BUMPER_DEADTIME);
   CONSOLE.print("BUMPER_TRIGGER_DELAY: ");
   CONSOLE.println(BUMPER_TRIGGER_DELAY);
   CONSOLE.print("BUMPER_MAX_TRIGGER_TIME: ");
   CONSOLE.println(BUMPER_MAX_TRIGGER_TIME);  
+  CONSOLE.print("LIDAR_BUMPER_ENABLE: ");
+  CONSOLE.println(LIDAR_BUMPER_ENABLE);  
   CONSOLE.print("CURRENT_FACTOR: ");
   CONSOLE.println(CURRENT_FACTOR);
   CONSOLE.print("GO_HOME_VOLTAGE: ");
@@ -628,6 +636,7 @@ void start(){
   motor.begin();
   sonar.begin();
   bumper.begin();
+  lidarBumper.begin();
 
   outputConfig();
 
@@ -800,6 +809,14 @@ bool detectObstacle(){
   if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (bumper.obstacle()) ){  
     CONSOLE.println("bumper obstacle!");    
     Logger.event(EVT_BUMPER_OBSTACLE);
+    statMowBumperCounter++;
+    triggerObstacle();    
+    return true;
+  }
+
+  if ( (millis() > linearMotionStartTime + LIDAR_BUMPER_DEADTIME) && (lidarBumper.obstacle()) ){  
+    CONSOLE.println("LiDAR bumper obstacle!");    
+    Logger.event(EVT_LIDAR_BUMPER_OBSTACLE);
     statMowBumperCounter++;
     triggerObstacle();    
     return true;
