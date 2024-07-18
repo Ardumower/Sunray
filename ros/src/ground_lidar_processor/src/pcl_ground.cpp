@@ -1,3 +1,4 @@
+
 #include <ros/package.h>
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
@@ -8,6 +9,10 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <cmath>
 
+#include "config.h"
+  
+
+
 class GroundLidarProcessor
 {
 public:
@@ -15,14 +20,14 @@ public:
     {
         ros::NodeHandle nh("~");
 
-        nh.param("angle_opening", angle_opening_, 180.0);
-        nh.param("max_distance", max_distance_, 1.0);
-        nh.param("max_width", max_width_, 1.5);        
-        nh.param("max_height", max_height_, 0.5);        
-        nh.param("near_distance", near_distance_, 0.5);
-        nh.param("ground_height", ground_height_, 0.0);
-        nh.param("min_obstacle_size", min_obstacle_size_, 0.1);
-        nh.param("lidar_tilt_angle", lidar_tilt_angle_, 15.0); // Neigungswinkel in Grad
+        nh.param("angle_opening", angle_opening_, LIDAR_BUMPER_ANGLE_OPENING);
+        nh.param("max_distance", max_distance_, LIDAR_BUMPER_MAX_DISTANCE);
+        nh.param("max_width", max_width_, LIDAR_BUMPER_MAX_WIDTH);        
+        nh.param("max_height", max_height_, LIDAR_BUMPER_MAX_HEIGHT);        
+        nh.param("near_distance", near_distance_, LIDAR_BUMPER_NEAR_DISTANCE);
+        nh.param("ground_height", ground_height_, LIDAR_BUMPER_GROUND_HEIGHT);
+        nh.param("min_obstacle_size", min_obstacle_size_, LIDAR_BUMPER_MIN_OBSTACLE_SIZE);
+        nh.param("lidar_tilt_angle", lidar_tilt_angle_, LIDAR_BUMPER_ANGLE_OPENING); // Neigungswinkel in Grad
     
         point_cloud_sub_ = nh.subscribe("/livox/lidar", 1, &GroundLidarProcessor::pointCloudCallback, this);
         ground_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/ground_points", 10);
@@ -61,7 +66,7 @@ private:
             double adjusted_z = point.z * std::cos(tilt_angle_rad) - point.x * std::sin(tilt_angle_rad);
 
             if (adjusted_x > max_distance_) continue;            
-            if (abs(adjusted_y) > max_width_/2) continue;
+            if (std::abs(adjusted_y) > max_width_/2) continue;
             if (adjusted_z > max_height_) continue;
 
             //if (std::abs(adjusted_z - ground_height_) < 0.05)

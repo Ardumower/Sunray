@@ -20,6 +20,9 @@
 #include <Arduino.h>
 #include <IPAddress.h>
 
+
+
+
 IPAddress::IPAddress()
 {
     _address.dword = 0;
@@ -113,4 +116,8 @@ size_t IPAddress::printTo(Print& p) const
     n += p.print(_address.bytes[3], DEC);
     return n;
 }
+
+
+IPAddress INADDR4_NONE(0,0,0,0);
+
 

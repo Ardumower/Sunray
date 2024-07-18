@@ -280,7 +280,15 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // ------ LiDAR bumper ------------------------------------------
 #define LIDAR_BUMPER_ENABLE true
-#define LIDAR_BUMPER_DEADTIME 1000  		// linear motion dead-time (ms) after bumper is allowed to trigger
+#define LIDAR_BUMPER_TILT_ANGLE        15.0  	// LiDAR tilt angle (deg)
+#define LIDAR_BUMPER_DEADTIME          1000   // linear motion dead-time (ms) after bumper is allowed to trigger
+#define LIDAR_BUMPER_ANGLE_OPENING     180.0  // search area opening angle 
+#define LIDAR_BUMPER_MAX_DISTANCE       1.0   // search area max distance
+#define LIDAR_BUMPER_MAX_WIDTH          1.5   // search area max width
+#define LIDAR_BUMPER_MAX_HEIGHT         0.5   // search area max height
+#define LIDAR_BUMPER_NEAR_DISTANCE      0.5   // near obstacle distance
+#define LIDAR_BUMPER_GROUND_HEIGHT      0.0   // ground height
+#define LIDAR_BUMPER_MIN_OBSTACLE_SIZE  0.1   // minimum obstacle size (m)
 
 // ----- battery charging current measurement (INA169) --------------
 // the Marotronics charger outputs max 1.5A 
