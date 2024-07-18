@@ -26,6 +26,7 @@ int argc = 0;
 
 ros::NodeHandle *node;
 ros::Rate *rate;
+ros::Subscriber obstacle_state_sub;
 tf::TransformListener *tfListener;
 double nextErrorTime = 0;
 double nextPrintTime = 0;
@@ -33,17 +34,15 @@ double nextPrintTime = 0;
 
 void obstacleStateCallback(const std_msgs::Int8 &msg)
 {
+  //ROS_INFO("obstacleStateCallback %d", msg.data);
   if (msg.data == 1){
     // near obstacle
-    ROS_INFO("obstacleStateCallback %d", msg.data);
     lidarBumper.triggerNearObstacle = false;
   } else if (msg.data == 2){
     // obstacle
-    ROS_INFO("obstacleStateCallback %d", msg.data);
     lidarBumper.triggerBumper = true;
   } else {
     // no obstacle
-    //ROS_INFO("obstacleStateCallback %d", msg.data);
     lidarBumper.triggerBumper = false;  
   }
 }
@@ -66,7 +65,7 @@ void setup(){
   ROS_INFO("--------------started sunray_node-------------");
 
   rate = new ros::Rate(50);
-  ros::Subscriber obstacle_state_sub = node->subscribe("/obstacle_state", 1, &obstacleStateCallback);
+  obstacle_state_sub = node->subscribe("/obstacle_state", 1, &obstacleStateCallback);
 } 
 
 

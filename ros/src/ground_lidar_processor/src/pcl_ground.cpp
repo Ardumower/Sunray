@@ -18,7 +18,7 @@ class GroundLidarProcessor
 public:
     GroundLidarProcessor()
     {
-        ros::NodeHandle nh("~");
+        ros::NodeHandle nh("ground_lidar_processor");
 
         nh.param("angle_opening", angle_opening_, LIDAR_BUMPER_ANGLE_OPENING);
         nh.param("max_distance", max_distance_, LIDAR_BUMPER_MAX_DISTANCE);
@@ -44,7 +44,7 @@ public:
 private:
     void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg)
     {
-        ROS_INFO("pointCloudCallback begin");
+        //ROS_INFO("pointCloudCallback begin");
         pcl::PointCloud<pcl::PointXYZI>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZI>());
         pcl::PointCloud<pcl::PointXYZI>::Ptr cloudAdjusted(new pcl::PointCloud<pcl::PointXYZI>());        
         pcl::fromROSMsg(*msg, *cloud);
@@ -113,9 +113,9 @@ private:
         obstacle_pub_.publish(obstacle_msg);
 
 
-        ROS_INFO("obstacle_points: %d  ground_points: %d  far %d, near %d", 
-            (int)obstacle_points->points.size(), (int)ground_points->points.size(), 
-            (int)obstacleFar, (int)obstacleNear );                        
+        //ROS_INFO("obstacle_points: %d  ground_points: %d  far %d, near %d", 
+        //    (int)obstacle_points->points.size(), (int)ground_points->points.size(), 
+        //    (int)obstacleFar, (int)obstacleNear );                        
 
 
         if (soundTimeout == 0){
@@ -139,7 +139,7 @@ private:
           else if (obstacleFar) obstMsg.data = 1;
           else obstMsg.data = 0;
         obstacle_state_pub_.publish(obstMsg);
-        ROS_INFO("pointCloudCallback end");        
+        //ROS_INFO("pointCloudCallback end");        
     }
 
 
