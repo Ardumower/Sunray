@@ -350,7 +350,9 @@ void CanRobotDriver::run(){
   }
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;  // 1 hz    
-    requestMowHeight(requestMowHeightMillimeter);
+    if (MOW_ADJUST_HEIGHT){   // can the mowing height be adjusted by an additional motor?
+      requestMowHeight(requestMowHeightMillimeter);
+    }
     bool printConsole = false;
     if (consoleCounter == 10){
       printConsole = true;
