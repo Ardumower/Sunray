@@ -128,7 +128,10 @@ function ros_run {
   btmgmt -i hci0 le on
   btmgmt -i hci0 bredr off
   btmgmt -i hci0 connectable on
-  btmgmt -i hci0 name "ROS robot"
+  #btmgmt -i hci0 name "ROS robot"
+  BLE_NAME=`grep "BLE_NAME" ../sunray/config.h | cut -d'"' -f 2`
+  echo "BLE_NAME=$BLE_NAME"
+  btmgmt -i hci0 name "$BLE_NAME"
   btmgmt -i hci0 advertising on
   btmgmt -i hci0 power on
 
