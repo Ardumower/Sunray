@@ -300,6 +300,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define LIDAR_BUMPER_MAX_WIDTH          1.5   // search area max width
 #define LIDAR_BUMPER_MAX_HEIGHT         0.5   // search area max height
 #define LIDAR_BUMPER_NEAR_DISTANCE      0.5   // near obstacle distance
+#define LIDAR_BUMPER_NEAR_MAX_HEIGHT    0.3   // near obstacle height
 #define LIDAR_BUMPER_GROUND_HEIGHT      0.0   // ground height
 #define LIDAR_BUMPER_MIN_OBSTACLE_SIZE  0.1   // minimum obstacle size (m)
 

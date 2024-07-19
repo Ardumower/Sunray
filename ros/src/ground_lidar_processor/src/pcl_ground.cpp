@@ -31,6 +31,7 @@ public:
         nh.param("max_distance", max_distance_, LIDAR_BUMPER_MAX_DISTANCE);
         nh.param("max_width", max_width_, LIDAR_BUMPER_MAX_WIDTH);        
         nh.param("max_height", max_height_, LIDAR_BUMPER_MAX_HEIGHT);        
+        nh.param("near_height", near_height_, LIDAR_BUMPER_NEAR_HEIGHT);        
         nh.param("near_distance", near_distance_, LIDAR_BUMPER_NEAR_DISTANCE);
         nh.param("ground_height", ground_height_, LIDAR_BUMPER_GROUND_HEIGHT);
         nh.param("min_obstacle_size", min_obstacle_size_, LIDAR_BUMPER_MIN_OBSTACLE_SIZE);
@@ -44,18 +45,16 @@ public:
         soundTimeout = 0;
         obstacleFar = false;
         obstacleNear = false;
+        cloudReceived = false;
         pkg_loc = ros::package::getPath( ros::this_node::getName().substr(1) );
         printf("pkg_loc: %s\n", pkg_loc.c_str());                
     }
 
-private:
-    void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg)
-    {
-        //ROS_INFO("pointCloudCallback begin");
+    void processCloud(){
         pcl::PointCloud<pcl::PointXYZI>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZI>());
         pcl::PointCloud<pcl::PointXYZI>::Ptr cloudAdjusted(new pcl::PointCloud<pcl::PointXYZI>());        
-        pcl::fromROSMsg(*msg, *cloud);
-        pcl::fromROSMsg(*msg, *cloudAdjusted);
+        pcl::fromROSMsg(*cloudMsg, *cloud);
+        pcl::fromROSMsg(*cloudMsg, *cloudAdjusted);
 
         // Umwandlung des Neigungswinkels in Radiant
         double tilt_angle_rad = lidar_tilt_angle_ * M_PI / 180.0;
@@ -103,7 +102,8 @@ private:
                     {                    
                         obstacle_points->points.push_back(pt);   
                         obstacleFar = true;
-                        if (pt.x < near_distance_) obstacleNear = true;                                     
+                        if (ptAdjusted.z < near_height_) obstacleNear = true;                
+                        if (ptAdjusted.x < near_distance_) obstacleNear = true;                                     
                     }
                 }
             }                        
@@ -111,12 +111,12 @@ private:
 
         sensor_msgs::PointCloud2 ground_msg;
         pcl::toROSMsg(*ground_points, ground_msg);
-        ground_msg.header = msg->header;
+        ground_msg.header = cloudMsg->header;
         ground_pub_.publish(ground_msg);
 
         sensor_msgs::PointCloud2 obstacle_msg;
         pcl::toROSMsg(*obstacle_points, obstacle_msg);
-        obstacle_msg.header = msg->header;
+        obstacle_msg.header = cloudMsg->header;
         obstacle_pub_.publish(obstacle_msg);
 
 
@@ -149,6 +149,16 @@ private:
         //ROS_INFO("pointCloudCallback end");        
     }
 
+    bool cloudReceived;
+
+private:
+    void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg)
+    {
+        cloudMsg = msg;
+        //ROS_INFO("pointCloudCallback begin");
+        cloudReceived = true;
+    }
+
 
     bool isObstacle(double x, double y, double z, 
         const pcl::PointCloud<pcl::PointXYZI> &cloud)
@@ -174,6 +184,7 @@ private:
     ros::Publisher ground_pub_;
     ros::Publisher obstacle_pub_;
     ros::Publisher obstacle_state_pub_;
+    sensor_msgs::PointCloud2ConstPtr cloudMsg;
 
     bool obstacleNear;
     bool obstacleFar;
@@ -181,7 +192,8 @@ private:
     double max_distance_;
     double max_width_;
     double max_height_;    
-    double near_distance_;    
+    double near_distance_;
+    double near_height_;        
     double ground_height_;
     double min_obstacle_size_;
     double lidar_tilt_angle_;
@@ -189,10 +201,23 @@ private:
     std::string pkg_loc; 
 };
 
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "ground_lidar_processor");
     GroundLidarProcessor processor;
-    ros::spin();
+    ros::Rate *rate = new ros::Rate(5);
+
+    while (ros::ok()) {
+        // https://stackoverflow.com/questions/23227024/difference-between-spin-and-rate-sleep-in-ros
+        //ros::spin();
+        ros::spinOnce();
+        rate->sleep();
+        if (processor.cloudReceived) {
+            processor.cloudReceived = false;
+            processor.processCloud();
+        }
+        //printf("loop\n");
+    }
     return 0;
 }
