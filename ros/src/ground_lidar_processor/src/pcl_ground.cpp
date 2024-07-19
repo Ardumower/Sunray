@@ -159,7 +159,7 @@ public:
 
 private:
     void imuCallback(sensor_msgs::Imu msg) {
-        float lp = 0.1;
+        float lp = 0.02;
         acc_avg(0) = (1.0-lp) * acc_avg(0) + lp * msg.linear_acceleration.x;
         acc_avg(1) = (1.0-lp) * acc_avg(1) + lp * msg.linear_acceleration.y;
         acc_avg(2) = (1.0-lp) * acc_avg(2) + lp * msg.linear_acceleration.z;
