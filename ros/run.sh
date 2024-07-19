@@ -14,107 +14,14 @@ CONFIG_FILE="/root/Sunray/alfred/config_owlmower.h"
 USER_UID=$(id -u)
 
 
-function docker_install {
-  # install docker
-  # Add Docker's official GPG key:
-  sudo apt-get update
-  sudo apt-get install ca-certificates curl
-  sudo install -m 0755 -d /etc/apt/keyrings
-  sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
-  sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-  # Add the repository to Apt sources:
-  echo \
-    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
-    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-  sudo apt-get update
-
-  sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+function prepare_host_minimum {
+  echo "prepare_host_minimum"
+  sudo ln -sf /var/run/pulse/native /tmp/pulse_socket
+  sudo chmod 666 /var/run/pulse/native  
 }
 
-function docker_pull_image {
-  # -----------pull image...------------------------    
-  if [ "$EUID" -eq 0 ]
-    then echo "Please run as non-root (not sudo)"
-    exit
-  fi
-  docker pull "$IMAGE_NAME"
-}
-
-function docker_build_container {
-  # -----------create container...------------------------  
-  #if [ "$EUID" -eq 0 ]
-  #  then echo "Please run as non-root (not sudo)"
-  #  exit
-  #fi
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi  
-  echo "HOME: $HOME"
-  echo "XDG_RUNTIME_DIR: $XDG_RUNTIME_DIR"
-  echo "HOST_MAP_PATH: $HOST_MAP_PATH"
-  echo "IMAGE_NAME: $IMAGE_NAME"
-  echo "====> enter 'exit' to exit docker container" 
-  docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
-    --env PULSE_SERVER=unix:/tmp/pulse_socket \
-    --volume /tmp/pulse_socket:/tmp/pulse_socket \
-    --volume /etc/machine-id:/etc/machine-id:ro \
-    --device /dev/snd \
-    -e DISPLAY=$DISPLAY --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME   
-}
-
-function docker_show_containers {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
-  docker ps -all
-}
-
-function docker_image_from_container {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
-  docker commit $CONTAINER_NAME ros:melodic-perception-bionic-modified
-  docker images -a 
-}
-
-function docker_terminal {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
-  # -------------continue container...---------------------
-  # allow docker to access host Xserver 
-  #xhost +local:*
-  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME /bin/bash
-}
-
-function docker_prepare_tools {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi  
-  # -------------continue container...---------------------
-  # allow docker to access host Xserver 
-  #xhost +local:*
-  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME /root/Sunray/ros/install_tools.sh
-}
-
-function ros_compile {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi  
-  # build Sunray ROS node
-  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DCONFIG_FILE=$CONFIG_FILE -DROS_EDITION=ROS1"
-}
-
-function ros_run {    
+function prepare_host {
+  echo "prepare_host"
   if [ "$EUID" -ne 0 ]
     then echo "Please run as root (sudo)"
     exit
@@ -164,13 +71,11 @@ function ros_run {
   sleep 1
   pulseaudio -D --system --disallow-exit --disallow-module-loading
   export PULSE_SERVER=unix:/var/run/pulse/native
-  sudo ln -sf /var/run/pulse/native /tmp/pulse_socket
-  sudo chmod 666 /var/run/pulse/native  
   # set default volume 
   amixer -D pulse sset Master 100%
   #mplayer /home/pi/Sunray/tts/de/temperature_low_docking.mp3
-  #exit  
-  
+  #exit    
+
   echo "----waiting for TCP connections to be closed from previous sessions----"
   echo "Waiting TCP port 80 to be closed..."
   for _ in `seq 1 20`; do 
@@ -184,7 +89,124 @@ function ros_run {
     # echo -n .  
     sleep 2.0     
   done; 
+}
 
+
+function docker_install {
+  # install docker
+  # Add Docker's official GPG key:
+  echo "docker_install"
+  sudo apt-get update
+  sudo apt-get install ca-certificates curl
+  sudo install -m 0755 -d /etc/apt/keyrings
+  sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+  sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+  # Add the repository to Apt sources:
+  echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  sudo apt-get update
+
+  sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+}
+
+function docker_pull_image {
+  # -----------pull image...------------------------    
+  echo "docker_pull_image"
+  if [ "$EUID" -eq 0 ]
+    then echo "Please run as non-root (not sudo)"
+    exit
+  fi
+  docker pull "$IMAGE_NAME"
+}
+
+function docker_build_container {
+  echo "docker_build_container"
+  # -----------create container...------------------------  
+  #if [ "$EUID" -eq 0 ]
+  #  then echo "Please run as non-root (not sudo)"
+  #  exit
+  #fi
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi  
+  echo "HOME: $HOME"
+  echo "XDG_RUNTIME_DIR: $XDG_RUNTIME_DIR"
+  echo "HOST_MAP_PATH: $HOST_MAP_PATH"
+  echo "IMAGE_NAME: $IMAGE_NAME"
+  echo "====> enter 'exit' to exit docker container" 
+  docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
+    --env PULSE_SERVER=unix:/tmp/pulse_socket \
+    --volume /tmp/pulse_socket:/tmp/pulse_socket \
+    --volume /etc/machine-id:/etc/machine-id:ro \
+    --device /dev/snd \
+    -e DISPLAY=$DISPLAY --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME   
+}
+
+function docker_show_containers {
+  echo "docker_show_containers"
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
+  docker ps -all
+}
+
+function docker_image_from_container {
+  echo "docker_image_from_container"
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
+  docker commit $CONTAINER_NAME ros:melodic-perception-bionic-modified
+  docker images -a 
+}
+
+function docker_terminal {
+  echo "docker_terminal"
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
+  # -------------continue container...---------------------
+  # allow docker to access host Xserver 
+  #xhost +local:*
+  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME /bin/bash
+}
+
+function docker_prepare_tools {
+  echo "docker_prepare_tools"
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi  
+  # -------------continue container...---------------------
+  # allow docker to access host Xserver 
+  #xhost +local:*
+  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME /root/Sunray/ros/install_tools.sh
+}
+
+function ros_compile {
+  echo "ros_compile"
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi 
+  #prepare_host
+  prepare_host_minimum
+  # build Sunray ROS node
+  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
+    bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DCONFIG_FILE=$CONFIG_FILE -DROS_EDITION=ROS1"
+}
+
+function ros_run {  
+  echo "ros_run"  
+  prepare_host_minimum
+  prepare_host
+    
   # run Sunray ROS node 
   echo "starting sunray ROS node..."
   # allow non-root to start http server 
