@@ -27,6 +27,22 @@ function prepare_host {
     then echo "Please run as root (sudo)"
     exit
   fi  
+
+  echo "---configuring Ethernet for LiDAR---"
+  # add static IP address 
+  # Ethernet wired connection
+  CON=$(nmcli c | grep ethernet | head -c 20 | xargs )
+  echo "CON: $CON"
+  nmcli c show "$CON" | grep ipv4.addresses
+  nmcli con mod "$CON" ipv4.addresses 192.168.1.102/24
+  nmcli con mod "$CON" ipv4.method manual    
+  nmcli con up "$CON"
+  # remove any old IP addresses
+  nmcli con mod "$CON" -ipv4.addresses "" -ipv4.gateway ""
+  nmcli con up "$CON"     
+  echo "CON: $CON"
+  nmcli c show "$CON" | grep ipv4.addresses
+
   echo "----bluetooth devices----"
   systemctl enable bluetooth.service
   hcitool dev
