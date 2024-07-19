@@ -235,13 +235,14 @@ function ros_run {
 
   # source ROS setup  
   docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c "export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node run.launch" 
+    bash -c "export ROS_IP=`ifconfig wlan0 | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'` ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node run.launch" 
   
   # rosnode kill -a ; sleep 3
 }
 
 function rviz_remote_view {
   echo "rviz_remote_view"
+  export ROS_IP=`ifconfig wlo1 | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
   export ROS_MASTER_URI=http://raspberrypi.local:11311
   #export ROS_IP=testpi5.local
   #rviz -d src/pcl_docking/rviz/pcl_docking.rviz
