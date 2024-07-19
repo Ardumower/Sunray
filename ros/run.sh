@@ -17,6 +17,7 @@ USER_UID=$(id -u)
 function prepare_host_minimum {
   echo "prepare_host_minimum"
   sudo ln -sf /var/run/pulse/native /tmp/pulse_socket
+  sudo chmod 666 /tmp/pulse_socket
   sudo chmod 666 /var/run/pulse/native  
 }
 
