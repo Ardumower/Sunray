@@ -8,6 +8,7 @@ ground_lidar_processor ('LiDAR bumper')
 
 #include <ros/package.h>
 #include <ros/ros.h>
+#include <sensor_msgs/Imu.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <std_msgs/Int8.h>
@@ -15,6 +16,8 @@ ground_lidar_processor ('LiDAR bumper')
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <cmath>
+#include <Eigen/Geometry>
+#include <Eigen/Core>
 
 #include "config.h"
   
@@ -36,12 +39,14 @@ public:
         nh.param("ground_height", ground_height_, LIDAR_BUMPER_GROUND_HEIGHT);
         nh.param("min_obstacle_size", min_obstacle_size_, LIDAR_BUMPER_MIN_OBSTACLE_SIZE);
         nh.param("lidar_tilt_angle", lidar_tilt_angle_, LIDAR_BUMPER_TILT_ANGLE); // Neigungswinkel in Grad
-    
+
+        imu_sub_ = nh.subscribe("/livox/imu", 10, &GroundLidarProcessor::imuCallback, this);
         point_cloud_sub_ = nh.subscribe("/livox/lidar", 1, &GroundLidarProcessor::pointCloudCallback, this);
         ground_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/ground_points", 10);
         obstacle_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/obstacle_points", 10);
         obstacle_state_pub_ = nh.advertise<std_msgs::Int8>("/obstacle_state", 10);
 
+        acc_avg = Eigen::Vector3f(0, 0, 0);
         soundTimeout = 0;
         obstacleFar = false;
         obstacleNear = false;
@@ -153,6 +158,22 @@ public:
     bool cloudReceived;
 
 private:
+    void imuCallback(sensor_msgs::Imu msg) {
+        float lp = 0.1;
+        acc_avg(0) = (1.0-lp) * acc_avg(0) + lp * msg.linear_acceleration.x;
+        acc_avg(1) = (1.0-lp) * acc_avg(1) + lp * msg.linear_acceleration.y;
+        acc_avg(2) = (1.0-lp) * acc_avg(2) + lp * msg.linear_acceleration.z;
+         
+        Eigen::Vector3f G(0, 0, acc_avg.norm());
+        Eigen::Quaternionf q = Eigen::Quaternionf::FromTwoVectors(acc_avg, G);
+        Eigen::Matrix3f R_bw = q.toRotationMatrix();
+        Eigen::Vector3f eulerAngle = R_bw.eulerAngles(2,1,0);
+        //printf("Gravity: %.2fg\n", G(2));
+        //std::cout << "RPY Euler angle (rad):\n" << eulerAngle << std::endl;                
+        lidar_tilt_angle_ = eulerAngle(1) / 3.1415 * 180.0;
+        printf("lidar_tilt_angle=%.2f\n", lidar_tilt_angle_);
+    }
+
     void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg)
     {
         if (cloudReceived) return;
@@ -183,11 +204,13 @@ private:
     }
 
     ros::Subscriber point_cloud_sub_;
+    ros::Subscriber imu_sub_;
     ros::Publisher ground_pub_;
     ros::Publisher obstacle_pub_;
     ros::Publisher obstacle_state_pub_;
     sensor_msgs::PointCloud2ConstPtr cloudMsg;
 
+    Eigen::Vector3f acc_avg;
     bool obstacleNear;
     bool obstacleFar;
     double angle_opening_;
