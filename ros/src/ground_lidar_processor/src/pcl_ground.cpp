@@ -128,9 +128,9 @@ public:
                 std::string command = "killall mplayer; mplayer -volume 100 -af volume=5:1 ";
                 command += pkg_loc; 
                 if (obstacleNear){
-                    command += "/launch/bell.mp3";                
-                } else {
                     command += "/launch/tada.mp3";                
+                } else {
+                    command += "/launch/beep.mp3";                
                 }
                 command += " > /dev/null 2>&1 &";
                 system(command.c_str());
