@@ -1,4 +1,11 @@
 
+/*
+ground_lidar_processor ('LiDAR bumper')
+-detects ground in search area
+-detects obstacle in search area
+-triggers bumper event if detected obstacles
+*/
+
 #include <ros/package.h>
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
