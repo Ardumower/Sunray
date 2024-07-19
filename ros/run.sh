@@ -240,6 +240,14 @@ function ros_run {
   # rosnode kill -a ; sleep 3
 }
 
+function rviz_remote_view {
+  echo "rviz_remote_view"
+  export ROS_MASTER_URI=http://raspberrypi.local:11311
+  #export ROS_IP=testpi5.local
+  #rviz -d src/pcl_docking/rviz/pcl_docking.rviz
+  #rviz -d src/direct_lidar_odometry/launch/dlo_mid360.rviz
+  rviz -d src/ground_lidar_processor/launch/test.rviz
+}
 
 
 PS3='Please enter your choice: '
@@ -253,6 +261,7 @@ options=(
     "Docker prepare ROS tools"
     "ROS compile"    
     "ROS run"    
+    "rviz remote view"
     "Quit")
 select opt in "${options[@]}"
 do
@@ -291,6 +300,10 @@ do
             ;;
         "ROS run")
             ros_run
+            break
+            ;;
+        "rviz remote view")
+            rviz_remote_view
             break
             ;;
         "Quit")
