@@ -68,7 +68,7 @@ public:
             double z = pt.z * std::cos(tilt_angle_rad) - pt.x * std::sin(tilt_angle_rad);            
             ptAdjusted.x = x;
             ptAdjusted.y = y;
-            ptAdjusted.z = z;
+            ptAdjusted.z = z - ground_height_;
             cloudAdjusted->points[i] = ptAdjusted;
         }
 
@@ -83,6 +83,7 @@ public:
             auto &pt = cloud->points[i];
             auto &ptAdjusted = cloudAdjusted->points[i];
             double angle = std::atan2(ptAdjusted.y, ptAdjusted.x);
+            if ( (std::abs(pt.x) < 0.05) || (std::abs(pt.y) < 0.05) || (std::abs(pt.z) < 0.05) ) continue;  
             if (std::abs(angle) > (angle_opening_ / 2.0 * M_PI / 180.0))
                 continue;
 
@@ -91,22 +92,24 @@ public:
             if (ptAdjusted.z > max_height_) continue;
 
             //if (std::abs(ptAdjusted.z - ground_height_) < 0.05)
-            if (ptAdjusted.z < ground_height_ -  0.05)            
+            if (ptAdjusted.z <  0.1)            
             {
-                ground_points->points.push_back(pt);
-            }
+                ground_points->points.push_back(ptAdjusted);
+            }            
             else
             {
                 if (!obstacleNear) {
-                    if (ptAdjusted.z > ground_height_ && isObstacle(ptAdjusted.x, ptAdjusted.y, ptAdjusted.z, *cloud))
+                    if (isObstacle(pt.x, pt.y, pt.z, *cloud))
                     {                    
-                        obstacle_points->points.push_back(pt);   
+                        obstacle_points->points.push_back(ptAdjusted);   
                         obstacleFar = true;
-                        if (ptAdjusted.z < near_height_) obstacleNear = true;                
-                        if (ptAdjusted.x < near_distance_) obstacleNear = true;                                     
+                        ROS_INFO("obstacle x=%.2f y=%.2f z=%.2f", pt.x, pt.y, pt.z);    
+                        if (ptAdjusted.x < near_distance_) {
+                            if (ptAdjusted.z < near_height_)  obstacleNear = true;
+                        }                                        
                     }
                 }
-            }                        
+            }                      
         }
 
         sensor_msgs::PointCloud2 ground_msg;
@@ -152,6 +155,7 @@ public:
 private:
     void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg)
     {
+        if (cloudReceived) return;
         cloudMsg = msg;
         //ROS_INFO("pointCloudCallback begin");
         cloudReceived = true;
@@ -212,8 +216,8 @@ int main(int argc, char **argv)
         ros::spinOnce();
         rate->sleep();
         if (processor.cloudReceived) {
-            processor.cloudReceived = false;
             processor.processCloud();
+            processor.cloudReceived = false;            
         }
         //printf("loop\n");
     }
