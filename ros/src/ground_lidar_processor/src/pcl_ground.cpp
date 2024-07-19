@@ -108,7 +108,7 @@ public:
                     {                    
                         obstacle_points->points.push_back(ptAdjusted);   
                         obstacleFar = true;
-                        ROS_INFO("obstacle x=%.2f y=%.2f z=%.2f", pt.x, pt.y, pt.z);    
+                        //ROS_INFO("obstacle x=%.2f y=%.2f z=%.2f", pt.x, pt.y, pt.z);    
                         if (ptAdjusted.x < near_distance_) {
                             if (ptAdjusted.z < near_height_)  obstacleNear = true;
                         }                                        
@@ -159,7 +159,7 @@ public:
 
 private:
     void imuCallback(sensor_msgs::Imu msg) {
-        float lp = 0.02;
+        float lp = 0.05;
         acc_avg(0) = (1.0-lp) * acc_avg(0) + lp * msg.linear_acceleration.x;
         acc_avg(1) = (1.0-lp) * acc_avg(1) + lp * msg.linear_acceleration.y;
         acc_avg(2) = (1.0-lp) * acc_avg(2) + lp * msg.linear_acceleration.z;
@@ -171,7 +171,7 @@ private:
         //printf("Gravity: %.2fg\n", G(2));
         //std::cout << "RPY Euler angle (rad):\n" << eulerAngle << std::endl;                
         lidar_tilt_angle_ = eulerAngle(1) / 3.1415 * 180.0;
-        printf("lidar_tilt_angle=%.2f\n", lidar_tilt_angle_);
+        //printf("lidar_tilt_angle=%.2f\n", lidar_tilt_angle_);
     }
 
     void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg)
