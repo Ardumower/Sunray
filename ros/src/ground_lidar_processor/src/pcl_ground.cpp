@@ -120,9 +120,9 @@ public:
         obstacle_pub_.publish(obstacle_msg);
 
 
-        //ROS_INFO("obstacle_points: %d  ground_points: %d  far %d, near %d", 
-        //    (int)obstacle_points->points.size(), (int)ground_points->points.size(), 
-        //    (int)obstacleFar, (int)obstacleNear );                        
+        ROS_INFO("obstacle_points: %d  ground_points: %d  far %d, near %d", 
+            (int)obstacle_points->points.size(), (int)ground_points->points.size(), 
+            (int)obstacleFar, (int)obstacleNear );                        
 
 
         if (soundTimeout == 0){
