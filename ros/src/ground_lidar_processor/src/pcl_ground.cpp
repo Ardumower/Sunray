@@ -158,7 +158,7 @@ public:
     bool cloudReceived;
 
 private:
-    void imuCallback(sensor_msgs::Imu msg) {
+    void imuCallback(sensor_msgs::Imu msg) {        
         float lp = 0.05;
         acc_avg(0) = (1.0-lp) * acc_avg(0) + lp * msg.linear_acceleration.x;
         acc_avg(1) = (1.0-lp) * acc_avg(1) + lp * msg.linear_acceleration.y;
@@ -170,8 +170,11 @@ private:
         Eigen::Vector3f eulerAngle = R_bw.eulerAngles(2,1,0);
         //printf("Gravity: %.2fg\n", G(2));
         //std::cout << "RPY Euler angle (rad):\n" << eulerAngle << std::endl;                
-        lidar_tilt_angle_ = eulerAngle(1) / 3.1415 * 180.0;
-        //printf("lidar_tilt_angle=%.2f\n", lidar_tilt_angle_);
+        float tilt = eulerAngle(1) / 3.1415 * 180.0;
+        if (tilt < 45){
+            lidar_tilt_angle_ = tilt; 
+            //printf("lidar_tilt_angle=%.2f\n", lidar_tilt_angle_);
+        }
     }
 
     void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg)
