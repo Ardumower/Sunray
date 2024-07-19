@@ -119,20 +119,18 @@ public:
         obstacle_msg.header = cloudMsg->header;
         obstacle_pub_.publish(obstacle_msg);
 
-
-        ROS_INFO("obstacle_points: %d  ground_points: %d  far %d, near %d", 
-            (int)obstacle_points->points.size(), (int)ground_points->points.size(), 
-            (int)obstacleFar, (int)obstacleNear );                        
-
-
         if (soundTimeout == 0){
             if ((obstacleFar) || (obstacleNear)) {
+                ROS_INFO("obstacle_points: %d  ground_points: %d  far %d, near %d", 
+                    (int)obstacle_points->points.size(), (int)ground_points->points.size(), 
+                    (int)obstacleFar, (int)obstacleNear );                        
+
                 std::string command = "killall mplayer; mplayer -volume 100 -af volume=5:1 ";
                 command += pkg_loc; 
                 if (obstacleNear){
                     command += "/launch/bell.mp3";                
                 } else {
-                    command += "/launch/beep.mp3";                
+                    command += "/launch/tada.mp3";                
                 }
                 command += " > /dev/null 2>&1 &";
                 system(command.c_str());

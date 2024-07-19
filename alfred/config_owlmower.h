@@ -283,7 +283,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // ------ LiDAR bumper ------------------------------------------
 #define LIDAR_BUMPER_ENABLE true
-#define LIDAR_BUMPER_TILT_ANGLE        15.0  	// LiDAR tilt angle (deg)
+#define LIDAR_BUMPER_TILT_ANGLE        10.0  	// LiDAR tilt angle (deg)
 #define LIDAR_BUMPER_DEADTIME          1000   // linear motion dead-time (ms) after bumper is allowed to trigger
 #define LIDAR_BUMPER_ANGLE_OPENING     180.0  // search area opening angle 
 #define LIDAR_BUMPER_MAX_DISTANCE       1.0   // search area max distance
