@@ -2,6 +2,7 @@
 <launch>
 
   <arg name="do_processing" default="true"/>
+  <arg name="use_usb_cam" default="true"/>
   <arg name="rviz" default="true"/>
 	<arg name="use_bag_file" default="false" />
 	<arg name="bag_file" default="/media/alex/test1/dataset/livox_mid360/obstacles1.bag" />
@@ -28,6 +29,19 @@
   <!-- RViz -->
   <group if="$(arg rviz)">   
     <node pkg="rviz" type="rviz" name="test_rviz" args="-d $(find ground_lidar_processor)/launch/test.rviz"/>
+  </group>
+
+  <!-- usb cam - find device path:  v4l2-ctl - -list-devices ,  v4l2-ctl - -device=/dev/video0 - -all  -->
+  <group if="$(arg use_usb_cam)" ns="camera">
+    <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen" >
+      <param name="video_device" value="/dev/video2" />
+      <param name="image_width" value="640" />
+      <param name="image_height" value="480" />
+      <param name="pixel_format" value="mjpeg" />
+      <param name="camera_frame_id" value="usb_cam" />
+      <param name="io_method" value="mmap"/>
+      <param name="framerate" value="5"/>
+    </node>
   </group>
 
 
