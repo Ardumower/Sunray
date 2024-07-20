@@ -190,13 +190,13 @@ void CanRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
   sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_odo_ticks, data);    
 
-  if (true){
+  if (false){
     // cutter speed (voltage control)
     data.floatVal = ((float)mowPwm) / 255.0;    
     sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
   } else {
     // cutter speed (velocity control)
-    data.floatVal = ((float)mowPwm) / 255.0 * 10.0;   // TODO: convert 0..255 to target velocity (motor radiant/sec)  
+    data.floatVal = ((float)mowPwm) / 255.0 * 332.0;   // TODO: convert 0..255 to target velocity (motor radiant/sec)  
     sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_velocity, data);
   }
   sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_odo_ticks, data);
