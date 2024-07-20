@@ -12,12 +12,18 @@ ground_lidar_processor ('LiDAR bumper')
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <std_msgs/Int8.h>
+#include <pcl/filters/passthrough.h>
 #include <pcl_ros/point_cloud.h>
 #include <pcl/point_types.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/common/transforms.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <cmath>
 #include <Eigen/Geometry>
 #include <Eigen/Core>
+#include <visualization_msgs/Marker.h>
+
 
 #include "config.h"
   
@@ -45,6 +51,7 @@ public:
         ground_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/ground_points", 10);
         obstacle_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/obstacle_points", 10);
         obstacle_state_pub_ = nh.advertise<std_msgs::Int8>("/obstacle_state", 10);
+        ground_normal_pub_ = nh.advertise<visualization_msgs::Marker>("/ground_normal", 1);
 
         acc_avg = Eigen::Vector3f(0, 0, 0);
         soundTimeout = 0;
@@ -55,7 +62,229 @@ public:
         printf("pkg_loc: %s\n", pkg_loc.c_str());                
     }
 
-    void processCloud(){
+
+    void publishNormalVectorMarker(const Eigen::Vector3f& normal, const Eigen::Vector3f& centroid, ros::Publisher& marker_pub) {
+        // Marker Nachricht erstellen
+        visualization_msgs::Marker marker;
+        marker.header.frame_id = "livox_frame";  // Anpassen an das verwendete Frame
+        marker.header.stamp = ros::Time::now();
+        marker.ns = "plane_normal";
+        marker.action = visualization_msgs::Marker::ARROW;
+        marker.type = visualization_msgs::Marker::ADD;
+        marker.id = 0;
+
+        // Orientierung des Pfeils (entspricht dem Normalvektor)
+        Eigen::Quaternionf orientation = Eigen::Quaternionf::FromTwoVectors(Eigen::Vector3f::UnitX(), normal);
+        marker.pose.orientation.x = orientation.x();
+        marker.pose.orientation.y = orientation.y();
+        marker.pose.orientation.z = orientation.z();
+        marker.pose.orientation.w = orientation.w();
+
+        // Skalierung des Pfeils
+        marker.scale.x = 3.0;  // Länge des Pfeils
+        marker.scale.y = 0.3;  // Breite des Pfeils
+        marker.scale.z = 0.3;  // Dicke des Pfeils
+
+        // Farbe des Pfeils
+        marker.color.r = 0.0f;
+        marker.color.g = 1.0f;
+        marker.color.b = 1.0f;
+        marker.color.a = 1.0;
+        
+        // Veroeffentlichen des Markers
+        marker_pub.publish(marker);
+    }
+
+
+    void publishObstacleState(int ground_points, int obstacle_points){
+        if (soundTimeout == 0){
+            if ((obstacleFar) || (obstacleNear)) {
+                ROS_INFO("obstacle_points: %d  ground_points: %d  far %d, near %d", 
+                    obstacle_points, ground_points,
+                    (int)obstacleFar, (int)obstacleNear );                        
+
+                std::string command = "killall mplayer; mplayer -volume 100 -af volume=5:1 ";
+                command += pkg_loc; 
+                if (obstacleNear){
+                    command += "/launch/tada.mp3";                
+                } else {
+                    command += "/launch/beep.mp3";                
+                }
+                command += " > /dev/null 2>&1 &";
+                system(command.c_str());
+                soundTimeout = 5;
+            }
+        }
+        if (soundTimeout > 0) soundTimeout--;
+
+        std_msgs::Int8 obstMsg;
+        if (obstacleNear) obstMsg.data = 2;
+          else if (obstacleFar) obstMsg.data = 1;
+          else obstMsg.data = 0;
+        obstacle_state_pub_.publish(obstMsg);
+    }
+
+
+    void processCloudNew(){
+        pcl::PointCloud<pcl::PointXYZI>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZI>());
+        pcl::PointCloud<pcl::PointXYZI>::Ptr cloudFiltered(new pcl::PointCloud<pcl::PointXYZI>());
+        pcl::fromROSMsg(*cloudMsg, *cloud);
+
+        // -------- filter-out points above above Z = 1m -------------------------------------------------
+        for (int i=0; i < cloud->points.size(); i++)
+        {
+            auto &pt = cloud->points[i];
+            if (abs(pt.x) > 5.0) continue;
+            if (abs(pt.y) > 5.0) continue;
+            if (pt.x < 0.1) continue; // filter out back-side of LiDAR            
+            if (abs(pt.z) > 2.0) continue;
+            cloudFiltered->points.push_back(pt);
+        }
+        
+        if (cloudFiltered->size() == 0) {
+            ROS_WARN("empty cloudFiltered");     
+            return;
+        }        
+
+        // ------------- Plane segmentation to find the ground plane  ----------------------------------       
+        pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+        pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);        
+        /*pcl::SACSegmentation<pcl::PointXYZI> seg;
+        seg.setOptimizeCoefficients(true);
+        seg.setModelType(pcl::SACMODEL_PLANE);
+        seg.setMethodType(pcl::SAC_RANSAC);
+        seg.setDistanceThreshold(0.05);
+        seg.setInputCloud(cloud);
+        seg.segment(*inliers, *coefficients);*/
+        pcl::SACSegmentation<pcl::PointXYZI> seg;
+        seg.setOptimizeCoefficients (true);
+        seg.setModelType (pcl::SACMODEL_PERPENDICULAR_PLANE);
+        seg.setMethodType (pcl::SAC_RANSAC);
+        seg.setMaxIterations (500);
+        float ground_dist_thres = 0.1;
+        seg.setDistanceThreshold (ground_dist_thres);    
+        //because we want a specific plane (X-Y Plane) (In camera coordinates the ground plane is perpendicular to the z axis)
+        //Eigen::Vector3f axis = Eigen::Vector3f(0,0.0,1.0); //z axis
+        Eigen::Vector3f axis = gravity_vector_; //z axis        
+        seg.setAxis(axis);
+        float ground_max_angle = 20.0f;
+        seg.setEpsAngle(  ground_max_angle /180.0f * 3.1415f ); // plane can be within 30 degrees of X-Y plane
+        // Segment the largest planar component from the remaining cloud
+        seg.setInputCloud (cloudFiltered);
+        seg.segment (*inliers, *coefficients);
+
+        if (inliers->indices.empty())
+        {
+            ROS_WARN("Could not estimate a planar model for the given dataset.");
+            return;
+        }
+
+        // ----------- determine plane normal -----------------------------------------------
+        Eigen::Vector3f plane_normal(coefficients->values[0], coefficients->values[1], coefficients->values[2]);
+        if (plane_normal(2) < 0) {            
+            printf("correcting plane normal %.2f,%.2f,%.2f len: %.2f\n", plane_normal(0), plane_normal(1), plane_normal(2), plane_normal.norm() );            
+            plane_normal *= -1.0;
+        }
+        float d = coefficients->values[3]; // Distance from origin to the plane        
+        //plane_normal.normalize();
+        //plane_normal = plane_normal.transpose() ;                
+        float angle = std::acos(gravity_vector_.dot(plane_normal));
+
+        /*if (std::abs(angle) > M_PI / 4.0) // Check if the angle is within a reasonable range
+        {
+            ROS_WARN("The detected plane is not parallel to the ground.");
+            return;
+        }
+        */
+
+        // ------------- Extracting the ground points ------------------------------------------------------
+        pcl::PointCloud<pcl::PointXYZI>::Ptr ground_seg_points(new pcl::PointCloud<pcl::PointXYZI>());        
+        pcl::ExtractIndices<pcl::PointXYZI> extract;
+        extract.setInputCloud(cloudFiltered);
+        extract.setIndices(inliers);
+        extract.filter(*ground_seg_points);
+
+        // ------------Transform the cloud to align with the ground plane ----------------------------------------
+        Eigen::Vector3f z_axis(0, 0, 1);
+        Eigen::Quaternionf rotation = Eigen::Quaternionf::FromTwoVectors(z_axis, plane_normal);
+        Eigen::Affine3f transform = Eigen::Affine3f::Identity();
+        transform.rotate(rotation);
+
+        // Apply translation based on plane offset
+        Eigen::Vector3f translation = -plane_normal * d;
+        transform.translate(translation);
+
+
+        Eigen::Vector3f centroid(translation(0),translation(1),translation(2));        
+        publishNormalVectorMarker(plane_normal, centroid, ground_normal_pub_);
+
+
+        pcl::PointCloud<pcl::PointXYZI>::Ptr transformed_cloud(new pcl::PointCloud<pcl::PointXYZI>());
+        pcl::transformPointCloud(*cloud, *transformed_cloud, transform.inverse());
+        
+        // -------------- Extract obstacle points based on the transformed point cloud --------------------------------------
+        pcl::PointCloud<pcl::PointXYZI>::Ptr obstacle_points(new pcl::PointCloud<pcl::PointXYZI>());
+        pcl::PointCloud<pcl::PointXYZI>::Ptr ground_points(new pcl::PointCloud<pcl::PointXYZI>());
+
+        obstacleNear = false;
+        obstacleFar = false;
+
+        for (const auto &pt : transformed_cloud->points)
+        {
+            double distance_to_center = std::sqrt(pt.x * pt.x + pt.y * pt.y);
+            double angle = std::atan2(pt.y, pt.x) * 180.0 / M_PI;
+
+            if (false){
+                obstacle_points->points.push_back(pt);
+            } 
+            else {
+                if ( (std::abs(pt.x) < 0.05) || (std::abs(pt.y) < 0.05) || (std::abs(pt.z) < 0.05) ) continue;  
+
+                if (std::abs(angle) > angle_opening_ / 2.0)
+                    continue;
+
+                if (pt.x > max_distance_) continue;            
+                if (std::abs(pt.y) > max_width_/2) continue;
+                if (pt.z > max_height_) continue;
+
+                if (pt.z <  0.1)            
+                {
+                    ground_points->points.push_back(pt);
+                }            
+                else
+                {
+                    if (!obstacleNear) {
+                        //if (isObstacle(pt.x, pt.y, pt.z, *cloud))
+                        {                    
+                            obstacle_points->points.push_back(pt);   
+                            obstacleFar = true;
+                            //ROS_INFO("obstacle x=%.2f y=%.2f z=%.2f", pt.x, pt.y, pt.z);    
+                            if (pt.x < near_distance_) {
+                                if (pt.z < near_height_)  obstacleNear = true;
+                            }                                        
+                        }
+                    }
+                }
+            }
+        }
+
+        sensor_msgs::PointCloud2 ground_msg;
+        pcl::toROSMsg(*ground_points, ground_msg);
+        ground_msg.header = cloudMsg->header;
+        ground_pub_.publish(ground_msg);
+
+        sensor_msgs::PointCloud2 obstacle_msg;
+        pcl::toROSMsg(*obstacle_points, obstacle_msg);
+        obstacle_msg.header = cloudMsg->header;
+        obstacle_pub_.publish(obstacle_msg);
+
+        publishObstacleState((int)ground_points->points.size(), (int)obstacle_points->points.size()); 
+
+    }
+
+    // -------------------------------------------------------------------------
+    
+    void processCloudOld(){
         pcl::PointCloud<pcl::PointXYZI>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZI>());
         pcl::PointCloud<pcl::PointXYZI>::Ptr cloudAdjusted(new pcl::PointCloud<pcl::PointXYZI>());        
         pcl::fromROSMsg(*cloudMsg, *cloud);
@@ -127,38 +356,23 @@ public:
         obstacle_msg.header = cloudMsg->header;
         obstacle_pub_.publish(obstacle_msg);
 
-        if (soundTimeout == 0){
-            if ((obstacleFar) || (obstacleNear)) {
-                ROS_INFO("obstacle_points: %d  ground_points: %d  far %d, near %d", 
-                    (int)obstacle_points->points.size(), (int)ground_points->points.size(), 
-                    (int)obstacleFar, (int)obstacleNear );                        
+        publishObstacleState((int)ground_points->points.size(), (int)obstacle_points->points.size()); 
 
-                std::string command = "killall mplayer; mplayer -volume 100 -af volume=5:1 ";
-                command += pkg_loc; 
-                if (obstacleNear){
-                    command += "/launch/tada.mp3";                
-                } else {
-                    command += "/launch/beep.mp3";                
-                }
-                command += " > /dev/null 2>&1 &";
-                system(command.c_str());
-                soundTimeout = 5;
-            }
-        }
-        if (soundTimeout > 0) soundTimeout--;
-
-        std_msgs::Int8 obstMsg;
-        if (obstacleNear) obstMsg.data = 2;
-          else if (obstacleFar) obstMsg.data = 1;
-          else obstMsg.data = 0;
-        obstacle_state_pub_.publish(obstMsg);
         //ROS_INFO("pointCloudCallback end");        
     }
+    
 
     bool cloudReceived;
 
 private:
     void imuCallback(sensor_msgs::Imu msg) {        
+        // gravity vector should point away from earth, e.g. (0,0,1) if perpendicular to XY-plane 
+        Eigen::Vector3f grav = Eigen::Vector3f(msg.linear_acceleration.x, msg.linear_acceleration.y, msg.linear_acceleration.z);
+        if (abs(grav.norm() - 1.0) > 0.1) return;
+        //printf("g: %.2f,%.2f,%.2f len: %.2f\n", grav(0), grav(1), grav(2), grav.norm());        
+        gravity_vector_ = grav; 
+        gravity_vector_.normalize();
+        /*
         float lp = 0.05;
         acc_avg(0) = (1.0-lp) * acc_avg(0) + lp * msg.linear_acceleration.x;
         acc_avg(1) = (1.0-lp) * acc_avg(1) + lp * msg.linear_acceleration.y;
@@ -175,6 +389,7 @@ private:
             lidar_tilt_angle_ = tilt; 
             //printf("lidar_tilt_angle=%.2f\n", lidar_tilt_angle_);
         }
+        */
     }
 
     void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg)
@@ -209,11 +424,13 @@ private:
     ros::Subscriber point_cloud_sub_;
     ros::Subscriber imu_sub_;
     ros::Publisher ground_pub_;
+    ros::Publisher ground_normal_pub_;
     ros::Publisher obstacle_pub_;
     ros::Publisher obstacle_state_pub_;
     sensor_msgs::PointCloud2ConstPtr cloudMsg;
 
     Eigen::Vector3f acc_avg;
+    Eigen::Vector3f gravity_vector_;
     bool obstacleNear;
     bool obstacleFar;
     double angle_opening_;
@@ -242,7 +459,8 @@ int main(int argc, char **argv)
         ros::spinOnce();
         rate->sleep();
         if (processor.cloudReceived) {
-            processor.processCloud();
+            //processor.processCloudOld();
+            processor.processCloudNew();            
             processor.cloudReceived = false;            
         }
         //printf("loop\n");

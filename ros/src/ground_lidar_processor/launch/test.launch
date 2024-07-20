@@ -1,19 +1,34 @@
 
 <launch>
 
+  <arg name="do_processing" default="true"/>
+  <arg name="rviz" default="true"/>
+	<arg name="use_bag_file" default="true" />
+	<arg name="bag_file" default="/media/alex/test1/dataset/livox_mid360/obstacles1.bag" />
 
-      
-  <include file="$(find livox_ros_driver2)/launch_ROS1/msg_MID360.launch"  />
+  
+  <group if="$(arg use_bag_file)">   
+    <param name="/use_sim_time" value="true" if="$(arg use_bag_file)" />
+    <node pkg="rosbag" type="play" name="playback" args="-s 0 --clock $(arg bag_file)" if="$(arg use_bag_file)" >
+    </node>
+  </group>
 
+
+  <group unless="$(arg use_bag_file)">   
+    <include file="$(find livox_ros_driver2)/launch_ROS1/msg_MID360.launch" />
+  </group>
 
   
   <!-- Start node -->
-  <node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen" /> 
+  <group if="$(arg do_processing)">   
+    <node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen" /> 
+  </group>
+
 
   <!-- RViz -->
-  <node pkg="rviz" type="rviz" name="test_rviz" args="-d $(find ground_lidar_processor)/launch/test.rviz"/>
-  
-
+  <group if="$(arg rviz)">   
+    <node pkg="rviz" type="rviz" name="test_rviz" args="-d $(find ground_lidar_processor)/launch/test.rviz"/>
+  </group>
 
 
 </launch>
