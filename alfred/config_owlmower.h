@@ -292,7 +292,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define LIDAR_BUMPER_NEAR_DISTANCE      0.5   // near obstacle distance
 #define LIDAR_BUMPER_NEAR_HEIGHT        0.5   // near obstacle height
 #define LIDAR_BUMPER_GROUND_HEIGHT     -0.3   // ground height
-#define LIDAR_BUMPER_MIN_OBSTACLE_SIZE  0.1   // minimum obstacle size (m)
+#define LIDAR_BUMPER_MIN_OBSTACLE_SIZE  0.2   // minimum obstacle size (m)
 
 // ----- battery charging current measurement (INA169) --------------
 // the Marotronics charger outputs max 1.5A 

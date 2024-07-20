@@ -238,6 +238,8 @@ public:
                 obstacle_points->points.push_back(pt);
             } 
             else {
+                ground_points->points.push_back(pt);
+                
                 if ( (std::abs(pt.x) < 0.05) || (std::abs(pt.y) < 0.05) || (std::abs(pt.z) < 0.05) ) continue;  
                 if (pt.x < 0) continue;  
 
@@ -250,7 +252,7 @@ public:
 
                 if (pt.z <  0.1)            
                 {
-                    ground_points->points.push_back(pt);
+                    //ground_points->points.push_back(pt);
                 }            
                 else
                 {
@@ -327,7 +329,7 @@ public:
             if (ptAdjusted.z > max_height_) continue;
 
             //if (std::abs(ptAdjusted.z - ground_height_) < 0.05)
-            if (ptAdjusted.z <  0.1)            
+            if (ptAdjusted.z <  min_obstacle_size_)            
             {
                 ground_points->points.push_back(ptAdjusted);
             }            
