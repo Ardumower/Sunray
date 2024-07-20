@@ -52,6 +52,7 @@ public:
         obstacle_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/obstacle_points", 10);
         obstacle_state_pub_ = nh.advertise<std_msgs::Int8>("/obstacle_state", 10);
         ground_normal_pub_ = nh.advertise<visualization_msgs::Marker>("/ground_normal", 1);
+        imu_gravity_pub_ = nh.advertise<visualization_msgs::Marker>("/imu_gravity", 1);
 
         acc_avg = Eigen::Vector3f(0, 0, 0);
         soundTimeout = 0;
@@ -63,7 +64,8 @@ public:
     }
 
 
-    void publishNormalVectorMarker(const Eigen::Vector3f& normal, const Eigen::Vector3f& centroid, ros::Publisher& marker_pub) {
+    void publishNormalVectorMarker(const Eigen::Vector3f& normal, const Eigen::Vector3f& centroid, ros::Publisher& marker_pub, 
+        int red, int green, int blue) {
         // Marker Nachricht erstellen
         visualization_msgs::Marker marker;
         marker.header.frame_id = "livox_frame";  // Anpassen an das verwendete Frame
@@ -86,9 +88,9 @@ public:
         marker.scale.z = 0.3;  // Dicke des Pfeils
 
         // Farbe des Pfeils
-        marker.color.r = 0.0f;
-        marker.color.g = 1.0f;
-        marker.color.b = 1.0f;
+        marker.color.r = red;
+        marker.color.g = green;
+        marker.color.b = blue;
         marker.color.a = 1.0;
         
         // Veroeffentlichen des Markers
@@ -216,7 +218,7 @@ public:
 
 
         Eigen::Vector3f centroid(translation(0),translation(1),translation(2));        
-        publishNormalVectorMarker(plane_normal, centroid, ground_normal_pub_);
+        publishNormalVectorMarker(plane_normal, centroid, ground_normal_pub_, 0, 1, 1);
 
 
         pcl::PointCloud<pcl::PointXYZI>::Ptr transformed_cloud(new pcl::PointCloud<pcl::PointXYZI>());
@@ -375,6 +377,10 @@ private:
         //printf("g: %.2f,%.2f,%.2f len: %.2f\n", grav(0), grav(1), grav(2), grav.norm());        
         gravity_vector_ = grav; 
         gravity_vector_.normalize();
+
+        Eigen::Vector3f centroid(0,0,0);        
+        publishNormalVectorMarker(gravity_vector_, centroid, imu_gravity_pub_, 1, 0, 1);
+
         /*
         float lp = 0.05;
         acc_avg(0) = (1.0-lp) * acc_avg(0) + lp * msg.linear_acceleration.x;
@@ -429,6 +435,7 @@ private:
     ros::Subscriber imu_sub_;
     ros::Publisher ground_pub_;
     ros::Publisher ground_normal_pub_;
+    ros::Publisher imu_gravity_pub_;    
     ros::Publisher obstacle_pub_;
     ros::Publisher obstacle_state_pub_;
     sensor_msgs::PointCloud2ConstPtr cloudMsg;

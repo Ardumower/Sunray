@@ -30,7 +30,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: Image
+    SyncSource: ground
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -148,13 +148,13 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: true
     - Class: rviz/Marker
-      Enabled: false
+      Enabled: true
       Marker Topic: /ground_normal
       Name: Marker
       Namespaces:
-        {}
+        plane_normal: true
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/Camera
       Enabled: false
       Image Rendering: background and overlay
@@ -169,6 +169,7 @@ Visualization Manager:
         "": true
         Axes: true
         Grid: true
+        Image: true
         Marker: true
         Value: true
         ground: true
@@ -186,6 +187,14 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /imu_gravity
+      Name: Marker
+      Namespaces:
+        plane_normal: true
+      Queue Size: 100
       Value: true
   Enabled: true
   Global Options:
