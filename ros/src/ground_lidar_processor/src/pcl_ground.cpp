@@ -239,6 +239,7 @@ public:
             } 
             else {
                 if ( (std::abs(pt.x) < 0.05) || (std::abs(pt.y) < 0.05) || (std::abs(pt.z) < 0.05) ) continue;  
+                if (pt.x < 0) continue;  
 
                 if (std::abs(angle) > angle_opening_ / 2.0)
                     continue;
