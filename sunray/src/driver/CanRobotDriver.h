@@ -92,9 +92,11 @@ namespace owldrv {
 namespace owlctl {
   // which variable to use for the action...
   enum canValueType_t: uint8_t {
-      can_val_error           = 1, // error status
-      can_val_battery_voltage = 2, // voltage
-      can_val_bumper_state    = 3, // bumper status
+      can_val_error             = 1, // error status
+      can_val_battery_voltage   = 2, // voltage
+      can_val_bumper_state      = 3, // bumper status
+      can_val_stop_button_state = 4, // STOP button state
+      can_val_buzzer_state      = 5, // buzzer state
   };
 }
 
@@ -165,6 +167,7 @@ class CanRobotDriver: public RobotDriver {
     void requestVersion();
     void updateCpuTemperature();
     void updateWifiConnectionState();
+    void sendCanData(int msgId, int destNodeId, canCmdType_t cmd, int val, canDataType_t data);
   protected:    
     bool ledPanelInstalled;
     #ifdef __linux__
@@ -187,7 +190,6 @@ class CanRobotDriver: public RobotDriver {
     int cmdSummaryCounter;
     int cmdMotorResponseCounter;
     int cmdSummaryResponseCounter;
-    void sendCanData(int msgId, int destNodeId, canCmdType_t cmd, int val, canDataType_t data);
     void sendSerialRequest(String s);
     void processResponse();
     void motorResponse();

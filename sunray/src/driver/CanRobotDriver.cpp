@@ -173,6 +173,8 @@ void CanRobotDriver::requestSummary(){
   canDataType_t data;
   data.floatVal = 0;
   sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_battery_voltage, data );
+
+  sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_stop_button_state, data );
 }
 
 
@@ -324,6 +326,9 @@ void CanRobotDriver::processResponse(){
                   break;
                 case owlctl::can_val_bumper_state:
                   triggeredLeftBumper = triggeredRightBumper = (data.byteVal[0] != 0);                  
+                  break;
+                case owlctl::can_val_stop_button_state:
+                  triggeredStopButton = (data.byteVal[0] != 0);
                   break;
               }
             }
@@ -705,11 +710,15 @@ void CanBuzzerDriver::run(){
 }
 
 void CanBuzzerDriver::noTone(){
-  ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, false);
+  canDataType_t data;
+  data.byteVal[0] = 0;  
+  canRobot.sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_set, owlctl::can_val_buzzer_state, data );
 }
 
 void CanBuzzerDriver::tone(int freq){
-  ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, true);
+  canDataType_t data;
+  data.byteVal[0] = 1;  
+  canRobot.sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_set, owlctl::can_val_buzzer_state, data );
 }
 
 
