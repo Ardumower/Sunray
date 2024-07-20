@@ -188,7 +188,9 @@ public:
             plane_normal *= -1.0;
         }
         //printf("plane normal %.2f,%.2f,%.2f len: %.2f\n", plane_normal(0), plane_normal(1), plane_normal(2), plane_normal.norm() );            
-        float d = coefficients->values[3]; // Distance from origin to the plane        
+        float d = coefficients->values[3]; // Distance from origin to the plane                
+        //printf("d=%.2f\n", d);
+        
         //plane_normal.normalize();
         //plane_normal = plane_normal.transpose() ;                
         float angle = std::acos(gravity_vector_.dot(plane_normal));
@@ -215,7 +217,6 @@ public:
 
         // Apply translation based on plane offset
         Eigen::Vector3f translation = -plane_normal * d;
-        printf("d=%.2f\n", d);
         transform.translate(translation);
 
 
