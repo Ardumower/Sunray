@@ -397,6 +397,7 @@ private:
 
     void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg)
     {
+        printf("pointCloudCallback");
         if (cloudReceived) return;
         cloudMsg = msg;
         //ROS_INFO("pointCloudCallback begin");

@@ -160,7 +160,7 @@ Visualization Manager:
     Background Color: 48; 48; 48
     Default Light: true
     Fixed Frame: livox_frame
-    Frame Rate: 10
+    Frame Rate: 5
   Name: root
   Tools:
     - Class: rviz/Interact
@@ -182,26 +182,21 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/XYOrbit
-      Distance: 5.701695442199707
+      Angle: -1.5649993419647217
+      Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Focal Point:
-        X: -0.17655730247497559
-        Y: -0.14494025707244873
-        Z: 1.6689300537109375e-6
-      Focal Shape Fixed Size: true
-      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.4997963905334473
+      Scale: 131.61441040039062
       Target Frame: <Fixed Frame>
-      Value: XYOrbit (rviz)
-      Yaw: 2.828684091567993
+      Value: TopDownOrtho (rviz)
+      X: 0.5208366513252258
+      Y: -0.3705734610557556
     Saved: ~
 Window Geometry:
   Displays:
