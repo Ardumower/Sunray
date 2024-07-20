@@ -1,8 +1,8 @@
 
 /*
-ground_lidar_processor ('LiDAR bumper')
+ground_lidar_processor ('LiDAR bumper') for Livox MID-360
 -detects ground in search area
--detects obstacle in search area
+-detects obstacles in search area
 -triggers bumper event if detected obstacles
 */
 
