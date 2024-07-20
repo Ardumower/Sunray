@@ -215,6 +215,7 @@ public:
 
         // Apply translation based on plane offset
         Eigen::Vector3f translation = -plane_normal * d;
+        printf("d=%.2f\n", d);
         transform.translate(translation);
 
 
