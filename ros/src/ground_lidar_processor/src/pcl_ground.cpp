@@ -101,12 +101,11 @@ public:
 
 
     void publishObstacleState(int ground_points, int obstacle_points){
-        if (soundTimeout == 0){
-            if ((obstacleFar) || (obstacleNear)) {
-                ROS_INFO("obstacle_points: %d  ground_points: %d  far %d, near %d", 
-                    obstacle_points, ground_points,
-                    (int)obstacleFar, (int)obstacleNear );                        
-
+        if ((obstacleFar) || (obstacleNear)) {
+            ROS_INFO("obstacle_points: %d  ground_points: %d  far %d, near %d", 
+                obstacle_points, ground_points,
+                (int)obstacleFar, (int)obstacleNear );                        
+            if (soundTimeout == 0){
                 std::string command = "killall mplayer; mplayer -volume 100 -af volume=5:1 ";
                 command += pkg_loc; 
                 if (obstacleNear){
@@ -116,7 +115,7 @@ public:
                 }
                 command += " > /dev/null 2>&1 &";
                 system(command.c_str());
-                soundTimeout = 5;
+                if (obstacleNear) soundTimeout = 5;
             }
         }
         if (soundTimeout > 0) soundTimeout--;
@@ -260,20 +259,27 @@ public:
                 }            
                 else
                 {
+                    obstacle_points->points.push_back(pt);
+                    obstacleFar = true;                               
                     if (!obstacleNear) {
-                        //if (isObstacle(pt.x, pt.y, pt.z, *cloud))
-                        {                    
-                            obstacle_points->points.push_back(pt);   
-                            obstacleFar = true;
+                        //if (isObstacle(pt.x, pt.y, pt.z, *transformed_cloud, 0.05))
+                        {                                                
                             //ROS_INFO("obstacle x=%.2f y=%.2f z=%.2f", pt.x, pt.y, pt.z);    
                             if (pt.x < near_distance_) {
-                                if (pt.z < near_height_)  obstacleNear = true;
+                                if (pt.z < near_height_)  {
+                                    //ROS_INFO("obstacleNear x=%.2f y=%.2f z=%.2f", pt.x, pt.y, pt.z);    
+                                    obstacleNear = true;
+                                }
                             }                                        
                         }
                     }
                 }
             }
         }
+        if (obstacle_points->points.size() < 200){ // probably false positives
+            obstacleNear = false;
+            obstacleFar = false;
+        }            
 
         sensor_msgs::PointCloud2 ground_msg;
         pcl::toROSMsg(*ground_points, ground_msg);
@@ -340,7 +346,7 @@ public:
             else
             {
                 if (!obstacleNear) {
-                    if (isObstacle(pt.x, pt.y, pt.z, *cloud))
+                    if (isObstacle(pt.x, pt.y, pt.z, *cloud, min_obstacle_size_))
                     {                    
                         obstacle_points->points.push_back(ptAdjusted);   
                         obstacleFar = true;
@@ -414,15 +420,15 @@ private:
 
 
     bool isObstacle(double x, double y, double z, 
-        const pcl::PointCloud<pcl::PointXYZI> &cloud)
+        const pcl::PointCloud<pcl::PointXYZI> &cloud, float min_obstacle_size)
     {
         int count = 0;
 
         for (const auto &pt : cloud.points)
         {
-            if (std::abs(pt.x - x) < min_obstacle_size_ &&
-                std::abs(pt.y - y) < min_obstacle_size_ &&
-                std::abs(pt.z - z) < min_obstacle_size_)
+            if (std::abs(pt.x - x) < min_obstacle_size &&
+                std::abs(pt.y - y) < min_obstacle_size &&
+                std::abs(pt.z - z) < min_obstacle_size)
             {
                 count++;
                 if (count > 5) return true;
