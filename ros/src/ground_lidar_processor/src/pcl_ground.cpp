@@ -182,9 +182,9 @@ public:
         // ----------- determine plane normal -----------------------------------------------
         Eigen::Vector3f plane_normal(coefficients->values[0], coefficients->values[1], coefficients->values[2]);
         if (plane_normal(2) < 0) {            
-            printf("correcting plane normal %.2f,%.2f,%.2f len: %.2f\n", plane_normal(0), plane_normal(1), plane_normal(2), plane_normal.norm() );            
             plane_normal *= -1.0;
         }
+        printf("plane normal %.2f,%.2f,%.2f len: %.2f\n", plane_normal(0), plane_normal(1), plane_normal(2), plane_normal.norm() );            
         float d = coefficients->values[3]; // Distance from origin to the plane        
         //plane_normal.normalize();
         //plane_normal = plane_normal.transpose() ;                

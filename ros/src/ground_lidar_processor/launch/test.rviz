@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /lidar1
         - /ground1
         - /obstacle1
         - /Axes1
@@ -95,7 +94,7 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 255; 255; 255
-      Color Transformer: FlatColor
+      Color Transformer: Intensity
       Decay Time: 0
       Enabled: true
       Invert Rainbow: false
@@ -149,13 +148,13 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: true
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /ground_normal
       Name: Marker
       Namespaces:
-        plane_normal: true
+        {}
       Queue Size: 100
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -184,25 +183,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 4.434342861175537
+      Distance: 5.701695442199707
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.32300615310668945
-        Y: -0.6129817962646484
-        Z: 1.1920928955078125e-6
+        X: -0.17655730247497559
+        Y: -0.14494025707244873
+        Z: 1.6689300537109375e-6
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6347969174385071
+      Pitch: 1.4997963905334473
       Target Frame: <Fixed Frame>
       Value: XYOrbit (rviz)
-      Yaw: 3.373684883117676
+      Yaw: 2.828684091567993
     Saved: ~
 Window Geometry:
   Displays:
