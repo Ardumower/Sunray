@@ -1,9 +1,11 @@
 
 /*
 ground_lidar_processor ('LiDAR bumper') for Livox MID-360
--detects ground in search area
--detects obstacles in search area
--triggers bumper event if detected obstacles
+1. detect ground in search area: segment plane in LiDAR points (with IMU gravity constraint)
+   NOTE: Livox LiDAR and Livox IMU share the same coordinate frame, so the IMU gravity vector 
+   gives a good initial estimate for the plane normal vector  
+2. detect obstacles on ground plane in search area
+3. trigger bumper event if detected obstacles
 */
 
 #include <ros/package.h>
