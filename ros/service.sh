@@ -180,7 +180,6 @@ options=(
     "Docker run terminal"
     "Docker prepare ROS tools"
     "ROS compile"    
-    "ROS run"    
     "rviz remote view"
     "Start sunray ROS service"
     "Stop sunray ROS service"
