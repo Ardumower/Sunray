@@ -14,100 +14,6 @@ CONFIG_FILE="/root/Sunray/alfred/config_owlmower.h"
 USER_UID=$(id -u)
 
 
-function prepare_host_minimum {
-  echo "prepare_host_minimum"
-  sudo ln -sf /var/run/pulse/native /tmp/pulse_socket
-  sudo chmod 666 /tmp/pulse_socket
-  sudo chmod 666 /var/run/pulse/native  
-}
-
-function prepare_host {
-  echo "prepare_host"
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi  
-
-  echo "---configuring Ethernet for LiDAR---"
-  # add static IP address 
-  # Ethernet wired connection
-  CON=$(nmcli c | grep ethernet | head -c 20 | xargs )
-  echo "CON: $CON"
-  nmcli c show "$CON" | grep ipv4.addresses
-  nmcli con mod "$CON" ipv4.addresses 192.168.1.102/24
-  nmcli con mod "$CON" ipv4.method manual    
-  nmcli con up "$CON"
-  # remove any old IP addresses
-  nmcli con mod "$CON" -ipv4.addresses "" -ipv4.gateway ""
-  nmcli con up "$CON"     
-  echo "CON: $CON"
-  nmcli c show "$CON" | grep ipv4.addresses
-
-  echo "----bluetooth devices----"
-  systemctl enable bluetooth.service
-  hcitool dev
-  # configure bluetooth BLE module
-  echo "----BLE config----"
-  echo 12 > /sys/kernel/debug/bluetooth/hci0/conn_min_interval  # 24   6
-  echo 20 > /sys/kernel/debug/bluetooth/hci0/conn_max_interval  # 40   6
-  echo 1 > /sys/kernel/debug/bluetooth/hci0/conn_latency       # 0    1
-  echo 153 > /sys/kernel/debug/bluetooth/hci0/adv_min_interval  # 0.625 ms units
-  echo 153 > /sys/kernel/debug/bluetooth/hci0/adv_max_interval  # 0.625 ms units
-  btmgmt -i hci0 power off
-  btmgmt -i hci0 le on
-  btmgmt -i hci0 bredr off
-  btmgmt -i hci0 connectable on
-  #btmgmt -i hci0 name "ROS robot"
-  BLE_NAME=`grep "BLE_NAME" ../sunray/config.h | cut -d'"' -f 2`
-  echo "BLE_NAME=$BLE_NAME"
-  btmgmt -i hci0 name "$BLE_NAME"
-  btmgmt -i hci0 advertising on
-  btmgmt -i hci0 power on
-
-  # setup CAN bus
-  ip link set can0 up type can bitrate 1000000    
-
-  echo "---------all processes using the CAN bus------------"
-  sudo lsof | grep -i can_raw
-  echo "----------------------------------------------------"
-
-  # setup audio interface
-  # https://gavv.net/articles/pulseaudio-under-the-hood/
-  # https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/SystemWide/
-  # https://unix.stackexchange.com/questions/204522/how-does-pulseaudio-start
-  if ! command -v play &> /dev/null
-  then 
-    echo "installing audio player..."
-    apt install -y libsox-fmt-mp3 sox mplayer alsa-utils pulseaudio
-  fi
-  # show audio devices
-  #aplay -l
-  cat /proc/asound/cards
-  # restart pulseaudio daemon as root
-  killall pulseaudio
-  sleep 1
-  pulseaudio -D --system --disallow-exit --disallow-module-loading
-  export PULSE_SERVER=unix:/var/run/pulse/native
-  # set default volume 
-  amixer -D pulse sset Master 100%
-  #mplayer /home/pi/Sunray/tts/de/temperature_low_docking.mp3
-  #exit    
-
-  echo "----waiting for TCP connections to be closed from previous sessions----"
-  echo "Waiting TCP port 80 to be closed..."
-  for _ in `seq 1 20`; do 
-    RES=$(netstat -ant | grep -w 80)
-    #RES=$(lsofs -i:80)
-    #RES=$(fuser 80/tcp) 
-    if [ -z "$RES" ]; then
-      break
-    fi
-    echo $RES
-    # echo -n .  
-    sleep 2.0     
-  done; 
-}
-
 
 function docker_install {
   # install docker
@@ -212,32 +118,9 @@ function ros_compile {
     then echo "Please run as root (sudo)"
     exit
   fi 
-  #prepare_host
-  prepare_host_minimum
   # build Sunray ROS node
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DCONFIG_FILE=$CONFIG_FILE -DROS_EDITION=ROS1"
-}
-
-function ros_run {  
-  echo "ros_run"  
-  prepare_host_minimum
-  prepare_host
-    
-  # run Sunray ROS node 
-  echo "starting sunray ROS node..."
-  # allow non-root to start http server 
-  #sudo setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node
-
-  #docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-  #  bash -c 'mplayer /root/Sunray/tts/de/temperature_low_docking.mp3'  
-  #exit  
-
-  # source ROS setup  
-  docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c "export ROS_IP=`ifconfig wlan0 | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'` ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node run.launch" 
-  
-  # rosnode kill -a ; sleep 3
 }
 
 function rviz_remote_view {
@@ -248,6 +131,42 @@ function rviz_remote_view {
   #rviz -d src/pcl_docking/rviz/pcl_docking.rviz
   #rviz -d src/direct_lidar_odometry/launch/dlo_mid360.rviz
   rviz -d src/ground_lidar_processor/launch/test.rviz
+}
+
+
+function start_sunray_ros_service() {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi  
+  if [[ `pidof sunray` != "" ]]; then
+        echo "Sunray linux app already running! Exiting..."
+        exit
+  fi
+  # enable sunray service
+  echo "starting sunray ROS service..."
+  #ln -s /home/pi/sunray_install/config_files/sunray.service /etc/systemd/system/sunray.service
+  cp $PWD/sunray_ros.service /etc/systemd/system/sunray_ros.service
+  chmod 644 /etc/systemd/system/sunray_ros.service
+  mkdir -p /boot/sunray
+  chmod 644 /boot/sunray
+  systemctl daemon-reload
+  systemctl enable sunray_ros
+  systemctl start sunray_ros
+  systemctl --no-pager status sunray_ros
+  echo "sunray ROS service started!"
+}
+
+function stop_sunray_ros_service() {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
+  # disable sunray service
+  echo "stopping sunray ROS service..."
+  systemctl stop sunray_ros
+  systemctl disable sunray_ros
+  echo "sunray ROS service stopped!"
 }
 
 
@@ -263,6 +182,8 @@ options=(
     "ROS compile"    
     "ROS run"    
     "rviz remote view"
+    "Start sunray ROS service"
+    "Stop sunray ROS service"
     "Quit")
 select opt in "${options[@]}"
 do
@@ -299,14 +220,18 @@ do
             ros_compile
             break
             ;;
-        "ROS run")
-            ros_run
-            break
-            ;;
         "rviz remote view")
             rviz_remote_view
             break
             ;;
+        "Start sunray ROS service")
+            start_sunray_ros_service
+            break
+            ;;
+        "Stop sunray ROS service")
+            stop_sunray_ros_service
+            break
+            ;;            
         "Quit")
             break
             ;;
