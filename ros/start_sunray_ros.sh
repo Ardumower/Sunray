@@ -104,7 +104,7 @@ amixer -D pulse sset Master 100%
 echo "----waiting for TCP connections to be closed from previous sessions----"
 echo "Waiting TCP port 80 to be closed..."
 for _ in `seq 1 20`; do 
-  RES=$(netstat -ant | grep -w 80)
+  RES=$(netstat -ant | grep -w 80 | grep LISTEN)
   #RES=$(lsofs -i:80)
   #RES=$(fuser 80/tcp) 
   if [ -z "$RES" ]; then
