@@ -8,8 +8,6 @@ CONTAINER_NAME="ros1"
 echo "EUID=$EUID"
 echo "PWD=$PWD"
 
-CMD=""
-
 
 
 if [ "$EUID" -ne 0 ]
