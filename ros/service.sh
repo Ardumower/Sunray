@@ -9,7 +9,7 @@
 IMAGE_NAME="ros:melodic-perception-bionic"
 CONTAINER_NAME="ros1"
 HOST_MAP_PATH=`realpath $PWD/..`
-CONFIG_FILE="/root/Sunray/alfred/config_owlmower.h"
+#CONFIG_FILE="/root/Sunray/alfred/config_owlmower.h"
 #CONFIG_FILE="/root/Sunray/alfred/config_fuxtec_ros.h"
 USER_UID=$(id -u)
 
@@ -118,9 +118,20 @@ function ros_compile {
     then echo "Please run as root (sudo)"
     exit
   fi 
+
+  PS3='Please choose config: '
+  list=$(ls ../alfred/config*.h)
+  IFS=$'\n'
+  select CONFIG_FILE in $list 
+    do test -n "$CONFIG_FILE" && break; 
+  exit; 
+  done
+  echo "selected: $CONFIG_FILE"
+  CONFIG_PATHNAME=/root/Sunray/alfred/$CONFIG_FILE
+
   # build Sunray ROS node
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DCONFIG_FILE=$CONFIG_FILE -DROS_EDITION=ROS1"
+    bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DCONFIG_FILE=$CONFIG_PATHNAME -DROS_EDITION=ROS1"
 }
 
 function rviz_remote_view {

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+CONTAINER_NAME="ros1"
+
 echo "EUID=$EUID"
 echo "PWD=$PWD"
 
