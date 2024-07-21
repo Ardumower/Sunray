@@ -64,7 +64,7 @@ echo "---configuring Ethernet for LiDAR---"
 # add static IP address 
 # Ethernet wired connection
 CON=$(nmcli c | grep ethernet | head -c 20 | xargs )
-echo "CON: $CON"
+echo "ETH CON: $CON"
 nmcli c show "$CON" | grep ipv4.addresses
 nmcli con mod "$CON" ipv4.addresses 192.168.1.102/24
 nmcli con mod "$CON" ipv4.method manual    
@@ -122,6 +122,12 @@ done;
 echo "----starting sunray ros----"
 echo "working dir:$PWD"    
 
+WCON=$(nmcli c | grep wifi | head -1 | tail -c 12 | xargs )
+echo "WIFI CON: $WCON"
+
+WIP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
+echo "WIFI IP: $WIP"
+
 # allow non-root to start http server 
 #sudo setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node
 
@@ -131,6 +137,6 @@ echo "working dir:$PWD"
 
 # source ROS setup  
 docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-  bash -c "export ROS_IP=`ifconfig wlan0 | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'` ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node run.launch" 
+  bash -c "export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node run.launch" 
 
 # rosnode kill -a ; sleep 3
