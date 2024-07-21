@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# starts Sunray ROS node in (already prepared) Docker container
+
+
 CONTAINER_NAME="ros1"
 
 echo "EUID=$EUID"

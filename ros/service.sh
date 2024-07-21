@@ -3,7 +3,6 @@
 # -pulls ROS docker image (ros:melodic-perception-bionic)
 # -builds ROS docker container
 # -compiles Sunray ROS code  
-# -starts Sunray ROS node
 
 
 IMAGE_NAME="ros:melodic-perception-bionic"
