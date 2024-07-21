@@ -255,14 +255,14 @@ public:
                 if (std::abs(pt.y) > max_width_/2) continue;
                 if (pt.z > max_height_) continue;
 
-                if (pt.z <  0.1)            
+                if (pt.z <  min_obstacle_size_)            
                 {
                     //ground_points->points.push_back(pt);
                 }            
                 else
                 {
                     if (!obstacleNear) {
-                        //if (isObstacle(pt.x, pt.y, pt.z, *transformed_cloud, 0.05))
+                        if (isObstacle(pt.x, pt.y, pt.z, *transformed_cloud, 0.05))
                         {
                             obstacle_points->points.push_back(pt);
                             obstacleFar = true;                                                                                                       
@@ -278,7 +278,7 @@ public:
                 }
             }
         }
-        if (obstacle_points->points.size() < 50){ // probably false positives
+        if (obstacle_points->points.size() < 10){ // probably false positives
             obstacleNear = false;
             obstacleFar = false;
         }            
