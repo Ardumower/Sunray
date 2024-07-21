@@ -261,11 +261,11 @@ public:
                 }            
                 else
                 {
-                    obstacle_points->points.push_back(pt);
-                    obstacleFar = true;                               
                     if (!obstacleNear) {
                         //if (isObstacle(pt.x, pt.y, pt.z, *transformed_cloud, 0.05))
-                        {                                                
+                        {
+                            obstacle_points->points.push_back(pt);
+                            obstacleFar = true;                                                                                                       
                             //ROS_INFO("obstacle x=%.2f y=%.2f z=%.2f", pt.x, pt.y, pt.z);    
                             if (pt.x < near_distance_) {
                                 if (pt.z < near_height_)  {
