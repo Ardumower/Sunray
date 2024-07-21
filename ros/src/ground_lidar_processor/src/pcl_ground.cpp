@@ -278,7 +278,7 @@ public:
                 }
             }
         }
-        if (obstacle_points->points.size() < 200){ // probably false positives
+        if (obstacle_points->points.size() < 50){ // probably false positives
             obstacleNear = false;
             obstacleFar = false;
         }            
@@ -381,22 +381,23 @@ public:
 
 private:
     void imuCallback(sensor_msgs::Imu msg) {        
+        float lp = 0.005;
+        if (acc_avg.norm() < 0.5) lp = 0.1;        
+        acc_avg(0) = (1.0-lp) * acc_avg(0) + lp * msg.linear_acceleration.x;
+        acc_avg(1) = (1.0-lp) * acc_avg(1) + lp * msg.linear_acceleration.y;
+        acc_avg(2) = (1.0-lp) * acc_avg(2) + lp * msg.linear_acceleration.z;
+
         // gravity vector should point away from earth, e.g. (0,0,1) if perpendicular to XY-plane 
-        Eigen::Vector3f grav = Eigen::Vector3f(msg.linear_acceleration.x, msg.linear_acceleration.y, msg.linear_acceleration.z);
-        if (abs(grav.norm() - 1.0) > 0.1) return;
+        //Eigen::Vector3f grav = Eigen::Vector3f(msg.linear_acceleration.x, msg.linear_acceleration.y, msg.linear_acceleration.z);
+        //if (abs(grav.norm() - 1.0) > 0.1) return;
         //printf("g: %.2f,%.2f,%.2f len: %.2f\n", grav(0), grav(1), grav(2), grav.norm());        
-        gravity_vector_ = grav; 
+        gravity_vector_ = acc_avg; //grav; 
         gravity_vector_.normalize();
 
         Eigen::Vector3f centroid(0,0,0);        
         publishNormalVectorMarker(gravity_vector_, centroid, imu_gravity_pub_, 1, 0, 1);
 
-        /*
-        float lp = 0.05;
-        acc_avg(0) = (1.0-lp) * acc_avg(0) + lp * msg.linear_acceleration.x;
-        acc_avg(1) = (1.0-lp) * acc_avg(1) + lp * msg.linear_acceleration.y;
-        acc_avg(2) = (1.0-lp) * acc_avg(2) + lp * msg.linear_acceleration.z;
-         
+        /*         
         Eigen::Vector3f G(0, 0, acc_avg.norm());
         Eigen::Quaternionf q = Eigen::Quaternionf::FromTwoVectors(acc_avg, G);
         Eigen::Matrix3f R_bw = q.toRotationMatrix();
