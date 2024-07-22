@@ -5,7 +5,8 @@
 	<arg name="upside_down" default="false" />	
 	<arg name="map_pcd" default="" />
 	<arg name="rviz" default="false" />
-	<arg name="start_sunray_node" default="true" />	
+	<arg name="start_sunray_node" default="true" />
+	<arg name="start_ground_lidar_processor" default="true" />		
 	<arg name="sunray_ros_mode" default="simple" />
 	
 
@@ -40,7 +41,7 @@
 
 	<!-- ROS localization & sunray node & ground lidar processor -->		
 	<group if="$(eval sunray_ros_mode == 'LOCALIZATION')"> 
-		<node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen">
+		<node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen"  if="$(arg start_ground_lidar_processor)">
 		</node>
 
 		<include file="$(find pointcloud_gravity_align)/launch/run.launch" pass_all_args="true" />
@@ -54,7 +55,7 @@
 
 	<!-- just Livox MID 360 driver & sunray node & ground lidar processor -->		
 	<group if="$(eval sunray_ros_mode == 'SIMPLE')"> 	
-		<node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen">
+		<node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen"  if="$(arg start_ground_lidar_processor)">
 		</node>
 		
 		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"   if="$(arg start_sunray_node)">
