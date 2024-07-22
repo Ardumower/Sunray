@@ -65,7 +65,7 @@ function docker_build_container {
   echo "HOST_PCD_PATH: $HOST_PCD_PATH"  
   echo "IMAGE_NAME: $IMAGE_NAME"
   echo "====> enter 'exit' to exit docker container" 
-  exit
+  #exit
   docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
     --env PULSE_SERVER=unix:/tmp/pulse_socket \
     --volume /tmp/pulse_socket:/tmp/pulse_socket \
