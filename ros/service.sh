@@ -18,11 +18,12 @@ USER_UID=$(id -u)
 
 
 function export_ros_ip {
+  echo "export_ros_ip"
   WCON=$(nmcli c | grep wifi | head -1 | tail -c 12 | xargs )
   echo "WIFI CON: $WCON"
   WIP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
   echo "WIFI IP: $WIP"
-  export ROS_IP=`ifconfig $WIP | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
+  export ROS_IP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
 }
 
 
