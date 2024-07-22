@@ -5,7 +5,6 @@
 	<arg name="upside_down" default="false" />	
 	<arg name="rviz" default="false" />
 	<arg name="start_sunray_node" default="true" />	
-
 	<arg name="sunray_ros_mode" default="simple" />
 	
 

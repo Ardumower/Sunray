@@ -17,6 +17,14 @@ HOST_PCD_PATH=`realpath $PWD/../../PCD`
 USER_UID=$(id -u)
 
 
+function export_ros_ip {
+  WCON=$(nmcli c | grep wifi | head -1 | tail -c 12 | xargs )
+  echo "WIFI CON: $WCON"
+  WIP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
+  echo "WIFI IP: $WIP"
+  export ROS_IP=`ifconfig $WIP | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
+}
+
 
 function docker_install {
   # install docker
@@ -141,11 +149,6 @@ function ros_compile {
 
 function rviz {
   echo "rviz"
-  WCON=$(nmcli c | grep wifi | head -1 | tail -c 12 | xargs )
-  echo "WIFI CON: $WCON"
-  WIP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
-  echo "WIFI IP: $WIP"
-  export ROS_IP=`ifconfig $WIP | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
   # export ROS_MASTER_URI=http://raspberrypi.local:11311
   #export ROS_IP=testpi5.local
   #rviz -d src/pcl_docking/rviz/pcl_docking.rviz
@@ -205,11 +208,32 @@ function ros_sunray_simple {
   sudo -E ./start_sunray_ros.sh
 }
 
-function ros_sunray_mapping {
-  echo "ros_sunray_mapping"
+function ros_start_mapping {
+  echo "ros_start_mapping"
   export SUNRAY_ROS_MODE=MAPPING
   sudo -E ./start_sunray_ros.sh
 }
+
+
+function ros_stop_mapping {
+    echo "ros_stop_mapping"
+    export_ros_ip
+    docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
+      bash -c "export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; rosservice call /robot/dlio_map/save_pcd 0.25 /root/PCD ; ls -la /root/PCD"
+    docker stop $CONTAINER_NAME
+
+    # rosservice call /robot/dlo_map/save_pcd LEAF_SIZE SAVE_PATH
+    #rosservice call /robot/dlio_map/save_pcd 0.25 $PCDDIR
+    # mv $PCDDIR/dlio_map.pcd $PCDMAP 
+    # rosservice call /robot/dlo_odom/save_traj SAVE_PATH
+
+    # rostopic pub /topic_name std_msgs/String $PCDDIR    
+    
+    ## rostopic pub syscommand std_msgs/String "savegeotiff"
+    # rosrun map_server map_saver -f indoor
+    # rosrun map_server map_server my_map.yaml
+}
+
 
 function ros_sunray_localization {
   echo "ros_sunray_localization"
@@ -233,7 +257,8 @@ options=(
     "Stop sunray ROS service"
     "ROS run test LiDAR"    
     "ROS run sunray simple"
-    "ROS run sunray mapping"
+    "ROS start LiDAR mapping"
+    "ROS stop LiDAR mapping"    
     "ROS run sunray localization"
     "Quit")
 select opt in "${options[@]}"
@@ -291,8 +316,12 @@ do
             ros_sunray_simple
             break
             ;;
-        "ROS run sunray mapping")
-            ros_sunray_mapping
+        "ROS start LiDAR mapping")
+            ros_start_mapping
+            break
+            ;;
+        "ROS stop LiDAR mapping")
+            ros_stop_mapping
             break
             ;;
         "ROS run sunray localization")
