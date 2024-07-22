@@ -1,15 +1,62 @@
 <launch>
 
+	<arg name="use_bag_file" default="false" />
+	<arg name="bag_file" if="$(arg use_bag_file)" />
+	<arg name="upside_down" default="false" />
+	<arg name="rviz" default="false" />
+	<arg name="start_sunray_node" default="true" />	
 
-	<include file="$(find livox_ros_driver2)/launch_ROS1/msg_MID360.launch"  />
+	<arg name="sunray_ros_mode" default="simple" />
+	
+
+    <!-- use bag file (no LiDAR driver) -->
+	<group if="$(arg use_bag_file)">   
+		<param name="/use_sim_time" value="true" if="$(arg use_bag_file)" />
+	  	<node pkg="rosbag" type="play" name="playback" args="-s 0 --clock $(arg bag_file)" >
+	  </node>
+	</group>
 
 
-	<node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen">
-	</node>
+    <!-- use LiDAR driver -->
+	<group unless="$(arg use_bag_file)">
+		<include file="$(find livox_ros_driver2)/launch_ROS1/msg_MID360.launch" />
+	</group>
 
 
-	<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen">
-	</node>
+	<!-- only test LiDAR driver -->
+	<group if="$(eval sunray_ros_mode == 'TEST_LIDAR')"> 
+	</group>
+
+
+	<!-- ROS mapping & sunray node -->	
+	<group if="$(eval sunray_ros_mode == 'MAPPING')"> 
+		<include file="$(find pointcloud_gravity_align)/launch/run.launch" pass_all_args="true" />
+		<include file="$(find direct_lidar_inertial_odometry)/launch/dlio_mid360.launch"  pass_all_args="true" />
+		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"   if="$(arg start_sunray_node)">
+		</node>
+		<node pkg="rviz" type="rviz" name="dlio_rviz" args="-d $(find direct_lidar_inertial_odometry)/launch/dlio.rviz"   if="$(arg rviz)"/>
+	</group>
+
+
+	<!-- ROS localization & sunray node & ground lidar processor -->		
+	<group if="$(eval sunray_ros_mode == 'LOCALIZATION')"> 
+		<node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen">
+		</node>
+		
+		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"  if="$(arg start_sunray_node)">
+		</node>
+	</group>
+
+
+	<!-- just Livox MID 360 driver & sunray node & ground lidar processor -->		
+	<group if="$(eval sunray_ros_mode == 'SIMPLE')"> 	
+		<node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen">
+		</node>
+		
+		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"   if="$(arg start_sunray_node)">
+		</node>
+	</group>
+
 
 
 </launch>

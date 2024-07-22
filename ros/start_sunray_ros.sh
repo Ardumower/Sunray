@@ -133,24 +133,11 @@ echo "WIFI IP: $WIP"
 #docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
 #  bash -c 'mplayer /root/Sunray/tts/de/temperature_low_docking.mp3'  
 #exit  
-if [ "$SUNRAY_ROS_MODE" == "TEST_LIDAR" ]; then
-  docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c "export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch livox_ros_driver2 msg_MID360.launch" 
 
-elif [ "$SUNRAY_ROS_MODE" == "MAPPING" ]; then
-  docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c "export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch direct_lidar_inertial_odometry dlio_mid360.launch upside_down:=false align_gravity:=true rviz:=false dlo_only:=true use_bag_file:=false ; pwd" 
-  
-elif [ "$SUNRAY_ROS_MODE" == "LOCALIZATION" ]; then
-  docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c "export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch mcl_3dl mid360.launch upside_down:=true align_gravity:=false rviz:=true dlo_only:=false use_pointcloud_map:=true use_cad_map:=false" 
+# source ROS setup  
+docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
+  bash -c "export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node run.launch sunray_ros_mode:=$SUNRAY_ROS_MODE rviz:=false upside_down:=false use_bag_file:=false" 
 
-else  
-  # simple mode (no mapping or localization)
-  # source ROS setup  
-  docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c "export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node run.launch" 
+# rosnode kill -a ; sleep 3
 
-  # rosnode kill -a ; sleep 3
-fi
 
