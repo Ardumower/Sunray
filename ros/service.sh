@@ -4,6 +4,8 @@
 # -build ROS docker container
 # -compile Sunray ROS node
 # -start/stop Sunray ROS node service
+# -start/stop Sunray ROS LiDAR mapping
+# -start Sunray ROS LiDAR localization
 
 
 IMAGE_NAME="ros:melodic-perception-bionic"
@@ -16,7 +18,7 @@ HOST_PCD_PATH=`realpath $PWD/../../PCD`
 #CONFIG_FILE="/root/Sunray/alfred/config_fuxtec_ros.h"
 USER_UID=$(id -u)
 
-SUNRAY_ROS_RVIZ=false
+SUNRAY_ROS_RVIZ=true
 
 
 function export_ros_ip {
