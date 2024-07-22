@@ -3,6 +3,7 @@
 	<arg name="use_bag_file" default="false" />
 	<arg name="bag_file" if="$(arg use_bag_file)" />
 	<arg name="upside_down" default="false" />	
+	<arg name="map_pcd" default="" />
 	<arg name="rviz" default="false" />
 	<arg name="start_sunray_node" default="true" />	
 	<arg name="sunray_ros_mode" default="simple" />
