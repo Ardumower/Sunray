@@ -63,8 +63,12 @@
 
 		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"  if="$(arg start_sunray_node)" />
 
-		<!-- 
-		static transform publisher: base_link to gps_link 
+		<node pkg="rviz" type="rviz" name="rviz" args="-d $(find mcl_3dl)/config/mcl_3dl_demo.rviz"  if="$(arg rviz)" />				
+	</group>
+
+
+	<group if="$(eval sunray_ros_mode == 'LOCALIZATION' or sunray_ros_mode == 'MAPPING' )">
+		<!-- static transform publisher: base_link to gps_link 
 		http://wiki.ros.org/tf#static_transform_publisher   x=-0.25 y=0 z=-0.1 yaw=0 pitch=-0.2 roll=0 frame_id child_frame_id period_in_ms     -->
 		<node pkg="tf" type="static_transform_publisher" name="base_to_gps_tf" args="-0.35 0 -0.4 0 0.0 0 robot/base_link gps_link 10"/>
 		<!-- static transform publisher: base_link to livox_frame  -->
@@ -79,8 +83,6 @@
 			<param name="trajectory_update_rate" type="double" value="10" />
 			<param name="trajectory_publish_rate" type="double" value="10" />
 		</node>
-
-		<node pkg="rviz" type="rviz" name="rviz" args="-d $(find mcl_3dl)/config/mcl_3dl_demo.rviz"  if="$(arg rviz)" />				
 	</group>
 
 
