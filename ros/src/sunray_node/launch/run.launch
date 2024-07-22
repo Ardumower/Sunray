@@ -29,6 +29,16 @@
 	</group>
 
 
+	<!-- just Livox MID 360 driver & sunray node & ground lidar processor -->		
+	<group if="$(eval sunray_ros_mode == 'SIMPLE')"> 	
+		<node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen"  if="$(arg start_ground_lidar_processor)">
+		</node>
+		
+		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"   if="$(arg start_sunray_node)">
+		</node>		
+	</group>
+
+
 	<!-- ROS mapping & sunray node -->	
 	<group if="$(eval sunray_ros_mode == 'MAPPING')"> 
 		<include file="$(find pointcloud_gravity_align)/launch/run.launch" pass_all_args="true" />
@@ -50,18 +60,25 @@
 
 		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"  if="$(arg start_sunray_node)">
 		</node>
-	</group>
 
-
-	<!-- just Livox MID 360 driver & sunray node & ground lidar processor -->		
-	<group if="$(eval sunray_ros_mode == 'SIMPLE')"> 	
-		<node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen"  if="$(arg start_ground_lidar_processor)">
-		</node>
+		<!-- 
+		static transform publisher: base_link to gps_link 
+		http://wiki.ros.org/tf#static_transform_publisher   x=-0.25 y=0 z=-0.1 yaw=0 pitch=-0.2 roll=0 frame_id child_frame_id period_in_ms   
+		-->
+		<node pkg="tf" type="static_transform_publisher" name="base_to_gps_tf" args="-0.35 0 -0.4 0 0.0 0 robot/base_link gps_link 10"/>
 		
-		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"   if="$(arg start_sunray_node)">
+		<!-- 
+		trajectory publisher  
+		-->
+
+		<!-- https://github.com/thien94/hector_trajectory_fixed_length -->
+		<node pkg="hector_trajectory_server" type="hector_trajectory_server" name="hector_trajectory_server" output="screen">        
+			<param name="target_frame_name" type="string" value="map" />
+			<param name="source_frame_name" type="string" value="gps_link" />
+			<param name="trajectory_update_rate" type="double" value="10" />
+			<param name="trajectory_publish_rate" type="double" value="10" />
 		</node>
 	</group>
-
 
 
 </launch>
