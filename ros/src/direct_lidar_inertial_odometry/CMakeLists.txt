@@ -93,6 +93,8 @@ add_library(nanoflann STATIC
   src/nano_gicp/nanoflann.cc
 )
 target_link_libraries(nanoflann ${PCL_LIBRARIES})
+add_dependencies(nanoflann ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
+
 
 # NanoGICP
 add_library(nano_gicp STATIC
@@ -100,6 +102,8 @@ add_library(nano_gicp STATIC
   src/nano_gicp/nano_gicp.cc
 )
 target_link_libraries(nano_gicp ${PCL_LIBRARIES} ${OpenMP_LIBS} nanoflann)
+add_dependencies(nano_gicp ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
+
 
 # Odometry Node
 add_executable(dlio_odom_node src/dlio/odom_node.cc src/dlio/odom.cc)
