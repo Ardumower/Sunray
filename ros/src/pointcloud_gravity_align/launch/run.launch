@@ -1,0 +1,19 @@
+<launch>
+    
+    <arg name="align_gravity" default="false" />
+    <arg name="upside_down" default="false" />    
+	
+    <param name="align_gravity" type="bool" value="$(arg align_gravity)" />    
+    <param name="upside_down" type="bool" value="$(arg upside_down)" />    
+    
+    <!-- standard:0, livox:1 -->
+    <param name="lidar_type" type="int" value="0" />
+    <!-- Input topic name -->
+	<param name="sub_lidar_topic" type="string" value="/livox/lidar" />
+    <param name="sub_imu_topic" type="string" value="/livox/imu" />
+    <!-- Ouput topic name -->
+    <param name="pub_lidar_topic" type="string" value="/livox/lidar_aligned" />
+    <param name="pub_imu_topic" type="string" value="/livox/imu_aligned" />
+    <!-- Start node -->
+    <node pkg="pointcloud_gravity_align" type="pointcloud_gravity_align" name="align" output="screen" /> 
+</launch>

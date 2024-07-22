@@ -1,0 +1,16 @@
+# https://github.com/at-wat/mcl_3dl/blob/master/doc/images/mcl_3dl_io.png
+mcl_3dl:
+  map_frame: "map"
+  accum_cloud: 2
+  lpf_step: 1.0
+  dist_weight_z: 2.0
+  likelihood:
+    match_dist_min: 0.5
+    match_output_dist: 0.3
+obj_to_pointcloud:
+  frame_id: "map"
+  points_per_meter_sq: 1200.0
+  downsample_grid: 0.1
+pcd_to_pointcloud:
+  frame_id: "map"
+  latch: true

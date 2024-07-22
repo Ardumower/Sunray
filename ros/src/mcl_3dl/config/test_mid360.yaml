@@ -1,0 +1,37 @@
+# https://github.com/at-wat/mcl_3dl/blob/master/doc/images/mcl_3dl_io.png
+# https://github.com/at-wat/mcl_3dl/blob/master/doc/Parameters.md
+mcl_3dl:
+  fake_imu: true
+  #map_frame: "map"
+  floor_frame: "floor"
+  robot_frame: "robot/base_link"  # dlo     
+  odom_frame: "robot/odom"        # dlo
+  #robot_frame: "body"    # fastlio  
+  #odom_frame: "camera_init"   # fastlio
+  publish_tf: true,  # map->floor
+  accum_cloud: 2  # 2 
+  lpf_step: 1.0
+  dist_weight_x: 1.0
+  dist_weight_y: 1.0
+  dist_weight_z: 2.0
+  odom_err_lin_lin: 0.001
+  odom_err_lin_ang: 0.001
+  odom_err_ang_lin: 0.001
+  odom_err_ang_ang: 0.001
+  resample_var_x: 0.05
+  resample_var_y: 0.05
+  resample_var_z: 0.05
+  #match_ratio_thresh: 0.4    # 0.0
+  #expansion_var_yaw: 3.1415  # 0.05
+  num_particles: 512  # 512
+  likelihood:
+    match_dist_min: 0.2    # 0.5
+    match_dist_flat: 0.05   # 0.05
+    match_output_dist: 0.3  #  0.3
+obj_to_pointcloud:
+  frame_id: "map"
+  points_per_meter_sq: 1200.0
+  downsample_grid: 0.1
+pcd_to_pointcloud:
+  frame_id: "map"     # map
+  latch: true

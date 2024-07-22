@@ -1,0 +1,107 @@
+<!--
+
+  Copyright (c)     
+
+  The Verifiable & Control-Theoretic Robotics (VECTR) Lab
+  University of California, Los Angeles
+
+  Authors: Kenny J. Chen, Ryan Nemiroff, Brett T. Lopez
+  Contact: {kennyjchen, ryguyn, btlopez}@ucla.edu
+
+-->
+
+<launch>
+
+  <arg name="robot_namespace" default="robot"/>
+  <arg name="rviz" default="false"/>
+
+
+  <arg name="pointcloud_topic" default="/livox/lidar_aligned"/>
+  <arg name="imu_topic" default="/livox/imu_aligned"/>
+
+  <arg name="use_bag_file" default="false" />
+	<arg name="bag_file" if="$(arg use_bag_file)" />
+
+  <arg name="dlo_only" default="false" />
+
+
+
+  <group if="$(arg dlo_only)"> 
+  
+  	<param name="/use_sim_time" value="true" if="$(arg use_bag_file)" />
+
+    <node pkg="rosbag" type="play" name="playback" args="-s 0 --clock $(arg bag_file)" if="$(arg use_bag_file)" >
+    </node>
+    
+    <include file="$(find livox_ros_driver2)/launch_ROS1/msg_MID360.launch" unless="$(arg use_bag_file)" />
+
+    <!-- http://wiki.ros.org/tf#static_transform_publisher   x=-0.25 y=0 z=-0.1 yaw=0 pitch=-0.2 roll=0 frame_id child_frame_id period_in_ms   -->
+    <node pkg="tf" type="static_transform_publisher" name="map_to_odom_tf" args="0 0 0 0 0 0 map robot/odom 10"/>
+
+    
+    <!-- RViz -->
+    <group if="$(arg rviz)">      
+      <node pkg="rviz" type="rviz" name="dlio_rviz" args="-d $(find direct_lidar_inertial_odometry)/launch/dlio.rviz" if="$(arg rviz)"/>
+    </group>
+
+  </group>
+
+
+  <include file="$(find pointcloud_gravity_align)/launch/run.launch" pass_all_args="true" />
+
+
+  <!-- static transform publisher: base_link to livox_frame  -->
+  <node pkg="tf" type="static_transform_publisher" name="base_to_livox_tf" args="0 0 0.0  0 0 0 robot/base_link livox_frame 10"/>
+
+  <!-- http://wiki.ros.org/tf#static_transform_publisher   x=-0.25 y=0 z=-0.1 yaw=0 pitch=-0.2 roll=0 frame_id child_frame_id period_in_ms   -->
+  <node pkg="tf" type="static_transform_publisher" name="base_to_gps_tf" args="-0.33 0 0.4 0 0 0 robot/base_link gps_link 10"/>
+
+  <!-- https://github.com/thien94/hector_trajectory_fixed_length -->
+  <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="hector_trajectory_server" output="screen">        
+    <param name="target_frame_name" type="string" value="robot/odom" />
+    <param name="source_frame_name" type="string" value="gps_link" />
+    <param name="trajectory_update_rate" type="double" value="10" />
+    <param name="trajectory_publish_rate" type="double" value="10" />
+  </node>
+
+
+
+
+  <!-- DLIO Odometry Node -->
+  <node ns="$(arg robot_namespace)" name="dlio_odom" pkg="direct_lidar_inertial_odometry" type="dlio_odom_node" output="screen" clear_params="true">
+
+    <!-- Load parameters -->
+    <rosparam file="$(find direct_lidar_inertial_odometry)/cfg/dlio_mid360.yaml" command="load"/>
+    <rosparam file="$(find direct_lidar_inertial_odometry)/cfg/params_mid360.yaml" command="load"/>
+
+    <!-- Subscriptions -->
+    <remap from="~pointcloud" to="$(arg pointcloud_topic)"/>
+    <remap from="~imu" to="$(arg imu_topic)"/>
+
+    <!-- Publications -->
+    <remap from="~odom"     to="dlio/odom_node/odom"/>
+    <remap from="~pose"     to="dlio/odom_node/pose"/>
+    <remap from="~path"     to="dlio/odom_node/path"/>
+    <remap from="~kf_pose"  to="dlio/odom_node/keyframes"/>
+    <remap from="~kf_cloud" to="dlio/odom_node/pointcloud/keyframe"/>
+    <remap from="~deskewed" to="dlio/odom_node/pointcloud/deskewed"/>
+
+  </node>
+
+  <!-- DLIO Mapping Node -->
+  <node ns="$(arg robot_namespace)" name="dlio_map" pkg="direct_lidar_inertial_odometry" type="dlio_map_node" output="screen" clear_params="true">
+
+    <!-- Load parameters -->
+    <rosparam file="$(find direct_lidar_inertial_odometry)/cfg/dlio_mid360.yaml" command="load"/>
+    <rosparam file="$(find direct_lidar_inertial_odometry)/cfg/params_mid360.yaml" command="load"/>
+
+    <!-- Subscriptions -->
+    <remap from="~keyframes" to="dlio/odom_node/pointcloud/keyframe"/>
+
+    <!-- Publications -->
+    <remap from="~map" to="dlio/map_node/map"/>
+
+  </node>
+
+
+</launch>
