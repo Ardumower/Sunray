@@ -40,7 +40,9 @@
 
 	<!-- ROS mapping & sunray node -->	
 	<group if="$(eval sunray_ros_mode == 'MAPPING')"> 
-		<include file="$(find pointcloud_gravity_align)/launch/run.launch" pass_all_args="true" />
+		<include file="$(find pointcloud_gravity_align)/launch/run.launch" pass_all_args="true" >
+			<arg name="align_gravity" value="true"/> 
+		</include>
 		<include file="$(find direct_lidar_inertial_odometry)/launch/dlio_mid360.launch"  pass_all_args="true" />
 		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"   if="$(arg start_sunray_node)">
 		</node>
@@ -53,7 +55,9 @@
 	<group if="$(eval sunray_ros_mode == 'LOCALIZATION')"> 
 		<node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen"  if="$(arg start_ground_lidar_processor)" />
 
-		<include file="$(find pointcloud_gravity_align)/launch/run.launch" pass_all_args="true" />
+		<include file="$(find pointcloud_gravity_align)/launch/run.launch" pass_all_args="true" >
+			<arg name="align_gravity" value="false"/> 		
+		</include>
 		<include file="$(find direct_lidar_inertial_odometry)/launch/dlio_mid360.launch"   pass_all_args="true" />
 		<include file="$(find mcl_3dl)/launch/mid360.launch"  pass_all_args="true" />
 
