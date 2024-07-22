@@ -16,6 +16,8 @@ HOST_PCD_PATH=`realpath $PWD/../../PCD`
 #CONFIG_FILE="/root/Sunray/alfred/config_fuxtec_ros.h"
 USER_UID=$(id -u)
 
+SUNRAY_ROS_RVIZ=false
+
 
 function export_ros_ip {
   echo "export_ros_ip"
@@ -202,21 +204,21 @@ function stop_sunray_ros_service {
 function ros_test_lidar {
   echo "ros_test_lidar"
   export SUNRAY_ROS_MODE=TEST_LIDAR
-  export SUNRAY_ROS_RVIZ=true
+  export SUNRAY_ROS_RVIZ=$SUNRAY_ROS_RVIZ
   sudo -E ./start_sunray_ros.sh
 }
 
 function ros_sunray_simple {
   echo "ros_sunray_simple"
   export SUNRAY_ROS_MODE=SIMPLE
-  export SUNRAY_ROS_RVIZ=false
+  export SUNRAY_ROS_RVIZ=$SUNRAY_ROS_RVIZ
   sudo -E ./start_sunray_ros.sh
 }
 
 function ros_start_mapping {
   echo "ros_start_mapping"
   export SUNRAY_ROS_MODE=MAPPING
-  export SUNRAY_ROS_RVIZ=true
+  export SUNRAY_ROS_RVIZ=$SUNRAY_ROS_RVIZ
   sudo -E ./start_sunray_ros.sh
 }
 
@@ -244,7 +246,7 @@ function ros_stop_mapping {
 function ros_sunray_localization {
   echo "ros_sunray_localization"
   export SUNRAY_ROS_MODE=LOCALIZATION
-  export SUNRAY_ROS_RVIZ=true
+  export SUNRAY_ROS_RVIZ=$SUNRAY_ROS_RVIZ
   sudo -E ./start_sunray_ros.sh
 }
 
@@ -256,103 +258,121 @@ function ros_trigger_relocalization {
 }
 
 
-PS3='Please enter your choice: '
-options=(
-    "Docker install"
-    "Docker pull ROS image"
-    "Docker build container"
-    "Docker show containers"
-    "Docker create image from container"
-    "Docker run terminal"
-    "Docker prepare ROS tools"
-    "ROS compile"    
-    "rviz"
-    "Start sunray ROS service"
-    "Stop sunray ROS service"
-    "ROS run test LiDAR"    
-    "ROS run sunray simple"
-    "ROS start LiDAR mapping"
-    "ROS stop LiDAR mapping"    
-    "ROS run sunray localization"
-    "ROS trigger re-localization"
-    "Quit")
-select opt in "${options[@]}"
-do
-    case $opt in
-        "Docker install")
-            docker_install
-            break
-            ;;
-        "Docker pull ROS image")        
-            docker_pull_image
-            break
-            ;;
-        "Docker build container")
-            docker_build_container
-            break
-            ;;
-        "Docker show containers")
-            docker_show_containers
-            break
-            ;;            
-        "Docker run terminal")
-            docker_terminal
-            break
-            ;;            
-        "Docker prepare ROS tools")
-            docker_prepare_tools
-            break
-            ;;
-        "Docker create image from container")
-            docker_image_from_container
-            break
-            ;;
-        "ROS compile")
-            ros_compile
-            break
-            ;;
-        "rviz")
-            rviz
-            break
-            ;;
-        "Start sunray ROS service")
-            start_sunray_ros_service
-            break
-            ;;
-        "Stop sunray ROS service")
-            stop_sunray_ros_service
-            break
-            ;;            
-        "ROS run test LiDAR")
-            ros_test_lidar
-            break
-            ;;
-        "ROS run sunray simple")
-            ros_sunray_simple
-            break
-            ;;
-        "ROS start LiDAR mapping")
-            ros_start_mapping
-            break
-            ;;
-        "ROS stop LiDAR mapping")
-            ros_stop_mapping
-            break
-            ;;
-        "ROS run sunray localization")
-            ros_sunray_localization
-            break
-            ;;
-        "ROS trigger re-localization")
-            ros_trigger_relocalization
-            break
-            ;;
-        "Quit")
-            break
-            ;;
-        *) echo "invalid option $REPLY";;
-    esac
-done
+function toggle_rviz {
+  if [[ "$SUNRAY_ROS_RVIZ" == "true" ]]; then
+    SUNRAY_ROS_RVIZ=false
+  else
+    SUNRAY_ROS_RVIZ=true
+  fi
+}
 
 
+function menu {
+  echo "SUNRAY_ROS_RVIZ: $SUNRAY_ROS_RVIZ"
+  PS3='Please enter your choice: '
+  options=(
+      "Docker install"
+      "Docker pull ROS image"
+      "Docker build container"
+      "Docker show containers"
+      "Docker create image from container"
+      "Docker run terminal"
+      "Docker prepare ROS tools"
+      "ROS compile"    
+      "rviz"
+      "Start sunray ROS service"
+      "Stop sunray ROS service"
+      "ROS run test LiDAR"    
+      "ROS run sunray simple"
+      "ROS start LiDAR mapping"
+      "ROS stop LiDAR mapping"    
+      "ROS run sunray localization"
+      "ROS trigger re-localization"
+      "toggle SUNRAY_ROS_RVIZ"
+      "Quit")
+  select opt in "${options[@]}"
+  do
+      case $opt in
+          "Docker install")
+              docker_install
+              break
+              ;;
+          "Docker pull ROS image")        
+              docker_pull_image
+              break
+              ;;
+          "Docker build container")
+              docker_build_container
+              break
+              ;;
+          "Docker show containers")
+              docker_show_containers
+              break
+              ;;            
+          "Docker run terminal")
+              docker_terminal
+              break
+              ;;            
+          "Docker prepare ROS tools")
+              docker_prepare_tools
+              break
+              ;;
+          "Docker create image from container")
+              docker_image_from_container
+              break
+              ;;
+          "ROS compile")
+              ros_compile
+              break
+              ;;
+          "rviz")
+              rviz
+              break
+              ;;
+          "Start sunray ROS service")
+              start_sunray_ros_service
+              break
+              ;;
+          "Stop sunray ROS service")
+              stop_sunray_ros_service
+              break
+              ;;            
+          "ROS run test LiDAR")
+              ros_test_lidar
+              break
+              ;;
+          "ROS run sunray simple")
+              ros_sunray_simple
+              break
+              ;;
+          "ROS start LiDAR mapping")
+              ros_start_mapping
+              break
+              ;;
+          "ROS stop LiDAR mapping")
+              ros_stop_mapping
+              break
+              ;;
+          "ROS run sunray localization")
+              ros_sunray_localization
+              break
+              ;;
+          "ROS trigger re-localization")
+              ros_trigger_relocalization
+              break
+              ;;
+          "toggle SUNRAY_ROS_RVIZ")
+              toggle_rviz
+              menu
+              break
+              ;;
+          "Quit")
+              break
+              ;;
+          *) echo "invalid option $REPLY";;
+      esac
+  done
+}
 
+
+menu
