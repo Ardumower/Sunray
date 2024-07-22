@@ -150,7 +150,7 @@ function rviz_remote_view {
 }
 
 
-function start_sunray_ros_service() {
+function start_sunray_ros_service {
   if [ "$EUID" -ne 0 ]
     then echo "Please run as root (sudo)"
     exit
@@ -173,7 +173,7 @@ function start_sunray_ros_service() {
   echo "sunray ROS service started!"
 }
 
-function stop_sunray_ros_service() {
+function stop_sunray_ros_service {
   if [ "$EUID" -ne 0 ]
     then echo "Please run as root (sudo)"
     exit
@@ -183,6 +183,24 @@ function stop_sunray_ros_service() {
   systemctl stop sunray_ros
   systemctl disable sunray_ros
   echo "sunray ROS service stopped!"
+}
+
+function ros_sunray_simple {
+  echo "ros_sunray_simple"
+  export SUNRAY_ROS_MODE=SIMPLE
+  sudo -E ./start_sunray_ros.sh
+}
+
+function ros_sunray_mapping {
+  echo "ros_sunray_mapping"
+  export SUNRAY_ROS_MODE=MAPPING
+  sudo -E ./start_sunray_ros.sh
+}
+
+function ros_sunray_localization {
+  echo "ros_sunray_localization"
+  export SUNRAY_ROS_MODE=LOCALIZATION
+  sudo -E ./start_sunray_ros.sh
 }
 
 
@@ -199,6 +217,9 @@ options=(
     "rviz remote view"
     "Start sunray ROS service"
     "Stop sunray ROS service"
+    "ROS run sunray simple"
+    "ROS run sunray mapping"
+    "ROS run sunray localization"
     "Quit")
 select opt in "${options[@]}"
 do
@@ -239,6 +260,10 @@ do
             rviz_remote_view
             break
             ;;
+        "ROS run sunray simple")
+            ros_sunray_simple
+            break
+            ;;
         "Start sunray ROS service")
             start_sunray_ros_service
             break
@@ -247,6 +272,14 @@ do
             stop_sunray_ros_service
             break
             ;;            
+        "ROS run sunray mapping")
+            ros_sunray_mapping
+            break
+            ;;
+        "ROS run sunray localization")
+            ros_sunray_localization
+            break
+            ;;
         "Quit")
             break
             ;;

@@ -118,7 +118,8 @@ done;
 
 
 echo "----starting sunray ros----"
-echo "working dir:$PWD"    
+echo "SUNRAY_ROS_MODE: $SUNRAY_ROS_MODE"
+echo "working dir: $PWD"    
 
 WCON=$(nmcli c | grep wifi | head -1 | tail -c 12 | xargs )
 echo "WIFI CON: $WCON"
@@ -133,8 +134,19 @@ echo "WIFI IP: $WIP"
 #  bash -c 'mplayer /root/Sunray/tts/de/temperature_low_docking.mp3'  
 #exit  
 
-# source ROS setup  
-docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-  bash -c "export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node run.launch" 
+if [ "$SUNRAY_ROS_MODE" == "MAPPING" ]; then
+  echo "=====> Sunray ROS mode: mapping <====="
 
-# rosnode kill -a ; sleep 3
+elif [ "$SUNRAY_ROS_MODE" == "LOCALIZATION" ]; then
+  echo "=====> Sunray ROS mode: localization <====="
+
+else  
+  # simple mode (no mapping or localization)
+  # source ROS setup  
+  echo "=====> Sunray ROS mode: simple mode <====="
+  docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
+    bash -c "export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node run.launch" 
+
+  # rosnode kill -a ; sleep 3
+fi
+
