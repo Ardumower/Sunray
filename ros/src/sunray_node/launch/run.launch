@@ -63,9 +63,10 @@
 
 		<!-- 
 		static transform publisher: base_link to gps_link 
-		http://wiki.ros.org/tf#static_transform_publisher   x=-0.25 y=0 z=-0.1 yaw=0 pitch=-0.2 roll=0 frame_id child_frame_id period_in_ms   
-		-->
+		http://wiki.ros.org/tf#static_transform_publisher   x=-0.25 y=0 z=-0.1 yaw=0 pitch=-0.2 roll=0 frame_id child_frame_id period_in_ms     -->
 		<node pkg="tf" type="static_transform_publisher" name="base_to_gps_tf" args="-0.35 0 -0.4 0 0.0 0 robot/base_link gps_link 10"/>
+		<!-- static transform publisher: base_link to livox_frame  -->
+  		<node pkg="tf" type="static_transform_publisher" name="base_to_livox_tf" args="0 0 0.0  0 0 0 robot/base_link livox_frame 10"/>
 		
 		<!-- 
 		trajectory publisher  
