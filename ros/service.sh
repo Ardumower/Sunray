@@ -139,14 +139,22 @@ function ros_compile {
     bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DCONFIG_FILE=$CONFIG_PATHNAME -DROS_EDITION=ROS1"
 }
 
-function rviz_remote_view {
-  echo "rviz_remote_view"
-  export ROS_IP=`ifconfig wlo1 | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
-  export ROS_MASTER_URI=http://raspberrypi.local:11311
+function rviz {
+  echo "rviz"
+  WCON=$(nmcli c | grep wifi | head -1 | tail -c 12 | xargs )
+  echo "WIFI CON: $WCON"
+  WIP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
+  echo "WIFI IP: $WIP"
+  export ROS_IP=`ifconfig $WIP | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
+  # export ROS_MASTER_URI=http://raspberrypi.local:11311
   #export ROS_IP=testpi5.local
   #rviz -d src/pcl_docking/rviz/pcl_docking.rviz
   #rviz -d src/direct_lidar_odometry/launch/dlo_mid360.rviz
-  rviz -d src/ground_lidar_processor/launch/test.rviz
+  #rviz -d src/ground_lidar_processor/launch/test.rviz
+  # allow docker to access host Xserver 
+  xhost +local:*
+  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
+    bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; export QT_QPA_PLATFORM=xcb ; rviz -d src/ground_lidar_processor/launch/test.rviz"
 }
 
 
@@ -185,6 +193,12 @@ function stop_sunray_ros_service {
   echo "sunray ROS service stopped!"
 }
 
+function ros_sunray_test {
+  echo "ros_sunray_test"
+  export SUNRAY_ROS_MODE=TEST
+  sudo -E ./start_sunray_ros.sh
+}
+
 function ros_sunray_simple {
   echo "ros_sunray_simple"
   export SUNRAY_ROS_MODE=SIMPLE
@@ -214,9 +228,10 @@ options=(
     "Docker run terminal"
     "Docker prepare ROS tools"
     "ROS compile"    
-    "rviz remote view"
+    "rviz"
     "Start sunray ROS service"
     "Stop sunray ROS service"
+    "ROS run sunray test"    
     "ROS run sunray simple"
     "ROS run sunray mapping"
     "ROS run sunray localization"
@@ -256,12 +271,8 @@ do
             ros_compile
             break
             ;;
-        "rviz remote view")
-            rviz_remote_view
-            break
-            ;;
-        "ROS run sunray simple")
-            ros_sunray_simple
+        "rviz")
+            rviz
             break
             ;;
         "Start sunray ROS service")
@@ -272,6 +283,14 @@ do
             stop_sunray_ros_service
             break
             ;;            
+        "ROS run sunray test")
+            ros_sunray_test
+            break
+            ;;
+        "ROS run sunray simple")
+            ros_sunray_simple
+            break
+            ;;
         "ROS run sunray mapping")
             ros_sunray_mapping
             break

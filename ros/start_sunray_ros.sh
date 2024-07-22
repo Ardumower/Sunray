@@ -133,8 +133,12 @@ echo "WIFI IP: $WIP"
 #docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
 #  bash -c 'mplayer /root/Sunray/tts/de/temperature_low_docking.mp3'  
 #exit  
+if [ "$SUNRAY_ROS_MODE" == "TEST" ]; then
+  echo "=====> Sunray ROS mode: test <====="
+  docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
+    bash -c "export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch livox_ros_driver2 msg_MID360.launch" 
 
-if [ "$SUNRAY_ROS_MODE" == "MAPPING" ]; then
+elif [ "$SUNRAY_ROS_MODE" == "MAPPING" ]; then
   echo "=====> Sunray ROS mode: mapping <====="
 
 elif [ "$SUNRAY_ROS_MODE" == "LOCALIZATION" ]; then
