@@ -193,9 +193,9 @@ function stop_sunray_ros_service {
   echo "sunray ROS service stopped!"
 }
 
-function ros_sunray_test {
-  echo "ros_sunray_test"
-  export SUNRAY_ROS_MODE=TEST
+function ros_test_lidar {
+  echo "ros_test_lidar"
+  export SUNRAY_ROS_MODE=TEST_LIDAR
   sudo -E ./start_sunray_ros.sh
 }
 
@@ -231,7 +231,7 @@ options=(
     "rviz"
     "Start sunray ROS service"
     "Stop sunray ROS service"
-    "ROS run sunray test"    
+    "ROS run test LiDAR"    
     "ROS run sunray simple"
     "ROS run sunray mapping"
     "ROS run sunray localization"
@@ -283,8 +283,8 @@ do
             stop_sunray_ros_service
             break
             ;;            
-        "ROS run sunray test")
-            ros_sunray_test
+        "ROS run test LiDAR")
+            ros_test_lidar
             break
             ;;
         "ROS run sunray simple")
