@@ -56,8 +56,8 @@ function docker_install {
 function docker_pull_image {
   # -----------pull image...------------------------    
   echo "docker_pull_image"
-  if [ "$EUID" -eq 0 ]
-    then echo "Please run as non-root (not sudo)"
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
     exit
   fi
   docker pull "$IMAGE_NAME"
