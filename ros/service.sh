@@ -24,6 +24,8 @@ function export_ros_ip {
   WIP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
   echo "WIFI IP: $WIP"
   export ROS_IP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
+  # allow docker to access host Xserver 
+  xhost +local:* 
 }
 
 
@@ -109,9 +111,9 @@ function docker_terminal {
     exit
   fi
   # -------------continue container...---------------------
-  # allow docker to access host Xserver 
-  #xhost +local:*
-  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME /bin/bash
+  export_ros_ip
+  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
+    bash -c ". /ros_entrypoint.sh ; export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; /bin/bash"
 }
 
 function docker_prepare_tools {
@@ -156,7 +158,7 @@ function rviz {
   #rviz -d src/direct_lidar_odometry/launch/dlo_mid360.rviz
   #rviz -d src/ground_lidar_processor/launch/test.rviz
   # allow docker to access host Xserver 
-  xhost +local:*
+  export_ros_ip
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; export QT_QPA_PLATFORM=xcb ; rviz -d src/ground_lidar_processor/launch/test.rviz"
 }
