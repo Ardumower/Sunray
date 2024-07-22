@@ -202,18 +202,21 @@ function stop_sunray_ros_service {
 function ros_test_lidar {
   echo "ros_test_lidar"
   export SUNRAY_ROS_MODE=TEST_LIDAR
+  export SUNRAY_ROS_RVIZ=true
   sudo -E ./start_sunray_ros.sh
 }
 
 function ros_sunray_simple {
   echo "ros_sunray_simple"
   export SUNRAY_ROS_MODE=SIMPLE
+  export SUNRAY_ROS_RVIZ=false
   sudo -E ./start_sunray_ros.sh
 }
 
 function ros_start_mapping {
   echo "ros_start_mapping"
   export SUNRAY_ROS_MODE=MAPPING
+  export SUNRAY_ROS_RVIZ=true
   sudo -E ./start_sunray_ros.sh
 }
 
@@ -241,6 +244,7 @@ function ros_stop_mapping {
 function ros_sunray_localization {
   echo "ros_sunray_localization"
   export SUNRAY_ROS_MODE=LOCALIZATION
+  export SUNRAY_ROS_RVIZ=true
   sudo -E ./start_sunray_ros.sh
 }
 

@@ -26,16 +26,16 @@
 
 	<!-- only test LiDAR driver -->
 	<group if="$(eval sunray_ros_mode == 'TEST_LIDAR')"> 
+		<node pkg="rviz" type="rviz" name="rviz" args="-d $(find direct_lidar_inertial_odometry)/launch/dlio.rviz"  if="$(arg rviz)" />
+		<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ground_lidar_processor)/launch/test.rviz"  if="$(arg rviz)" />
 	</group>
 
 
 	<!-- just Livox MID 360 driver & sunray node & ground lidar processor -->		
 	<group if="$(eval sunray_ros_mode == 'SIMPLE')"> 	
-		<node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen"  if="$(arg start_ground_lidar_processor)">
-		</node>
-		
-		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"   if="$(arg start_sunray_node)">
-		</node>		
+		<node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen"  if="$(arg start_ground_lidar_processor)" />		
+		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"   if="$(arg start_sunray_node)" />		
+		<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ground_lidar_processor)/launch/test.rviz"  if="$(arg rviz)" />
 	</group>
 
 
@@ -46,20 +46,19 @@
 		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"   if="$(arg start_sunray_node)">
 		</node>
 		<node pkg="rviz" type="rviz" name="dlio_rviz" args="-d $(find direct_lidar_inertial_odometry)/launch/dlio.rviz"   if="$(arg rviz)"/>
+		<node pkg="rviz" type="rviz" name="rviz" args="-d $(find direct_lidar_inertial_odometry)/launch/dlio.rviz"  if="$(arg rviz)" />
 	</group>
 
 
 	<!-- ROS localization & sunray node & ground lidar processor -->		
 	<group if="$(eval sunray_ros_mode == 'LOCALIZATION')"> 
-		<node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen"  if="$(arg start_ground_lidar_processor)">
-		</node>
+		<node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen"  if="$(arg start_ground_lidar_processor)" />
 
 		<include file="$(find pointcloud_gravity_align)/launch/run.launch" pass_all_args="true" />
 		<include file="$(find direct_lidar_inertial_odometry)/launch/dlio_mid360.launch"   pass_all_args="true" />
 		<include file="$(find mcl_3dl)/launch/mid360.launch"  pass_all_args="true" />
 
-		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"  if="$(arg start_sunray_node)">
-		</node>
+		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"  if="$(arg start_sunray_node)" />
 
 		<!-- 
 		static transform publisher: base_link to gps_link 
@@ -78,9 +77,7 @@
 			<param name="trajectory_publish_rate" type="double" value="10" />
 		</node>
 
-		<group if="$(arg rviz)">
-			<node pkg="rviz" type="rviz" name="rviz" args="-d $(find mcl_3dl)/config/mcl_3dl_demo.rviz" />
-		</group>		
+		<node pkg="rviz" type="rviz" name="rviz" args="-d $(find mcl_3dl)/config/mcl_3dl_demo.rviz"  if="$(arg rviz)" />				
 	</group>
 
 
