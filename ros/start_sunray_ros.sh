@@ -139,7 +139,7 @@ xhost +local:*
 
 # source ROS setup  
 docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-  bash -c "export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node run.launch sunray_ros_mode:=$SUNRAY_ROS_MODE rviz:=false upside_down:=false use_bag_file:=false map_pcd:=/root/PCD/dlio_map.pcd" 
+  bash -c "export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node run.launch sunray_ros_mode:=$SUNRAY_ROS_MODE rviz:=true upside_down:=false use_bag_file:=false map_pcd:=/root/PCD/dlio_map.pcd" 
 
 # rosnode kill -a ; sleep 3
 
