@@ -8,7 +8,10 @@
 
 IMAGE_NAME="ros:melodic-perception-bionic"
 CONTAINER_NAME="ros1"
-HOST_MAP_PATH=`realpath $PWD/..`
+
+HOST_SUNRAY_PATH=`realpath $PWD/..`
+HOST_PCD_PATH=`realpath $PWD/../../PCD`
+
 #CONFIG_FILE="/root/Sunray/alfred/config_owlmower.h"
 #CONFIG_FILE="/root/Sunray/alfred/config_fuxtec_ros.h"
 USER_UID=$(id -u)
@@ -58,15 +61,17 @@ function docker_build_container {
   fi  
   echo "HOME: $HOME"
   echo "XDG_RUNTIME_DIR: $XDG_RUNTIME_DIR"
-  echo "HOST_MAP_PATH: $HOST_MAP_PATH"
+  echo "HOST_SUNRAY_PATH: $HOST_SUNRAY_PATH"
+  echo "HOST_PCD_PATH: $HOST_PCD_PATH"  
   echo "IMAGE_NAME: $IMAGE_NAME"
   echo "====> enter 'exit' to exit docker container" 
+  exit
   docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
     --env PULSE_SERVER=unix:/tmp/pulse_socket \
     --volume /tmp/pulse_socket:/tmp/pulse_socket \
     --volume /etc/machine-id:/etc/machine-id:ro \
     --device /dev/snd \
-    -e DISPLAY=$DISPLAY --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_MAP_PATH:/root/Sunray  $IMAGE_NAME   
+    -e DISPLAY=$DISPLAY --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_PCD_PATH:/root/PCD -v $HOST_SUNRAY_PATH:/root/Sunray  $IMAGE_NAME   
 }
 
 function docker_show_containers {
