@@ -278,8 +278,8 @@ function menu {
       "Docker build container"
       "Docker show containers"
       "Docker create image from container"
-      "Docker run terminal"
       "Docker prepare ROS tools"
+      "Docker run terminal"
       "ROS compile"    
       "rviz"
       "Start sunray ROS service"
@@ -311,14 +311,14 @@ function menu {
               docker_show_containers
               break
               ;;            
-          "Docker run terminal")
-              docker_terminal
-              break
-              ;;            
           "Docker prepare ROS tools")
               docker_prepare_tools
               break
               ;;
+          "Docker run terminal")
+              docker_terminal
+              break
+              ;;            
           "Docker create image from container")
               docker_image_from_container
               break
