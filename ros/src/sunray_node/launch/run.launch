@@ -45,7 +45,7 @@
 		</node>
 
 		<include file="$(find pointcloud_gravity_align)/launch/run.launch" pass_all_args="true" />
-		<include file="$(find direct_lidar_inertial_odometry)/launch/dlio_mid360.launch"  pass_all_args="true" />
+		<include file="$(find direct_lidar_inertial_odometry)/launch/dlio_mid360.launch"   pass_all_args="true" />
 		<include file="$(find mcl_3dl)/launch/mid360.launch"  pass_all_args="true" />
 
 		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"  if="$(arg start_sunray_node)">

@@ -14,6 +14,7 @@
 
   <arg name="robot_namespace" default="robot"/>
   <arg name="rviz" default="false"/>
+  <arg name="output" default="log"/>
 
 
   <arg name="pointcloud_topic" default="/livox/lidar_aligned"/>
@@ -22,7 +23,7 @@
 
 
   <!-- DLIO Odometry Node -->
-  <node ns="$(arg robot_namespace)" name="dlio_odom" pkg="direct_lidar_inertial_odometry" type="dlio_odom_node" output="screen" clear_params="true">
+  <node ns="$(arg robot_namespace)" name="dlio_odom" pkg="direct_lidar_inertial_odometry" type="dlio_odom_node" output="$(arg output)" clear_params="true">
 
     <!-- Load parameters -->
     <rosparam file="$(find direct_lidar_inertial_odometry)/cfg/dlio_mid360.yaml" command="load"/>
@@ -43,7 +44,7 @@
   </node>
 
   <!-- DLIO Mapping Node -->
-  <node ns="$(arg robot_namespace)" name="dlio_map" pkg="direct_lidar_inertial_odometry" type="dlio_map_node" output="screen" clear_params="true">
+  <node ns="$(arg robot_namespace)" name="dlio_map" pkg="direct_lidar_inertial_odometry" type="dlio_map_node" output="$(arg output)" clear_params="true">
 
     <!-- Load parameters -->
     <rosparam file="$(find direct_lidar_inertial_odometry)/cfg/dlio_mid360.yaml" command="load"/>
