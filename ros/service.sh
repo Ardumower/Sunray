@@ -79,6 +79,7 @@ function docker_build_container {
   echo "HOST_SUNRAY_PATH: $HOST_SUNRAY_PATH"
   echo "HOST_PCD_PATH: $HOST_PCD_PATH"  
   echo "IMAGE_NAME: $IMAGE_NAME"
+  echo "DISPLAY: $DISPLAY"
   echo "====> enter 'exit' to exit docker container" 
   #exit
   docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
@@ -164,7 +165,7 @@ function rviz {
   # allow docker to access host Xserver 
   export_ros_ip
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; export QT_QPA_PLATFORM=xcb ; rviz -d src/ground_lidar_processor/launch/test.rviz"
+    bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; export DISPLAY=$DISPLAY ; export QT_QPA_PLATFORM=xcb ; rviz -d src/ground_lidar_processor/launch/test.rviz"
 }
 
 
