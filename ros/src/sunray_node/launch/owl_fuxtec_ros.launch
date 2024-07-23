@@ -67,7 +67,7 @@
 
 	<!-- ROS localization & sunray node & ground lidar processor -->		
 	<group if="$(eval sunray_ros_mode == 'LOCALIZATION')"> 
-		<include file="$(find ground_lidar_processor)/launch/run.launch" pass_all_args="true"  output="screen"  if="$(arg start_ground_lidar_processor)" />
+		<include file="$(find ground_lidar_processor)/launch/run.launch" pass_all_args="true"   if="$(arg start_ground_lidar_processor)" />
 		<include file="$(find pointcloud_gravity_align)/launch/run.launch" pass_all_args="true" >
 			<arg name="align_gravity" value="false"/> 		
 		</include>
