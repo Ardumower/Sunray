@@ -288,12 +288,11 @@ Choose this if you don't want to use LiDAR localization (instead of RTK-GPS):
 Choose this if you want to use ROS localization:
 ```
 	<arg name="sunray_ros_mode" default="LOCALIZATION" />
-
+```
 
 5. In your myrobot.launch, adjust the transformation from your LiDAR sensor position to the GPS position (between the wheels). Example:
-![Screenshot from 2024-07-23 21-05-09](https://github.com/user-attachments/assets/0a34e074-64c7-4a11-8444-fe27e23fa13b)
+![Screenshot from 2024-07-23 21-05-09](https://github.com/user-attachments/assets/97d6e772-5105-4e58-9e12-f11818a17b92)
 
-```
 5. In your 'Sunray/ros' folder, run 'service.sh' and choose:
 - 'Docker install' to install docker on your Raspberry PI.
 - 'Docker pull ROS image' to pull Ubuntu 18.04 docker image.
