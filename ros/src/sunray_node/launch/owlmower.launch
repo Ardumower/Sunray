@@ -15,7 +15,7 @@
 	<arg name="sunray_ros_mode" default="SIMPLE" />
 
 	<arg name="start_ground_lidar_processor" default="true" />
-    <arg name="ground_lidar_angle_opening" default="170.0" />
+    <arg name="ground_lidar_angle_opening" default="180.0" />
     <arg name="ground_lidar_max_distance" default="1.0" />
     <arg name="ground_lidar_max_width" default="1.5" />
     <arg name="ground_lidar_max_height" default="1.0" />
