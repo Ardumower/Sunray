@@ -254,9 +254,11 @@ Generating robot heatmaps (WiFi/GPS signal quality etc.):
 https://forum.ardumower.de/threads/advanced-topic-generate-wifi-gps-heatmaps-with-sunray-on-alfred-or-ardumower-with-connected-raspberry-pi.25078/
 
 ## Sunray ROS (via Docker)  <a name="sunray_ros"></a>
-The Sunray firmware can be compiled as ROS (robotic operating system) node, and ROS packages can then be used for Sunray. Typical ROS packages are LiDAR and SLAM (LiDAR mapping & localization). Currently, the ROS system has been tested using thse hardware combinations:
+The Sunray firmware can be compiled as ROS (robotic operating system) node, and ROS packages can then be used for Sunray. Typical ROS packages are LiDAR and SLAM (LiDAR mapping & localization). Currently, the ROS system has been experimentally tested using these hardware combinations:
 
 - Raspberry PI 5 and Livox MID-360 ( https://owlrobotics-store.company.site/products/LIDAR-Livox-MID-360-incl-Cable-p605042897 )
+
+Note that the LiDAR localization is not finished yet. You can use it, however a relocalization process (if your robot has no idea where it is) has to be triggered manually for now. Later versions will trigger the relocalization process automatically.
 
 Because ROS is highly dependend on OS (e.g. you have to choose specific Ubuntu versions), and the used small computer is also dependend on another OS (e.g. Raspberry PI works best on Raspi OS), we have chosen to run ROS in a virtualization (Docker).
 ![image](https://github.com/user-attachments/assets/90dd6c8f-c8c0-4b9b-b82e-93b4a591d67e)
@@ -308,6 +310,7 @@ NOTE: It can be tricky to find the correct parameters. Start with some parameter
 - 'ROS start LiDAR mapping' to start the LiDAR mapping. Connect to your robot, steer the robot around to show the LiDAR your environment. 
 - 'ROS stop LiDAR mapping' to stop the mapping. This will create a 3D pointcloud file (.PCD) use for localization.
 - 'ROS run sunray localization' to start the LiDAR localization. Connect to your robot, and use Sunray as usual (create a new map, start mowing etc.).
+- 'ROS trigger re-localization' to trigger a relocalization.
 
 Here you can see how the localization pipeline works.
 - Mapping: First the LiDAR points are gravity aligned, so that the Z axis looks towards earth (if you ground is flat, it will be parallel to ground after this step). This ensures that the created map is parallel to earth. While steering the robot around, the gravity aligned LiDAR data is then used to iteratively build a complete LiDAR map of the environment. NOTE: there is no loop-closure involed, however in mose cases it will create consistent maps (.PCD file).
