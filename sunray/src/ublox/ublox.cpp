@@ -46,6 +46,28 @@ void UBLOX::begin(){
   this->dgpsChecksumErrorCounter = 0;
   this->dgpsPacketCounter = 0;
 
+  CONSOLE.print("sizeof(short):");
+  CONSOLE.println(sizeof(short));
+  
+  CONSOLE.print("sizeof(int):");
+  CONSOLE.println(sizeof(int));
+
+  CONSOLE.print("sizeof(long):");
+  CONSOLE.println(sizeof(long));
+
+  CONSOLE.print("sizeof(long long):");
+  CONSOLE.println(sizeof(long long));
+
+  CONSOLE.print("sizeof(int16_t):");
+  CONSOLE.println(sizeof(int16_t));
+
+  CONSOLE.print("sizeof(int32_t):");
+  CONSOLE.println(sizeof(int32_t));
+
+  CONSOLE.print("sizeof(int64_t):");
+  CONSOLE.println(sizeof(int64_t));
+
+
   // relPosN... PAYLOAD: ofs=8size=4     2D,6,0,0,        relPosN: 15.81
   /*
   payload[8] = 0x2D;
@@ -442,9 +464,9 @@ void UBLOX::dispatchMessage() {
           case 0x14: 
             { // UBX-NAV-HPPOSLLH
               iTOW = (unsigned long)this->unpack_int32(4);
-              lon = 1e-7  * (    ((float)((int)this->unpack_int32(8)))   +  ((float)((int)this->unpack_int8(24))) * 1e-2    );
-              lat = 1e-7  *  (   ((float)((int)this->unpack_int32(12)))   +  ((float)((int)this->unpack_int8(25))) * 1e-2   );
-              height = 1e-3 * (  ((float)((int)this->unpack_int32(16))) +  ((float)((int)this->unpack_int8(26))) * 1e-2    ) ; // HAE (WGS84 height)
+              lon = 1e-7  * (    ((float)((int32_t)this->unpack_int32(8)))   +  ((float)((int8_t)this->unpack_int8(24))) * 1e-2    );
+              lat = 1e-7  *  (   ((float)((int32_t)this->unpack_int32(12)))   +  ((float)((int8_t)this->unpack_int8(25))) * 1e-2   );
+              height = 1e-3 * (  ((float)((int32_t)this->unpack_int32(16))) +  ((float)((int8_t)this->unpack_int8(26))) * 1e-2    ) ; // HAE (WGS84 height)
               //height = (1e-3 * (this->unpack_int32(20) +  (this->unpack_int8(27) * 1e-2))); // MSL height
               hAccuracy = ((double)((unsigned long)this->unpack_int32(28))) * 0.1 / 1000.0;
               vAccuracy = ((double)((unsigned long)this->unpack_int32(32))) * 0.1 / 1000.0;
@@ -538,9 +560,9 @@ void UBLOX::dispatchMessage() {
           case 0x3C: 
             { // UBX-NAV-RELPOSNED              
               iTOW = (unsigned long)this->unpack_int32(4);              
-              relPosN = ((float)(int)this->unpack_int32(8))/100.0;              
-              relPosE = ((float)(int)this->unpack_int32(12))/100.0;
-              relPosD = ((float)(int)this->unpack_int32(16))/100.0;              
+              relPosN = ((float)(int32_t)this->unpack_int32(8))/100.0;              
+              relPosE = ((float)(int32_t)this->unpack_int32(12))/100.0;
+              relPosD = ((float)(int32_t)this->unpack_int32(16))/100.0;              
               solution = (SolType)((this->unpack_int32(60) >> 3) & 3);              
               solutionAvail = true;
               solutionTimeout=millis() + 1000;              
