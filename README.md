@@ -306,7 +306,7 @@ Choose this if you want to use ROS localization:
 
 Here you can see how the localization pipeline works.
 - Mapping: First the LiDAR points are gravity aligned, so that the Z axis looks towards earth (if you ground is flat, it will be parallel to ground after this step). This ensures that the created map is parallel to earth. While steering the robot around, the gravity aligned LiDAR data is then used to iteratively build a complete LiDAR map of the environment. NOTE: there is no loop-closure involed, however in mose cases it will create consistent maps (.PCD file).
-- Localization: First the LiDAR points are (optionally) flipped upside-down (if your LiDAR is mounted upside-down). Then the corrected LiDAR data is used to localize against the PCD file. The result of the localization is two components (the LiDAR position within the PCD file and the LiDAR orientation). 
+- Localization: First the LiDAR points are (optionally) flipped upside-down (if your LiDAR is mounted upside-down). Then the corrected LiDAR data is used to localize against the PCD file. The result of the localization is two components: the LiDAR position (x, y, z) within the PCD file and the LiDAR orientation (yaw, pitch, roll). 
 ![image](https://github.com/user-attachments/assets/a02f9ff2-a7d8-430e-bf2d-c90ae4e4bf0c)
    
 
