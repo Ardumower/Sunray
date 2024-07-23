@@ -252,4 +252,52 @@ echo -e "AT+E\r\n"  > /dev/pts/1
 Generating robot heatmaps (WiFi/GPS signal quality etc.):
 https://forum.ardumower.de/threads/advanced-topic-generate-wifi-gps-heatmaps-with-sunray-on-alfred-or-ardumower-with-connected-raspberry-pi.25078/
 
+## Sunray ROS (via Docker)
+The Sunray firmware can be compiled as ROS (robotic operating system) node, and ROS packages can then be used for Sunray. Typical ROS packages are LiDAR and SLAM (LiDAR mapping & localization). Because ROS is highly dependend on OS (e.g. you have to choose specific Ubuntu versions), and the used small computer is also dependend on another OS (e.g. Raspberry PI works best on Raspi OS), we have chosen to run ROS in a virtualization (Docker).
+
+Steps to run Sunray as ROS node:
+
+1. In your config.h (Sunray/alfred/), activate these entries:
+```
+#define ROS_LAUNCH_FILE     "myrobot"  // the ROS robot launch file (you will choose in point 2 below)  
+#define LIDAR_BUMPER_ENABLE true  // to use the LiDAR-based bumper (ground obstacle detection via LiDAR)
+#define GPS_LIDAR           1     // to use LiDAR instead of RTK-GPS/IMU for localization
+```
+2. In your 'Sunray/ros/src/sunray_node/launch' folder, make a copy of 'owlmower.launch' and rename it 'myrobot.launch'. This will be the ROS launch file for your robot.
+3. If using the LiDAR bumper, adjust the LiDAR bumper parameters in your myrobot.launch (opening angle, max distance, max width, max height, near distance, near height, min obstacle size):
+```
+    <arg name="ground_lidar_angle_opening" default="180.0" />
+    <arg name="ground_lidar_max_distance" default="0.5" />
+    <arg name="ground_lidar_max_width" default="1.0" />
+    <arg name="ground_lidar_max_height" default="0.5" />
+    <arg name="ground_lidar_near_distance" default="0.3" />
+    <arg name="ground_lidar_near_height" default="0.3" />
+    <arg name="ground_lidar_min_obstacle_size" default="0.2" />
+```
+4. In your myrobot.launch, adjust the Sunray ROS localization mode:
+Choose this if you don't want to use LiDAR localization (instead of RTK-GPS):
+```
+	<arg name="sunray_ros_mode" default="SIMPLE" />
+```
+Choose this if you want to use ROS localization:
+```
+	<arg name="sunray_ros_mode" default="LOCALIZATION" />
+```
+5. In your 'Sunray/ros' folder, run 'service.sh' and choose:
+5.1 'Docker install' to install docker on your Raspberry PI.
+5.2 'Docker pull ROS image' to pull Ubuntu 18.04 docker image.
+5.3 'Docker build container' to build the Docker container (the first layer on your docker image).
+5.4 'Docker prepare ROS tools' to build all required tools in the Docker container (Livox SDK etc.).
+5.5 'ROS compile' to build Sunray as ROS node (and required ROS nodes for LiDAR localization etc.).  
+5.6 'ROS run test LIDAR' to test the LiDAR.
+5.7 'ROS start LiDAR mapping' to start the LiDAR mapping. Connect to your robot, steer the robot around to show the LiDAR your environment. 
+5.7 'ROS stop LiDAR mapping' to stop the mapping. This will create a 3D pointcloud file (.PCD) use for localization.
+5.8 'ROS run sunray localization' to start the LiDAR localization. Connect to your robot, and use Sunray as usual (create a new map, start mowing etc.).
+
+   
+
+
+
+
+
 
