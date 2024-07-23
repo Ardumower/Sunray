@@ -300,6 +300,8 @@ Choose this if you want to use ROS localization:
 - 'ROS stop LiDAR mapping' to stop the mapping. This will create a 3D pointcloud file (.PCD) use for localization.
 - 'ROS run sunray localization' to start the LiDAR localization. Connect to your robot, and use Sunray as usual (create a new map, start mowing etc.).
 
+Here you can see how the localization pipeline works. First,  
+![image](https://github.com/user-attachments/assets/a02f9ff2-a7d8-430e-bf2d-c90ae4e4bf0c)
    
 
 
