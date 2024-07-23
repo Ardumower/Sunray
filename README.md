@@ -285,15 +285,15 @@ Choose this if you want to use ROS localization:
 	<arg name="sunray_ros_mode" default="LOCALIZATION" />
 ```
 5. In your 'Sunray/ros' folder, run 'service.sh' and choose:
-  1. 'Docker install' to install docker on your Raspberry PI.
-  2. 'Docker pull ROS image' to pull Ubuntu 18.04 docker image.
-  3. 'Docker build container' to build the Docker container (the first layer on your docker image).
-  4. 'Docker prepare ROS tools' to build all required tools in the Docker container (Livox SDK etc.).
-  5. 'ROS compile' to build Sunray as ROS node (and required ROS nodes for LiDAR localization etc.).  
-  6. 'ROS run test LIDAR' to test the LiDAR.
-  7. 'ROS start LiDAR mapping' to start the LiDAR mapping. Connect to your robot, steer the robot around to show the LiDAR your environment. 
-  7. 'ROS stop LiDAR mapping' to stop the mapping. This will create a 3D pointcloud file (.PCD) use for localization.
-  8. 'ROS run sunray localization' to start the LiDAR localization. Connect to your robot, and use Sunray as usual (create a new map, start mowing etc.).
+- 'Docker install' to install docker on your Raspberry PI.
+- 'Docker pull ROS image' to pull Ubuntu 18.04 docker image.
+- 'Docker build container' to build the Docker container (the first layer on your docker image).
+- 'Docker prepare ROS tools' to build all required tools in the Docker container (Livox SDK etc.).
+- 'ROS compile' to build Sunray as ROS node (and required ROS nodes for LiDAR localization etc.).  
+- 'ROS run test LIDAR' to test the LiDAR.
+- 'ROS start LiDAR mapping' to start the LiDAR mapping. Connect to your robot, steer the robot around to show the LiDAR your environment. 
+- 'ROS stop LiDAR mapping' to stop the mapping. This will create a 3D pointcloud file (.PCD) use for localization.
+- 'ROS run sunray localization' to start the LiDAR localization. Connect to your robot, and use Sunray as usual (create a new map, start mowing etc.).
 
    
 
