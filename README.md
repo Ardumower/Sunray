@@ -254,7 +254,11 @@ Generating robot heatmaps (WiFi/GPS signal quality etc.):
 https://forum.ardumower.de/threads/advanced-topic-generate-wifi-gps-heatmaps-with-sunray-on-alfred-or-ardumower-with-connected-raspberry-pi.25078/
 
 ## Sunray ROS (via Docker)  <a name="sunray_ros"></a>
-The Sunray firmware can be compiled as ROS (robotic operating system) node, and ROS packages can then be used for Sunray. Typical ROS packages are LiDAR and SLAM (LiDAR mapping & localization). Because ROS is highly dependend on OS (e.g. you have to choose specific Ubuntu versions), and the used small computer is also dependend on another OS (e.g. Raspberry PI works best on Raspi OS), we have chosen to run ROS in a virtualization (Docker).
+The Sunray firmware can be compiled as ROS (robotic operating system) node, and ROS packages can then be used for Sunray. Typical ROS packages are LiDAR and SLAM (LiDAR mapping & localization). Currently, the ROS system has been tested using thse hardware combinations:
+
+# Raspberry PI 5 and Livox MID-360 ( https://owlrobotics-store.company.site/products/LIDAR-Livox-MID-360-incl-Cable-p605042897 )
+
+Because ROS is highly dependend on OS (e.g. you have to choose specific Ubuntu versions), and the used small computer is also dependend on another OS (e.g. Raspberry PI works best on Raspi OS), we have chosen to run ROS in a virtualization (Docker).
 ![image](https://github.com/user-attachments/assets/90dd6c8f-c8c0-4b9b-b82e-93b4a591d67e)
 
 Steps to run Sunray as ROS node:
