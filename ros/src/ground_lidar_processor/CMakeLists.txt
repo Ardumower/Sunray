@@ -13,9 +13,9 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -lbluetooth")
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x c")
 SET(CMAKE_BUILD_TYPE Debug)
 
-SET(FIRMWARE_PATH ${CMAKE_SOURCE_DIR}/../../sunray)
+## SET(FIRMWARE_PATH ${CMAKE_SOURCE_DIR}/../../sunray)
 message("CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}")
-message("Using firmware path ${FIRMWARE_PATH}")
+## message("Using firmware path ${FIRMWARE_PATH}")
 message("CMAKE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR}")
 
 
@@ -156,7 +156,7 @@ include_directories(
 # add_executable(${PROJECT_NAME}_node src/pcl_ground.cpp)
 add_executable(ground_lidar_processor src/pcl_ground.cpp)
 target_link_libraries(ground_lidar_processor ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-target_include_directories(ground_lidar_processor PRIVATE ${FIRMWARE_PATH} ${FIRMWARE_PATH}/../alfred/src)
+## target_include_directories(ground_lidar_processor PRIVATE ${FIRMWARE_PATH} ${FIRMWARE_PATH}/../alfred/src)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

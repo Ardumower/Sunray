@@ -27,26 +27,22 @@ ground_lidar_processor ('LiDAR bumper') for Livox MID-360
 #include <visualization_msgs/Marker.h>
 
 
-#include "config.h"
-  
-
-
 class GroundLidarProcessor
 {
 public:
     GroundLidarProcessor()
     {
-        ros::NodeHandle nh("ground_lidar_processor");
+        ros::NodeHandle nh;
 
-        nh.param("angle_opening", angle_opening_, LIDAR_BUMPER_ANGLE_OPENING);
-        nh.param("max_distance", max_distance_, LIDAR_BUMPER_MAX_DISTANCE);
-        nh.param("max_width", max_width_, LIDAR_BUMPER_MAX_WIDTH);        
-        nh.param("max_height", max_height_, LIDAR_BUMPER_MAX_HEIGHT);        
-        nh.param("near_height", near_height_, LIDAR_BUMPER_NEAR_HEIGHT);        
-        nh.param("near_distance", near_distance_, LIDAR_BUMPER_NEAR_DISTANCE);
-        nh.param("ground_height", ground_height_, LIDAR_BUMPER_GROUND_HEIGHT);
-        nh.param("min_obstacle_size", min_obstacle_size_, LIDAR_BUMPER_MIN_OBSTACLE_SIZE);
-        nh.param("lidar_tilt_angle", lidar_tilt_angle_, LIDAR_BUMPER_TILT_ANGLE); // Neigungswinkel in Grad
+        nh.param("ground_lidar_angle_opening", angle_opening_, 180.0);
+        nh.param("ground_lidar_max_distance", max_distance_, 1.0);
+        nh.param("ground_lidar_max_width", max_width_, 1.5);        
+        nh.param("ground_lidar_max_height", max_height_, 1.0);        
+        nh.param("ground_lidar_near_height", near_height_, 0.5);        
+        nh.param("ground_lidar_near_distance", near_distance_, 0.5);
+        nh.param("ground_lidar_ground_height", ground_height_, -0.3);
+        nh.param("ground_lidar_min_obstacle_size", min_obstacle_size_, 0.2);
+        nh.param("ground_lidar_tilt_angle", lidar_tilt_angle_, 25.0); // Neigungswinkel in Grad
 
         imu_sub_ = nh.subscribe("/livox/imu", 10, &GroundLidarProcessor::imuCallback, this);
         point_cloud_sub_ = nh.subscribe("/livox/lidar", 1, &GroundLidarProcessor::pointCloudCallback, this);
@@ -55,6 +51,7 @@ public:
         obstacle_state_pub_ = nh.advertise<std_msgs::Int8>("/obstacle_state", 10);
         ground_normal_pub_ = nh.advertise<visualization_msgs::Marker>("/ground_normal", 1);
         imu_gravity_pub_ = nh.advertise<visualization_msgs::Marker>("/imu_gravity", 1);
+        printf("angle_opening: %.2f, max_distance: %.2f, max_width: %.2f, max_height: %.2f\n", angle_opening_, max_distance_, max_width_, max_height_);                
 
         acc_avg = Eigen::Vector3f(0, 0, 0);
         soundTimeout = 0;
