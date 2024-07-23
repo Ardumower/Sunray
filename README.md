@@ -265,6 +265,10 @@ Steps to run Sunray as ROS node:
 #define LIDAR_BUMPER_ENABLE true  // to use the LiDAR-based bumper (ground obstacle detection via LiDAR)
 #define GPS_LIDAR           1     // to use LiDAR instead of RTK-GPS/IMU for localization
 ```
+Depending on your options, the corresponding Sunray drivers will be compiled and used. 
+
+![image](https://github.com/user-attachments/assets/a87f0991-6915-477c-945d-fadeb5f707c8)
+
 2. In your 'Sunray/ros/src/sunray_node/launch' folder, make a copy of 'owlmower.launch' and rename it 'myrobot.launch'. This will be the ROS launch file for your robot.
 3. If using the LiDAR bumper, adjust the LiDAR bumper parameters in your myrobot.launch (opening angle, max distance, max width, max height, near distance, near height, min obstacle size):
 ```
