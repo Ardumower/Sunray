@@ -323,6 +323,11 @@ void SimBumperDriver::run(){
 
 }
 
+bool SimBumperDriver::nearObstacle(){
+  return false;
+}
+
+
 bool SimBumperDriver::obstacle(){
   return (simTriggered || simRobot.robotIsBumpingIntoObstacle);
 }
