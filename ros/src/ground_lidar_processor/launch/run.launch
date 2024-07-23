@@ -1,0 +1,21 @@
+<launch>
+    
+    <arg name="ground_lidar_angle_opening" default="180.0" />
+    <arg name="ground_lidar_max_distance" default="1.0" />
+    <arg name="ground_lidar_max_width" default="1.5" />
+    <arg name="ground_lidar_max_height" default="1.0" />
+    <arg name="ground_lidar_near_distance" default="0.5" />
+    <arg name="ground_lidar_near_height" default="0.5" />
+    <arg name="ground_lidar_min_obstacle_size" default="0.2" />
+    
+    
+	<param name="ground_lidar_angle_opening" value="$(arg ground_lidar_angle_opening)" />	
+    <param name="ground_lidar_max_distance" value="$(arg ground_lidar_max_distance)" />
+	<param name="ground_lidar_max_width" value="$(arg ground_lidar_max_width)" />
+	<param name="ground_lidar_max_height" value="$(arg ground_lidar_max_height)" />
+	<param name="ground_lidar_near_distance" value="$(arg ground_lidar_near_distance)" />
+	<param name="ground_lidar_near_height" value="$(arg ground_lidar_near_height)" />
+	<param name="ground_lidar_min_obstacle_size" value="$(arg ground_lidar_min_obstacle_size)" />
+
+    <node pkg="ground_lidar_processor" type="ground_lidar_processor" name="ground_lidar_processor" output="screen" />
+</launch>
