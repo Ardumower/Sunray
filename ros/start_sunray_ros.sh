@@ -120,9 +120,10 @@ echo "----starting sunray ros----"
 #if [ -z "$SUNRAY_ROS_MODE" ]; then
 #  SUNRAY_ROS_MODE=SIMPLE
 #fi
-#if [ -z "$SUNRAY_ROS_LAUNCH" ]; then
-#  SUNRAY_ROS_LAUNCH=owlmower.launch
-#fi
+if [ -z "$SUNRAY_ROS_LAUNCH" ]; then
+  #SUNRAY_ROS_LAUNCH=owlmower.launch
+  SUNRAY_ROS_LAUNCH=`grep "ROS_LAUNCH_FILE" ../sunray/config.h | cut -d'"' -f 2`
+fi
 if [ -z "$SUNRAY_ROS_RVIZ" ]; then
   SUNRAY_ROS_RVIZ=false
 fi

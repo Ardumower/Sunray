@@ -6,10 +6,10 @@
     3. rosparam in a launch file can load entire yaml files of parameters to the parameter server
 	-->
 
-	<arg name="sunray_ros_launch" default="owlmower.launch" />
+	<arg name="sunray_ros_launch" default="owlmower" />
 
 	
-	<include file="$(find sunray_node)/launch/$(arg sunray_ros_launch)" pass_all_args="true"  />
+	<include file="$(find sunray_node)/launch/$(arg sunray_ros_launch).launch" pass_all_args="true"  />
 
 
 </launch>
