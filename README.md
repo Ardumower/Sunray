@@ -170,6 +170,8 @@ echo "----BLE config----"
 echo 12 > /sys/kernel/debug/bluetooth/hci0/conn_min_interval  # 24   6
 echo 20 > /sys/kernel/debug/bluetooth/hci0/conn_max_interval  # 40   6
 echo 1 > /sys/kernel/debug/bluetooth/hci0/conn_latency       # 0    1
+echo 153 > /sys/kernel/debug/bluetooth/hci0/adv_min_interval  # 0.625 ms units
+echo 153 > /sys/kernel/debug/bluetooth/hci0/adv_max_interval  # 0.625 ms units
 btmgmt -i hci0 power off
 btmgmt -i hci0 le on
 btmgmt -i hci0 bredr off
