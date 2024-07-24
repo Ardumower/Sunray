@@ -259,6 +259,8 @@ The Sunray firmware can be compiled as ROS (robotic operating system) node, and 
 - Raspberry PI 5 and Livox MID-360 ( https://owlrobotics-store.company.site/products/LIDAR-Livox-MID-360-incl-Cable-p605042897 )
 Demo videos ( https://www.youtube.com/watch?v=47-9z_iPiTs , https://www.youtube.com/watch?v=OYC_oKYsXts, https://www.youtube.com/watch?v=eZM_R9n57KA )
 
+![Screenshot from 2024-07-24 11-05-29](https://github.com/user-attachments/assets/2daee793-c45e-4119-9ca0-a72ca4369e33)
+
 Note that the LiDAR localization is not finished yet. You can use it, however a relocalization process (if your robot has no idea where it is) has to be triggered manually for now. Later versions will trigger the relocalization process automatically.
 
 Because ROS is highly dependend on OS (e.g. you have to choose specific Ubuntu versions), and the used small computer is also dependend on another OS (e.g. Raspberry PI works best on Raspi OS), we have chosen to run ROS in a virtualization (Docker).
