@@ -265,7 +265,7 @@ Because ROS is highly dependend on OS (e.g. you have to choose specific Ubuntu v
 
 Steps to run Sunray as ROS node:
 
-1. In your config.h (Sunray/alfred/), activate these entries:
+1. Make a copy of your existing config.h with another name (e.g. Sunray/alfred/config_myrobot.h), and activate these entries:
 ```
 #define ROS_LAUNCH_FILE     "myrobot"  // the ROS robot launch file (you will choose in point 2 below)  
 #define LIDAR_BUMPER_ENABLE true  // to use the LiDAR-based bumper (ground obstacle detection via LiDAR)
@@ -313,7 +313,7 @@ NOTE: It can be tricky to find the correct parameters. Start with some parameter
 - 'ROS trigger re-localization' to trigger a relocalization.
 
 Here you can see how the localization pipeline works.
-- Mapping: First the LiDAR points are gravity aligned, so that the Z axis looks away earth (if you ground is flat, it will be parallel to earth after this step). This ensures that the created map is parallel to earth. While steering the robot around, the gravity aligned LiDAR data is then used to iteratively build a complete LiDAR map of the environment. NOTE: there is no loop-closure involed, however in mose cases it will create consistent maps (.PCD file).
+- Mapping: First the LiDAR points are gravity aligned, so that the Z axis looks away earth (if you ground is flat, it will be parallel to earth after this step). This ensures that the created map is parallel to earth. While steering the robot around, the gravity aligned LiDAR data is then used to iteratively build a complete LiDAR map of the environment. NOTE: there is no loop-closure involed, however in most cases it will create consistent maps (.PCD file).
 - Localization: First the LiDAR points are (optionally) flipped upside-down (if your LiDAR is mounted upside-down). Then the corrected LiDAR data is used to localize against the PCD file. The result of the localization is two components: the LiDAR position (x, y, z) within the PCD file and the LiDAR orientation (yaw, pitch, roll). 
 ![image](https://github.com/user-attachments/assets/a02f9ff2-a7d8-430e-bf2d-c90ae4e4bf0c)
    
