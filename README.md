@@ -257,6 +257,7 @@ https://forum.ardumower.de/threads/advanced-topic-generate-wifi-gps-heatmaps-wit
 The Sunray firmware can be compiled as ROS (robotic operating system) node, and ROS packages can then be used for Sunray. Typical ROS packages are LiDAR and SLAM (LiDAR mapping & localization). Currently, the ROS system has been experimentally tested using these hardware combinations:
 
 - Raspberry PI 5 and Livox MID-360 ( https://owlrobotics-store.company.site/products/LIDAR-Livox-MID-360-incl-Cable-p605042897 )
+Demo videos ( https://www.youtube.com/watch?v=47-9z_iPiTs , https://www.youtube.com/watch?v=OYC_oKYsXts, https://www.youtube.com/watch?v=eZM_R9n57KA )
 
 Note that the LiDAR localization is not finished yet. You can use it, however a relocalization process (if your robot has no idea where it is) has to be triggered manually for now. Later versions will trigger the relocalization process automatically.
 
