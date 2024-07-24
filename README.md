@@ -311,7 +311,7 @@ NOTE: It can be tricky to find the correct parameters. Start with some parameter
 - 'Docker prepare ROS tools' to build all required tools in the Docker container (Livox SDK etc.).
 - 'ROS compile' to build Sunray as ROS node (and required ROS nodes for LiDAR localization etc.).  
 - 'ROS run test LIDAR' to test the LiDAR.
-- 'ROS start LiDAR mapping' to start the LiDAR mapping. Connect to your robot, steer the robot around to show the LiDAR your environment. 
+- 'ROS start LiDAR mapping' to start the LiDAR mapping. Connect to your robot, steer the robot around to show the LiDAR your environment (try to stay away 5m from the robot, so the mapping process creates better maps). 
 - 'ROS stop LiDAR mapping' to stop the mapping. This will create a 3D pointcloud file (.PCD) use for localization.
 - 'ROS run sunray localization' to start the LiDAR localization. Connect to your robot, and use Sunray as usual (create a new map, start mowing etc.).
 - 'ROS trigger re-localization' to trigger a relocalization.
