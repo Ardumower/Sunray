@@ -108,8 +108,9 @@ function docker_build_container {
     --env PULSE_SERVER=unix:/var/run/pulse/native \
     --volume /var/run/pulse/native:/var/run/pulse/native \
     --volume /etc/machine-id:/etc/machine-id:ro \
+    --volume /var/run/dbus:/var/run/dbus \
     --device /dev/snd \
-    -e DISPLAY=$DISPLAY --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_PCD_PATH:/root/PCD -v $HOST_SUNRAY_PATH:/root/Sunray  $IMAGE_NAME   
+    -e DISPLAY=$DISPLAY --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_PCD_PATH:/root/PCD -v $HOST_SUNRAY_PATH:/root/Sunray  $IMAGE_NAME
 }
 
 function docker_show_containers {
