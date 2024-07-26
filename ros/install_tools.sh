@@ -15,10 +15,6 @@ fi
 #apt-get -y install mplayer psmisc pulseaudio libnotify-bin libsox-fmt-all sox alsa-utils
 #exit
 
-cp Sunray/ros/scripts/reboot.sh /sbin/reboot
-cp Sunray/ros/scripts/shutdown.sh /sbin/shutdown
-#exit
-
 apt update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata \
     software-properties-common build-essential sudo nano wget curl git subversion cmake python-pip python3-pip pybind11-dev gfortran \
     pcl-tools network-manager bluez bluez-tools libbluetooth-dev python-can python3-can can-utils iproute2 psmisc libsox-fmt-all sox \
@@ -50,5 +46,7 @@ apt install -y ros-melodic-move-base ros-melodic-move-base-msgs \
     ros-melodic-tf2-sensor-msgs ros-melodic-map-server ros-melodic-pointcloud-to-laserscan ros-melodic-dwa-local-planner \
     ros-melodic-octomap ros-melodic-octomap-ros ros-melodic-hector-trajectory-server ros-melodic-tf-conversions ros-melodic-rviz
 
+cp -f Sunray/ros/scripts/reboot.sh /sbin/reboot
+cp -f Sunray/ros/scripts/shutdown.sh /sbin/shutdown
 
 
