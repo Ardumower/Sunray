@@ -283,6 +283,7 @@ function stop_sunray_ros_service {
   fi
   # disable sunray service
   echo "stopping sunray ROS service..."
+  docker stop $CONTAINER_NAME
   systemctl stop sunray_ros
   systemctl disable sunray_ros
   echo "sunray ROS service stopped!"
