@@ -48,8 +48,8 @@ function export_ros_ip {
   #export PULSE_SERVER=unix:/var/run/pulse/native
   # set default volume 
   amixer -D pulse sset Master 100%
-  echo "====> we will test host audio now... (you should hear a voice)" 
-  mplayer /home/pi/Sunray/tts/de/system_starting.mp3
+  #   echo "====> we will test host audio now... (you should hear a voice)" 
+  #   mplayer /home/pi/Sunray/tts/de/system_starting.mp3
   #exit
 }
 
