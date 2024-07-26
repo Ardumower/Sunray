@@ -169,40 +169,6 @@ function rviz {
 }
 
 
-function start_sunray_ros_service {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi  
-  if [[ `pidof sunray` != "" ]]; then
-        echo "Sunray linux app already running! Exiting..."
-        exit
-  fi
-  # enable sunray service
-  echo "starting sunray ROS service..."
-  #ln -s /home/pi/sunray_install/config_files/sunray.service /etc/systemd/system/sunray.service
-  cp $PWD/sunray_ros.service /etc/systemd/system/sunray_ros.service
-  chmod 644 /etc/systemd/system/sunray_ros.service
-  mkdir -p /boot/sunray
-  chmod 644 /boot/sunray
-  systemctl daemon-reload
-  systemctl enable sunray_ros
-  systemctl start sunray_ros
-  systemctl --no-pager status sunray_ros
-  echo "sunray ROS service started!"
-}
-
-function stop_sunray_ros_service {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
-  # disable sunray service
-  echo "stopping sunray ROS service..."
-  systemctl stop sunray_ros
-  systemctl disable sunray_ros
-  echo "sunray ROS service stopped!"
-}
 
 function ros_test_lidar {
   echo "ros_test_lidar"
@@ -262,6 +228,52 @@ function toggle_rviz {
   else
     SUNRAY_ROS_RVIZ=true
   fi
+}
+
+
+function start_sunray_ros_service {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi  
+  if [[ `pidof sunray` != "" ]]; then
+        echo "Sunray linux app already running! Exiting..."
+        exit
+  fi
+  # enable sunray service
+  echo "starting sunray ROS service..."
+  #ln -s /home/pi/sunray_install/config_files/sunray.service /etc/systemd/system/sunray.service
+  cp $PWD/sunray_ros.service /etc/systemd/system/sunray_ros.service
+  chmod 644 /etc/systemd/system/sunray_ros.service
+  mkdir -p /boot/sunray
+  chmod 644 /boot/sunray
+  systemctl daemon-reload
+  systemctl enable sunray_ros
+  systemctl start sunray_ros
+  systemctl --no-pager status sunray_ros
+  echo "sunray ROS service started!"
+}
+
+function stop_sunray_ros_service {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
+  # disable sunray service
+  echo "stopping sunray ROS service..."
+  systemctl stop sunray_ros
+  systemctl disable sunray_ros
+  echo "sunray ROS service stopped!"
+}
+
+function showlog(){
+  echo "show log..."
+  journalctl -f -u sunray
+}
+
+function savelog(){
+  echo "saving log.txt..."
+  journalctl -u sunray > log.txt
 }
 
 
@@ -326,14 +338,6 @@ function menu {
               rviz
               break
               ;;
-          "Start sunray ROS service")
-              start_sunray_ros_service
-              break
-              ;;
-          "Stop sunray ROS service")
-              stop_sunray_ros_service
-              break
-              ;;            
           "ROS run test LiDAR")
               ros_test_lidar
               break
@@ -361,6 +365,22 @@ function menu {
           "toggle SUNRAY_ROS_RVIZ")
               toggle_rviz
               menu
+              break
+              ;;
+          "Start sunray ROS service")
+              start_sunray_ros_service
+              break
+              ;;
+          "Stop sunray ROS service")
+              stop_sunray_ros_service
+              break
+              ;;            
+          "Show service log")
+              showlog
+              break
+              ;;     
+          "Save service log")
+              savelog
               break
               ;;
           "Quit")
