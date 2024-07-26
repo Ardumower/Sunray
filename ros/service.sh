@@ -117,7 +117,7 @@ function docker_terminal {
   fi
   # -------------continue container...---------------------
   export_ros_ip
-  docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
+  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c ". /ros_entrypoint.sh ; export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; cd /root/Sunray/ros ; . devel/setup.bash ; /bin/bash"
 }
 
