@@ -85,6 +85,9 @@ for _ in `seq 1 20`; do
     break
   fi
   echo $RES
+  PID=`fuser 80/tcp | cut -d' ' -f 2`
+  echo "PID:$PID"
+  ls -l /proc/$PID/exe  
   # echo -n .  
   sleep 2.0     
 done; 
