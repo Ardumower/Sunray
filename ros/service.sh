@@ -82,9 +82,28 @@ function docker_build_container {
   echo "DISPLAY: $DISPLAY"
   echo "====> enter 'exit' to exit docker container" 
   #exit
+  if ! command -v play &> /dev/null
+  then 
+    echo "installing audio player..."
+    apt install -y libsox-fmt-mp3 sox mplayer alsa-utils pulseaudio
+  fi
+  # show audio devices
+  #aplay -l
+  cat /proc/asound/cards
+  # restart pulseaudio daemon as root
+  killall pulseaudio
+  sleep 1
+  pulseaudio -D --system --disallow-exit --disallow-module-loading
+  #sudo chmod 666 /var/run/pulse/native
+  export PULSE_SERVER=unix:/var/run/pulse/native
+  # set default volume 
+  amixer -D pulse sset Master 100%
+  echo "we will test host audio now... (you should hear a voice)" 
+  mplayer /home/pi/Sunray/tts/de/system_starting.mp3
+  #exit
   docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
-    --env PULSE_SERVER=unix:/tmp/pulse_socket \
-    --volume /tmp/pulse_socket:/tmp/pulse_socket \
+    --env PULSE_SERVER=unix:/var/run/pulse/native \
+    --volume /var/run/pulse/native:/var/run/pulse/native \
     --volume /etc/machine-id:/etc/machine-id:ro \
     --device /dev/snd \
     -e DISPLAY=$DISPLAY --volume="$HOME/.Xauthority:/root/.Xauthority:rw" -v $HOST_PCD_PATH:/root/PCD -v $HOST_SUNRAY_PATH:/root/Sunray  $IMAGE_NAME   

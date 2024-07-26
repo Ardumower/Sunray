@@ -78,11 +78,6 @@ nmcli c show "$CON" | grep ipv4.addresses
 # https://gavv.net/articles/pulseaudio-under-the-hood/
 # https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/SystemWide/
 # https://unix.stackexchange.com/questions/204522/how-does-pulseaudio-start
-sudo ln -sf /var/run/pulse/native /tmp/pulse_socket
-sudo chmod 666 /tmp/pulse_socket
-sudo chmod 666 /var/run/pulse/native  
-export PULSE_SERVER=unix:/var/run/pulse/native
-
 if ! command -v play &> /dev/null
 then 
   echo "installing audio player..."
@@ -95,9 +90,12 @@ cat /proc/asound/cards
 killall pulseaudio
 sleep 1
 pulseaudio -D --system --disallow-exit --disallow-module-loading
+#sudo chmod 666 /var/run/pulse/native
+export PULSE_SERVER=unix:/var/run/pulse/native
 # set default volume 
 amixer -D pulse sset Master 100%
-#mplayer /home/pi/Sunray/tts/de/temperature_low_docking.mp3
+echo "we will test host audio now... (you should hear a voice)"
+mplayer /home/pi/Sunray/tts/de/system_starting.mp3
 #exit    
 
 
@@ -155,7 +153,7 @@ xhost +local:*
 
 # source ROS setup  
 docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-  bash -c "export DISPLAY=$DISPLAY ; export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; export ROSCONSOLE_CONFIG_FILE=/root/Sunray/ros/rosconsole.config ; export ROS_PYTHON_LOG_CONFIG_FILE=/root/Sunray/ros/python_logging.config ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node run.launch sunray_ros_launch:=$SUNRAY_ROS_LAUNCH sunray_ros_mode:=$SUNRAY_ROS_MODE rviz:=$SUNRAY_ROS_RVIZ use_bag_file:=false map_pcd:=/root/PCD/dlio_map.pcd" 
+  bash -c "export PULSE_SERVER=unix:/var/run/pulse/native ; export DISPLAY=$DISPLAY ; export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; export ROSCONSOLE_CONFIG_FILE=/root/Sunray/ros/rosconsole.config ; export ROS_PYTHON_LOG_CONFIG_FILE=/root/Sunray/ros/python_logging.config ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node run.launch sunray_ros_launch:=$SUNRAY_ROS_LAUNCH sunray_ros_mode:=$SUNRAY_ROS_MODE rviz:=$SUNRAY_ROS_RVIZ use_bag_file:=false map_pcd:=/root/PCD/dlio_map.pcd" 
 
 # rosnode kill -a ; sleep 3
 
