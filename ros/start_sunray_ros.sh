@@ -72,7 +72,7 @@ nmcli con mod "$CON" -ipv4.addresses "" -ipv4.gateway ""
 nmcli con up "$CON"     
 echo "CON: $CON"
 nmcli c show "$CON" | grep ipv4.addresses
-
+arp
 
 # setup audio interface
 # https://gavv.net/articles/pulseaudio-under-the-hood/
