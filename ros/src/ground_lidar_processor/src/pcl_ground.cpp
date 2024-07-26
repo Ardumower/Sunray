@@ -113,6 +113,7 @@ public:
                 command += " > /dev/null 2>&1 &";
                 system(command.c_str());
                 if (obstacleNear) soundTimeout = 5;
+                  else soundTimeout = 2;
             }
         }
         if (soundTimeout > 0) soundTimeout--;
