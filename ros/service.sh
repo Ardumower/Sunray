@@ -268,12 +268,12 @@ function stop_sunray_ros_service {
 
 function showlog(){
   echo "show log..."
-  journalctl -f -u sunray
+  journalctl -f -u sunray_ros
 }
 
 function savelog(){
   echo "saving log.txt..."
-  journalctl -u sunray > log.txt
+  journalctl -u sunray_ros > log.txt
 }
 
 
