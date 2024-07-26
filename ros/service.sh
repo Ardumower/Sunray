@@ -211,12 +211,6 @@ function ros_test_lidar {
   sudo -E ./start_sunray_ros.sh
 }
 
-function ros_sunray_simple {
-  echo "ros_sunray_simple"
-  export SUNRAY_ROS_MODE=SIMPLE
-  export SUNRAY_ROS_RVIZ=$SUNRAY_ROS_RVIZ
-  sudo -E ./start_sunray_ros.sh
-}
 
 function ros_start_mapping {
   echo "ros_start_mapping"
@@ -246,9 +240,10 @@ function ros_stop_mapping {
 }
 
 
-function ros_sunray_localization {
-  echo "ros_sunray_localization"
-  export SUNRAY_ROS_MODE=LOCALIZATION
+function ros_sunray {
+  echo "ros_sunray"
+  #export SUNRAY_ROS_MODE=SIMPLE
+  #export SUNRAY_ROS_MODE=LOCALIZATION
   export SUNRAY_ROS_RVIZ=$SUNRAY_ROS_RVIZ
   sudo -E ./start_sunray_ros.sh
 }
@@ -286,10 +281,9 @@ function menu {
       "Start sunray ROS service"
       "Stop sunray ROS service"
       "ROS run test LiDAR"    
-      "ROS run sunray simple"
       "ROS start LiDAR mapping"
       "ROS stop LiDAR mapping"    
-      "ROS run sunray localization"
+      "ROS run sunray"
       "ROS trigger re-localization"
       "toggle SUNRAY_ROS_RVIZ"
       "Quit")
@@ -356,8 +350,8 @@ function menu {
               ros_stop_mapping
               break
               ;;
-          "ROS run sunray localization")
-              ros_sunray_localization
+          "ROS run sunray")
+              ros_sunray
               break
               ;;
           "ROS trigger re-localization")
