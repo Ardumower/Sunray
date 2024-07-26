@@ -19,7 +19,7 @@ fi
 
 if [[ `pidof sunray` != "" ]]; then
   echo "Sunray linux app already running! Exiting..."
-  #exit
+  exit
 fi
 
 
@@ -106,7 +106,7 @@ echo "working dir:$PWD"
   /usr/bin/stdbuf -oL -eL /home/pi/Sunray/alfred/build/sunray
 #else
   # pick sunray from here  
-  /usr/bin/stdbuf -oL -eL $PWD/build/sunray
+#  /usr/bin/stdbuf -oL -eL $PWD/build/sunray
 #fi 
 
 # debug mode

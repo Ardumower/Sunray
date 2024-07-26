@@ -22,7 +22,12 @@ fi
 
 if [[ `pidof sunray` != "" ]]; then
   echo "Sunray linux app already running! Exiting..."
-  #exit
+  exit
+fi
+
+if [[ `pidof sunray_node` != "" ]]; then
+  echo "Sunray ROS node already running! Exiting..."
+  exit
 fi
 
 
