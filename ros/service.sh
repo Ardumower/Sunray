@@ -298,8 +298,8 @@ function menu {
       "toggle SUNRAY_ROS_RVIZ"
       "Start sunray ROS service"
       "Stop sunray ROS service"
-      "Show service log"
-      "Save service log"
+      "Show sunray ROS service log"
+      "Save sunray ROS service log"
       "Quit")
   select opt in "${options[@]}"
   do
@@ -377,11 +377,11 @@ function menu {
               stop_sunray_ros_service
               break
               ;;            
-          "Show service log")
+          "Show sunray ROS service log")
               showlog
               break
               ;;     
-          "Save service log")
+          "Save sunray ROS service log")
               savelog
               break
               ;;
