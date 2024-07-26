@@ -30,6 +30,27 @@ function export_ros_ip {
   export ROS_IP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
   # allow docker to access host Xserver 
   xhost +local:* 
+
+  # show audio devices
+  if ! command -v play &> /dev/null
+  then 
+    echo "installing audio player..."
+    apt install -y libsox-fmt-mp3 sox mplayer alsa-utils pulseaudio
+  fi  
+  #aplay -l
+  cat /proc/asound/cards
+  # restart pulseaudio daemon as root
+  #pulseaudio -k
+  killall pulseaudio
+  sleep 1
+  pulseaudio -D --system --disallow-exit --disallow-module-loading
+  #sudo chmod 666 /var/run/pulse/native
+  #export PULSE_SERVER=unix:/var/run/pulse/native
+  # set default volume 
+  amixer -D pulse sset Master 100%
+  echo "====> we will test host audio now... (you should hear a voice)" 
+  mplayer /home/pi/Sunray/tts/de/system_starting.mp3
+  #exit
 }
 
 
@@ -80,27 +101,9 @@ function docker_build_container {
   echo "HOST_PCD_PATH: $HOST_PCD_PATH"  
   echo "IMAGE_NAME: $IMAGE_NAME"
   echo "DISPLAY: $DISPLAY"
-  echo "====> enter 'exit' to exit docker container" 
   #exit
-  if ! command -v play &> /dev/null
-  then 
-    echo "installing audio player..."
-    apt install -y libsox-fmt-mp3 sox mplayer alsa-utils pulseaudio
-  fi
-  # show audio devices
-  #aplay -l
-  cat /proc/asound/cards
-  # restart pulseaudio daemon as root
-  killall pulseaudio
-  sleep 1
-  pulseaudio -D --system --disallow-exit --disallow-module-loading
-  #sudo chmod 666 /var/run/pulse/native
-  export PULSE_SERVER=unix:/var/run/pulse/native
-  # set default volume 
-  amixer -D pulse sset Master 100%
-  echo "we will test host audio now... (you should hear a voice)" 
-  mplayer /home/pi/Sunray/tts/de/system_starting.mp3
-  #exit
+  export_ros_ip  
+  echo "====> enter 'exit' to exit docker container"   
   docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
     --env PULSE_SERVER=unix:/var/run/pulse/native \
     --volume /var/run/pulse/native:/var/run/pulse/native \
@@ -147,8 +150,7 @@ function docker_prepare_tools {
     exit
   fi  
   # -------------continue container...---------------------
-  # allow docker to access host Xserver 
-  #xhost +local:*
+  export_ros_ip    
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME /root/Sunray/ros/install_tools.sh
 }
 
@@ -170,6 +172,7 @@ function ros_compile {
   CONFIG_PATHNAME=/root/Sunray/alfred/$CONFIG_FILE
 
   # build Sunray ROS node
+  export_ros_ip    
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DCONFIG_FILE=$CONFIG_PATHNAME -DROS_EDITION=ROS1"
 }
