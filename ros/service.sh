@@ -294,10 +294,12 @@ function menu {
       "ROS start LiDAR mapping"
       "ROS stop LiDAR mapping"    
       "ROS run sunray"
-      "Start sunray ROS service"
-      "Stop sunray ROS service"
       "ROS trigger re-localization"
       "toggle SUNRAY_ROS_RVIZ"
+      "Start sunray ROS service"
+      "Stop sunray ROS service"
+      "Show service log"
+      "Save service log"
       "Quit")
   select opt in "${options[@]}"
   do
