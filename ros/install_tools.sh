@@ -15,6 +15,9 @@ fi
 #apt-get -y install mplayer psmisc pulseaudio libnotify-bin libsox-fmt-all sox alsa-utils
 #exit
 
+cp Sunray/ros/scripts/reboot.sh /sbin/reboot
+cp Sunray/ros/scripts/shutdown.sh /sbin/shutdown
+exit
 
 apt update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata \
     software-properties-common build-essential sudo nano wget curl git subversion cmake python-pip python3-pip pybind11-dev gfortran \
