@@ -178,6 +178,7 @@ int loopTimeMax = 0;
 float loopTimeMean = 0;
 int loopTimeMin = 99999;
 unsigned long loopTimeTimer = 0;
+String psOutput = "";
 unsigned long wdResetTimer = millis();
 //##################################################################################
 
@@ -570,6 +571,7 @@ void outputConfig(){
 
 // robot start routine
 void start(){    
+  loopTime = millis();
   pinMan.begin();         
   // keep battery switched ON
   batteryDriver.begin();  
@@ -1109,11 +1111,25 @@ void run(){
     watchdogReset();
   }   
 
+  //CONSOLE.println(millis());
+  //CONSOLE.println(loopTime); 
   loopTimeNow = millis() - loopTime;
+  //CONSOLE.println(loopTimeNow);  
+  //delay(5000);  
   loopTimeMin = min(loopTimeNow, loopTimeMin); 
   loopTimeMax = max(loopTimeNow, loopTimeMax);
   loopTimeMean = 0.99 * loopTimeMean + 0.01 * loopTimeNow; 
   loopTime = millis();
+
+  #ifdef __linux__    
+    if (psOutput == ""){
+      if(loopTimeMax > 500){
+        Process p;
+        p.runShellCommand("ps -eo pcpu,pid,user,args | sort -k 1 -r | head -3");
+        psOutput = p.readString();    
+      }
+    }
+  #endif
 
   if(millis() > loopTimeTimer + 10000){
     if(loopTimeMax > 500){
@@ -1129,8 +1145,11 @@ void run(){
     CONSOLE.print(" - ");
     CONSOLE.print(loopTimeMax);
     CONSOLE.println("ms");
+    if (psOutput != "") CONSOLE.println(psOutput);
+
     loopTimeMin = 99999; 
     loopTimeMax = 0;
+    psOutput = "";
     loopTimeTimer = millis();
   }   
   //##############################################################################
