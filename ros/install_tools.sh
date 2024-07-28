@@ -46,6 +46,7 @@ apt install -y ros-melodic-move-base ros-melodic-move-base-msgs \
     ros-melodic-tf2-sensor-msgs ros-melodic-map-server ros-melodic-pointcloud-to-laserscan ros-melodic-dwa-local-planner \
     ros-melodic-octomap ros-melodic-octomap-ros ros-melodic-hector-trajectory-server ros-melodic-tf-conversions ros-melodic-rviz
 
+cd /root
 cp -f Sunray/ros/scripts/reboot.sh /sbin/reboot
 cp -f Sunray/ros/scripts/shutdown.sh /sbin/shutdown
 
