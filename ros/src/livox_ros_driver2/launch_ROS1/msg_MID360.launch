@@ -28,7 +28,7 @@
 	<param name="enable_lidar_bag" type="bool" value="$(arg lidar_bag)"/>
 	<param name="enable_imu_bag" type="bool" value="$(arg imu_bag)"/>
 
-	<node name="livox_lidar_publisher2" pkg="livox_ros_driver2" output="screen"
+	<node name="livox_lidar_publisher2" pkg="livox_ros_driver2" 
 	      type="livox_ros_driver2_node" required="true"
 	      args="$(arg cmdline_arg)"/>
 
