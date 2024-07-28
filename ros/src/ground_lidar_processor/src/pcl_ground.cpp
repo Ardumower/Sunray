@@ -259,7 +259,7 @@ public:
                 }            
                 else
                 {
-                    if (!obstacleNear) {
+                    {
                         //if (isObstacle(pt.x, pt.y, pt.z, *transformed_cloud, 0.05))
                         {
                             obstacle_points->points.push_back(pt);
@@ -270,13 +270,13 @@ public:
                                     //ROS_INFO("obstacleNear x=%.2f y=%.2f z=%.2f", pt.x, pt.y, pt.z);    
                                     obstacleNear = true;
                                 }
-                            }                                        
+                            }
                         }
                     }
                 }
             }
         }
-        if (obstacle_points->points.size() < 10){ // probably false positives
+        if (obstacle_points->points.size() < 30){ // probably false positives
             obstacleNear = false;
             obstacleFar = false;
         }            

@@ -172,6 +172,7 @@ function ros_compile {
   echo "selected: $CONFIG_FILE"
   CONFIG_PATHNAME=/root/Sunray/alfred/$CONFIG_FILE
 
+  # build single package:    catkin_make -DCATKIN_WHITELIST_PACKAGES="ground_lidar_processor"
   # build Sunray ROS node
   export_ros_ip    
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
