@@ -155,13 +155,13 @@ echo "WIFI IP: $WIP"
 # allow docker to access host Xserver 
 xhost +local:* 
 
-
 # source ROS setup  
 CMD="export PULSE_SERVER=unix:/var/run/pulse/native"
 CMD+="; export DISPLAY=$DISPLAY"
 CMD+="; export ROS_IP=$WIP"
 CMD+="; export ROS_HOME=/root/Sunray/alfred"
 CMD+="; . /ros_entrypoint.sh"
+CMD+="; rosclean purge -y"
 CMD+="; export ROSCONSOLE_CONFIG_FILE=/root/Sunray/ros/rosconsole.config"
 CMD+="; export ROS_PYTHON_LOG_CONFIG_FILE=/root/Sunray/ros/python_logging.config" 
 CMD+="  ; cd /root/Sunray/ros"
