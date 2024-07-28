@@ -130,6 +130,7 @@ void processWifiAppServer()
     battery.resetIdle();
     buf.init();                               // initialize the circular buffer
     unsigned long timeout = millis() + 50;
+    unsigned long httpStartTime = millis(); 
     while ( (client.connected()) && (millis() < timeout) ) {              // loop while the client's connected
       if (client.available()) {               // if there's bytes to read from the client,        
         char c = client.read();               // read a byte, then
@@ -170,6 +171,12 @@ void processWifiAppServer()
     }    
     // give the web browser time to receive the data
     stopClientTime = millis() + 100;
+    unsigned long httpEndTime = millis();    
+    int httpDuration = httpEndTime - httpStartTime;
+    if (httpDuration > 500){
+      CONSOLE.print("HTTP WARN: high server duration: ");
+      CONSOLE.println(httpDuration);
+    }
     //delay(10);
     // close the connection
     //client.stop();
