@@ -59,7 +59,7 @@ public:
         obstacleNear = false;
         cloudReceived = false;
         pkg_loc = ros::package::getPath( ros::this_node::getName().substr(1) );
-        printf("pkg_loc: %s\n", pkg_loc.c_str());                
+        ROS_WARN("pkg_loc: %s\n", pkg_loc.c_str());                
     }
 
 
@@ -99,7 +99,7 @@ public:
 
     void publishObstacleState(int ground_points, int obstacle_points){
         if ((obstacleFar) || (obstacleNear)) {
-            ROS_INFO("obstacle_points: %d  ground_points: %d  far %d, near %d", 
+            ROS_WARN("obstacle_points: %d  ground_points: %d  far %d, near %d", 
                 obstacle_points, ground_points,
                 (int)obstacleFar, (int)obstacleNear );                        
             if (soundTimeout == 0){
@@ -187,7 +187,7 @@ public:
         }
         //printf("plane normal %.2f,%.2f,%.2f len: %.2f\n", plane_normal(0), plane_normal(1), plane_normal(2), plane_normal.norm() );            
         float d = coefficients->values[3]; // Distance from origin to the plane                
-        //printf("d=%.2f\n", d);
+        //ROS_WARN("d=%.2f\n", d);
         
         //plane_normal.normalize();
         //plane_normal = plane_normal.transpose() ;                
@@ -260,7 +260,7 @@ public:
                 else
                 {
                     if (!obstacleNear) {
-                        if (isObstacle(pt.x, pt.y, pt.z, *transformed_cloud, 0.05))
+                        //if (isObstacle(pt.x, pt.y, pt.z, *transformed_cloud, 0.05))
                         {
                             obstacle_points->points.push_back(pt);
                             obstacleFar = true;                                                                                                       
