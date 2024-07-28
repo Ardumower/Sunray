@@ -103,8 +103,8 @@ public:
                 obstacle_points, ground_points,
                 (int)obstacleFar, (int)obstacleNear );                        
             if (soundTimeout == 0){
-                //std::string command = "killall mplayer; mplayer -volume 100 -af volume=5:1 ";
-                std::string command = "mplayer -volume 100 -af volume=5:1 ";                
+                std::string command = "killall mplayer; mplayer -volume 100 -af volume=5:1 ";
+                //std::string command = "mplayer -volume 100 -af volume=5:1 ";                
                 command += pkg_loc; 
                 if (obstacleNear){
                     command += "/launch/tada.mp3";                

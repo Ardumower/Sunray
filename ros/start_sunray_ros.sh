@@ -157,8 +157,20 @@ xhost +local:*
 
 
 # source ROS setup  
-docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-  bash -c "export PULSE_SERVER=unix:/var/run/pulse/native ; export DISPLAY=$DISPLAY ; export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; export ROSCONSOLE_CONFIG_FILE=/root/Sunray/ros/rosconsole.config ; export ROS_PYTHON_LOG_CONFIG_FILE=/root/Sunray/ros/python_logging.config ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; roslaunch sunray_node run.launch sunray_ros_launch:=$SUNRAY_ROS_LAUNCH sunray_ros_mode:=$SUNRAY_ROS_MODE rviz:=$SUNRAY_ROS_RVIZ use_bag_file:=false map_pcd:=/root/PCD/dlio_map.pcd" 
+CMD="export PULSE_SERVER=unix:/var/run/pulse/native"
+CMD+="; export DISPLAY=$DISPLAY"
+CMD+="; export ROS_IP=$WIP"
+CMD+="; export ROS_HOME=/root/Sunray/alfred"
+CMD+="; . /ros_entrypoint.sh"
+CMD+="; export ROSCONSOLE_CONFIG_FILE=/root/Sunray/ros/rosconsole.config"
+CMD+="; export ROS_PYTHON_LOG_CONFIG_FILE=/root/Sunray/ros/python_logging.config" 
+CMD+="  ; cd /root/Sunray/ros"
+CMD+="  ; . devel/setup.bash"
+CMD+="; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node"
+CMD+="; cd /root/Sunray/alfred"
+CMD+="; pwd"
+CMD+="; roslaunch sunray_node run.launch sunray_ros_launch:=$SUNRAY_ROS_LAUNCH sunray_ros_mode:=$SUNRAY_ROS_MODE rviz:=$SUNRAY_ROS_RVIZ use_bag_file:=false map_pcd:=/root/PCD/dlio_map.pcd"
+docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME bash -c "$CMD" 
 
 # rosnode kill -a ; sleep 3
 
