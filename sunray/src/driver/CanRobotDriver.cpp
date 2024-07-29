@@ -172,17 +172,28 @@ void CanRobotDriver::requestVersion(){
 void CanRobotDriver::requestSummary(){
   canDataType_t data;
   data.floatVal = 0;
-  sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_battery_voltage, data );
-  sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_stop_button_state, data );
-  sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_rain_state, data );
+  
+  switch (cmdSummaryCounter % 4){
+    case 0:
+      sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_stop_button_state, data );  
+      break;
+    case 1:
+      sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_bumper_state, data );
+      break;
+    case 2:
+      sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_battery_voltage, data );
+      break;
+    case 3:
+      sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_rain_state, data );
+      break;
+  }
+  cmdSummaryCounter++;
 }
 
 
 // request MCU motor PWM
 void CanRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   canDataType_t data;
-
-  sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_bumper_state, data );
 
   data.floatVal = ((float)leftPwm) / 255.0;  
   sendCanData(OWL_DRIVE_MSG_ID, LEFT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);  
@@ -329,6 +340,7 @@ void CanRobotDriver::processResponse(){
                   break;
                 case owlctl::can_val_stop_button_state:
                   triggeredStopButton = (data.byteVal[0] != 0);
+                  //CONSOLE.println(triggeredStopButton);
                   break;
                 case owlctl::can_val_rain_state:
                   triggeredRain = (data.byteVal[0] != 0);
@@ -353,7 +365,7 @@ void CanRobotDriver::run(){
     requestMotorPwm(requestLeftPwm, requestRightPwm, requestMowPwm);    
   }
   if (millis() > nextSummaryTime){
-    nextSummaryTime = millis() + 500; // 2 hz
+    nextSummaryTime = millis() + 100; // 10 hz
     requestSummary();
   }
   if (millis() > nextConsoleTime){
