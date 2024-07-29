@@ -362,6 +362,7 @@ void CanRobotDriver::run(){
       can_frame_t frame;
       can.read(frame);
     }
+    //CONSOLE.println(requestLeftPwm);
     requestMotorPwm(requestLeftPwm, requestRightPwm, requestMowPwm);    
   }
   if (millis() > nextSummaryTime){
