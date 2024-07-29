@@ -173,8 +173,8 @@ void CanRobotDriver::requestSummary(){
   canDataType_t data;
   data.floatVal = 0;
   sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_battery_voltage, data );
-
   sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_stop_button_state, data );
+  sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_rain_state, data );
 }
 
 
@@ -329,6 +329,9 @@ void CanRobotDriver::processResponse(){
                   break;
                 case owlctl::can_val_stop_button_state:
                   triggeredStopButton = (data.byteVal[0] != 0);
+                  break;
+                case owlctl::can_val_rain_state:
+                  triggeredRain = (data.byteVal[0] != 0);
                   break;
               }
             }
