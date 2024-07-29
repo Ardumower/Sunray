@@ -192,15 +192,15 @@ void CanRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
   sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_odo_ticks, data);    
 
-  if (false){
+  #ifdef MAX_MOW_RPM
+    // cutter speed (velocity control)
+    data.floatVal = ((float)mowPwm) / 255.0 * ((float)MAX_MOW_RPM)/60.0*3.1415*2.0;   // convert 0..255 to target velocity (motor radiant/sec)    
+    sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_velocity, data);
+  #else
     // cutter speed (voltage control)
     data.floatVal = ((float)mowPwm) / 255.0;    
     sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
-  } else {
-    // cutter speed (velocity control)
-    data.floatVal = ((float)mowPwm) / 255.0 * 332.0;   // TODO: convert 0..255 to target velocity (motor radiant/sec)  
-    sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_velocity, data);
-  }
+  #endif
   sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_odo_ticks, data);
  
   cmdMotorCounter++;

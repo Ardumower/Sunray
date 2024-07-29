@@ -173,6 +173,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // On the other hand, the overload detection will detect situations the fault signal cannot detect: slightly higher current for a longer time 
 
 #define MOW_ADJUST_HEIGHT  true   // can the mowing height be adjusted by an additional motor?
+
+#define MAX_MOW_RPM  3170  // use this to set max RPM (note: requires mowing motor with rpm control!) 
 //#define MAX_MOW_PWM 200  // use this to permanently reduce mowing motor power (255=max)
 
 #define MOW_FAULT_CURRENT 8.0       // mowing motor fault current (amps)
