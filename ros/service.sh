@@ -202,6 +202,19 @@ function ros_test_lidar {
 }
 
 
+function ros_test_ground_bumper {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
+  echo "ros_test_ground_bumper"
+  export SUNRAY_ROS_MODE=SIMPLE
+  export SUNRAY_ROS_RVIZ=$SUNRAY_ROS_RVIZ
+  sudo -E ./start_sunray_ros.sh
+}
+
+
+
 function ros_start_mapping {
   if [ "$EUID" -ne 0 ]
     then echo "Please run as root (sudo)"
@@ -323,7 +336,8 @@ function menu {
       "Docker run terminal"
       "ROS compile"    
       "rviz"
-      "ROS run test LiDAR"    
+      "ROS test LiDAR"
+      "ROS test ground bumper"    
       "ROS start LiDAR mapping"
       "ROS stop LiDAR mapping"    
       "ROS run sunray"
@@ -373,8 +387,12 @@ function menu {
               rviz
               break
               ;;
-          "ROS run test LiDAR")
+          "ROS test LiDAR")
               ros_test_lidar
+              break
+              ;;
+          "ROS test ground bumper")
+              ros_test_ground_bumper
               break
               ;;
           "ROS run sunray simple")
