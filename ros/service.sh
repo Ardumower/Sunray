@@ -203,6 +203,10 @@ function ros_test_lidar {
 
 
 function ros_start_mapping {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
   echo "ros_start_mapping"
   export SUNRAY_ROS_MODE=MAPPING
   export SUNRAY_ROS_RVIZ=$SUNRAY_ROS_RVIZ
@@ -211,6 +215,10 @@ function ros_start_mapping {
 
 
 function ros_stop_mapping {
+    if [ "$EUID" -ne 0 ]
+      then echo "Please run as root (sudo)"
+      exit
+    fi
     echo "ros_stop_mapping"
     export_ros_ip
     docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
