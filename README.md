@@ -260,7 +260,7 @@ The Sunray firmware can be compiled as ROS (robotic operating system) node, and 
 
 - Raspberry PI 5 and Livox MID-360 ( https://owlrobotics-store.company.site/products/LIDAR-Livox-MID-360-incl-Cable-p605042897 )
 
-Demo videos ( https://www.youtube.com/watch?v=47-9z_iPiTs , https://www.youtube.com/watch?v=OYC_oKYsXts, https://www.youtube.com/watch?v=eZM_R9n57KA )
+Demo videos ( https://www.youtube.com/watch?v=47-9z_iPiTs , https://www.youtube.com/watch?v=OYC_oKYsXts, https://www.youtube.com/watch?v=eZM_R9n57KA,  https://www.youtube.com/watch?v=vfD_GPRI-98 )
 
 ![Screenshot from 2024-07-24 11-05-29](https://github.com/user-attachments/assets/2daee793-c45e-4119-9ca0-a72ca4369e33)
 
