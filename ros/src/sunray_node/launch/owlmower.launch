@@ -60,7 +60,6 @@
 		<include file="$(find direct_lidar_inertial_odometry)/launch/dlio_mid360.launch"  pass_all_args="true" />
 		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"   if="$(arg start_sunray_node)">
 		</node>
-		<node pkg="rviz" type="rviz" name="dlio_rviz" args="-d $(find direct_lidar_inertial_odometry)/launch/dlio.rviz"   if="$(arg rviz)"/>
 		<node pkg="rviz" type="rviz" name="rviz" args="-d $(find direct_lidar_inertial_odometry)/launch/dlio.rviz"  if="$(arg rviz)" />
 	</group>
 
