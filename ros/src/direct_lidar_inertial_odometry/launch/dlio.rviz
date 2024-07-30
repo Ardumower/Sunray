@@ -272,7 +272,7 @@ Visualization Manager:
     Background Color: 0; 0; 0
     Default Light: true
     Fixed Frame: robot/odom
-    Frame Rate: 30
+    Frame Rate: 5
   Name: root
   Tools:
     - Class: rviz/Interact
