@@ -46,6 +46,9 @@
 
 	<!-- just Livox MID 360 driver & sunray node & ground lidar processor -->		
 	<group if="$(eval sunray_ros_mode == 'SIMPLE')"> 	
+		<include file="$(find pointcloud_gravity_align)/launch/run.launch" pass_all_args="true" >
+			<arg name="align_gravity" value="false"/> 
+		</include>
 		<include file="$(find ground_lidar_processor)/launch/run.launch" pass_all_args="true"   if="$(arg start_ground_lidar_processor)" />
 		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"   if="$(arg start_sunray_node)" />		
 		<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ground_lidar_processor)/launch/test.rviz"  if="$(arg rviz)" />

@@ -44,8 +44,8 @@ public:
         nh.param("ground_lidar_min_obstacle_size", min_obstacle_size_, 0.2);
         nh.param("ground_lidar_tilt_angle", lidar_tilt_angle_, 25.0); // Neigungswinkel in Grad
 
-        imu_sub_ = nh.subscribe("/livox/imu", 10, &GroundLidarProcessor::imuCallback, this);
-        point_cloud_sub_ = nh.subscribe("/livox/lidar", 1, &GroundLidarProcessor::pointCloudCallback, this);
+        imu_sub_ = nh.subscribe("/livox/imu_aligned", 10, &GroundLidarProcessor::imuCallback, this);
+        point_cloud_sub_ = nh.subscribe("/livox/lidar_aligned", 1, &GroundLidarProcessor::pointCloudCallback, this);
         ground_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/ground_points", 10);
         obstacle_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/obstacle_points", 10);
         obstacle_state_pub_ = nh.advertise<std_msgs::Int8>("/obstacle_state", 10);
