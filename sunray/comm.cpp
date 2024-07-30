@@ -452,10 +452,22 @@ void cmdVersion(){
   s += F(",");
   s += encryptChallenge;
   s += F(",");
-  s += BOARD;
+  String board(BOARD);
+  #ifdef __linux__
+    Process p;
+    board = "Linux";
+    // returns: Sinovoip_Bananapi_M4, Raspberry Pi 5, etc.
+    p.runShellCommand("cat /sys/firmware/devicetree/base/model 2>/dev/null");        
+	  String boardAdd = p.readString();    
+    if (boardAdd != "") board += " " + boardAdd;
+    //board += getCPUArchitecture();
+  #endif
+  s += board;
   s += F(",");
   #ifdef DRV_SERIAL_ROBOT
     s += "SR";
+  #elif DRV_CAN_ROBOT
+    s += "CR";
   #elif DRV_ARDUMOWER
     s += "AM";
   #else 
