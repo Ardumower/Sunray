@@ -66,29 +66,37 @@ void UBLOX::begin(){
 
   CONSOLE.print("sizeof(int64_t):");
   CONSOLE.println(sizeof(int64_t));
-
-
-  // relPosN... PAYLOAD: ofs=8size=4     2D,6,0,0,        relPosN: 15.81
-  /*
-  payload[8] = 0x2D;
-  payload[9] = 0x06;
-  payload[10] = 0x00;
-  payload[11] = 0x00;  
-  relPosN = ((float)(int)this->unpack_int32(8))/100.0;              
-  CONSOLE.print("test relPosN=");
-  CONSOLE.println(relPosN);
-  
-  // relPosE... PAYLOAD: ofs=12size=4    95,F9,FF,FF,     relPosE: 42949656.00   (wrong)
-  payload[12] = 0x95;
-  payload[13] = 0xF9;
+              
+  // ---- UBX-NAV-RELPOSNED decode test (will detect compiler conversion issues) -----------
+  payload[12] = 0x10;
+  payload[13] = 0xFD;
   payload[14] = 0xFF;
   payload[15] = 0xFF;   
   relPosE = ((float)(int)this->unpack_int32(12))/100.0;
-  CONSOLE.print("test relPosE=");
-  CONSOLE.println(relPosE);
-  exit(0);
-  */
+  CONSOLE.print("ublox UBX-NAV-RELPOSNED decode test: relPosE=");
+  CONSOLE.print(relPosE,2);
+  if (abs(relPosE- -7.52) < 0.01) {
+    CONSOLE.println(" TEST SUCCEEDED");
+  } else {
+    CONSOLE.println(" TEST FAILED");
+  }
+
+  // ---- UBX-NAV-HPPOSLLH decode test (will detect compiler conversion issues) -----------
+  payload[12] = 0xA1;
+  payload[13] = 0x62;
+  payload[14] = 0x27;
+  payload[15] = 0x1F;
+  payload[25] = 0xE2;
+  double lat = 1e-7  *  (   ((float)((int32_t)this->unpack_int32(12)))   +  ((float)((int8_t)this->unpack_int8(25))) * 1e-2   );
+  CONSOLE.print("ublox UBX-NAV-HPPOSLLH decode test: lat=");
+  CONSOLE.print(lat,8);
+  if (abs(lat- 52.26748477) < 0.00000001) {
+    CONSOLE.println(" TEST SUCCEEDED");
+  } else {
+    CONSOLE.println(" TEST FAILED");
+  }
 }
+
 
 void UBLOX::begin(Client &client, char *host, uint16_t port){
   CONSOLE.println("UBLOX::begin tcp");
@@ -628,8 +636,8 @@ long UBLOX::unpack_int8(int offset) {
 }
 
 long UBLOX::unpack(int offset, int size) {
-    // relPosN... PAYLOAD: ofs=8size=4     2D,6,0,0,        relPosN: 15.81
-    // relPosE... PAYLOAD: ofs=12size=4    95,F9,FF,FF,     relPosE: 42949656.00
+    // relPosN... PAYLOAD: ofs=8  size=4    2D,6,0,0,        relPosN: 15.81
+    // relPosE... PAYLOAD: ofs=12 size=4    95,F9,FF,FF,     relPosE: 42949656.00
     if (verbose){
       CONSOLE.print("UNPACK: ofs=");
       CONSOLE.print(offset);
