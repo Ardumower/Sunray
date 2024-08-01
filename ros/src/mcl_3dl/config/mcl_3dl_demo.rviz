@@ -13,7 +13,6 @@ Panels:
         - /TF1/Frames1
         - /Odometry1/Shape1
         - /lidar1/Autocompute Value Bounds1
-        - /fastlio_pc1
       Splitter Ratio: 0.49042099714279175
     Tree Height: 516
   - Class: rviz/Selection
@@ -418,11 +417,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 45.88240051269531
+      Scale: 30.265939712524414
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 0.18389205634593964
-      Y: -1.2804641723632812
+      X: -0.23202143609523773
+      Y: 2.041933059692383
     Saved: ~
 Window Geometry:
   Displays:
