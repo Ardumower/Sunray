@@ -40,7 +40,10 @@
 
 	<!-- only test LiDAR driver -->
 	<group if="$(eval sunray_ros_mode  == 'TEST_LIDAR')"> 
+		<!--
 		<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ground_lidar_processor)/launch/test.rviz"  if="$(arg rviz)" />
+		-->
+		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"   if="$(arg start_sunray_node)" />		
 	</group>
 
 
