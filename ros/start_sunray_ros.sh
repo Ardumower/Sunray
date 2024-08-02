@@ -126,6 +126,9 @@ echo "----starting sunray ros----"
 #if [ -z "$SUNRAY_ROS_MODE" ]; then
 #  SUNRAY_ROS_MODE=SIMPLE
 #fi
+if [ -z "$USE_BAG_FILE" ]; then
+  USE_BAG_FILE=false
+fi
 if [ -z "$SUNRAY_ROS_LAUNCH" ]; then
   #SUNRAY_ROS_LAUNCH=owlmower.launch
   SUNRAY_ROS_LAUNCH=`grep "ROS_LAUNCH_FILE" ../sunray/config.h | cut -d'"' -f 2`
@@ -138,6 +141,9 @@ echo "sunray_ros_launch: $SUNRAY_ROS_LAUNCH"
 echo "start rviz: $SUNRAY_ROS_RVIZ"
 echo "working dir: $PWD"    
 echo "DISPLAY: $DISPLAY"  
+echo "USE_BAG_FILE: $USE_BAG_FILE"
+echo "BAG_FILE: $BAG_FILE"
+
 
 WCON=$(nmcli c | grep wifi | head -1 | tail -c 12 | xargs )
 echo "WIFI CON: $WCON"
@@ -169,7 +175,7 @@ CMD+="  ; . devel/setup.bash"
 CMD+="; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node"
 CMD+="; cd /root/Sunray/alfred"
 CMD+="; pwd"
-CMD+="; roslaunch sunray_node run.launch sunray_ros_launch:=$SUNRAY_ROS_LAUNCH sunray_ros_mode:=$SUNRAY_ROS_MODE rviz:=$SUNRAY_ROS_RVIZ use_bag_file:=false map_pcd:=/root/PCD/dlio_map.pcd"
+CMD+="; roslaunch sunray_node run.launch sunray_ros_launch:=$SUNRAY_ROS_LAUNCH sunray_ros_mode:=$SUNRAY_ROS_MODE rviz:=$SUNRAY_ROS_RVIZ use_bag_file:=$USE_BAG_FILE bagfile:=$BAG_FILE map_pcd:=/root/PCD/dlio_map.pcd"
 docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME bash -c "$CMD" 
 
 # rosnode kill -a ; sleep 3

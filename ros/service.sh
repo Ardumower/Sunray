@@ -8,6 +8,7 @@
 # -start Sunray ROS LiDAR localization
 
 
+
 IMAGE_NAME="ros:melodic-perception-bionic"
 CONTAINER_NAME="ros1"
 
@@ -19,6 +20,8 @@ HOST_PCD_PATH=`realpath $PWD/../../PCD`
 USER_UID=$(id -u)
 
 SUNRAY_ROS_RVIZ=true
+USE_BAG_FILE=false
+BAG_FILE=/root/PCD/playback.bag
 
 
 function export_ros_ip {
@@ -256,6 +259,8 @@ function ros_sunray {
   #export SUNRAY_ROS_MODE=SIMPLE
   #export SUNRAY_ROS_MODE=LOCALIZATION
   export SUNRAY_ROS_RVIZ=$SUNRAY_ROS_RVIZ
+  export USE_BAG_FILE=$USE_BAG_FILE
+  export BAG_FILE=$BAG_FILE
   sudo -E ./start_sunray_ros.sh
 }
 
@@ -275,6 +280,13 @@ function toggle_rviz {
   fi
 }
 
+function toggle_use_bag_file {
+  if [[ "$USE_BAG_FILE" == "true" ]]; then
+    USE_BAG_FILE=false
+  else
+    USE_BAG_FILE=true
+  fi
+}
 
 function start_sunray_ros_service {
   if [ "$EUID" -ne 0 ]
@@ -325,6 +337,7 @@ function savelog(){
 
 function menu {
   echo "SUNRAY_ROS_RVIZ: $SUNRAY_ROS_RVIZ"
+  echo "USE_BAG_FILE: $USE_BAG_FILE"
   PS3='Please enter your choice: '
   options=(
       "Docker install"
@@ -343,6 +356,7 @@ function menu {
       "ROS run sunray"
       "ROS trigger re-localization"
       "toggle SUNRAY_ROS_RVIZ"
+      "toggle USE_BAG_FILE"
       "Start sunray ROS service"
       "Stop sunray ROS service"
       "Show sunray ROS service log"
@@ -420,6 +434,11 @@ function menu {
               menu
               break
               ;;
+          "toggle USE_BAG_FILE")
+              toggle_use_bag_file
+              menu
+              break
+              ;;              
           "Start sunray ROS service")
               start_sunray_ros_service
               break
