@@ -121,7 +121,7 @@ void loop(){
         
 
     #ifdef GPS_LIDAR       
-      if (nextGlobalLocalizationTime == 0) nextGlobalLocalizationTime = tim + 10.0;
+      if (nextGlobalLocalizationTime < 0.001) nextGlobalLocalizationTime = tim + 10.0;
 
       // lookup ROS localization (mathematically, a frame transformation) 
       tf::StampedTransform transform;
