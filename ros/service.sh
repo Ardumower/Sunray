@@ -18,10 +18,16 @@ HOST_PCD_PATH=`realpath $PWD/../../PCD`
 #CONFIG_FILE="/root/Sunray/alfred/config_owlmower.h"
 #CONFIG_FILE="/root/Sunray/alfred/config_fuxtec_ros.h"
 USER_UID=$(id -u)
-
-SUNRAY_ROS_RVIZ=true
-USE_BAG_FILE=false
 BAG_FILE=/root/PCD/playback.bag
+
+if [ -z "$SUNRAY_ROS_RVIZ" ]; then
+  SUNRAY_ROS_RVIZ=true
+fi
+
+if [ -z "$USE_BAG_FILE" ]; then
+  USE_BAG_FILE=false
+fi
+
 
 
 function export_ros_ip {
@@ -257,7 +263,7 @@ function ros_stop_mapping {
 function ros_sunray {
   echo "ros_sunray"
   #export SUNRAY_ROS_MODE=SIMPLE
-  #export SUNRAY_ROS_MODE=LOCALIZATION
+  #export SUNRAY_ROS_MODE=LOCALIZATION  
   export SUNRAY_ROS_RVIZ=$SUNRAY_ROS_RVIZ
   export USE_BAG_FILE=$USE_BAG_FILE
   export BAG_FILE=$BAG_FILE
