@@ -175,7 +175,7 @@ CMD+="  ; . devel/setup.bash"
 CMD+="; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node"
 CMD+="; cd /root/Sunray/alfred"
 CMD+="; pwd"
-CMD+="; roslaunch sunray_node run.launch sunray_ros_launch:=$SUNRAY_ROS_LAUNCH sunray_ros_mode:=$SUNRAY_ROS_MODE rviz:=$SUNRAY_ROS_RVIZ use_bag_file:=$USE_BAG_FILE bagfile:=$BAG_FILE map_pcd:=/root/PCD/dlio_map.pcd"
+CMD+="; roslaunch sunray_node run.launch sunray_ros_launch:=$SUNRAY_ROS_LAUNCH sunray_ros_mode:=$SUNRAY_ROS_MODE rviz:=$SUNRAY_ROS_RVIZ use_bag_file:=$USE_BAG_FILE bag_file:=$BAG_FILE map_pcd:=/root/PCD/dlio_map.pcd"
 docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME bash -c "$CMD" 
 
 # rosnode kill -a ; sleep 3
