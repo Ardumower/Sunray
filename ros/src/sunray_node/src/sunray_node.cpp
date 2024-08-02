@@ -35,6 +35,8 @@ ros::ServiceClient src_global_localization;
 tf::TransformListener *tfListener;
 double nextErrorTime = 0;
 double nextPrintTime = 0;
+double nextGlobalLocalizationTime = 0;
+double convergenceTimeout = 0;
 double match_ratio = 0;
 int convergence_status = 0;
 
@@ -109,7 +111,7 @@ void loop(){
     run(); 
 
     if (ros::ok()) {
-    double tim = ros::Time::now().toSec(); 
+    double tim = ros::Time::now().toSec();     
 
     float x = 0;
     float y = 0;
@@ -119,6 +121,8 @@ void loop(){
         
 
     #ifdef GPS_LIDAR       
+      if (nextGlobalLocalizationTime == 0) nextGlobalLocalizationTime = tim + 10.0;
+
       // lookup ROS localization (mathematically, a frame transformation) 
       tf::StampedTransform transform;
       try{
@@ -172,6 +176,19 @@ void loop(){
         nextPrintTime = tim + 0.5;
         ROS_WARN("ROS: m=%.2f c=%d  x=%.2f  y=%.2f  z=%.2f yaw=%.2f", match_ratio, convergence_status,  x, y, z, yaw/3.1415*180.0);
       } 
+
+
+      if (convergence_status == 1){
+        convergenceTimeout = tim + 10.0;
+      }
+
+      if (tim > nextGlobalLocalizationTime){
+        if ((convergence_status == 0) && (tim > convergenceTimeout)) {
+          triggerGlobalLocalization();
+          nextGlobalLocalizationTime = tim + 20;
+        }
+      }
+
     #endif
 
     // https://stackoverflow.com/questions/23227024/difference-between-spin-and-rate-sleep-in-ros
