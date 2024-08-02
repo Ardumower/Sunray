@@ -39,6 +39,7 @@ double nextGlobalLocalizationTime = 0;
 double convergenceTimeout = 0;
 double match_ratio = 0;
 int convergence_status = 0;
+int globalLocalizationTriggerCounter = 0;
 
 
 void obstacleStateCallback(const std_msgs::Int8 &msg)
@@ -70,6 +71,8 @@ void localizationStatusCallback(const mcl_3dl_msgs::Status& msg)
 
 void triggerGlobalLocalization()
 {
+    globalLocalizationTriggerCounter++;
+    //ROS_WARN("triggerGlobalLocalization");
     std_srvs::Trigger trigger;
     if (src_global_localization.call(trigger)){
       // call success
@@ -174,7 +177,9 @@ void loop(){
 
       if (tim > nextPrintTime){
         nextPrintTime = tim + 0.5;
-        ROS_WARN("ROS: m=%.2f c=%d  x=%.2f  y=%.2f  z=%.2f yaw=%.2f", match_ratio, convergence_status,  x, y, z, yaw/3.1415*180.0);
+        ROS_WARN("ROS: m=%.2f c=%d g=%d  x=%.2f  y=%.2f  z=%.2f yaw=%.2f", 
+          match_ratio, convergence_status, globalLocalizationTriggerCounter,  
+          x, y, z, yaw/3.1415*180.0);
       } 
 
 
@@ -185,7 +190,7 @@ void loop(){
       if (tim > nextGlobalLocalizationTime){
         if ((convergence_status == 0) && (tim > convergenceTimeout)) {
           triggerGlobalLocalization();
-          nextGlobalLocalizationTime = tim + 20;
+          nextGlobalLocalizationTime = tim + 20.0;
         }
       }
 
