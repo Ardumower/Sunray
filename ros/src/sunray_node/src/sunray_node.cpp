@@ -35,7 +35,6 @@ ros::ServiceClient src_global_localization;
 tf::TransformListener *tfListener;
 double nextErrorTime = 0;
 double nextPrintTime = 0;
-double nextGlobalLocalizationTime = 0;
 double convergenceTimeout = 0;
 double match_ratio = 0;
 int convergence_status = 0;
@@ -123,7 +122,6 @@ void loop(){
         
 
     #ifdef GPS_LIDAR       
-      if (nextGlobalLocalizationTime < 0.001) nextGlobalLocalizationTime = tim + 10.0;
 
       // lookup ROS localization (mathematically, a frame transformation) 
       tf::StampedTransform transform;
@@ -183,14 +181,12 @@ void loop(){
 
 
       if (convergence_status == 1){
-        convergenceTimeout = tim + 10.0;
+        convergenceTimeout = tim + 30.0;
       }
 
-      if (tim > nextGlobalLocalizationTime){
-        if ((convergence_status == 0) && (tim > convergenceTimeout)) {
-          triggerGlobalLocalization();
-          nextGlobalLocalizationTime = tim + 20.0;
-        }
+      if ((convergence_status == 0) && (tim > convergenceTimeout)) {
+        triggerGlobalLocalization();
+        convergenceTimeout = tim + 20.0;
       }
 
     #endif
