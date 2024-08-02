@@ -185,7 +185,7 @@ function ros_compile {
   # build Sunray ROS node
   export_ros_ip    
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DCONFIG_FILE=$CONFIG_PATHNAME -DROS_EDITION=ROS1"
+    bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DCONFIG_FILE=$CONFIG_PATHNAME -DROS_EDITION=ROS1 -DCMAKE_BUILD_TYPE=Release"
 }
 
 function rviz {
