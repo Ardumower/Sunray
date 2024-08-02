@@ -63,8 +63,10 @@ cp config_alfred.h config.h
 ## run service script and choose point 'Build sunray executable', when being asked, choose 'config.h' as config file 
 ./service.sh
 
+## run service script and choose point 'Stop sunray service'
+sudo ./service.sh
 ## run service script and choose point 'Start sunray service'
-./service.sh
+sudo ./service.sh
 ```
 
 ## How to update installed code and re-compile 'Sunray for Alfred'
@@ -76,8 +78,10 @@ git pull
 ## run service script and choose point 'Build sunray executable', when being asked, choose 'config.h' as config file 
 ./service.sh
 
+## run service script and choose point 'Stop sunray service'
+sudo ./service.sh
 ## run service script and choose point 'Start sunray service'
-./service.sh
+sudo ./service.sh
 ```
 
 ## How to compile and flash 'Alfred MCU firmware'
