@@ -104,8 +104,7 @@ void setup(){
 
   localization_status_sub = node->subscribe("mcl_3dl/status", 1, localizationStatusCallback);
 
-  ros::ServiceClient src_global_localization =
-      node->serviceClient<std_srvs::TriggerRequest, std_srvs::TriggerResponse>("global_localization");
+  src_global_localization = node->serviceClient<std_srvs::TriggerRequest, std_srvs::TriggerResponse>("global_localization");
 
 } 
 
