@@ -52,6 +52,21 @@ function rebuild_sunray() {
 }
 
 
+function install_sunray_alfred() {
+  if [ "$EUID" -eq 0 ]
+    then echo "Please run as non-root (not sudo)"
+    exit
+  fi
+  echo "NOTE: enter user password if being asked (see Sunray PDF manual for password)"
+  echo "stopping sunray service..."
+  sudo systemctl stop sunray
+  echo "installing executable..."
+  cp build/sunray ~/sunray_install/
+  echo "starting sunray service..."
+  sudo systemctl start sunray
+}
+
+
 # start USB camera streaming web server 
 function start_cam_service() {
   if [ "$EUID" -ne 0 ]
@@ -198,6 +213,7 @@ fi
 PS3='Please enter your choice: '
 options=( 
   "Build sunray executable" "Rebuild sunray executable"
+  "Install sunray executable on Alfred"
   "Start sunray service" "Stop sunray service" 
   "Start camera service" "Stop camera service"
   "Start logging service" "Stop logging service"
@@ -214,6 +230,10 @@ do
             ;;
         "Rebuild sunray executable")
             rebuild_sunray
+            break
+            ;;
+        "Install sunray executable on Alfred")
+            install_sunray_alfred
             break
             ;;
         "Start sunray service")
