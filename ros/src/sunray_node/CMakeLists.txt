@@ -26,6 +26,7 @@ set(CATKIN_DEPENDS
   nav_msgs
   sensor_msgs
   std_msgs
+  mcl_3dl_msgs  
   std_srvs
   visualization_msgs
 )

@@ -12,8 +12,11 @@
 
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <mcl_3dl_msgs/Status.h>
 #include <std_msgs/Int8.h>
+#include <std_srvs/Trigger.h>
 #include <tf/transform_listener.h>
+
 
 #include "config.h"  
 #include "robot.h"
@@ -27,9 +30,13 @@ int argc = 0;
 ros::NodeHandle *node;
 ros::Rate *rate;
 ros::Subscriber obstacle_state_sub;
+ros::Subscriber localization_status_sub;
+ros::ServiceClient src_global_localization;
 tf::TransformListener *tfListener;
 double nextErrorTime = 0;
 double nextPrintTime = 0;
+double match_ratio = 0;
+int convergence_status = 0;
 
 
 void obstacleStateCallback(const std_msgs::Int8 &msg)
@@ -51,6 +58,26 @@ void obstacleStateCallback(const std_msgs::Int8 &msg)
 }
 
 
+void localizationStatusCallback(const mcl_3dl_msgs::Status& msg)
+{
+  convergence_status = msg.convergence_status;
+  match_ratio = msg.match_ratio;
+}
+
+
+
+void triggerGlobalLocalization()
+{
+    std_srvs::Trigger trigger;
+    if (src_global_localization.call(trigger)){
+      // call success
+    } else {
+      // call failed
+      //ROS_ERROR("Failed to call global localization service");
+    }
+}
+
+
 void setup(){  
   #ifdef GPS_LIDAR 
     imuDriver.imuFound = true;
@@ -69,8 +96,13 @@ void setup(){
 
   rate = new ros::Rate(50);
   obstacle_state_sub = node->subscribe("/obstacle_state", 1, &obstacleStateCallback);
-} 
 
+  localization_status_sub = node->subscribe("mcl_3dl/status", 1, localizationStatusCallback);
+
+  ros::ServiceClient src_global_localization =
+      node->serviceClient<std_srvs::TriggerRequest, std_srvs::TriggerResponse>("global_localization");
+
+} 
 
 
 void loop(){      
@@ -138,7 +170,7 @@ void loop(){
 
       if (tim > nextPrintTime){
         nextPrintTime = tim + 0.5;
-        ROS_WARN("ROS: x=%.2f  y=%.2f  z=%.2f yaw=%.2f", x, y, z, yaw/3.1415*180.0);
+        ROS_WARN("ROS: m=%.2f c=%d  x=%.2f  y=%.2f  z=%.2f yaw=%.2f", match_ratio, convergence_status,  x, y, z, yaw/3.1415*180.0);
       } 
     #endif
 
