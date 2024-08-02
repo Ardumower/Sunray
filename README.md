@@ -57,18 +57,14 @@ Run this on your Alfred Linux terminal (in your Alfred home folder):
 cd ~
 git clone https://github.com/Ardumower/Sunray.git
 
-## compile sunray (NOTE: 'make' will always copy config.h in current makefile folder into Sunray source folder) ##
-cd ~/Sunray/alfred/build
-rm -Rf *
-(NOTE: next command will use Alfred 'config.h',
- to use another config use:  cmake -D CONFIG_FILE=/home/pi/Sunray/alfred/config_owlmower.h .. )
-cmake ..
-make
+## make a customized copy of the Alfred config file
+cd ~/Sunray/alfred
+cp config_alfred.h config.h
+## run service script and choose point 'Build sunray executable', when being asked, choose 'config.h' as config file 
+./service.sh
 
-## install new sunray executable ##
-sudo systemctl stop sunray
-cp sunray ~/sunray_install/
-sudo systemctl start sunray
+## run service script and choose point 'Start sunray service'
+./service.sh
 ```
 
 ## How to update installed code and re-compile 'Sunray for Alfred'
@@ -77,18 +73,11 @@ sudo systemctl start sunray
 cd ~/Sunray
 git pull
 
-## compile sunray (NOTE: 'make' will always copy config.h in current makefile folder into Sunray source folder) ##
-cd ~/Sunray/alfred/build
-rm -Rf *
-(NOTE: next command will use Alfred 'config.h',
- to use another config use:  cmake -D CONFIG_FILE=/home/pi/Sunray/alfred/config_owlmower.h .. )
-cmake ..
-make
+## run service script and choose point 'Build sunray executable', when being asked, choose 'config.h' as config file 
+./service.sh
 
-## install new sunray executable ##
-sudo systemctl stop sunray
-cp sunray ~/sunray_install/
-sudo systemctl start sunray
+## run service script and choose point 'Start sunray service'
+./service.sh
 ```
 
 ## How to compile and flash 'Alfred MCU firmware'
