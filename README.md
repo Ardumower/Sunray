@@ -60,10 +60,12 @@ git clone https://github.com/Ardumower/Sunray.git
 ## make a customized copy of the Alfred config file
 cd ~/Sunray/alfred
 cp config_alfred.h config.h
+
 ## run service script and choose point 'Build sunray executable', when being asked, choose 'config.h' as config file 
 ./service.sh
 
-## run service script and choose point 'Start sunray service'
+## run service script and choose point 'Install sunray executable on Alfred',
+## when being asked, enter your user password (see Sunray PDF manual for password) 
 ./service.sh
 ```
 
@@ -76,7 +78,8 @@ git pull
 ## run service script and choose point 'Build sunray executable', when being asked, choose 'config.h' as config file 
 ./service.sh
 
-## run service script and choose point 'Start sunray service'
+## run service script and choose point 'Install sunray executable on Alfred',
+## when being asked, enter your user password (see Sunray PDF manual for password)
 ./service.sh
 ```
 
