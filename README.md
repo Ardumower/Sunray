@@ -64,7 +64,8 @@ cp config_alfred.h config.h
 ## run service script and choose point 'Build sunray executable', when being asked, choose 'config.h' as config file 
 ./service.sh
 
-## run service script and choose point 'Install sunray executable on Alfred', when being asked, enter your user password (see Sunray PDF manual for password) 
+## run service script and choose point 'Install sunray executable on Alfred',
+## when being asked, enter your user password (see Sunray PDF manual for password) 
 ./service.sh
 ```
 
@@ -77,7 +78,8 @@ git pull
 ## run service script and choose point 'Build sunray executable', when being asked, choose 'config.h' as config file 
 ./service.sh
 
-## run service script and choose point 'Install sunray executable on Alfred', when being asked, enter your user password (see Sunray PDF manual for password)
+## run service script and choose point 'Install sunray executable on Alfred',
+## when being asked, enter your user password (see Sunray PDF manual for password)
 ./service.sh
 ```
 
