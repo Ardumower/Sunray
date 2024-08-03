@@ -149,7 +149,7 @@ void loop(){
           gps.relPosN = y;
           gps.relPosE = x;
           gps.relPosD = z;
-          gps.solution = SOL_FIXED;
+          //gps.solution = SOL_FIXED;
           gps.solutionAvail = true;
           //gps.dgpsAge = millis();
 
@@ -184,10 +184,12 @@ void loop(){
         gps.isRelocalizing = false;
         convergenceTimeout = tim + 30.0;                
         gps.dgpsAge = millis();      // TODO: not the most elegant way to visualize the last convergence time
+        gps.solution = SOL_FIXED;          
       }
 
       if ((convergence_status == 0) && (tim > convergenceTimeout)) {
         triggerGlobalLocalization();
+        gps.solution = SOL_INVALID;          
         gps.isRelocalizing = true;
         convergenceTimeout = tim + 30.0;
       }
