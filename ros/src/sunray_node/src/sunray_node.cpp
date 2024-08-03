@@ -183,6 +183,7 @@ void loop(){
       if (convergence_status == 1){
         gps.isRelocalizing = false;
         convergenceTimeout = tim + 30.0;                
+        gps.dgpsAge = millis();      // TODO: not the most elegant way to visualize the last convergence time
       }
 
       if ((convergence_status == 0) && (tim > convergenceTimeout)) {
@@ -191,8 +192,8 @@ void loop(){
         convergenceTimeout = tim + 30.0;
       }
 
-      gps.numSV = convergence_status; // TODO: not the most elegant way to visualize this data
-      gps.accuracy = match_ratio;     // TODO: not the most elegant way to visualize this data
+      gps.numSV = convergence_status; // TODO: not the most elegant way to visualize the convergence status
+      gps.accuracy = match_ratio;     // TODO: not the most elegant way to visualize the match ratio
 
     #endif
 
