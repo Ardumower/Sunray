@@ -35,8 +35,10 @@ ros::ServiceClient src_global_localization;
 tf::TransformListener *tfListener;
 double nextErrorTime = 0;
 double nextPrintTime = 0;
+double nextCheckTime = 0;
 double convergenceTimeout = 0;
 double match_ratio = 0;
+double match_ratio_lp = 0;
 int convergence_status = 0;
 int globalLocalizationTriggerCounter = 0;
 
@@ -109,9 +111,9 @@ void setup(){
 
 
 void loop(){      
-    run(); 
+  run(); 
 
-    if (ros::ok()) {
+  if (ros::ok()) {
     double tim = ros::Time::now().toSec();     
 
     float x = 0;
@@ -175,33 +177,42 @@ void loop(){
       if (tim > nextPrintTime){
         nextPrintTime = tim + 0.5;
         ROS_WARN("ROS: mr=%.2f cs=%d gc=%d  x=%.2f  y=%.2f  z=%.2f yaw=%.2f", 
-          match_ratio, convergence_status, globalLocalizationTriggerCounter,  
+          match_ratio_lp, convergence_status, globalLocalizationTriggerCounter,  
           x, y, z, yaw/3.1415*180.0);
       } 
 
-      if (!gps.isRelocalizing){
-        if (match_ratio >= 0.6){
-          // convergence status workaround: sometimes we have no convergence for a valid position, but the match ratio is high
-          convergenceTimeout = tim + 20.0;                        
+      if (tim > nextCheckTime){
+        nextCheckTime = tim + 0.2;
+      
+        //if (!gps.isRelocalizing){
+          if (match_ratio_lp > 0.5){
+            // convergence status workaround: sometimes we have no convergence for a valid position, but the match ratio is high
+            convergenceTimeout = tim + 20.0;                        
+            gps.isRelocalizing = false;
+            gps.solution = SOL_FIXED;          
+          }
+        //}      
+
+        if (convergence_status == 1){
+          gps.isRelocalizing = false;
+          convergenceTimeout = tim + 60.0;                
+          gps.dgpsAge = millis();      // TODO: not the most elegant way to visualize the last convergence time
+          gps.solution = SOL_FIXED;          
         }
-      }      
 
-      if (convergence_status == 1){
-        gps.isRelocalizing = false;
-        convergenceTimeout = tim + 60.0;                
-        gps.dgpsAge = millis();      // TODO: not the most elegant way to visualize the last convergence time
-        gps.solution = SOL_FIXED;          
+        if ((convergence_status == 0) && (tim > convergenceTimeout)) {
+          triggerGlobalLocalization();
+          gps.solution = SOL_INVALID;          
+          gps.isRelocalizing = true;
+          convergenceTimeout = tim + 30.0;
+          match_ratio_lp = 0;
+        }
+
+        gps.numSV = convergence_status; // TODO: not the most elegant way to visualize the convergence status
+        gps.accuracy = match_ratio_lp;     // TODO: not the most elegant way to visualize the match ratio
+
+        match_ratio_lp = 0.95 * match_ratio_lp + 0.05 * match_ratio;  // low-pass filter
       }
-
-      if ((convergence_status == 0) && (tim > convergenceTimeout)) {
-        triggerGlobalLocalization();
-        gps.solution = SOL_INVALID;          
-        gps.isRelocalizing = true;
-        convergenceTimeout = tim + 30.0;
-      }
-
-      gps.numSV = convergence_status; // TODO: not the most elegant way to visualize the convergence status
-      gps.accuracy = match_ratio;     // TODO: not the most elegant way to visualize the match ratio
 
     #endif
 
