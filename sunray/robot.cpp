@@ -966,6 +966,10 @@ void run(){
       activeOp->onImuCalibration();             
     } else {
       readIMU();    
+      // LiDAR relocalization
+      if (gps.isRelocalizing){
+        activeOp->onRelocalization();
+      }
     }
   }
 
@@ -974,7 +978,7 @@ void run(){
     nextLedTime = millis() + 1000;
     robotDriver.ledStateGpsFloat = (gps.solution == SOL_FLOAT);
     robotDriver.ledStateGpsFix = (gps.solution == SOL_FIXED);
-    robotDriver.ledStateError = (stateOp == OP_ERROR);     
+    robotDriver.ledStateError = (stateOp == OP_ERROR);            
   }
 
   gps.run();

@@ -132,6 +132,7 @@ class BuzzerDriver {
 
 class GpsDriver {
   public:
+    bool isRelocalizing = false;  // should robot wait for localization device until it gets its position?
     unsigned long iTOW; //  An interval time of week (ITOW), ms since Saturday/Sunday transition
     int numSV;         // #signals tracked 
     int numSVdgps;     // #signals tracked with DGPS signal

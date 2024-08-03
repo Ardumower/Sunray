@@ -24,6 +24,7 @@ GpsWaitFixOp gpsWaitFixOp;
 GpsWaitFloatOp gpsWaitFloatOp;
 GpsRebootRecoveryOp gpsRebootRecoveryOp;
 ImuCalibrationOp imuCalibrationOp;
+RelocalizationOp relocalizationOp;
 
 // active op
 Op *activeOp = &idleOp;
@@ -241,6 +242,10 @@ void Op::onNoFurtherWaypoints(){
 
 void Op::onImuCalibration(){
     changeOp(imuCalibrationOp, true);
+}
+
+void Op::onRelocalization(){
+    changeOp(relocalizationOp, true);
 }
 
 void Op::onChargerConnected(){            

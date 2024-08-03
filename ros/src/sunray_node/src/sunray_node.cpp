@@ -174,20 +174,25 @@ void loop(){
 
       if (tim > nextPrintTime){
         nextPrintTime = tim + 0.5;
-        ROS_WARN("ROS: m=%.2f c=%d g=%d  x=%.2f  y=%.2f  z=%.2f yaw=%.2f", 
+        ROS_WARN("ROS: mr=%.2f cs=%d gc=%d  x=%.2f  y=%.2f  z=%.2f yaw=%.2f", 
           match_ratio, convergence_status, globalLocalizationTriggerCounter,  
           x, y, z, yaw/3.1415*180.0);
       } 
 
 
       if (convergence_status == 1){
-        convergenceTimeout = tim + 30.0;
+        gps.isRelocalizing = false;
+        convergenceTimeout = tim + 30.0;                
       }
 
       if ((convergence_status == 0) && (tim > convergenceTimeout)) {
         triggerGlobalLocalization();
-        convergenceTimeout = tim + 20.0;
+        gps.isRelocalizing = true;
+        convergenceTimeout = tim + 30.0;
       }
+
+      gps.numSV = convergence_status; // TODO: not the most elegant way to visualize this data
+      gps.accuracy = match_ratio;     // TODO: not the most elegant way to visualize this data
 
     #endif
 
