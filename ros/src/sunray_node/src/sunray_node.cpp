@@ -182,7 +182,7 @@ void loop(){
 
       if (convergence_status == 1){
         gps.isRelocalizing = false;
-        convergenceTimeout = tim + 30.0;                
+        convergenceTimeout = tim + 60.0;                
         gps.dgpsAge = millis();      // TODO: not the most elegant way to visualize the last convergence time
         gps.solution = SOL_FIXED;          
       }
