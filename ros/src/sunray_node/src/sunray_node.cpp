@@ -179,16 +179,16 @@ void loop(){
           x, y, z, yaw/3.1415*180.0);
       } 
 
-      if (match_ratio >= 0.6){
-        // convergence status workaround: sometimes we have no convergence for a valid position, but the match ratio is high
-        convergenceTimeout = tim + 10.0;                        
-      }      
-
       if (convergence_status == 1){
         gps.isRelocalizing = false;
         convergenceTimeout = tim + 60.0;                
         gps.dgpsAge = millis();      // TODO: not the most elegant way to visualize the last convergence time
         gps.solution = SOL_FIXED;          
+      } else {
+        if (match_ratio >= 0.6){
+          // convergence status workaround: sometimes we have no convergence for a valid position, but the match ratio is high
+          convergenceTimeout = tim + 20.0;                        
+        }      
       }
 
       if ((convergence_status == 0) && (tim > convergenceTimeout)) {
