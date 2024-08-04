@@ -23,7 +23,7 @@ dlio:
     dense:
       filtered: false
     sparse:
-      leafSize: 0.25
+      leafSize: 0.25  # 0.25
 
   odom:
 

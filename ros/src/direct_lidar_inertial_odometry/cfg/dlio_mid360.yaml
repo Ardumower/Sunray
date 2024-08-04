@@ -20,8 +20,8 @@ dlio:
   adaptive: true
 
   pointcloud:
-    deskew: true
-    voxelize: true
+    deskew: true      # true
+    voxelize: true    # true
 
   imu:
     calibration: false
