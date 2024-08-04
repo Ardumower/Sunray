@@ -42,7 +42,7 @@ dlio:
       cropBoxFilter:
         size: 1.0    # 1.0
       voxelFilter:
-        res: 0.25
+        res: 0.25    # 0.25
 
     keyframe:
       threshD: 1.0

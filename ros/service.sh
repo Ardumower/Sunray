@@ -20,6 +20,9 @@ HOST_PCD_PATH=`realpath $PWD/../../PCD`
 USER_UID=$(id -u)
 BAG_FILE=/root/PCD/playback.bag
 
+MAP_RES="0.25"
+#MAP_RES="0.01"
+
 if [ -z "$SUNRAY_ROS_RVIZ" ]; then
   SUNRAY_ROS_RVIZ=true
 fi
@@ -245,8 +248,19 @@ function ros_stop_mapping {
     fi
     echo "ros_stop_mapping"
     export_ros_ip
-    docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-      bash -c "export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; rosservice call /robot/dlio_map/save_pcd 0.25 /root/PCD ; ls -la /root/PCD"
+    
+    CMD="export ROS_IP=$WIP"
+    CMD+="; export ROS_HOME=/root/Sunray/alfred"
+    CMD+="; . /ros_entrypoint.sh"
+    CMD+="; cd /root/Sunray/ros"
+    CMD+="; . devel/setup.bash"
+    CMD+="; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node"
+    CMD+="; cd /root/Sunray/alfred"
+    CMD+="; pwd"
+    CMD+="; rosservice call /robot/dlio_map/save_pcd $MAP_RES /root/PCD"
+    CMD+="; ls -la /root/PCD"
+    docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME bash -c "$CMD"
+    
     docker stop $CONTAINER_NAME
 
     # rosservice call /robot/dlo_map/save_pcd LEAF_SIZE SAVE_PATH
