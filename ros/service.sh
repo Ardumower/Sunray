@@ -232,6 +232,8 @@ function ros_start_mapping {
   echo "ros_start_mapping"
   export SUNRAY_ROS_MODE=MAPPING
   export SUNRAY_ROS_RVIZ=$SUNRAY_ROS_RVIZ
+  export USE_BAG_FILE=$USE_BAG_FILE
+  export BAG_FILE=$BAG_FILE
   sudo -E ./start_sunray_ros.sh
 }
 

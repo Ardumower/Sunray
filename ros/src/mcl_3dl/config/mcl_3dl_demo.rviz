@@ -33,7 +33,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: unmatched
+    SyncSource: updated_map
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -407,7 +407,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -0.004999999888241291
+      Angle: -0.09000000357627869
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -439,5 +439,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1522
-  X: 398
-  Y: 50
+  X: 779
+  Y: 83
