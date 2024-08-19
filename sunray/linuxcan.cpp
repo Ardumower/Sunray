@@ -61,8 +61,14 @@ bool LinuxCAN::begin(){
 	}
 
   	struct ifreq ifr;
-  	strcpy(ifr.ifr_name, "can0" );
-  	ioctl(sock, SIOCGIFINDEX, &ifr);
+  	strcpy(ifr.ifr_name, "slcan0" );
+  	if (ioctl(sock, SIOCGIFINDEX, &ifr) < 0){
+		perror("cannot open slcan0...");
+	  	strcpy(ifr.ifr_name, "can0" );
+  		if (ioctl(sock, SIOCGIFINDEX, &ifr) < 0){
+			perror("cannot open can0...");	  	
+		}
+	}
 
   	struct sockaddr_can addr;
 	memset(&addr, 0, sizeof(addr));
