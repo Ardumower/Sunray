@@ -28,7 +28,7 @@ echo "setup CAN interface..."
 echo "NOTE: you may have to edit boot config to enable CAN driver (see https://github.com/owlRobotics-GmbH/owlRobotPlatform)"
 ip link set can0 up type can bitrate 1000000
 # ----- CAN-USB-bridge (SLCAN) -----------------------------
-# sudo slcand -o -s8 -t hw -S 1000000 /dev/ttyACM0
+# sudo slcand -o -s8 -t hw -S 3000000 /dev/ttyACM0
 # sudo ip link set up slcan0
 
 # -----------------------------------------
