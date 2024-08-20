@@ -358,10 +358,10 @@ void CanRobotDriver::run(){
   processResponse();
   if (millis() > nextMotorTime){
     nextMotorTime = millis() + 20; // 50 hz
-    while (can.available()){
+    /*while (can.available()){
       can_frame_t frame;
       can.read(frame);
-    }
+    }*/
     //CONSOLE.println(requestLeftPwm);
     requestMotorPwm(requestLeftPwm, requestRightPwm, requestMowPwm);    
   }
