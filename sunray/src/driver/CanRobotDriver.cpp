@@ -33,9 +33,12 @@ void CanRobotDriver::begin(){
   triggeredRain = false;
   triggeredStopButton = false;
   triggeredLift = false;
-  motorFault = false;
+  mowFault = false;
+  leftMotorFault = false;
+  rightMotorFault = false;
   mcuCommunicationLost = true;
   nextSummaryTime = 0;
+  nextCheckErrorTime = 0;
   nextConsoleTime = 0; 
   nextMotorTime = 0;
   nextTempTime = 0;
@@ -246,7 +249,15 @@ void CanRobotDriver::requestMowHeight(int mowHeightMillimeter){
   sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_target, data);  
   sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_angle, data);  
   sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_endswitch, data);  
-} 
+}
+
+void CanRobotDriver::requestMotorErrorStatus(){
+  canDataType_t data;  
+  sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_error, data);
+  sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_target, data);  
+  sendCanData(OWL_DRIVE_MSG_ID, LEFT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_error, data);
+  sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_error, data);
+}
 
 void CanRobotDriver::versionResponse(){
 }
@@ -279,6 +290,21 @@ void CanRobotDriver::processResponse(){
                 //CONSOLE.println("can_cmd_info");                
                 // info value (volt, velocity, position, ...)
                 switch (val){                            
+                  case owldrv::can_val_error:
+                    switch(node.sourceAndDest.sourceNodeID){
+                      case MOW_HEIGHT_MOTOR_NODE_ID:  
+                        break;
+                      case MOW_MOTOR_NODE_ID:
+                        mowFault = (data.byteVal[0] != err_ok);
+                        break;
+                      case LEFT_MOTOR_NODE_ID:
+                        leftMotorFault = (data.byteVal[0] != err_ok);
+                        break;
+                      case RIGHT_MOTOR_NODE_ID:
+                        rightMotorFault = (data.byteVal[0] != err_ok);
+                        break;
+                    }                    
+                    break;
                   case owldrv::can_val_endswitch:
                     switch(node.sourceAndDest.sourceNodeID){
                       case MOW_HEIGHT_MOTOR_NODE_ID:  
@@ -369,11 +395,15 @@ void CanRobotDriver::run(){
     nextSummaryTime = millis() + 100; // 10 hz
     requestSummary();
   }
+  if (millis() > nextCheckErrorTime){
+    nextCheckErrorTime = millis() + 2000; // 0.5 hz
+    requestMotorErrorStatus();
+  }
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;  // 1 hz    
     if (MOW_ADJUST_HEIGHT){   // can the mowing height be adjusted by an additional motor?
       requestMowHeight(requestMowHeightMillimeter);
-    }
+    }    
     bool printConsole = false;
     if (consoleCounter == 10){
       printConsole = true;
@@ -469,17 +499,17 @@ void CanMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
 }
 
 void CanMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &mowFault){
-  leftFault = canRobot.motorFault;
-  rightFault = canRobot.motorFault;
-  if (canRobot.motorFault){
-    CONSOLE.print("canRobot: motorFault (lefCurr=");
-    CONSOLE.print(canRobot.motorLeftCurr);
-    CONSOLE.print(" rightCurr=");
-    CONSOLE.print(canRobot.motorRightCurr);
-    CONSOLE.print(" mowCurr=");
-    CONSOLE.println(canRobot.mowCurr);
+  leftFault = canRobot.leftMotorFault;
+  rightFault = canRobot.rightMotorFault;
+  mowFault = canRobot.mowFault;
+  if ( (canRobot.mowFault) || (canRobot.leftMotorFault) || (canRobot.rightMotorFault) ){
+    CONSOLE.print("canRobot: motorFault (lefErr=");
+    CONSOLE.print(canRobot.leftMotorFault);
+    CONSOLE.print(" rightErr=");
+    CONSOLE.print(canRobot.rightMotorFault);
+    CONSOLE.print(" mowErr=");
+    CONSOLE.println(canRobot.mowFault);
   }
-  mowFault = false;
 }
 
 void CanMotorDriver::resetMotorFaults(){

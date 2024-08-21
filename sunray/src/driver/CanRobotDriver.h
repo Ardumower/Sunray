@@ -139,7 +139,9 @@ class CanRobotDriver: public RobotDriver {
     unsigned long encoderTicksRight;
     unsigned long encoderTicksMow;
     bool mcuCommunicationLost;
-    bool motorFault;
+    bool mowFault;
+    bool leftMotorFault;
+    bool rightMotorFault;
     float batteryVoltage;
     float chargeVoltage;
     float chargeCurrent;
@@ -164,6 +166,7 @@ class CanRobotDriver: public RobotDriver {
     float getCpuTemperature() override;
     void requestMotorPwm(int leftPwm, int rightPwm, int mowPwm);
     void requestMowHeight(int mowHeightMillimeter);
+    void requestMotorErrorStatus();
     void requestSummary();
     void requestVersion();
     void updateCpuTemperature();
@@ -182,6 +185,7 @@ class CanRobotDriver: public RobotDriver {
     String cmdResponse;
     unsigned long nextMotorTime;    
     unsigned long nextSummaryTime;
+    unsigned long nextCheckErrorTime;
     unsigned long nextConsoleTime;
     unsigned long nextTempTime;
     unsigned long nextWifiTime;
