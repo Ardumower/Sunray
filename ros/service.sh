@@ -187,8 +187,28 @@ function ros_compile {
   # build single package:    catkin_make -DCATKIN_WHITELIST_PACKAGES="ground_lidar_processor"
   # build Sunray ROS node
   export_ros_ip    
+  CMD=". /ros_entrypoint.sh ;"
+  CMD+="cd /root/Sunray/ros/ ;"
+  CMD+="rm -Rf build ; rm -Rf devel ;"
+  CMD+="catkin_make -DCONFIG_FILE=$CONFIG_PATHNAME -DROS_EDITION=ROS1 -DCMAKE_BUILD_TYPE=Release"
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; rm -Rf build ; rm -Rf devel ; catkin_make -DCONFIG_FILE=$CONFIG_PATHNAME -DROS_EDITION=ROS1 -DCMAKE_BUILD_TYPE=Release"
+    bash -c "$CMD"
+}
+
+function ros_recompile {
+  echo "ros_recompile"
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi 
+  # build single package:    catkin_make -DCATKIN_WHITELIST_PACKAGES="ground_lidar_processor"
+  # build Sunray ROS node
+  export_ros_ip    
+  CMD=". /ros_entrypoint.sh ;"
+  CMD+="cd /root/Sunray/ros/ ;"
+  CMD+="catkin_make"
+  docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
+    bash -c "$CMD"
 }
 
 function rviz {
@@ -369,7 +389,8 @@ function menu {
       "Docker create image from container"
       "Docker prepare ROS tools"
       "Docker run terminal"
-      "ROS compile"    
+      "ROS compile" 
+      "ROS recompile" 
       "rviz"
       "ROS test LiDAR"
       "ROS test ground bumper"    
@@ -417,6 +438,10 @@ function menu {
               ;;
           "ROS compile")
               ros_compile
+              break
+              ;;
+          "ROS recompile")
+              ros_recompile
               break
               ;;
           "rviz")
