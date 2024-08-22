@@ -120,7 +120,7 @@ time = 0
 
 nextSpeedStepTime = 0.0
 
-while (pos[0] < gx) and (time < 200):         
+while (pos[0] < gx-2.0) and (time < 200):         
   percent = pos[0] / gx
   #print(percent, speed)
   if time > nextSpeedStepTime:
@@ -166,7 +166,7 @@ while (pos[0] < gx) and (time < 200):
 
   # steering control (path tracking)
   lateralError = distanceLineInfinite(mpos[0], mpos[1], 0, 0, gx, gy)        
-  targetYaw = pointsAngle(mpos[0], mpos[1], gx+10, gy)      
+  targetYaw = pointsAngle(mpos[0], mpos[1], gx, gy)      
   targetYaw = scalePIangles(targetYaw, yaw)
   angularError = distancePI(yaw, targetYaw)                         
   # apply steering control (stanley controller)
