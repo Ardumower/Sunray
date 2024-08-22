@@ -236,6 +236,15 @@ void CanRobotDriver::requestMowHeight(int mowHeightMillimeter){
   if (motorHeightFoundEndswitch){    
     // convert millimeter to motor angle radiant    
     data.floatVal = motorHeightAngleEndswitch - (((float)(heightEndSwitchMillimeter-mowHeightMillimeter)) * motorAnglePerMillimeter);  
+        
+    if (abs(motorHeightAngleCurr - data.floatVal) > 10){
+      data.byteVal[0] = 0;
+      sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_motor_enable, data);        
+    } else {
+      data.byteVal[0] = 1;      
+      sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_motor_enable, data);        
+    }
+
     //CONSOLE.print("endswitch found - requestMowHeight: ");
     //CONSOLE.print(data.floatVal);
     //CONSOLE.print("(");
