@@ -14,7 +14,7 @@ timestep = 0.02 # 0.02 control period
 noiseGps = 0.0 # 0.1 GPS noise 
 noiseProcessYaw = 0.02  # 0.02 process noise
 
-processLatency = 0.1  # 0.99 # process latency (steering latency)
+processLatency = 0.9  # 0.99 # process latency (steering latency)
 
 doControl = True
 stanley_p = 1.1   # 1.0 # 1.0 stanley angular control gain
@@ -85,6 +85,7 @@ timedata = []
 speeddata = []
 ctl_angular_data = []
 ctl_lateral_data = []
+steering_data = []
 yaw = 0 # start orientation
 pos = np.array([0.0, 0.5, 0.0])
 
@@ -189,6 +190,7 @@ while (pos[0] < gx) and (time < 200):
 
   ctl_angular_data.append(ctl_angular)
   ctl_lateral_data.append(ctl_lateral)
+  steering_data.append(steering)
 
   time = time + timestep    
   
@@ -247,6 +249,7 @@ ax.set_ylabel('control error [m]')
 ax = fig.add_subplot(224)
 ax.plot(timedata,ctl_angular_data,'-r',label='angular_ctl',alpha=0.8)        
 ax.plot(timedata,ctl_lateral_data,'-b',label='lateral_ctl',alpha=0.8)
+ax.plot(timedata,steering_data,'-g',label='steering',alpha=0.8)        
 #ax.set_ylim(-0.5, 0.5)
 ax.legend()
 ax.grid()
