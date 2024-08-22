@@ -17,8 +17,8 @@ noiseProcessYaw = 0.02  # 0.02 process noise
 processLatency = 0.99  # 0.99 # process latency (steering latency)
 
 doControl = True
-stanley_p = 1.0   # 1.0 # 1.0 stanley angular control gain
-stanley_k = 1.0   # 5.0 # stanley lateral control gain # 0.5 (normal), 0.1 (slow)
+stanley_p = 3.0   # 1.0 # 1.0 stanley angular control gain
+stanley_k = 3.0   # 5.0 # stanley lateral control gain # 0.5 (normal), 0.1 (slow)
 
 
 # scale setangle, so that both PI angles have the same sign
