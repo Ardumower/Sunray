@@ -12,13 +12,13 @@ maxspeed = 1.0 # 0.5 speed [m/s]
 timestep = 0.02 # 0.02 control period
 
 noiseGps = 0.0 # 0.1 GPS noise 
-noiseProcessYaw = 0.02  # 0.02 process noise
+noiseProcessYaw = 0.0  # 0.02 process noise
 
-processLatency = 0.99 # process latency (steering latency)
+processLatency = 0.0  # 0.99 # process latency (steering latency)
 
 doControl = True
 stanley_p = 1.1   # 1.0 # 1.0 stanley angular control gain
-stanley_k = 0.1   # 5.0 # stanley lateral control gain # 0.5 (normal), 0.1 (slow)
+stanley_k = 0.4   # 5.0 # stanley lateral control gain # 0.5 (normal), 0.1 (slow)
 
 
 # scale setangle, so that both PI angles have the same sign
