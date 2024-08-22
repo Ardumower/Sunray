@@ -10,10 +10,10 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-tracklen = 200.0 # 20.0 track length [m]
+tracklen = 100.0 # 20.0 track length [m]
 speed = 0.1 # starting speed [m/s]
 maxspeed = 1.0 # 0.5 speed [m/s]
-dt = 0.02 # 0.02 control period
+dt = 0.1 # 0.02 control period
 
 noiseGps = 0.0 # 0.1 GPS noise 
 noiseProcessYaw = 0.002  # 0.02 process noise
@@ -21,8 +21,8 @@ noiseProcessYaw = 0.002  # 0.02 process noise
 processLatency = 0.9999  # 0.99 # process latency (steering latency)
 
 doControl = True
-stanley_p = 60.0   # 1.0 # 1.0 stanley angular control gain
-stanley_k = 60.0   # 5.0 # stanley lateral control gain # 0.5 (normal), 0.1 (slow)
+stanley_p = 30.0   # 1.0 # 1.0 stanley angular control gain
+stanley_k = 30.0   # 5.0 # stanley lateral control gain # 0.5 (normal), 0.1 (slow)
 stanley_ks = 0.001  # smoothness
 
 
@@ -63,6 +63,15 @@ def distanceLineInfinite(px, py, x1, y1, x2, y2):
   if (abs(len) < 0.01): return 0
   distToLine = ((y2-y1)*px-(x2-x1)*py+(x2*y1-y2*x1)) / len
   return distToLine
+
+# compute course (angle in rad) between two points
+def pointsAngle(x1, y1, x2, y2):
+  dX = x2 - x1
+  dY = y2 - y1
+  angle = scalePI(math.atan2(dY, dX))
+  return angle
+
+
 
     
 # Data for three-dimensional scattered points
@@ -111,7 +120,7 @@ time = 0
 
 nextSpeedStepTime = 0.0
 
-while (pos[0] < gx) and (time < 500):         
+while (pos[0] < gx) and (time < 200):         
   percent = pos[0] / gx
   #print(percent, speed)
   if time > nextSpeedStepTime:
@@ -157,7 +166,9 @@ while (pos[0] < gx) and (time < 500):
 
   # steering control (path tracking)
   lateralError = distanceLineInfinite(mpos[0], mpos[1], 0, 0, gx, gy)        
-  angularError = distancePI(yaw, 0)                         
+  targetYaw = pointsAngle(mpos[0], mpos[1], gx+10, gy)      
+  targetYaw = scalePIangles(targetYaw, yaw)
+  angularError = distancePI(yaw, targetYaw)                         
   # apply steering control (stanley controller)
   if (doControl):
     ctl_angular = stanley_p * angularError
@@ -179,8 +190,8 @@ while (pos[0] < gx) and (time < 500):
   # apply steering control with latency
   yaw = processLatency * yaw + (1.0 - processLatency) * (yaw + steering)
   
-  print ('yaw', round(yaw/3.1415*180.0), 'steering', round(steering/3.1415*180.0), 
-          'lateralError', round(lateralError, 2), 'angularError', round(angularError, 2))
+  print ('x', round(pos[0], 2), 'yaw', round(yaw/3.1415*180.0), 'steering', round(steering/3.1415*180.0), 
+          'lateralError', round(lateralError, 2), 'angularError', round(angularError/3.1415*180.0, 2))
 
   # store values
   trueLateralError = distanceLineInfinite(pos[0], pos[1], 0, 0, gx, gy)         
