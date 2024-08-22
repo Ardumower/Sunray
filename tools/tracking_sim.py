@@ -19,6 +19,7 @@ processLatency = 0.99  # 0.99 # process latency (steering latency)
 doControl = True
 stanley_p = 3.0   # 1.0 # 1.0 stanley angular control gain
 stanley_k = 3.0   # 5.0 # stanley lateral control gain # 0.5 (normal), 0.1 (slow)
+stanley_ks = 0.5  # smoothness
 
 
 # scale setangle, so that both PI angles have the same sign
@@ -157,7 +158,7 @@ while (pos[0] < gx) and (time < 200):
   if (doControl):
     ctl_angular = stanley_p * angularError
     #ctl_lateral = math.atan2(stanley_k * lateralError, (0.001 + abs(speed)**10))
-    ctl_lateral = math.atan2(stanley_k * lateralError, (0.001 + abs(speed)))               
+    ctl_lateral = math.atan2(stanley_k * lateralError, (stanley_ks + abs(speed)))               
   else:
     ctl_angular = 0
     ctl_lateral = 0
@@ -207,6 +208,7 @@ print('maxl',maxl)
 fig = plt.figure()
 fig.canvas.set_window_title('RTK tracking')
 
+'''
 ax = fig.add_subplot(221, projection='3d')
 ax.scatter3D(gxdata, gydata, gzdata, c='green', cmap='Greens', alpha=0.05);
 ax.scatter3D(mxdata, mydata, mzdata, c='red', cmap='Greens', alpha=0.03);
@@ -255,6 +257,15 @@ ax.legend()
 ax.grid()
 ax.set_xlabel('time [s]')
 ax.set_ylabel('control output')
+'''
+
+plt.plot(timedata, speeddata, '-b',label='speed',alpha=0.8);
+plt.plot(timedata, elateral, '-r',label='lateral_err',alpha=0.8);
+plt.plot(timedata, steering_data, '-g',label='steering',alpha=0.8);
+
+plt.legend()
+plt.grid()
+
 
 plt.tight_layout()
 plt.show()              
