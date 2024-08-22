@@ -12,9 +12,9 @@ maxspeed = 1.0 # 0.5 speed [m/s]
 timestep = 0.02 # 0.02 control period
 
 noiseGps = 0.0 # 0.1 GPS noise 
-noiseProcessYaw = 0.0  # 0.02 process noise
+noiseProcessYaw = 0.02  # 0.02 process noise
 
-processLatency = 0.0  # 0.99 # process latency (steering latency)
+processLatency = 0.1  # 0.99 # process latency (steering latency)
 
 doControl = True
 stanley_p = 1.1   # 1.0 # 1.0 stanley angular control gain
