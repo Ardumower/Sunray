@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-tracklen = 80.0 # 20.0 track length [m]
+tracklen = 50.0 # 20.0 track length [m]
 speed = 0.1 # starting speed [m/s]
 maxspeed = 1.0 # 0.5 speed [m/s]
 timestep = 0.02 # 0.02 control period
@@ -17,8 +17,8 @@ noiseProcessYaw = 0.02  # 0.02 process noise
 processLatency = 0.99  # 0.99 # process latency (steering latency)
 
 doControl = True
-stanley_p = 3.0   # 1.0 # 1.0 stanley angular control gain
-stanley_k = 3.0   # 5.0 # stanley lateral control gain # 0.5 (normal), 0.1 (slow)
+stanley_p = 5.0   # 1.0 # 1.0 stanley angular control gain
+stanley_k = 5.0   # 5.0 # stanley lateral control gain # 0.5 (normal), 0.1 (slow)
 stanley_ks = 0.5  # smoothness
 
 
@@ -107,7 +107,7 @@ time = 0
 
 nextSpeedStepTime = 20.0
 
-while (pos[0] < gx) and (time < 200):         
+while (pos[0] < gx) and (time < 500):         
   percent = pos[0] / gx
   #print(percent, speed)
   if time > nextSpeedStepTime:
@@ -205,8 +205,9 @@ print('maxl',maxl)
 #xdata = np.sin(zdata) + 0.1 * np.random.randn(100)
 #ydata = np.cos(zdata) + 0.1 * np.random.randn(100)
 
-fig = plt.figure()
-fig.canvas.set_window_title('RTK tracking')
+#fig = plt.figure()
+plt.figure(figsize=(15,6))
+#fig.canvas.set_window_title('RTK tracking')
 
 '''
 ax = fig.add_subplot(221, projection='3d')
@@ -263,9 +264,9 @@ plt.plot(timedata, speeddata, '-b',label='speed',alpha=0.8);
 plt.plot(timedata, elateral, '-r',label='lateral_err',alpha=0.8);
 plt.plot(timedata, steering_data, '-g',label='steering',alpha=0.8);
 
+
 plt.legend()
 plt.grid()
-
 
 plt.tight_layout()
 plt.show()              
