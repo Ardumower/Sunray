@@ -18,7 +18,7 @@ dt = 0.1 # 0.02 control period
 noiseGps = 0.0 # 0.1 GPS noise 
 noiseProcessYaw = 0.002  # 0.02 process noise
 
-processLatency = 0.9999  # 0.99 # process latency (steering latency)
+processLatency = 0.999  # 0.99 # process latency (steering latency)
 
 doControl = True
 stanley_p = 30.0   # 1.0 # 1.0 stanley angular control gain
