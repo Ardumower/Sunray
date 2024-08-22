@@ -6,20 +6,20 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-tracklen = 80.0 # 20.0 track length [m]
+tracklen = 200.0 # 20.0 track length [m]
 speed = 0.1 # starting speed [m/s]
 maxspeed = 1.0 # 0.5 speed [m/s]
-timestep = 0.02 # 0.02 control period
+dt = 0.02 # 0.02 control period
 
 noiseGps = 0.0 # 0.1 GPS noise 
-noiseProcessYaw = 0.02  # 0.02 process noise
+noiseProcessYaw = 0.002  # 0.02 process noise
 
-processLatency = 0.99  # 0.99 # process latency (steering latency)
+processLatency = 0.9999  # 0.99 # process latency (steering latency)
 
 doControl = True
-stanley_p = 5.0   # 1.0 # 1.0 stanley angular control gain
-stanley_k = 5.0   # 5.0 # stanley lateral control gain # 0.5 (normal), 0.1 (slow)
-stanley_ks = 0.5  # smoothness
+stanley_p = 60.0   # 1.0 # 1.0 stanley angular control gain
+stanley_k = 60.0   # 5.0 # stanley lateral control gain # 0.5 (normal), 0.1 (slow)
+stanley_ks = 0.001  # smoothness
 
 
 # scale setangle, so that both PI angles have the same sign
@@ -74,6 +74,7 @@ gz = 0.0
 gxdata= []
 gydata= []
 gzdata= []
+yawdata = []
 xdata = []  
 ydata = []
 zdata = []
@@ -88,24 +89,23 @@ ctl_angular_data = []
 ctl_lateral_data = []
 steering_data = []
 yaw = 0 # start orientation
-pos = np.array([0.0, 0.5, 0.0])
+pos = np.array([0.0, 0.0, 0.0])
 
 # ---- measurement data ----
 mxdata = [] 
 mydata = []
 mzdata = []
-myaw = 0  # start orientation
 mpos = np.array([0.0,0.0,0.0])
 
 # ----------------------------
 print('speed',speed)
-print('timestep',timestep)
+print('dt',dt)
 time = 0
 #noiseAccHour = 0.5* noiseAcc * 1e-6 * 3600.0**2
 #print('noiseAcc [m] per hour', noiseAccHour  )
 #print('driftGyro [deg] per hour', biasGyro )
 
-nextSpeedStepTime = 20.0
+nextSpeedStepTime = 0.0
 
 while (pos[0] < gx) and (time < 500):         
   percent = pos[0] / gx
@@ -113,7 +113,7 @@ while (pos[0] < gx) and (time < 500):
   if time > nextSpeedStepTime:
     nextSpeedStepTime = time + 20.0
     speed = min(maxspeed, speed + 0.2) 
-    print("speed",speed)
+    print("speed",speed, 'x', pos[0], 'gx', gx)
     
   xdata.append(pos[0])
   ydata.append(pos[1])
@@ -121,8 +121,8 @@ while (pos[0] < gx) and (time < 500):
   timedata.append(time)
   speeddata.append(speed)
   
-  pos[0] = pos[0] + math.cos(yaw) * timestep * speed 
-  pos[1] = pos[1] + math.sin(yaw) * timestep * speed
+  pos[0] = pos[0] + math.cos(yaw) * dt * speed 
+  pos[1] = pos[1] + math.sin(yaw) * dt * speed
   pos[2] = 0
   #print("pos", pos[0],pos[1])
   
@@ -160,8 +160,12 @@ while (pos[0] < gx) and (time < 500):
     #ctl_lateral = math.atan2(stanley_k * lateralError, (0.001 + abs(speed)**10))
     ctl_lateral = math.atan2(stanley_k * lateralError, (stanley_ks + abs(speed)))               
   else:
-    ctl_angular = 0
+    if angularError > 0:
+      ctl_angular = 0.05
+    else:
+      ctl_angular = -0.05
     ctl_lateral = 0
+
 
   steering = ctl_angular + ctl_lateral
 
@@ -170,6 +174,9 @@ while (pos[0] < gx) and (time < 500):
 
   # apply steering control with latency
   yaw = processLatency * yaw + (1.0 - processLatency) * (yaw + steering)
+  
+  print ('yaw', round(yaw/3.1415*180.0), 'steering', round(steering/3.1415*180.0), 
+          'lateralError', round(lateralError, 2), 'angularError', round(angularError, 2))
 
   # store values
   trueLateralError = distanceLineInfinite(pos[0], pos[1], 0, 0, gx, gy)         
@@ -180,6 +187,7 @@ while (pos[0] < gx) and (time < 500):
   gxdata.append(gx * percent)
   gydata.append(0)
   gzdata.append(0)
+  yawdata.append(yaw)
 
   mxdata.append(mpos[0])
   mydata.append(mpos[1])
@@ -193,7 +201,7 @@ while (pos[0] < gx) and (time < 500):
   ctl_lateral_data.append(ctl_lateral)
   steering_data.append(steering)
 
-  time = time + timestep    
+  time = time + dt    
   
 
 minl = min(min(xdata, min(ydata, zdata)))
@@ -262,7 +270,8 @@ ax.set_ylabel('control output')
 
 plt.plot(timedata, speeddata, '-b',label='speed',alpha=0.8);
 plt.plot(timedata, elateral, '-r',label='lateral_err',alpha=0.8);
-plt.plot(timedata, steering_data, '-g',label='steering',alpha=0.8);
+plt.plot(timedata, yawdata, '-g',label='yaw',alpha=0.8);
+plt.plot(timedata, steering_data, '-y',label='steering',alpha=0.8);
 
 
 plt.legend()
