@@ -1,5 +1,9 @@
 # simulate robot using RTK-GPS tracking a line (stanley control)
 
+# https://www.youtube.com/watch?v=9Y7kVIJs_JI
+# https://github.com/qiaoxu123/Self-Driving-Cars/blob/master/Part1-Introduction_to_Self-Driving_Cars/Module6-Vehicle_Lateral_Control/module-6-vehicle-lateral-control.md
+
+
 import numpy as np
 import math
 import matplotlib.pyplot as plt
