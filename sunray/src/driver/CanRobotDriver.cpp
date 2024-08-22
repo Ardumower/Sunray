@@ -233,18 +233,16 @@ void CanRobotDriver::requestMowHeight(int mowHeightMillimeter){
   float motorAnglePerMillimeter = 325;  // motor angles per millimeter (320)  
   mowHeightMillimeter = max(heightMin, min(mowHeightMillimeter, heightMax));  // limit to allowed min/max  
   canDataType_t data;
+  bool sendTarget = true;
   if (motorHeightFoundEndswitch){    
     // convert millimeter to motor angle radiant    
     data.floatVal = motorHeightAngleEndswitch - (((float)(heightEndSwitchMillimeter-mowHeightMillimeter)) * motorAnglePerMillimeter);  
         
-    if (abs(motorHeightAngleCurr - data.floatVal) > 10){
+    if (abs(motorHeightAngleCurr - data.floatVal) < 20){
       data.byteVal[0] = 0;
       sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_motor_enable, data);        
-    } else {
-      data.byteVal[0] = 1;      
-      sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_motor_enable, data);        
-    }
-
+      sendTarget = false;
+    } 
     //CONSOLE.print("endswitch found - requestMowHeight: ");
     //CONSOLE.print(data.floatVal);
     //CONSOLE.print("(");
@@ -255,7 +253,7 @@ void CanRobotDriver::requestMowHeight(int mowHeightMillimeter){
     CONSOLE.print("no endswitch found - requestMowHeight: ");
     CONSOLE.println(data.floatVal);
   }
-  sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_target, data);  
+  if (sendTarget) sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_target, data);  
   sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_angle, data);  
   sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_endswitch, data);  
 }
