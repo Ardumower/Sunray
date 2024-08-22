@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-tracklen = 20.0 # 20.0 track length [m]
+tracklen = 80.0 # 20.0 track length [m]
 speed = 0.1 # starting speed [m/s]
-maxspeed = 0.5 # 0.5 speed [m/s]
+maxspeed = 1.0 # 0.5 speed [m/s]
 timestep = 0.02 # 0.02 control period
 
 noiseGps = 0.0 # 0.1 GPS noise 
@@ -155,8 +155,8 @@ while (pos[0] < gx) and (time < 200):
   # apply steering control (stanley controller)
   if (doControl):
     ctl_angular = stanley_p * angularError
-    ctl_lateral = math.atan2(stanley_k * lateralError, (0.0001 + abs(speed)**10))
-    #ctl_lateral = math.atan2(stanley_k * lateralError, (0.001 + abs(speed)))               
+    #ctl_lateral = math.atan2(stanley_k * lateralError, (0.001 + abs(speed)**10))
+    ctl_lateral = math.atan2(stanley_k * lateralError, (0.001 + abs(speed)))               
   else:
     ctl_angular = 0
     ctl_lateral = 0
