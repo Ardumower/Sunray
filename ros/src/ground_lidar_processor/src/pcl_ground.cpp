@@ -276,7 +276,7 @@ public:
                 }
             }
         }
-        if (obstacle_points->points.size() < 30){ // probably false positives
+        if (obstacle_points->points.size() < 60){ //  30 probably false positives
             obstacleNear = false;
             obstacleFar = false;
         }            
