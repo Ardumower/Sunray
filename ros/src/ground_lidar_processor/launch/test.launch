@@ -40,7 +40,7 @@
     <!-- usb cam - find device path:  v4l2-ctl - -list-devices ,  v4l2-ctl - -device=/dev/video0 - -all  -->
     <group if="$(arg use_usb_cam)" ns="camera">
       <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen" >
-        <param name="video_device" value="/dev/video2" />
+        <param name="video_device" value="/dev/video0" />
         <param name="image_width" value="640" />
         <param name="image_height" value="480" />
         <param name="pixel_format" value="mjpeg" />
@@ -48,6 +48,14 @@
         <param name="io_method" value="mmap"/>
         <param name="framerate" value="5"/>
       </node>
+    
+      <group ns="usb_cam/image_raw" >
+        <rosparam param="disable_pub_plugins">
+          - 'image_transport/compressedDepth'          
+          - 'image_transport/compressed'
+          - 'image_transport/theora'
+        </rosparam>
+      </group>        
     </group>
 
   </group>
