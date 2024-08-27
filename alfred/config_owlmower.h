@@ -147,8 +147,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define MOTOR_DRIVER_BRUSHLESS_GEARS_A4931  1   // uncomment for brushless A4931 driver and gear/traction motors
 
 #define MOTOR_FAULT_CURRENT 3.0    // gear motors fault current (amps)
-#define MOTOR_TOO_LOW_CURRENT 0.005   // gear motor too low current (amps), set to zero (0) to disable
-#define MOTOR_OVERLOAD_CURRENT 1.2    // gear motors overload current (amps)
+#define MOTOR_TOO_LOW_CURRENT 0.00   // gear motor too low current (amps), set to zero (0) to disable
+#define MOTOR_OVERLOAD_CURRENT 1.5    // gear motors overload current (amps)
 
 //#define USE_LINEAR_SPEED_RAMP  true      // use a speed ramp for the linear speed
 #define USE_LINEAR_SPEED_RAMP  false      // do not use a speed ramp 
