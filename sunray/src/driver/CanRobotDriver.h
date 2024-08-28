@@ -29,7 +29,15 @@
 // owlDrive PCB 
 #define LEFT_MOTOR_NODE_ID    1 
 #define RIGHT_MOTOR_NODE_ID   2
-#define MOW_MOTOR_NODE_ID     3
+#define MOW1_MOTOR_NODE_ID    3
+#define MOW2_MOTOR_NODE_ID    4
+#define MOW3_MOTOR_NODE_ID    5
+#define MOW4_MOTOR_NODE_ID    6
+#define MOW5_MOTOR_NODE_ID    7
+
+#define MAX_MOW_MOTOR_COUNT   5
+
+
 #define MOW_HEIGHT_MOTOR_NODE_ID     8
 
 #define CONTROL_NODE_ID       1 // owlControl PCB 
@@ -137,9 +145,9 @@ class CanRobotDriver: public RobotDriver {
     int requestMowHeightMillimeter;         
     unsigned long encoderTicksLeft;
     unsigned long encoderTicksRight;
-    unsigned long encoderTicksMow;
+    unsigned long encoderTicksMow[MAX_MOW_MOTOR_COUNT];
     bool mcuCommunicationLost;
-    bool mowFault;
+    bool mowFault[MAX_MOW_MOTOR_COUNT];
     bool leftMotorFault;
     bool rightMotorFault;
     float batteryVoltage;
@@ -206,7 +214,7 @@ class CanMotorDriver: public MotorDriver {
   public:        
     unsigned long lastEncoderTicksLeft;
     unsigned long lastEncoderTicksRight; 
-    unsigned long lastEncoderTicksMow;     
+    unsigned long lastEncoderTicksMow[MAX_MOW_MOTOR_COUNT];
     CanRobotDriver &canRobot;
     CanMotorDriver(CanRobotDriver &sr);
     void begin() override;
