@@ -57,12 +57,13 @@ function export_ros_ip {
   cat /proc/asound/cards
   # restart pulseaudio daemon as root
   #pulseaudio -k
-  killall pulseaudio
-  sleep 1
-  pulseaudio -D --system --disallow-exit --disallow-module-loading
+  #killall pulseaudio
+  #sleep 1
+  #pulseaudio -D --system --disallow-exit --disallow-module-loading
   #sudo chmod 666 /var/run/pulse/native
   #export PULSE_SERVER=unix:/var/run/pulse/native
   # set default volume 
+  adduser root dialout audio pulse-access pulse
   amixer -D pulse sset Master 100%
   #   echo "====> we will test host audio now... (you should hear a voice)" 
   #   mplayer /home/pi/Sunray/tts/de/system_starting.mp3

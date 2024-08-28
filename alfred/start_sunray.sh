@@ -70,10 +70,12 @@ fi
 #aplay -l
 cat /proc/asound/cards
 # restart pulseaudio daemon as root
-killall pulseaudio
-sleep 1
-pulseaudio -D --system --disallow-exit --disallow-module-loading --verbose
+#killall pulseaudio
+#sleep 1
+#pulseaudio -D --system --disallow-exit --disallow-module-loading --verbose
+#sudo chmod 666 /var/run/pulse/native
 # set default volume 
+adduser root dialout audio pulse-access pulse
 amixer -D pulse sset Master 100%
 
 

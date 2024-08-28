@@ -7,7 +7,7 @@ CONTAINER_NAME="ros1"
 
 echo "EUID=$EUID"
 echo "PWD=$PWD"
-
+WHOAMI=`whoami`
 
 
 if [ "$EUID" -ne 0 ]
@@ -88,20 +88,25 @@ then
   echo "installing audio player..."
   apt install -y libsox-fmt-mp3 sox mplayer alsa-utils pulseaudio
 fi
+# add root to dialout group
+echo "whoami: $WHOAMI"
+echo "belonging to groups: "
+groups
 # show audio devices
 #aplay -l
 cat /proc/asound/cards
 # restart pulseaudio daemon as root
-killall pulseaudio
-sleep 1
-pulseaudio -D --system --disallow-exit --disallow-module-loading
-#sudo chmod 666 /var/run/pulse/native
-export PULSE_SERVER=unix:/var/run/pulse/native
+#killall pulseaudio
+#sleep 1
+#pulseaudio -D --system --disallow-exit --disallow-module-loading
+#pulseaudio --dump-conf
+sudo chmod 666 /var/run/pulse/native
 # set default volume 
+adduser root dialout audio pulse-access pulse
+#export PULSE_SERVER=unix:/var/run/pulse/native
 amixer -D pulse sset Master 100%
 echo "we will test host audio now... (you should hear a voice)"
-mplayer /home/pi/Sunray/tts/de/system_starting.mp3
-#exit    
+mplayer ../tts/de/system_starting.mp3
 
 
 echo "----waiting for TCP connections to be closed from previous sessions----"
