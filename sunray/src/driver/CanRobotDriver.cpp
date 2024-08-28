@@ -7,12 +7,13 @@
 #include "CanRobotDriver.h"
 #include "../../config.h"
 #include "../../ioboard.h"
+#include "../../config.h"
 
 //#define COMM  ROBOT
 
 //#define DEBUG_CAN_ROBOT 1
 
-int MOW_MOTOR_NODE_IDS[MAX_MOW_MOTOR_COUNT] = { MOW1_MOTOR_NODE_ID, MOW2_MOTOR_NODE_ID, MOW3_MOTOR_NODE_ID, MOW4_MOTOR_NODE_ID, MOW5_MOTOR_NODE_ID  };
+int MOW_MOTOR_NODE_IDS[] = { MOW1_MOTOR_NODE_ID, MOW2_MOTOR_NODE_ID, MOW3_MOTOR_NODE_ID, MOW4_MOTOR_NODE_ID, MOW5_MOTOR_NODE_ID  };
 
 
 void CanRobotDriver::begin(){
@@ -21,7 +22,7 @@ void CanRobotDriver::begin(){
   can.begin();
   encoderTicksLeft = 0;
   encoderTicksRight = 0;
-  for (int i=0; i < MAX_MOW_MOTOR_COUNT; i++) encoderTicksMow[i] = 0;
+  for (int i=0; i < MOW_MOTOR_COUNT; i++) encoderTicksMow[i] = 0;
   chargeVoltage = 0;
   chargeCurrent = 0;  
   batteryVoltage = 28;
@@ -36,7 +37,7 @@ void CanRobotDriver::begin(){
   triggeredRain = false;
   triggeredStopButton = false;
   triggeredLift = false;
-  for (int i=0; i < MAX_MOW_MOTOR_COUNT; i++) mowFault[i] = false;
+  for (int i=0; i < MOW_MOTOR_COUNT; i++) mowFault[i] = false;
   leftMotorFault = false;
   rightMotorFault = false;
   mcuCommunicationLost = true;
@@ -225,7 +226,7 @@ void CanRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
     sendCanData(OWL_DRIVE_MSG_ID, MOW1_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
   #endif
 
-  for (int i=0; i < MAX_MOW_MOTOR_COUNT; i++){
+  for (int i=0; i < MOW_MOTOR_COUNT; i++){
     sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_IDS[i], can_cmd_request, owldrv::can_val_odo_ticks, data);
   }
   cmdMotorCounter++;
@@ -271,7 +272,7 @@ void CanRobotDriver::requestMowHeight(int mowHeightMillimeter){
 
 void CanRobotDriver::requestMotorErrorStatus(){
   canDataType_t data;    
-  for (int i=0; i < MAX_MOW_MOTOR_COUNT; i++){
+  for (int i=0; i < MOW_MOTOR_COUNT; i++){
     sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_IDS[i], can_cmd_request, owldrv::can_val_error, data);
   }
   sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_target, data);  
@@ -311,7 +312,7 @@ void CanRobotDriver::processResponse(){
                 // info value (volt, velocity, position, ...)
                 switch (val){                            
                   case owldrv::can_val_error:
-                    for (int i=0; i < MAX_MOW_MOTOR_COUNT; i++){
+                    for (int i=0; i < MOW_MOTOR_COUNT; i++){
                       if (node.sourceAndDest.sourceNodeID == MOW_MOTOR_NODE_IDS[i]){
                         mowFault[i] = (data.byteVal[0] != err_ok);                        
                       }
@@ -345,7 +346,7 @@ void CanRobotDriver::processResponse(){
                     }
                     break;
                   case owldrv::can_val_odo_ticks:
-                    for (int i=0; i < MAX_MOW_MOTOR_COUNT; i++){
+                    for (int i=0; i < MOW_MOTOR_COUNT; i++){
                       if (node.sourceAndDest.sourceNodeID == MOW_MOTOR_NODE_IDS[i]){
                         encoderTicksMow[i] = data.ofsAndByte.ofsVal;                        
                         motorResponse();
@@ -500,7 +501,7 @@ CanMotorDriver::CanMotorDriver(CanRobotDriver &sr): canRobot(sr){
 void CanMotorDriver::begin(){
   lastEncoderTicksLeft=0;
   lastEncoderTicksRight=0;
-  for (int i=0; i < MAX_MOW_MOTOR_COUNT; i++) lastEncoderTicksMow[i] = 0;
+  for (int i=0; i < MOW_MOTOR_COUNT; i++) lastEncoderTicksMow[i] = 0;
 }
 
 void CanMotorDriver::run(){
@@ -524,7 +525,7 @@ void CanMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &mow
   leftFault = canRobot.leftMotorFault;
   rightFault = canRobot.rightMotorFault;
   mowFault = false;
-  for (int i=0; i < MAX_MOW_MOTOR_COUNT; i++) mowFault = (mowFault || canRobot.mowFault[i]);
+  for (int i=0; i < MOW_MOTOR_COUNT; i++) mowFault = (mowFault || canRobot.mowFault[i]);
   if ( (canRobot.mowFault) || (canRobot.leftMotorFault) || (canRobot.rightMotorFault) ){
     CONSOLE.print("canRobot: motorFault (lefErr=");
     CONSOLE.print(canRobot.leftMotorFault);
@@ -562,14 +563,14 @@ void CanMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &
     //CONSOLE.println("getMotorEncoderTicks: resetMotorTicks");
     lastEncoderTicksLeft = canRobot.encoderTicksLeft;
     lastEncoderTicksRight = canRobot.encoderTicksRight;
-    for (int i=0; i < MAX_MOW_MOTOR_COUNT; i++) lastEncoderTicksMow[i] = canRobot.encoderTicksMow[i];
+    for (int i=0; i < MOW_MOTOR_COUNT; i++) lastEncoderTicksMow[i] = canRobot.encoderTicksMow[i];
   }
   leftTicks = (unsigned short)(canRobot.encoderTicksLeft - lastEncoderTicksLeft);
   rightTicks = (unsigned short)(canRobot.encoderTicksRight - lastEncoderTicksRight);
   
-  int allMowTicks[MAX_MOW_MOTOR_COUNT];
+  int allMowTicks[MOW_MOTOR_COUNT];
   mowTicks = 0;
-  for (int i=0; i < MAX_MOW_MOTOR_COUNT; i++){
+  for (int i=0; i < MOW_MOTOR_COUNT; i++){
     allMowTicks[i] = (unsigned short)(canRobot.encoderTicksMow[i] - lastEncoderTicksMow[i]);
     if (allMowTicks[i] > 1000) allMowTicks[i] = 0;
     lastEncoderTicksMow[i] = canRobot.encoderTicksMow[i];

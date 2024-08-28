@@ -181,6 +181,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // certain time (normally a few seconds) and the mower will try again and set a virtual obstacle after too many tries
 // On the other hand, the overload detection will detect situations the fault signal cannot detect: slightly higher current for a longer time 
 
+#define MOW_MOTOR_COUNT    1       // number of mowing motors
 #define MOW_ADJUST_HEIGHT  false   // can the mowing height be adjusted by an additional motor?
 
 //#define MAX_MOW_RPM  1900   // use this to set max RPM (note: requires mowing motor with rpm control!) 

@@ -10,6 +10,8 @@
 
 #include <Arduino.h>
 #include "RobotDriver.h"
+#include "../../config.h"
+
 #ifdef __linux__
   #include <Process.h>
   #include "../../linuxcan.h"
@@ -35,7 +37,7 @@
 #define MOW4_MOTOR_NODE_ID    6
 #define MOW5_MOTOR_NODE_ID    7
 
-#define MAX_MOW_MOTOR_COUNT   5
+//#define MOW_MOTOR_COUNT   5    // defined in config.h
 
 
 #define MOW_HEIGHT_MOTOR_NODE_ID     8
@@ -145,9 +147,9 @@ class CanRobotDriver: public RobotDriver {
     int requestMowHeightMillimeter;         
     unsigned long encoderTicksLeft;
     unsigned long encoderTicksRight;
-    unsigned long encoderTicksMow[MAX_MOW_MOTOR_COUNT];
+    unsigned long encoderTicksMow[MOW_MOTOR_COUNT];
     bool mcuCommunicationLost;
-    bool mowFault[MAX_MOW_MOTOR_COUNT];
+    bool mowFault[MOW_MOTOR_COUNT];
     bool leftMotorFault;
     bool rightMotorFault;
     float batteryVoltage;
@@ -214,7 +216,7 @@ class CanMotorDriver: public MotorDriver {
   public:        
     unsigned long lastEncoderTicksLeft;
     unsigned long lastEncoderTicksRight; 
-    unsigned long lastEncoderTicksMow[MAX_MOW_MOTOR_COUNT];
+    unsigned long lastEncoderTicksMow[MOW_MOTOR_COUNT];
     CanRobotDriver &canRobot;
     CanMotorDriver(CanRobotDriver &sr);
     void begin() override;
