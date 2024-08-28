@@ -39,7 +39,11 @@ function export_ros_ip {
   echo "WIFI CON: $WCON"
   WIP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
   echo "WIFI IP: $WIP"
-  export ROS_IP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
+  if [[ $WIP != "" ]]; then
+    export ROS_IP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
+  else
+    unset ROS_IP
+  fi
   # allow docker to access host Xserver 
   xhost +local:* 
 
@@ -152,8 +156,13 @@ function docker_terminal {
   fi
   # -------------continue container...---------------------
   export_ros_ip
+  CMD=". /ros_entrypoint.sh"
+  if [[ $WIP != "" ]]; then
+    CMD+="; export ROS_IP=$WIP"
+  fi
+  CMD+="; export ROS_HOME=/root/Sunray/alfred ; cd /root/Sunray/ros ; . devel/setup.bash ; /bin/bash"
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c ". /ros_entrypoint.sh ; export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; cd /root/Sunray/ros ; . devel/setup.bash ; /bin/bash"
+    bash -c "$CMD"
 }
 
 function docker_prepare_tools {
@@ -268,8 +277,11 @@ function ros_stop_mapping {
     fi
     echo "ros_stop_mapping"
     export_ros_ip
-    
-    CMD="export ROS_IP=$WIP"
+
+    CMD=""    
+    if [[ $WIP != "" ]]; then
+      CMD+="export ROS_IP=$WIP"
+    fi
     CMD+="; export ROS_HOME=/root/Sunray/alfred"
     CMD+="; . /ros_entrypoint.sh"
     CMD+="; cd /root/Sunray/ros"
@@ -309,8 +321,16 @@ function ros_sunray {
 function ros_trigger_relocalization {
   echo "ros_trigger_relocalization"
   export_ros_ip
+  CMD=""
+  if [[ $WIP != "" ]]; then
+    CMD+="export ROS_IP=$WIP"
+  fi
+  CMD+="; export ROS_HOME=/root/Sunray/alfred"
+  CMD+="; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash"
+  CMD+="; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node"
+  CMD+="; cd /root/Sunray/alfred ; pwd ; rosservice call /global_localization ; rostopic echo /mcl_3dl/status"
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
-    bash -c "export ROS_IP=$WIP ; export ROS_HOME=/root/Sunray/alfred ; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash ; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node ; cd /root/Sunray/alfred ; pwd ; rosservice call /global_localization ; rostopic echo /mcl_3dl/status"
+    bash -c "$CMD"
 }
 
 
