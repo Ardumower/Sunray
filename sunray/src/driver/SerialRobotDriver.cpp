@@ -56,6 +56,12 @@ void SerialRobotDriver::begin(){
   ledStateShutdown = false;
 
   #ifdef __linux__
+    Process p2;
+    p2.runShellCommand("pwd");
+	  String workingDir = p2.readString();    
+    CONSOLE.print("linux working dir (pwd): ");
+    CONSOLE.println(workingDir);
+
     CONSOLE.println("reading robot ID...");
     Process p;
     p.runShellCommand("ip link show eth0 | grep link/ether | awk '{print $2}'");
