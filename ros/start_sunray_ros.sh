@@ -100,7 +100,7 @@ cat /proc/asound/cards
 #sleep 1
 #pulseaudio -D --system --disallow-exit --disallow-module-loading
 #pulseaudio --dump-conf
-sudo chmod 666 /var/run/pulse/native
+# sudo chmod 666 /var/run/pulse/native
 # set default volume 
 adduser root dialout audio pulse-access pulse
 #export PULSE_SERVER=unix:/var/run/pulse/native
