@@ -523,6 +523,12 @@ void CanMotorDriver::setMowHeight(int mowHeightMillimeter){
 }
 
 void CanMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  
+  //CONSOLE.print("CanMotorDriver::setMotorPwm ");  
+  //CONSOLE.print(leftPwm);
+  //CONSOLE.print(",");  
+  //CONSOLE.print(rightPwm);
+  //CONSOLE.print(",");  
+  //CONSOLE.println(mowPwm);
   //canRobot.requestMotorPwm(leftPwm, rightPwm, mowPwm);
   canRobot.requestLeftPwm = leftPwm;
   canRobot.requestRightPwm = rightPwm;
