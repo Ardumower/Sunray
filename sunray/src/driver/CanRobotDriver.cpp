@@ -582,8 +582,8 @@ void CanMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &
   
   int allMowTicks[MOW_MOTOR_COUNT];
   mowTicks = 99999;
-  for (int i=0; i < 1; i++){  
-  //for (int i=0; i < MOW_MOTOR_COUNT; i++){
+  //for (int i=0; i < 1; i++){  
+  for (int i=0; i < MOW_MOTOR_COUNT; i++){
     allMowTicks[i] = (unsigned short)(canRobot.encoderTicksMow[i] - lastEncoderTicksMow[i]);
     //CONSOLE.print("allMowTicks ");
     //CONSOLE.print(i);
