@@ -36,7 +36,8 @@ function build_sunray() {
   rm -f cmake_install.cmake
   rm -Rf CMakeFiles
   cd build
-  rm -Rf . 
+  rm -Rf * 
+  #exit
   cmake -D CONFIG_FILE=$CONFIG_PATHNAME ..
   make 
 }
