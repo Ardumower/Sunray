@@ -205,7 +205,7 @@ void CanRobotDriver::requestSummary(){
 
 
 // request MCU motor PWM
-void CanRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
+void CanRobotDriver::requestMotorDrivePwm(int leftPwm, int rightPwm){
   canDataType_t data;
 
   data.floatVal = ((float)leftPwm) / 255.0;  
@@ -215,6 +215,12 @@ void CanRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   data.floatVal = ((float)rightPwm) / 255.0;    
   sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
   sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_odo_ticks, data);    
+  cmdMotorCounter++;
+}
+
+
+void CanRobotDriver::requestMotorMowPwm(int mowPwm){
+  canDataType_t data;
 
   #ifdef MAX_MOW_RPM
     // cutter speed (velocity control)
@@ -228,9 +234,9 @@ void CanRobotDriver::requestMotorPwm(int leftPwm, int rightPwm, int mowPwm){
 
   for (int i=0; i < MOW_MOTOR_COUNT; i++){
     sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_IDS[i], can_cmd_request, owldrv::can_val_odo_ticks, data);
-  }
-  cmdMotorCounter++;
+  }  
 }
+
 
 void CanRobotDriver::motorResponse(){
   cmdMotorResponseCounter++;
@@ -412,7 +418,7 @@ void CanRobotDriver::run(){
       can.read(frame);
     }*/
     //CONSOLE.println(requestLeftPwm);
-    requestMotorPwm(requestLeftPwm, requestRightPwm, requestMowPwm);    
+    requestMotorDrivePwm(requestLeftPwm, requestRightPwm);        
   }
   if (millis() > nextSummaryTime){
     nextSummaryTime = millis() + 100; // 10 hz
@@ -424,6 +430,7 @@ void CanRobotDriver::run(){
   }
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;  // 1 hz    
+    requestMotorMowPwm(requestMowPwm);
     if (MOW_ADJUST_HEIGHT){   // can the mowing height be adjusted by an additional motor?
       requestMowHeight(requestMowHeightMillimeter);
     }    
