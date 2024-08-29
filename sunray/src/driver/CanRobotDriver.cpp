@@ -571,8 +571,9 @@ void CanMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, fl
 }
 
 void CanMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
+  //CONSOLE.println("getMotorEncoderTicks");    
   if (canRobot.mcuCommunicationLost) {
-    //CONSOLE.println("getMotorEncoderTicks: no ticks!");    
+    CONSOLE.println("getMotorEncoderTicks: no ticks!");    
     leftTicks = rightTicks = 0; mowTicks = 0;
     return;
   }
@@ -602,10 +603,12 @@ void CanMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &
   //CONSOLE.print("mowTicks ");
   //CONSOLE.println(mowTicks);  
 
-  if (leftTicks > 1000){
+  if (leftTicks > 5000){
+    //CONSOLE.println("resetting");
     leftTicks = 0;
   }
-  if (rightTicks > 1000){
+  if (rightTicks > 5000){
+    //CONSOLE.println("resetting");
     rightTicks = 0;
   } 
   lastEncoderTicksLeft = canRobot.encoderTicksLeft;
