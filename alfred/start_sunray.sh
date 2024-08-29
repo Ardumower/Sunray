@@ -24,7 +24,7 @@ fi
 
 
 # -----------------------------------------
-echo "setup CAN interface..."
+echo "trying setup CAN interface..."
 echo "NOTE: you may have to edit boot config to enable CAN driver (see https://github.com/owlRobotics-GmbH/owlRobotPlatform)"
 ip link set can0 up type can bitrate 1000000
 retcode=$?
@@ -36,6 +36,7 @@ if [ $retcode -ne 0 ]; then
   sudo slcand -o -s8 -t hw -S 3000000 $PICO_DEV
   sudo ip link set up slcan0
 fi
+#exit
 
 # -----------------------------------------
 echo "----bluetooth devices----"
