@@ -596,7 +596,10 @@ void CanMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &
     //CONSOLE.print(i);
     //CONSOLE.print(":");
     //CONSOLE.println(allMowTicks[i]);
-    if (allMowTicks[i] > 1000) allMowTicks[i] = 0;
+    if (allMowTicks[i] > 5000) {
+      CONSOLE.println("CanMotorDriver::getMotorEncoderTicks resetting mowTicks");      
+      allMowTicks[i] = 0;
+    }
     lastEncoderTicksMow[i] = canRobot.encoderTicksMow[i];
     mowTicks = min(mowTicks, allMowTicks[i]);  // just consider one motor (with overall minimum ticks)  
   }
@@ -604,11 +607,11 @@ void CanMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &
   //CONSOLE.println(mowTicks);  
 
   if (leftTicks > 5000){
-    //CONSOLE.println("resetting");
+    CONSOLE.println("CanMotorDriver::getMotorEncoderTicks resetting leftTicks");
     leftTicks = 0;
   }
   if (rightTicks > 5000){
-    //CONSOLE.println("resetting");
+    CONSOLE.println("CanMotorDriver::getMotorEncoderTicks resetting rightTicks");
     rightTicks = 0;
   } 
   lastEncoderTicksLeft = canRobot.encoderTicksLeft;
