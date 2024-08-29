@@ -355,6 +355,10 @@ void CanRobotDriver::processResponse(){
                     for (int i=0; i < MOW_MOTOR_COUNT; i++){
                       if (node.sourceAndDest.sourceNodeID == MOW_MOTOR_NODE_IDS[i]){
                         encoderTicksMow[i] = data.ofsAndByte.ofsVal;                        
+                        //CONSOLE.print("mow encoder state ");
+                        //CONSOLE.print(i);                                                
+                        //CONSOLE.print(":");
+                        //CONSOLE.println(encoderTicksMow[i]);
                         motorResponse();
                       }
                     }
@@ -419,6 +423,7 @@ void CanRobotDriver::run(){
     }*/
     //CONSOLE.println(requestLeftPwm);
     requestMotorDrivePwm(requestLeftPwm, requestRightPwm);        
+    requestMotorMowPwm(requestMowPwm);
   }
   if (millis() > nextSummaryTime){
     nextSummaryTime = millis() + 100; // 10 hz
@@ -430,7 +435,6 @@ void CanRobotDriver::run(){
   }
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;  // 1 hz    
-    requestMotorMowPwm(requestMowPwm);
     if (MOW_ADJUST_HEIGHT){   // can the mowing height be adjusted by an additional motor?
       requestMowHeight(requestMowHeightMillimeter);
     }    
@@ -533,13 +537,14 @@ void CanMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &mow
   rightFault = canRobot.rightMotorFault;
   mowFault = false;
   for (int i=0; i < MOW_MOTOR_COUNT; i++) mowFault = (mowFault || canRobot.mowFault[i]);
-  if ( (canRobot.mowFault) || (canRobot.leftMotorFault) || (canRobot.rightMotorFault) ){
+  if ( (mowFault) || (canRobot.leftMotorFault) || (canRobot.rightMotorFault) ){
     CONSOLE.print("canRobot: motorFault (lefErr=");
     CONSOLE.print(canRobot.leftMotorFault);
     CONSOLE.print(" rightErr=");
     CONSOLE.print(canRobot.rightMotorFault);
     CONSOLE.print(" mowErr=");
-    CONSOLE.println(mowFault);
+    CONSOLE.print(mowFault);
+    CONSOLE.println(")");
   }
 }
 
@@ -576,13 +581,20 @@ void CanMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &
   rightTicks = (unsigned short)(canRobot.encoderTicksRight - lastEncoderTicksRight);
   
   int allMowTicks[MOW_MOTOR_COUNT];
-  mowTicks = 0;
+  mowTicks = 99999;
+  //for (int i=0; i < 1; i++){  
   for (int i=0; i < MOW_MOTOR_COUNT; i++){
     allMowTicks[i] = (unsigned short)(canRobot.encoderTicksMow[i] - lastEncoderTicksMow[i]);
+    //CONSOLE.print("allMowTicks ");
+    //CONSOLE.print(i);
+    //CONSOLE.print(":");
+    //CONSOLE.println(allMowTicks[i]);
     if (allMowTicks[i] > 1000) allMowTicks[i] = 0;
     lastEncoderTicksMow[i] = canRobot.encoderTicksMow[i];
     mowTicks = min(mowTicks, allMowTicks[i]);  // just consider one motor (with overall minimum ticks)  
   }
+  //CONSOLE.print("mowTicks ");
+  //CONSOLE.println(mowTicks);  
 
   if (leftTicks > 1000){
     leftTicks = 0;

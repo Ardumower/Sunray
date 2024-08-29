@@ -27,9 +27,15 @@ fi
 echo "setup CAN interface..."
 echo "NOTE: you may have to edit boot config to enable CAN driver (see https://github.com/owlRobotics-GmbH/owlRobotPlatform)"
 ip link set can0 up type can bitrate 1000000
-# ----- CAN-USB-bridge (SLCAN) -----------------------------
-# sudo slcand -o -s8 -t hw -S 3000000 /dev/ttyACM0
-# sudo ip link set up slcan0
+retcode=$?
+if [ $retcode -ne 0 ]; then
+  echo "trying CAN-USB-bridge (SLCAN) ..."
+  ls /dev/serial/by-id/usb-Raspberry_Pi_Pico*
+  PICO_DEV=`ls /dev/serial/by-id/usb-Raspberry_Pi_Pico*`
+  echo "PICO_DEV=$PICO_DEV"
+  sudo slcand -o -s8 -t hw -S 3000000 $PICO_DEV
+  sudo ip link set up slcan0
+fi
 
 # -----------------------------------------
 echo "----bluetooth devices----"
@@ -103,15 +109,12 @@ echo "CMD=$CMD"
 
 echo "working dir:$PWD"    
 
-#if [ -d "/home/pi/Sunray/alfred/build" ]; then
-  # state and map files will be written here 
-#  cd /boot/sunray
-  # pick sunray from here
+if [ ! -f /home/pi/Sunray/alfred/build/sunray ]; then
+  /usr/bin/stdbuf -oL -eL $PWD/build/sunray
+else
   /usr/bin/stdbuf -oL -eL /home/pi/Sunray/alfred/build/sunray
-#else
-  # pick sunray from here  
-#  /usr/bin/stdbuf -oL -eL $PWD/build/sunray
-#fi 
+fi
+
 
 # debug mode
 # exec gdbserver :1234 /home/pi/sunray_install/sunray "$@"
