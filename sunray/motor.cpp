@@ -173,14 +173,14 @@ void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRam
    // RPM = V / (2*PI*r) * 60
    motorRightRpmSet =  rspeed / (PI*(((float)wheelDiameter)/1000.0)) * 60.0;   
    motorLeftRpmSet = lspeed / (PI*(((float)wheelDiameter)/1000.0)) * 60.0;   
-//   CONSOLE.print("setLinearAngularSpeed ");
-//   CONSOLE.print(linear);
-//   CONSOLE.print(",");
-//   CONSOLE.print(angular); 
-//   CONSOLE.print(",");
-//   CONSOLE.print(lspeed);
-//   CONSOLE.print(",");
-//   CONSOLE.println(rspeed);
+   /*CONSOLE.print("setLinearAngularSpeed ");
+   CONSOLE.print(linear);
+   CONSOLE.print(",");
+   CONSOLE.print(angular); 
+   CONSOLE.print(",");
+   CONSOLE.print(motorLeftRpmSet);
+   CONSOLE.print(",");
+   CONSOLE.println(motorRightRpmSet);*/
 }
 
 
@@ -221,6 +221,7 @@ void Motor::setMowState(bool switchOn){
 
 
 void Motor::stopImmediately(bool includeMowerMotor){
+  //CONSOLE.println("Motor::stopImmediately");
   linearSpeedSet = 0;
   angularSpeedSet = 0;
   motorRightRpmSet = 0;
@@ -250,6 +251,7 @@ void Motor::run() {
   
   if (setLinearAngularSpeedTimeoutActive){
     if (millis() > setLinearAngularSpeedTimeout){
+      //CONSOLE.println("Motor::run - LinearAngularSpeedTimeout");
       setLinearAngularSpeedTimeoutActive = false;
       motorLeftRpmSet = 0;
       motorRightRpmSet = 0;
@@ -521,12 +523,16 @@ void Motor::control(){
   //########################  Calculate PWM for left driving motor ############################
 
   motorLeftPID.TaMax = 0.1;
-  motorLeftPID.x = motorLeftLpf(motorLeftRpmCurr);
+  motorLeftPID.x = motorLeftLpf(motorLeftRpmCurr);  
   motorLeftPID.w  = motorLeftRpmSet;
   motorLeftPID.y_min = -pwmMax;
   motorLeftPID.y_max = pwmMax;
   motorLeftPID.max_output = pwmMax;
   motorLeftPID.output_ramp = MOTOR_PID_RAMP;
+  //CONSOLE.print(motorLeftPID.x);
+  //CONSOLE.print(",");
+  //CONSOLE.print(motorLeftPID.w);
+  //CONSOLE.println();
   motorLeftPID.compute();
   motorLeftPWMCurr = motorLeftPWMCurr + motorLeftPID.y;
   if (motorLeftRpmSet >= 0) motorLeftPWMCurr = min( max(0, (int)motorLeftPWMCurr), pwmMax); // 0.. pwmMax
@@ -570,10 +576,12 @@ void Motor::control(){
   //########################  set PWM for all motors ############################
 
   if (!tractionMotorsEnabled){
+    //CONSOLE.println("!tractionMotorsEnabled");
     motorLeftPWMCurr = motorRightPWMCurr = 0;
   }
 
   speedPWM(motorLeftPWMCurr, motorRightPWMCurr, motorMowPWMCurr);
+  
   /*if ((motorLeftPWMCurr != 0) || (motorRightPWMCurr != 0)){
     CONSOLE.print("PID curr=");
     CONSOLE.print(motorLeftRpmCurr);
