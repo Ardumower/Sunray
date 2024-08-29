@@ -268,8 +268,8 @@ void CanRobotDriver::requestMowHeight(int mowHeightMillimeter){
     //CONSOLE.println("mm)");    
   } else {
     data.floatVal = 10000 * motorAnglePerMillimeter;   // unreachable target (10mm) (find endswitch)   
-    CONSOLE.print("no endswitch found - requestMowHeight: ");
-    CONSOLE.println(data.floatVal);
+    //CONSOLE.print("no endswitch found - requestMowHeight: ");
+    //CONSOLE.println(data.floatVal);
   }
   if (sendTarget) sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_target, data);  
   sendCanData(OWL_DRIVE_MSG_ID, MOW_HEIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_angle, data);  
