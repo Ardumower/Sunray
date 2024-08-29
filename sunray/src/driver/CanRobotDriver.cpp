@@ -423,7 +423,6 @@ void CanRobotDriver::run(){
     }*/
     //CONSOLE.println(requestLeftPwm);
     requestMotorDrivePwm(requestLeftPwm, requestRightPwm);        
-    requestMotorMowPwm(requestMowPwm);
   }
   if (millis() > nextSummaryTime){
     nextSummaryTime = millis() + 100; // 10 hz
@@ -435,6 +434,7 @@ void CanRobotDriver::run(){
   }
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;  // 1 hz    
+    requestMotorMowPwm(requestMowPwm);
     if (MOW_ADJUST_HEIGHT){   // can the mowing height be adjusted by an additional motor?
       requestMowHeight(requestMowHeightMillimeter);
     }    
@@ -582,8 +582,8 @@ void CanMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &
   
   int allMowTicks[MOW_MOTOR_COUNT];
   mowTicks = 99999;
-  //for (int i=0; i < 1; i++){  
-  for (int i=0; i < MOW_MOTOR_COUNT; i++){
+  for (int i=0; i < 1; i++){  
+  //for (int i=0; i < MOW_MOTOR_COUNT; i++){
     allMowTicks[i] = (unsigned short)(canRobot.encoderTicksMow[i] - lastEncoderTicksMow[i]);
     //CONSOLE.print("allMowTicks ");
     //CONSOLE.print(i);
