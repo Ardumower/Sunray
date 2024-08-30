@@ -135,7 +135,6 @@ typedef union {
 
 
 
-
 class CanRobotDriver: public RobotDriver {
   public:
     String robotID;
@@ -160,6 +159,7 @@ class CanRobotDriver: public RobotDriver {
     float motorRightCurr;
     float motorHeightAngleCurr;
     float motorHeightAngleEndswitch;
+    bool motorHeightAngleEndswitchSet;
     bool motorHeightFoundEndswitch;
     bool resetMotorTicks;
     float batteryTemp;
@@ -196,6 +196,7 @@ class CanRobotDriver: public RobotDriver {
     String cmdResponse;
     unsigned long nextMotorTime;    
     unsigned long nextSummaryTime;
+    unsigned long motorHeightFoundEndswitchTime;
     unsigned long nextCheckErrorTime;
     unsigned long nextConsoleTime;
     unsigned long nextTempTime;
