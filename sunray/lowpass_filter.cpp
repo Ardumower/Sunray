@@ -13,7 +13,7 @@ float LowPassFilter::operator() (float x)
     unsigned long timestamp = millis();
     float dt = (timestamp - timestamp_prev)*1e-3f;
 
-    if (dt < 1e-3f) dt = 1e-3f;
+    if (dt < 1e-6f) dt = 1e-6f;
     else if(dt > 0.3f) {
         y_prev = x;
         timestamp_prev = timestamp;
