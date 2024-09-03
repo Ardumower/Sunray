@@ -82,9 +82,9 @@ cat /proc/asound/cards
 #pulseaudio -D --system --disallow-exit --disallow-module-loading --verbose
 #sudo chmod 666 /var/run/pulse/native
 # set default volume 
-adduser root dialout audio pulse-access pulse
-amixer -D pulse sset Master 100%
+#adduser root dialout audio pulse-access pulse
 echo "we will test host audio now... (you should hear a voice)"
+runuser -u pi amixer -D pulse sset Master 100%
 runuser -u pi mplayer ../tts/de/system_starting.mp3
 
 
