@@ -396,6 +396,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define UNDOCK_IGNORE_GPS_DISTANCE 2 // set distance (m) from dock to ignore gps while undocking
 
+#define DOCK_FRONT_SIDE false    // dock with mower front side (true) or back side (false)? 
+
+
 // ---- path tracking -----------------------------------
 
 // below this robot-to-target distance (m) a target is considered as reached

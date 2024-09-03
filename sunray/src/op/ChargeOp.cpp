@@ -9,6 +9,7 @@
 #include "../../StateEstimator.h"
 #include "../../map.h"
 #include "../../events.h"
+#include "../../helper.h"
 
 
 String ChargeOp::name(){
@@ -70,8 +71,11 @@ void ChargeOp::run(){
         maps.setIsDocked(true);               
         // get robot position and yaw from docking pos
         // sensing charging contacts means we are in docking station - we use docking point coordinates to get rid of false fix positions in
-        // docking station
-        maps.getDockingPos(stateX, stateY, stateDelta);
+        // docking station        
+        if (true){
+            maps.getDockingPos(stateX, stateY, stateDelta);
+            if (!DOCK_FRONT_SIDE) stateDelta = scalePI(stateDelta + 3.1415);
+        }
         // get robot yaw orientation from map 
         //float tempX;
         //float tempY;
