@@ -103,7 +103,7 @@ public:
                 obstacle_points, ground_points,
                 (int)obstacleFar, (int)obstacleNear );                        
             if (soundTimeout == 0){
-                std::string command = "killall mplayer; runuser -u pi mplayer -volume 100 -af volume=5:1 ";
+                std::string command = "killall mplayer; runuser -u pi mplayer ";
                 //std::string command = "mplayer -volume 100 -af volume=5:1 ";                
                 command += pkg_loc; 
                 if (obstacleNear){
