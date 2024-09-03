@@ -112,6 +112,7 @@ public:
                     command += "/launch/beep.mp3";                
                 }
                 command += " > /dev/null 2>&1 &";
+                ROS_WARN("%s", command.c_str());
                 system(command.c_str());
                 soundTimeout = 5;                
             }
