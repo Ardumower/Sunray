@@ -32,6 +32,7 @@ function build_sunray() {
   echo "selected: $CONFIG_FILE"
 
   CONFIG_PATHNAME=$PWD/$CONFIG_FILE
+  sudo rm ../sunray/config.h
   rm -f CMakeCache.txt
   rm -f cmake_install.cmake
   rm -Rf CMakeFiles
