@@ -116,7 +116,7 @@ adduser root dialout audio pulse-access pulse
 #export PULSE_SERVER=unix:/var/run/pulse/native
 amixer -D pulse sset Master 100%
 echo "we will test host audio now... (you should hear a voice)"
-mplayer ../tts/de/system_starting.mp3
+runuser -u pi mplayer ../tts/de/system_starting.mp3
 
 
 echo "----waiting for TCP connections to be closed from previous sessions----"
@@ -192,6 +192,8 @@ CMD+="  ; . devel/setup.bash"
 CMD+="; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node"
 CMD+="; cd /root/Sunray/alfred"
 CMD+="; pwd"
+CMD+="; groupadd -g 1000 pi || true"
+CMD+="; useradd -g 1000 -u 1000 pi || true"
 CMD+="; roslaunch sunray_node run.launch sunray_ros_launch:=$SUNRAY_ROS_LAUNCH sunray_ros_mode:=$SUNRAY_ROS_MODE rviz:=$SUNRAY_ROS_RVIZ use_bag_file:=$USE_BAG_FILE bag_file:=$BAG_FILE map_pcd:=/root/PCD/dlio_map.pcd"
 docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME bash -c "$CMD" 
 

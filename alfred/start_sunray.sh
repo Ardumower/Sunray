@@ -84,6 +84,9 @@ cat /proc/asound/cards
 # set default volume 
 adduser root dialout audio pulse-access pulse
 amixer -D pulse sset Master 100%
+echo "we will test host audio now... (you should hear a voice)"
+runuser -u pi mplayer ../tts/de/system_starting.mp3
+
 
 
 echo "----waiting for TCP connections to be closed from previous sessions----"
