@@ -235,7 +235,7 @@ void EventLogger::playMP3(String &filename) {
     #ifdef __linux__        
         //String command = "killall mplayer; mplayer ";
         // volume 100% (-volume 100) and amplify by 5dB (-af volume=5:1)
-        String command = "killall mplayer; runuser -u pi mplayer -volume 100 -af volume=5:1 ";
+        String command = "killall mplayer; runuser -u pi mplayer ";
         command += filename;
         //Process p;
         CONSOLE.print("RUN: ");
