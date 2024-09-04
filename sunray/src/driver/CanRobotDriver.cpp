@@ -187,7 +187,7 @@ void CanRobotDriver::requestSummary(){
   canDataType_t data;
   data.floatVal = 0;
   
-  switch (cmdSummaryCounter % 4){
+  switch (cmdSummaryCounter % 5){
     case 0:
       sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_stop_button_state, data );  
       break;
@@ -199,6 +199,9 @@ void CanRobotDriver::requestSummary(){
       break;
     case 3:
       sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_rain_state, data );
+      break;
+    case 4:
+      sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_charger_voltage, data );
       break;
   }
   cmdSummaryCounter++;
@@ -425,6 +428,9 @@ void CanRobotDriver::processResponse(){
                   break;
                 case owlctl::can_val_rain_state:
                   triggeredRain = (data.byteVal[0] != 0);
+                  break;
+                case owlctl::can_val_charger_voltage:
+                  chargeVoltage = data.floatVal;
                   break;
               }
             }

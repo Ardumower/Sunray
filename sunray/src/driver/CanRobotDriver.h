@@ -108,6 +108,7 @@ namespace owlctl {
       can_val_stop_button_state = 4, // STOP button state
       can_val_buzzer_state      = 5, // buzzer state
       can_val_rain_state        = 6, // rain state
+      can_val_charger_voltage   = 7, // charger voltage      
   };
 }
 
