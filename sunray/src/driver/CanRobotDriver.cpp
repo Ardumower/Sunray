@@ -430,7 +430,11 @@ void CanRobotDriver::processResponse(){
                   triggeredRain = (data.byteVal[0] != 0);
                   break;
                 case owlctl::can_val_charger_voltage:
-                  if (data.floatVal > 20) chargeVoltage = data.floatVal;
+                  // TODO: umstellen auf volt!!!
+                  float volt = data.floatVal/1000.0;                  
+                  //CONSOLE.print("charger: ");
+                  //CONSOLE.println(volt);                                    
+                  if (volt > 24) chargeVoltage = volt;
                     else chargeVoltage = 0;
                   break;
               }
