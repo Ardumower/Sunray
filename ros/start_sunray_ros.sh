@@ -115,8 +115,9 @@ cat /proc/asound/cards
 #adduser root dialout audio pulse-access pulse
 #export PULSE_SERVER=unix:/var/run/pulse/native
 echo "we will test host audio now... (you should hear a voice)"
-runuser -u pi amixer -D pulse sset Master 100%
-runuser -u pi mplayer ../tts/de/system_starting.mp3
+runuser pi -c 'export XDG_RUNTIME_DIR="/run/user/1000"; amixer -D pulse sset Master 100%'
+runuser pi -c 'export XDG_RUNTIME_DIR="/run/user/1000"; mplayer ../tts/de/system_starting.mp3'
+
 
 
 echo "----waiting for TCP connections to be closed from previous sessions----"
