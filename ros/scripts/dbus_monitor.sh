@@ -6,6 +6,7 @@
 
 sudo killall dbus-monitor
 
+
 if [[ `pidof dbus-monitor` != "" ]]; then
   echo "dbus_monitor.sh already running! Exiting..."
   exit
@@ -35,7 +36,7 @@ USER=`who | cut -d: -f1 | xargs`
 # echo "USER: $USER"
 
 run_as_user 'amixer -D pulse sset Master 100%'
-run_as_user "mplayer -ao alsa /home/$USER/Sunray/tts/de/testing_audio.mp3"
+#run_as_user "mplayer -ao alsa /home/$USER/Sunray/tts/de/testing_audio.mp3"
 
 
 
