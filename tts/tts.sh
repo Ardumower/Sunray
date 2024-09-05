@@ -18,6 +18,7 @@ if true; then
         "system_restarting"              "System wird neu gestartet."
         "system_shutting_down"           "System wird heruntergefahren."
         "system_starting_failed"         "Systemstart fehlgeschlagen."        
+        "testing_audio"                  "Audio-Test."        
         "wifi_connected"                 "WLAN verbunden."
         "app_connected"                  "App verbunden."
         "imu_calibrating"                "Kalibriere IMU. Bitte warten."                 
