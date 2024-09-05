@@ -1,10 +1,8 @@
 #!/bin/bash
 
-# dbus-send --system --dest=de.sunray.AudioPlayer --print-reply \
-#      /de/sunray/AudioPlayer de.sunray.AudioPlayer.Play string:"/path/to/yourfile.mp3"
+# dbus-send --system --dest=de.sunray.Bus --print-reply \
+#      /de/sunray/Bus de.sunray.Bus.Play string:"/path/to/yourfile.mp3"
 
-
-#dbus-send --system --dest=de.sunray.AudioPlayer --print-reply /de/sunray/AudioPlayer de.sunray.AudioPlayer.Play string:"/home/pi/Sunray/tts/de/system_starting.mp3"
 
 
 if [[ `pidof dbus-monitor` != "" ]]; then
@@ -41,7 +39,7 @@ run_as_user "mplayer -ao alsa /home/$USER/Sunray/tts/de/testing_audio.mp3"
 
 
 # Überwache den dbus auf Nachrichten
-sudo dbus-monitor --system "interface='de.sunray.AudioPlayer'" | while read -r line; do
+sudo dbus-monitor --system "interface='de.sunray.Bus'" | while read -r line; do
   # Wenn eine bestimmte Methode aufgerufen wird (z.B. Play)
   if echo "$line" | grep -q "member=Play"; then
     # Extrahiere den Dateipfad (angenommen, der Pfad wird als Argument gesendet)
