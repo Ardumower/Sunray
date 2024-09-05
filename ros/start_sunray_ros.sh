@@ -31,6 +31,10 @@ if [[ `pidof sunray_node` != "" ]]; then
 fi
 
 
+# starting dbus monitor
+../ros/scripts/dbus_monitor.sh &
+
+
 # -----------------------------------------
 echo "trying setup CAN interface..."
 echo "NOTE: you may have to edit boot config to enable CAN driver (see https://github.com/owlRobotics-GmbH/owlRobotPlatform)"
@@ -115,8 +119,7 @@ cat /proc/asound/cards
 #adduser root dialout audio pulse-access pulse
 #export PULSE_SERVER=unix:/var/run/pulse/native
 echo "we will test host audio now... (you should hear a voice)"
-runuser pi -c 'export XDG_RUNTIME_DIR="/run/user/1000"; amixer -D pulse sset Master 100%'
-runuser pi -c 'export XDG_RUNTIME_DIR="/run/user/1000"; mplayer ../tts/de/system_starting.mp3'
+../ros/scripts/dbus_send.sh -m Play -p ../tts/de/system_starting.mp3
 
 
 
