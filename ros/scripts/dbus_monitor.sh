@@ -35,8 +35,12 @@ function run_as_user() {
 }
 
 
-USER=`who | cut -d: -f1 | xargs`
-# echo "USER: $USER"
+#USER=`whoami`
+USER=`who | head -n1 | cut -d' ' -f1 | xargs`
+#if [ -z "USER" ]; then
+#  USER=`whoami`
+#fi
+#echo "USER: $USER"
 
 run_as_user 'amixer -D pulse sset Master 100%'
 #run_as_user "mplayer -ao alsa /home/$USER/Sunray/tts/de/testing_audio.mp3"
@@ -50,9 +54,12 @@ sudo dbus-monitor --system "interface='de.sunray.Bus'" | while read -r line; do
     # Extrahiere den Dateipfad (angenommen, der Pfad wird als Argument gesendet)
     read -r path_line
     filepath=$(echo "$path_line" | grep -oP '(?<=string ").*(?=")')
-    
+    #echo "filepath=$filepath"
+    #echo "USER=$USER"
     # Prüfe, ob die Datei existiert und spiele sie ab
     filepath="${filepath/root/"home/$USER"}"      
+    #echo "filepath=$filepath"
+
     if [ -f "$filepath" ]; then
       #echo "Playing $filepath..."
       #mplayer "$filepath"
