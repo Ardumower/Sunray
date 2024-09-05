@@ -84,9 +84,8 @@ cat /proc/asound/cards
 # set default volume 
 #adduser root dialout audio pulse-access pulse
 echo "we will test host audio now... (you should hear a voice)"
-runuser pi -c 'export XDG_RUNTIME_DIR="/run/user/1000"; amixer -D pulse sset Master 100%'
-runuser pi -c 'export XDG_RUNTIME_DIR="/run/user/1000"; mplayer ../tts/de/system_starting.mp3'
-
+../ros/scripts/dbus_monitor.sh &
+../ros/scripts/dbus_send.sh -m Play -p ../tts/de/system_starting.mp3
 
 
 echo "----waiting for TCP connections to be closed from previous sessions----"

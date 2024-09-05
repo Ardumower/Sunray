@@ -19,19 +19,19 @@ fi
 
 function run_as_user() {
   CMD=$1
-  echo "CMD:$CMD"
+  # echo "CMD:$CMD"
   if [ "$EUID" -eq 0 ]
   then 
     # root
-    runuser $USER -c "export XDG_RUNTIME_DIR="/run/user/1000"; $CMD" &
+    runuser $USER -c "export XDG_RUNTIME_DIR="/run/user/1000"; $CMD >/dev/null 2>&1" &
   else
-    $CMD &
+    $CMD >/dev/null 2>&1 &
   fi
 }
 
 
 USER=`who | cut -d: -f1 | xargs`
-echo "USER: $USER"
+# echo "USER: $USER"
 
 run_as_user 'amixer -D pulse sset Master 100%'
 run_as_user "mplayer -ao alsa /home/$USER/Sunray/tts/de/testing_audio.mp3"
@@ -47,13 +47,14 @@ sudo dbus-monitor --system "interface='de.sunray.Bus'" | while read -r line; do
     filepath=$(echo "$path_line" | grep -oP '(?<=string ").*(?=")')
     
     # Prüfe, ob die Datei existiert und spiele sie ab
+    filepath="${filepath/root/"home/$USER"}"      
     if [ -f "$filepath" ]; then
-      echo "Playing $filepath..."
+      #echo "Playing $filepath..."
       #mplayer "$filepath"
-      killall mplayer
+      killall mplayer >/dev/null 2>&1
       #sleep 0.5
       run_as_user "mplayer -ao alsa $filepath"
-      echo "OK"
+      #echo "OK"
     else
       echo "File $filepath does not exist."
     fi

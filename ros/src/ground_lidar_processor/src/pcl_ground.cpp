@@ -103,7 +103,7 @@ public:
                 obstacle_points, ground_points,
                 (int)obstacleFar, (int)obstacleNear );                        
             if (soundTimeout == 0){
-                std::string command = "killall mplayer; runuser pi -c 'export XDG_RUNTIME_DIR=\"/run/user/1000\"; mplayer ";
+                std::string command = "../ros/scripts/dbus_send.sh -m Play -p ";
                 //std::string command = "mplayer -volume 100 -af volume=5:1 ";                
                 command += pkg_loc; 
                 if (obstacleNear){
@@ -111,7 +111,6 @@ public:
                 } else {
                     command += "/launch/beep.mp3";                
                 }
-                command += " > /dev/null 2>&1 &'";
                 ROS_WARN("%s", command.c_str());
                 system(command.c_str());
                 soundTimeout = 5;                
