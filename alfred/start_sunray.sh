@@ -22,6 +22,9 @@ if [[ `pidof sunray` != "" ]]; then
   exit
 fi
 
+# starting dbus monitor
+../ros/scripts/dbus_monitor.sh &
+
 
 # -----------------------------------------
 echo "trying setup CAN interface..."
@@ -84,7 +87,6 @@ cat /proc/asound/cards
 # set default volume 
 #adduser root dialout audio pulse-access pulse
 echo "we will test host audio now... (you should hear a voice)"
-../ros/scripts/dbus_monitor.sh &
 ../ros/scripts/dbus_send.sh -m Play -p ../tts/de/system_starting.mp3
 
 
