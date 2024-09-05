@@ -4,6 +4,7 @@
 #      /de/sunray/Bus de.sunray.Bus.Play string:"/path/to/yourfile.mp3"
 
 
+sudo killall dbus-monitor
 
 if [[ `pidof dbus-monitor` != "" ]]; then
   echo "dbus_monitor.sh already running! Exiting..."
