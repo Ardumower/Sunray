@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# dbus-send --system --dest=de.sunray.Bus --print-reply \
-#      /de/sunray/Bus de.sunray.Bus.Play string:"/path/to/yourfile.mp3"
+# dbus-send --system --dest=de.sunray.Bus --print-reply /de/sunray/Bus de.sunray.Bus.Play string:"/home/alex/Sunray/tts/de/testing_audio.mp3"
 
 
 sudo killall dbus-monitor
