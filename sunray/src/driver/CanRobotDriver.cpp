@@ -575,7 +575,8 @@ void CanMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &mow
   leftFault = canRobot.leftMotorFault;
   rightFault = canRobot.rightMotorFault;
   mowFault = false;
-  for (int i=0; i < MOW_MOTOR_COUNT; i++) mowFault = (mowFault || canRobot.mowFault[i]);
+  if (MOW_MOTOR_COUNT > 0) mowFault = canRobot.mowFault[0];
+  for (int i=0; i < MOW_MOTOR_COUNT; i++) mowFault = (mowFault && canRobot.mowFault[i]);
   if ( (mowFault) || (leftFault) || (rightFault) ){
     CONSOLE.print("canRobot: motorFault (lefErr=");
     CONSOLE.print(leftFault);

@@ -43,7 +43,7 @@ USER=`who | head -n1 | cut -d' ' -f1 | xargs`
 #echo "USER: $USER"
 
 run_as_user 'amixer -D pulse sset Master 100%'
-#run_as_user "mplayer -ao alsa /home/$USER/Sunray/tts/de/testing_audio.mp3"
+#run_as_user "mplayer -ao alsa -volume 100 -af volume=5:1 /home/$USER/Sunray/tts/de/testing_audio.mp3"
 
 
 
@@ -65,7 +65,8 @@ sudo dbus-monitor --system "interface='de.sunray.Bus'" | while read -r line; do
       #mplayer "$filepath"
       killall mplayer >/dev/null 2>&1
       #sleep 0.5
-      run_as_user "mplayer -ao alsa $filepath"
+      # -volume 100 -af volume=5:1   //  volume 100% (-volume 100) and amplify by 5dB (-af volume=5:1)
+      run_as_user "mplayer -ao alsa -volume 100 -af volume=5:1 $filepath"
       #echo "OK"
     else
       echo "File $filepath does not exist."
