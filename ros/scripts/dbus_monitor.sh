@@ -19,7 +19,7 @@ fi
 # systemctl --user status pulseaudio.service
 # systemctl --user restart pulseaudio.service
 # pulseaudio -k && sudo alsa force-reload
-# mplayer ao -help
+# mplayer -ao help
 
 
 function run_as_user() {
