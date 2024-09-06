@@ -434,7 +434,7 @@ void CanRobotDriver::processResponse(){
                   //CONSOLE.print("charger: ");
                   //CONSOLE.println(volt);                                    
                   if (volt > 1000) volt = volt / 1000.0;
-                  if (volt > 24) chargeVoltage = volt;
+                  if (volt > 20) chargeVoltage = volt;
                     else chargeVoltage = 0;            
                   break;
               }
