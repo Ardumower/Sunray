@@ -60,6 +60,7 @@ void obstacleStateCallback(const std_msgs::Int8 &msg)
     if (tim > nextSoundTime){
       nextSoundTime = tim + 1.0; 
       command += "/launch/beep.mp3";               
+      //ROS_WARN("%s", command.c_str());      
       if (stateOp != OP_CHARGE) system(command.c_str());
     }        
   } else if (msg.data == 2){
@@ -69,6 +70,7 @@ void obstacleStateCallback(const std_msgs::Int8 &msg)
     if (tim > nextSoundTime){
       nextSoundTime = tim + 1.0; 
       command += "/launch/tada.mp3";                
+      //ROS_WARN("%s", command.c_str());      
       if (stateOp != OP_CHARGE) system(command.c_str());
     }        
   } else {

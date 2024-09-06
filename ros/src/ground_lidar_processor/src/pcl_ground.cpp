@@ -99,10 +99,11 @@ public:
 
     void publishObstacleState(int ground_points, int obstacle_points){
         if ((obstacleFar) || (obstacleNear)) {
-            ROS_WARN("obstacle_points: %d  ground_points: %d  far %d, near %d", 
-                obstacle_points, ground_points,
-                (int)obstacleFar, (int)obstacleNear );                        
             if (soundTimeout == 0){
+                ROS_WARN("obstacle_points: %d  ground_points: %d  far %d, near %d", 
+                    obstacle_points, ground_points,
+                    (int)obstacleFar, (int)obstacleNear );                        
+
                 std::string command = "../ros/scripts/dbus_send.sh -m Play -p ";
                 //std::string command = "mplayer -volume 100 -af volume=5:1 ";                
                 command += pkg_loc; 
