@@ -11,6 +11,7 @@
 // http://wiki.ros.org/tf/Tutorials/Writing%20a%20tf%20listener%20%28C%2B%2B%29
 
 #include <ros/ros.h>
+#include <ros/package.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <mcl_3dl_msgs/Status.h>
 #include <std_msgs/Int8.h>
@@ -26,7 +27,7 @@
 char **argv = NULL;
 int argc = 0;
 
-
+std::string pkg_loc; 
 ros::NodeHandle *node;
 ros::Rate *rate;
 ros::Subscriber obstacle_state_sub;
@@ -36,6 +37,7 @@ tf::TransformListener *tfListener;
 double nextErrorTime = 0;
 double nextPrintTime = 0;
 double nextCheckTime = 0;
+double nextSoundTime = 0;
 double convergenceTimeout = 0;
 double match_ratio = 0;
 double match_ratio_lp = 0;
@@ -45,15 +47,30 @@ int globalLocalizationTriggerCounter = 0;
 
 void obstacleStateCallback(const std_msgs::Int8 &msg)
 {
+  double tim = ros::Time::now().toSec();     
+
   //ROS_INFO("obstacleStateCallback %d", msg.data);
+  std::string command = "../ros/scripts/dbus_send.sh -m Play -p ";
+  command += pkg_loc;                 
+
   if (msg.data == 1){
     // near obstacle
     lidarBumper.triggerNearObstacle = true;
     lidarBumper.triggerBumper = false;
+    if (tim > nextSoundTime){
+      nextSoundTime = tim + 1.0; 
+      command += "/launch/beep.mp3";               
+      if (stateOp != OP_CHARGE) system(command.c_str());
+    }        
   } else if (msg.data == 2){
-    // obstacle
+    // bumper 
     lidarBumper.triggerNearObstacle = false;
-    lidarBumper.triggerBumper = true;
+    lidarBumper.triggerBumper = true;    
+    if (tim > nextSoundTime){
+      nextSoundTime = tim + 1.0; 
+      command += "/launch/tada.mp3";                
+      if (stateOp != OP_CHARGE) system(command.c_str());
+    }        
   } else {
     // no obstacle
     lidarBumper.triggerNearObstacle = false;
@@ -107,6 +124,8 @@ void setup(){
 
   src_global_localization = node->serviceClient<std_srvs::TriggerRequest, std_srvs::TriggerResponse>("global_localization");
 
+  pkg_loc = ros::package::getPath( ros::this_node::getName().substr(1) );
+  ROS_WARN("pkg_loc: %s\n", pkg_loc.c_str());                
 } 
 
 

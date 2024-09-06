@@ -59,7 +59,7 @@ public:
         obstacleNear = false;
         cloudReceived = false;
         pkg_loc = ros::package::getPath( ros::this_node::getName().substr(1) );
-        ROS_WARN("pkg_loc: %s\n", pkg_loc.c_str());                
+        //ROS_WARN("pkg_loc: %s\n", pkg_loc.c_str());                
     }
 
 
@@ -111,8 +111,8 @@ public:
                 } else {
                     command += "/launch/beep.mp3";                
                 }
-                ROS_WARN("%s", command.c_str());
-                system(command.c_str());
+                //ROS_WARN("%s", command.c_str());
+                //system(command.c_str());
                 soundTimeout = 5;                
             }
         }
