@@ -231,11 +231,11 @@ void computeRobotState(){
     stateX = -stateYAprilTag;
     stateY = stateXAprilTag;
     stateDelta = scalePI(stateDeltaAprilTag - 3.1415/2.0);    
-    CONSOLE.print(stateX);
-    CONSOLE.print(",");
-    CONSOLE.println(stateY);
-    CONSOLE.print(",");    
-    CONSOLE.println(stateDelta/3.1415*180.0);    
+    //CONSOLE.print(stateX);
+    //CONSOLE.print(",");
+    //CONSOLE.println(stateY);
+    //CONSOLE.print(",");    
+    //CONSOLE.println(stateDelta/3.1415*180.0);    
     float dockX;
     float dockY;
     float dockDelta;
