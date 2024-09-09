@@ -24,6 +24,10 @@ float stateDeltaGPS = 0;
 float stateDeltaIMU = 0;
 float stateGroundSpeed = 0; // m/s
 
+float stateXAprilTag = 0; // camera-position in april-tag frame
+float stateYAprilTag = 0;  
+float stateDeltaAprilTag = 0; 
+
 unsigned long stateLeftTicks = 0;
 unsigned long stateRightTicks = 0;
 

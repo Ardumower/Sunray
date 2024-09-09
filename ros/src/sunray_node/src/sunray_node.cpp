@@ -130,7 +130,7 @@ void setup(){
   ROS_WARN("pkg_loc: %s\n", pkg_loc.c_str());                
 } 
 
-
+// vision (april tag) localization
 void aprilTagLocalization(){
   #ifdef DOCK_APRIL_TAG
     

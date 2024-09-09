@@ -18,6 +18,11 @@ extern float stateRoll;
 extern float statePitch;
 extern float stateDeltaGPS;
 extern float stateDeltaIMU;
+
+extern float stateXAprilTag; // camera-position in april-tag frame
+extern float stateYAprilTag;  
+extern float stateDeltaAprilTag; 
+
 extern float stateGroundSpeed; // m/s
 extern float lateralError; // lateral error
 

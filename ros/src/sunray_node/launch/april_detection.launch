@@ -16,7 +16,7 @@
     <param name="pixel_format" value="mjpeg" />
     <param name="camera_frame_id" value="usb_cam" />
     <param name="io_method" value="mmap"/>
-    <param name="framerate" value="20"/>
+    <param name="framerate" value="5"/>
   </node>
 
   <group ns="usb_cam/image_raw" >
