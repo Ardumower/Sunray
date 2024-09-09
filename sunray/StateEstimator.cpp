@@ -229,7 +229,7 @@ void computeRobotState(){
     useGPSposition = false;
     useGPSdelta = false;
     useImuAbsoluteYaw = false;
-    float robotX = stateXAprilTag; // robot-in-april-tag-frame
+    float robotX = stateXAprilTag; // robot-in-april-tag-frame (x towards outside tag, y left, z up)
     float robotY = stateYAprilTag;
     float robotDelta = scalePI(stateDeltaAprilTag);    
     //CONSOLE.print(robotX);
