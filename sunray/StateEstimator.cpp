@@ -228,9 +228,25 @@ void computeRobotState(){
     useGPSposition = false;
     useGPSdelta = false;
     useImuAbsoluteYaw = false;
-    stateX = stateXAprilTag;
-    stateY = stateYAprilTag;
-    stateDelta = stateDeltaAprilTag;
+    stateX = -stateYAprilTag;
+    stateY = stateXAprilTag;
+    stateDelta = scalePI(stateDeltaAprilTag - 3.1415/2.0);    
+    CONSOLE.print(stateX);
+    CONSOLE.print(",");
+    CONSOLE.println(stateY);
+    CONSOLE.print(",");    
+    CONSOLE.println(stateDelta/3.1415*180.0);    
+    float dockX;
+    float dockY;
+    float dockDelta;
+    if (maps.getDockingPos(dockX, dockY, dockDelta)){
+      // transform robot-in-april-tag-frame into world frame
+      float robotX = dockX + stateX * cos(dockDelta+3.1415) - stateY * sin(dockDelta+3.1415);
+      float robotY = dockY + stateX * sin(dockDelta+3.1415) + stateY * cos(dockDelta+3.1415);            
+      stateX = robotX;
+      stateY = robotY;
+      stateDelta = scalePI(stateDelta + dockDelta);
+    }
   }
 
   // ---------- odometry ticks ---------------------------
