@@ -42,7 +42,7 @@ cd python-pcl &&  git apply --ignore-space-change --ignore-whitespace fix_python
 
 apt install -y ros-melodic-move-base ros-melodic-move-base-msgs \
     ros-melodic-joy ros-melodic-teleop-twist-joy ros-melodic-teb-local-planner ros-melodic-global-planner ros-melodic-gmapping \
-    ros-tf2-msgs ros-melodic-usb-cam \
+    ros-tf2-msgs ros-melodic-usb-cam ros-melodic-apriltag-ros \
     ros-melodic-tf2-sensor-msgs ros-melodic-map-server ros-melodic-pointcloud-to-laserscan ros-melodic-dwa-local-planner \
     ros-melodic-octomap ros-melodic-octomap-ros ros-melodic-hector-trajectory-server ros-melodic-tf-conversions ros-melodic-rviz
 
