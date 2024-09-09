@@ -223,19 +223,19 @@ void computeRobotState(){
   #endif
 
   // ------- vision (april-tag) --------------------------
-  bool useAprilTag = false; // use vision (april-tag) localization?
+  bool useAprilTag = true; // use vision (april-tag) localization?
   if (useAprilTag){
     useGPSposition = false;
     useGPSdelta = false;
     useImuAbsoluteYaw = false;
-    float robotX = -stateYAprilTag; // robot-in-april-tag-frame
-    float robotY = stateXAprilTag;
-    float robotDelta = scalePI(stateDeltaAprilTag - 3.1415/2.0);    
-    //CONSOLE.print(stateX);
+    float robotX = stateXAprilTag; // robot-in-april-tag-frame
+    float robotY = stateYAprilTag;
+    float robotDelta = scalePI(stateDeltaAprilTag);    
+    //CONSOLE.print(robotX);
     //CONSOLE.print(",");
-    //CONSOLE.println(stateY);
+    //CONSOLE.println(robotY);
     //CONSOLE.print(",");    
-    //CONSOLE.println(stateDelta/3.1415*180.0);    
+    //CONSOLE.println(robotDelta/3.1415*180.0);    
     if ( (abs(robotX) < 4) && (abs(robotY) < 4) ){  
       float dockX;
       float dockY;
@@ -246,7 +246,7 @@ void computeRobotState(){
         float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            
         stateX = worldX;
         stateY = worldY;
-        stateDelta = scalePI(robotDelta + dockDelta);
+        stateDelta = scalePI(robotDelta + dockDelta + 3.1415);
       }
     }
   }
