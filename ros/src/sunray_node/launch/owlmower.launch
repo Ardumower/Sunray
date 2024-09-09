@@ -14,6 +14,8 @@
 	<arg name="start_sunray_node" default="true" />
 	<arg name="sunray_ros_mode" default="SIMPLE" />
 
+	<arg name="start_april_detect" default="true" />
+
 	<arg name="start_ground_lidar_processor" default="true" />
     <arg name="ground_lidar_angle_opening" default="180.0" />
     <arg name="ground_lidar_max_distance" default="1.0" />
@@ -51,6 +53,8 @@
 	<group if="$(eval sunray_ros_mode == 'SIMPLE')"> 	
 		<include file="$(find pointcloud_gravity_align)/launch/run.launch" pass_all_args="true" >
 			<arg name="align_gravity" value="false"/> 
+		</include>
+		<include file="$(find sunray_node)/launch/april_detection.launch" pass_all_args="true" if="$(arg start_april_detect)" >
 		</include>
 		<include file="$(find ground_lidar_processor)/launch/run.launch" pass_all_args="true"   if="$(arg start_ground_lidar_processor)" />
 		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"   if="$(arg start_sunray_node)" />		

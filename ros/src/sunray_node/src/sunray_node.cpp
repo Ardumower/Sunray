@@ -147,7 +147,7 @@ void aprilTagLocalization(){
     try{
         //  http://wiki.ros.org/tf/Tutorials/Time%20travel%20with%20tf%20%28C%2B%2B%29
         //tfListener->lookupTransform("robot/odom", "gps_link",  ros::Time(0), transform); // target_frame, source_frame
-        tfListener->lookupTransform("dock_link", "base_link",  ros::Time(0), transform); // target_frame, source_frame
+        tfListener->lookupTransform("dock", "base_link",  ros::Time(0), transform); // target_frame, source_frame
 
         x = transform.getOrigin().x();
         y = transform.getOrigin().y();
@@ -164,8 +164,8 @@ void aprilTagLocalization(){
         // rotation Matrix -> rpy 
         m.getRPY(roll, pitch, yaw);
 
-        ROS_WARN("APRIL_TAG: x=%.2f  y=%.2f  z=%.2f yaw=%.2f",             
-            x, y, z, yaw/3.1415*180.0);         
+        //ROS_WARN("APRIL_TAG: x=%.2f  y=%.2f  z=%.2f yaw=%.2f",             
+        //    x, y, z, yaw/3.1415*180.0);         
     }
     catch (tf::TransformException ex){
         if (tim > nextErrorTime){
