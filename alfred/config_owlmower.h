@@ -398,6 +398,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define DOCK_FRONT_SIDE false    // dock with mower front side (true) or back side (false)? 
 
+#define DOCK_APRIL_TAG 1         // use visual (april-tag) docking?
+
 
 // ---- path tracking -----------------------------------
 

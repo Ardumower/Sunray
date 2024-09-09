@@ -131,10 +131,9 @@ void setup(){
 } 
 
 
-void loop(){      
-  run(); 
-
-  if (ros::ok()) {
+void aprilTagLocalization(){
+  #ifdef DOCK_APRIL_TAG
+    
     double tim = ros::Time::now().toSec();     
 
     float x = 0;
@@ -142,100 +141,154 @@ void loop(){
     float z = 0;
     
     double roll, pitch, yaw;
+
+    // lookup ROS localization (mathematically, a frame transformation) 
+    tf::StampedTransform transform;
+    try{
+        //  http://wiki.ros.org/tf/Tutorials/Time%20travel%20with%20tf%20%28C%2B%2B%29
+        //tfListener->lookupTransform("robot/odom", "gps_link",  ros::Time(0), transform); // target_frame, source_frame
+        tfListener->lookupTransform("dock_link", "base_link",  ros::Time(0), transform); // target_frame, source_frame
+
+        x = transform.getOrigin().x();
+        y = transform.getOrigin().y();
+        z = transform.getOrigin().z();
         
-
-    #ifdef GPS_LIDAR       
-
-      // lookup ROS localization (mathematically, a frame transformation) 
-      tf::StampedTransform transform;
-      try{
-          //  http://wiki.ros.org/tf/Tutorials/Time%20travel%20with%20tf%20%28C%2B%2B%29
-          //tfListener->lookupTransform("robot/odom", "gps_link",  ros::Time(0), transform); // target_frame, source_frame
-          tfListener->lookupTransform("map", "gps_link",  ros::Time(0), transform); // target_frame, source_frame
-    
-          x = transform.getOrigin().x();
-          y = transform.getOrigin().y();
-          z = transform.getOrigin().z();
-          
-          // https://gist.github.com/LimHyungTae/2499a68ea8ee4d8a876a149858a5b08e
-          tf::Quaternion q = transform.getRotation(); 
-          
-          //float yaw = tf::getYaw(q); 
-          
-          tf::Matrix3x3 m;  
-          m.setRotation(q);  //  quaternion -> rotation Matrix 
-          
-          // rotation Matrix -> rpy 
-          m.getRPY(roll, pitch, yaw);
+        // https://gist.github.com/LimHyungTae/2499a68ea8ee4d8a876a149858a5b08e
+        tf::Quaternion q = transform.getRotation(); 
         
-          // let the magic happen (here we transfer ROS localization into Sunray GPS localization) 
-          gps.relPosN = y;
-          gps.relPosE = x;
-          gps.relPosD = z;
-          //gps.solution = SOL_FIXED;
-          gps.solutionAvail = true;
-          //gps.dgpsAge = millis();
+        //float yaw = tf::getYaw(q); 
+        
+        tf::Matrix3x3 m;  
+        m.setRotation(q);  //  quaternion -> rotation Matrix 
+        
+        // rotation Matrix -> rpy 
+        m.getRPY(roll, pitch, yaw);
 
-          imuDriver.quatX = q.x(); // quaternion
-          imuDriver.quatY = q.y(); // quaternion
-          imuDriver.quatZ = q.z(); // quaternion        
-          imuDriver.quatW = q.w(); // quaternion      
-          imuDriver.roll = roll; // euler radiant
-          imuDriver.pitch = pitch; // euler radiant
-          imuDriver.yaw = yaw;   // euler radiant                
-      }
-      catch (tf::TransformException ex){
-          if (tim > nextErrorTime){
-            nextErrorTime = tim + 10.0;
-            ROS_ERROR("%s",ex.what());
-            //ros::Duration(0.2).sleep();
-          }
-      }
+        ROS_WARN("APRIL_TAG: x=%.2f  y=%.2f  z=%.2f yaw=%.2f",             
+            x, y, z, yaw/3.1415*180.0);         
+    }
+    catch (tf::TransformException ex){
+        if (tim > nextErrorTime){
+          ROS_ERROR("%s",ex.what());
+          //ros::Duration(0.2).sleep();
+        }
+    }
+  #endif
+}
+
+
+void lidarLocalization(){
+  double tim = ros::Time::now().toSec();     
+
+  float x = 0;
+  float y = 0;
+  float z = 0;
   
-      // pretend IMU avail (so firmware does not try to calibrate IMU if no ROS pose available)
-      imuDriver.dataAvail = true; 
+  double roll, pitch, yaw;
 
-      if (tim > nextPrintTime){
-        nextPrintTime = tim + 0.5;
-        ROS_WARN("ROS: mr=%.2f cs=%d gc=%d  x=%.2f  y=%.2f  z=%.2f yaw=%.2f", 
-          match_ratio_lp, convergence_status, globalLocalizationTriggerCounter,  
-          x, y, z, yaw/3.1415*180.0);
-      } 
+  #ifdef GPS_LIDAR       
 
-      if (tim > nextCheckTime){
-        nextCheckTime = tim + 0.2;
+    // lookup ROS localization (mathematically, a frame transformation) 
+    tf::StampedTransform transform;
+    try{
+        //  http://wiki.ros.org/tf/Tutorials/Time%20travel%20with%20tf%20%28C%2B%2B%29
+        //tfListener->lookupTransform("robot/odom", "gps_link",  ros::Time(0), transform); // target_frame, source_frame
+        tfListener->lookupTransform("map", "gps_link",  ros::Time(0), transform); // target_frame, source_frame
+  
+        x = transform.getOrigin().x();
+        y = transform.getOrigin().y();
+        z = transform.getOrigin().z();
+        
+        // https://gist.github.com/LimHyungTae/2499a68ea8ee4d8a876a149858a5b08e
+        tf::Quaternion q = transform.getRotation(); 
+        
+        //float yaw = tf::getYaw(q); 
+        
+        tf::Matrix3x3 m;  
+        m.setRotation(q);  //  quaternion -> rotation Matrix 
+        
+        // rotation Matrix -> rpy 
+        m.getRPY(roll, pitch, yaw);
       
-        //if (!gps.isRelocalizing){
-          if (match_ratio_lp > 0.5){
-            // convergence status workaround: sometimes we have no convergence for a valid position, but the match ratio is high
-            convergenceTimeout = tim + 20.0;                        
-            gps.isRelocalizing = false;
-            gps.solution = SOL_FIXED;          
-          }
-        //}      
+        // let the magic happen (here we transfer ROS localization into Sunray GPS localization) 
+        gps.relPosN = y;
+        gps.relPosE = x;
+        gps.relPosD = z;
+        //gps.solution = SOL_FIXED;
+        gps.solutionAvail = true;
+        //gps.dgpsAge = millis();
 
-        if (convergence_status == 1){
+        imuDriver.quatX = q.x(); // quaternion
+        imuDriver.quatY = q.y(); // quaternion
+        imuDriver.quatZ = q.z(); // quaternion        
+        imuDriver.quatW = q.w(); // quaternion      
+        imuDriver.roll = roll; // euler radiant
+        imuDriver.pitch = pitch; // euler radiant
+        imuDriver.yaw = yaw;   // euler radiant                
+    }
+    catch (tf::TransformException ex){
+        if (tim > nextErrorTime){
+          nextErrorTime = tim + 10.0;
+          ROS_ERROR("%s",ex.what());
+          //ros::Duration(0.2).sleep();
+        }
+    }
+
+    // pretend IMU avail (so firmware does not try to calibrate IMU if no ROS pose available)
+    imuDriver.dataAvail = true; 
+
+    if (tim > nextPrintTime){
+      nextPrintTime = tim + 0.5;
+      ROS_WARN("ROS: mr=%.2f cs=%d gc=%d  x=%.2f  y=%.2f  z=%.2f yaw=%.2f", 
+        match_ratio_lp, convergence_status, globalLocalizationTriggerCounter,  
+        x, y, z, yaw/3.1415*180.0);
+    } 
+
+    if (tim > nextCheckTime){
+      nextCheckTime = tim + 0.2;
+    
+      //if (!gps.isRelocalizing){
+        if (match_ratio_lp > 0.5){
+          // convergence status workaround: sometimes we have no convergence for a valid position, but the match ratio is high
+          convergenceTimeout = tim + 20.0;                        
           gps.isRelocalizing = false;
-          convergenceTimeout = tim + 60.0;                
-          gps.dgpsAge = millis();      // TODO: not the most elegant way to visualize the last convergence time
           gps.solution = SOL_FIXED;          
         }
+      //}      
 
-        if ((convergence_status == 0) && (tim > convergenceTimeout)) {
-          triggerGlobalLocalization();
-          gps.solution = SOL_INVALID;          
-          gps.isRelocalizing = true;
-          convergenceTimeout = tim + 30.0;
-          match_ratio_lp = 0;
-        }
-
-        gps.numSV = convergence_status; // TODO: not the most elegant way to visualize the convergence status
-        gps.accuracy = match_ratio_lp;     // TODO: not the most elegant way to visualize the match ratio
-
-        match_ratio_lp = 0.95 * match_ratio_lp + 0.05 * match_ratio;  // low-pass filter
+      if (convergence_status == 1){
+        gps.isRelocalizing = false;
+        convergenceTimeout = tim + 60.0;                
+        gps.dgpsAge = millis();      // TODO: not the most elegant way to visualize the last convergence time
+        gps.solution = SOL_FIXED;          
       }
 
-    #endif
+      if ((convergence_status == 0) && (tim > convergenceTimeout)) {
+        triggerGlobalLocalization();
+        gps.solution = SOL_INVALID;          
+        gps.isRelocalizing = true;
+        convergenceTimeout = tim + 30.0;
+        match_ratio_lp = 0;
+      }
+
+      gps.numSV = convergence_status; // TODO: not the most elegant way to visualize the convergence status
+      gps.accuracy = match_ratio_lp;     // TODO: not the most elegant way to visualize the match ratio
+
+      match_ratio_lp = 0.95 * match_ratio_lp + 0.05 * match_ratio;  // low-pass filter
+    }
+
+  #endif
+}
+
+
+void loop(){      
+  run(); 
+
+  if (ros::ok()) {
+  
+    aprilTagLocalization();   
+    
+    lidarLocalization();
 
     // https://stackoverflow.com/questions/23227024/difference-between-spin-and-rate-sleep-in-ros
     //rate->sleep();
