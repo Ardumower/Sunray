@@ -164,8 +164,7 @@ void aprilTagLocalization(){
         // rotation Matrix -> rpy 
         m.getRPY(roll, pitch, yaw);
 
-        //ROS_WARN("APRIL_TAG: x=%.2f  y=%.2f  z=%.2f yaw=%.2f",             
-        //    x, y, z, yaw/3.1415*180.0);        
+        //ROS_WARN("APRIL_TAG: x=%.2f  y=%.2f  z=%.2f yaw=%.2f", x, y, z, yaw/3.1415*180.0);        
         stateXAprilTag = x;
         stateYAprilTag = y;
         stateDeltaAprilTag = yaw;      

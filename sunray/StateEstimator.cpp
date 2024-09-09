@@ -222,6 +222,17 @@ void computeRobotState(){
     useImuAbsoluteYaw = true;
   #endif
 
+  // ------- vision (april-tag) --------------------------
+  bool useAprilTag = false; // use vision (april-tag) localization?
+  if (useAprilTag){
+    useGPSposition = false;
+    useGPSdelta = false;
+    useImuAbsoluteYaw = false;
+    stateX = stateXAprilTag;
+    stateY = stateYAprilTag;
+    stateDelta = stateDeltaAprilTag;
+  }
+
   // ---------- odometry ticks ---------------------------
   long leftDelta = motor.motorLeftTicks-stateLeftTicks;
   long rightDelta = motor.motorRightTicks-stateRightTicks;  
