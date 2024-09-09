@@ -228,24 +228,26 @@ void computeRobotState(){
     useGPSposition = false;
     useGPSdelta = false;
     useImuAbsoluteYaw = false;
-    stateX = -stateYAprilTag;
-    stateY = stateXAprilTag;
-    stateDelta = scalePI(stateDeltaAprilTag - 3.1415/2.0);    
+    float robotX = -stateYAprilTag; // robot-in-april-tag-frame
+    float robotY = stateXAprilTag;
+    float robotDelta = scalePI(stateDeltaAprilTag - 3.1415/2.0);    
     //CONSOLE.print(stateX);
     //CONSOLE.print(",");
     //CONSOLE.println(stateY);
     //CONSOLE.print(",");    
     //CONSOLE.println(stateDelta/3.1415*180.0);    
-    float dockX;
-    float dockY;
-    float dockDelta;
-    if (maps.getDockingPos(dockX, dockY, dockDelta)){
-      // transform robot-in-april-tag-frame into world frame
-      float robotX = dockX + stateX * cos(dockDelta+3.1415) - stateY * sin(dockDelta+3.1415);
-      float robotY = dockY + stateX * sin(dockDelta+3.1415) + stateY * cos(dockDelta+3.1415);            
-      stateX = robotX;
-      stateY = robotY;
-      stateDelta = scalePI(stateDelta + dockDelta);
+    if ( (abs(robotX) < 4) && (abs(robotY) < 4) ){  
+      float dockX;
+      float dockY;
+      float dockDelta;
+      if (maps.getDockingPos(dockX, dockY, dockDelta)){
+        // transform robot-in-april-tag-frame into world frame
+        float worldX = dockX + robotX * cos(dockDelta+3.1415) - robotY * sin(dockDelta+3.1415);
+        float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            
+        stateX = worldX;
+        stateY = worldY;
+        stateDelta = scalePI(robotDelta + dockDelta);
+      }
     }
   }
 
