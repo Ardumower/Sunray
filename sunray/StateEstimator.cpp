@@ -212,6 +212,17 @@ void resetImuTimeout(){
 // with IMU: heading (stateDelta) is computed by gyro (stateDeltaIMU)
 // without IMU: heading (stateDelta) is computed by odometry (deltaOdometry)
 void computeRobotState(){  
+  bool useGPSposition = true; // use GPS position?
+  bool useGPSdelta = true; // correct yaw with gps delta estimation?
+  #ifdef GPS_LIDAR
+    useGPSdelta = false;
+  #endif      
+  bool useImuAbsoluteYaw = false; // use IMU yaw absolute value?
+  #ifdef GPS_LIDAR
+    useImuAbsoluteYaw = true;
+  #endif
+
+  // ---------- odometry ticks ---------------------------
   long leftDelta = motor.motorLeftTicks-stateLeftTicks;
   long rightDelta = motor.motorRightTicks-stateRightTicks;  
   stateLeftTicks = motor.motorLeftTicks;
@@ -229,7 +240,8 @@ void computeRobotState(){
   }  
   float distOdometry = (distLeft + distRight) / 2.0;  
   float deltaOdometry = -(distLeft - distRight) / motor.wheelBaseCm;    
-  
+
+  // ---------- GPS relative/absolute position source -----------------
   float posN = 0;
   float posE = 0;
   if (absolutePosSource){
@@ -269,7 +281,7 @@ void computeRobotState(){
           if (motor.linearSpeedSet < 0) stateDeltaGPS = scalePI(stateDeltaGPS + PI); // consider if driving reverse
           //stateDeltaGPS = scalePI(2*PI-gps.heading+PI/2);
           float diffDelta = distancePI(stateDelta, stateDeltaGPS);                 
-          #ifndef GPS_LIDAR
+          if (useGPSdelta){
             if (    ((gps.solution == SOL_FIXED) && (maps.useGPSfixForDeltaEstimation ))
                 || ((gps.solution == SOL_FLOAT) && (maps.useGPSfloatForDeltaEstimation)) )
             {   // allows planner to use float solution?         
@@ -282,25 +294,28 @@ void computeRobotState(){
                 stateDelta = scalePI(fusionPI(0.9, stateDelta, stateDeltaGPS));               
               }            
             }
-          #endif
+          }
         }
       }
       lastPosN = posN;
       lastPosE = posE;
       lastPosDelta = stateDelta;
     } 
-    if (gps.solution == SOL_FIXED) {
-      // fix
-      lastFixTime = millis();
-      if (maps.useGPSfixForPosEstimation) {
-        stateX = posE;
-        stateY = posN;
-      }        
-    } else {
-      // float
-      if (maps.useGPSfloatForPosEstimation){ // allows planner to use float solution?
-        stateX = posE;
-        stateY = posN;              
+    
+    if (useGPSposition){
+      if (gps.solution == SOL_FIXED) {
+        // fix
+        lastFixTime = millis();
+        if (maps.useGPSfixForPosEstimation) {
+          stateX = posE;
+          stateY = posN;
+        }        
+      } else {
+        // float
+        if (maps.useGPSfloatForPosEstimation){ // allows planner to use float solution?
+          stateX = posE;
+          stateY = posN;              
+        }
       }
     }
   } 
@@ -311,12 +326,12 @@ void computeRobotState(){
   if (stateOp == OP_MOW) statMowDistanceTraveled += distOdometry/100.0;
   
   if ((imuDriver.imuFound) && (maps.useIMU)) {
-    #ifdef GPS_LIDAR
+    // IMU available and should be used by planner        
+    if (useImuAbsoluteYaw){
       stateDelta = imuDriver.yaw; 
-    #else
-      // IMU available and should be used by planner    
+    } else {
       stateDelta = scalePI(stateDelta + stateDeltaIMU );          
-    #endif  
+    }     
   } else {
     // odometry
     stateDelta = scalePI(stateDelta + deltaOdometry);  

@@ -8,6 +8,7 @@ Panels:
         - /Status1
         - /Axes1
         - /Marker1
+        - /Image1
         - /TF1
         - /TF1/Frames1
         - /TF1/Tree1
@@ -31,7 +32,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: Image
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -167,11 +168,11 @@ Visualization Manager:
       Unreliable: false
       Value: false
       Visibility:
-        "": true
         Axes: true
         Grid: true
         Image: true
         Marker: true
+        TF: true
         Value: true
         ground: true
         lidar: true
@@ -179,7 +180,7 @@ Visualization Manager:
       Zoom Factor: 1
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /camera/usb_cam/image_raw
+      Image Topic: /usb_cam/image_rect
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -262,11 +263,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 330.1041259765625
+      Scale: 251.5498046875
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 0.5516382455825806
-      Y: -0.7360998392105103
+      X: 0.2988329827785492
+      Y: -1.015844702720642
     Saved: ~
 Window Geometry:
   Camera:

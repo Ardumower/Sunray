@@ -21,7 +21,7 @@
 
 #include "config.h"  
 #include "robot.h"
-
+#include "StateEstimator.h"
 
 
 char **argv = NULL;
@@ -165,7 +165,10 @@ void aprilTagLocalization(){
         m.getRPY(roll, pitch, yaw);
 
         //ROS_WARN("APRIL_TAG: x=%.2f  y=%.2f  z=%.2f yaw=%.2f",             
-        //    x, y, z, yaw/3.1415*180.0);         
+        //    x, y, z, yaw/3.1415*180.0);        
+        stateXAprilTag = x;
+        stateYAprilTag = y;
+        stateDeltaAprilTag = yaw;      
     }
     catch (tf::TransformException ex){
         if (tim > nextErrorTime){
