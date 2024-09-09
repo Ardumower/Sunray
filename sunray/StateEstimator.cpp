@@ -223,7 +223,8 @@ void computeRobotState(){
   #endif
 
   // ------- vision (april-tag) --------------------------
-  bool useAprilTag = true; // use vision (april-tag) localization?
+  bool useAprilTag = false; // use vision (april-tag) localization?
+  
   if (useAprilTag){
     useGPSposition = false;
     useGPSdelta = false;
