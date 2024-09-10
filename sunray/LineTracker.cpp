@@ -289,7 +289,7 @@ void trackLine(bool runControl){
         langleToTargetFits = angleToTargetFits;
     }
 
-    CONSOLE.println(linear);
+    //CONSOLE.println(linear);
     motor.setLinearAngularSpeed(linear, angular);      
     motor.setMowState(mow);    
   }
