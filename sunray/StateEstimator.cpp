@@ -256,7 +256,8 @@ void computeRobotState(){
         float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            
         stateX = worldX;
         stateY = worldY;
-        stateDelta = scalePI(robotDelta + dockDelta + 3.1415);
+        stateDelta = scalePI(robotDelta + dockDelta);
+        if (DOCK_FRONT_SIDE) stateDelta = scalePI(stateDelta + 3.1415);
       }
     }
   }
