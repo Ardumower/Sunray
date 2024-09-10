@@ -144,6 +144,10 @@ void MowOp::onTimetableStartMowing(){
 }
 
 void MowOp::onObstacle(){
+    if ((!DOCK_DETECT_OBSTACLE_IN_DOCK) && (maps.isNearDock())) {
+      //CONSOLE.println("triggerObstacle: ignoring, because in dock");      
+      return;
+    }
     CONSOLE.println("triggerObstacle");      
     statMowObstacles++;      
     if (maps.isDocking()) {    

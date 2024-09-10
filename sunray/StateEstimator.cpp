@@ -229,7 +229,7 @@ void computeRobotState(){
   bool useAprilTag = false; // use vision (april-tag) localization?
   
   #ifdef DOCK_APRIL_TAG
-    if (maps.dockPointsIdx >= maps.dockPoints.numPoints-2){
+    if (maps.isNearDock()){
       useAprilTag = true;
     }
   #endif

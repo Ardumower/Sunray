@@ -202,7 +202,8 @@ void aprilTagLocalization(){
     }
     catch (tf::TransformException ex){
         if (tim > nextErrorTime){
-          ROS_ERROR("%s",ex.what());
+          nextErrorTime = tim + 10.0;
+          //ROS_ERROR("%s",ex.what());
           //ros::Duration(0.2).sleep();
         }
     }

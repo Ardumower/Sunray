@@ -400,6 +400,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define DOCK_APRIL_TAG 1         // use visual (april-tag) docking?
 #define DOCK_LINEAR_SPEED 0.1   // linear speed for docking
 
+#define DOCK_DETECT_OBSTACLE_IN_DOCK true   // enable obstacle detection in dock?
+
 
 // ---- path tracking -----------------------------------
 
