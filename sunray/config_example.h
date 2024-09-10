@@ -407,6 +407,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define DOCK_FRONT_SIDE true    // dock with mower front side (true) or back side (false)? 
 
+//#define DOCK_APRIL_TAG 1         // use visual (april-tag) docking?
+#define DOCK_LINEAR_SPEED 0.1   // linear speed for docking
+
 // ---- path tracking -----------------------------------
 
 // below this robot-to-target distance (m) a target is considered as reached
