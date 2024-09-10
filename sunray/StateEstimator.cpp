@@ -232,7 +232,6 @@ void computeRobotState(){
     if (maps.dockPointsIdx >= maps.dockPoints.numPoints-2){
       useAprilTag = true;
     }
-    useAprilTag = true;
   #endif
 
   if (useAprilTag){
