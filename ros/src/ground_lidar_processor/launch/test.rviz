@@ -146,7 +146,7 @@ Visualization Manager:
       Enabled: true
       Length: 1
       Name: Axes
-      Radius: 0.10000000149011612
+      Radius: 0.009999999776482582
       Reference Frame: base_link
       Value: true
     - Class: rviz/Marker
@@ -212,7 +212,7 @@ Visualization Manager:
         docktag:
           Value: false
         usb_cam:
-          Value: false
+          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -254,25 +254,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 4.4752726554870605
+      Distance: 2.794013261795044
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.7322059869766235
-        Y: 0.17514780163764954
+        X: 1.244259238243103
+        Y: 0.13175156712532043
         Z: -4.76837158203125e-7
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.2647967338562012
+      Pitch: 1.5647963285446167
       Target Frame: <Fixed Frame>
       Value: XYOrbit (rviz)
-      Yaw: 6.2504167556762695
+      Yaw: 6.155418395996094
     Saved: ~
 Window Geometry:
   Camera:
@@ -294,5 +294,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1521
-  X: 333
+  X: 223
   Y: 34

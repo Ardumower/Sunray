@@ -240,7 +240,6 @@ void computeRobotState(){
     useGPSdelta = false;
     useImuAbsoluteYaw = false;
     if (stateAprilTagFound){  
-      stateAprilTagFound = false;
       float robotX = stateXAprilTag; // robot-in-april-tag-frame (x towards outside tag, y left, z up)
       float robotY = stateYAprilTag;
       float robotDelta = scalePI(stateDeltaAprilTag);    

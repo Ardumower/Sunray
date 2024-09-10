@@ -21,7 +21,8 @@
 #   ]
 standalone_tags:
   [
-    {id: 0, size: 0.146, name: docktag},
+#    {id: 0, size: 0.146, name: docktag},
+    {id: 0, size: 0.095, name: docktag},
   ]
 # ## Tag bundle definitions
 # ### Remarks

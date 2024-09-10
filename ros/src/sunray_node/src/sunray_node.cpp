@@ -39,6 +39,7 @@ double nextPrintTime = 0;
 double nextCheckTime = 0;
 double nextSoundTime = 0;
 double convergenceTimeout = 0;
+double aprilTagTimeout = 0;
 double match_ratio = 0;
 double match_ratio_lp = 0;
 int convergence_status = 0;
@@ -140,7 +141,10 @@ void setup(){
 void aprilTagLocalization(){
   #ifdef DOCK_APRIL_TAG
     
-    double tim = ros::Time::now().toSec();     
+    double tim = ros::Time::now().toSec();
+    if ((stateAprilTagFound) && (tim > aprilTagTimeout)) {
+      stateAprilTagFound = false;
+    }     
 
     float x = 0;
     float y = 0;
@@ -186,12 +190,13 @@ void aprilTagLocalization(){
           stateZAprilTagLP = 0.995 * stateZAprilTagLP + 0.005 * z;
           stateYawAprilTagLP = 0.995 * stateYawAprilTagLP + 0.005 * yaw;
 
-          if ((deltaX < 0.2) && (deltaY < 0.2) && (deltaZ < 0.2) && (deltaYaw < 0.2)){
+          if ((deltaX < 0.2) && (deltaY < 0.2) && (deltaZ < 0.2) && (deltaYaw < 0.6)){
             //ROS_WARN("APRIL_TAG: x=%.2f  y=%.2f  z=%.2f yaw=%.2f deltaT=%.2f", x, y, z, yaw/3.1415*180.0, deltaTime);        
             stateXAprilTag = x;
             stateYAprilTag = y;
             stateDeltaAprilTag = yaw;
             stateAprilTagFound = true;
+            aprilTagTimeout = tim + 0.1;
           }
         }      
     }

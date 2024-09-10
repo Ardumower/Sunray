@@ -134,7 +134,7 @@ void trackLine(bool runControl){
 
     if (maps.trackSlow && trackslow_allowed) {
       // planner forces slow tracking (e.g. docking etc)
-      linear = 0.1;           
+      linear = 0.05; // 0.1           
     } else if (     ((setSpeed > 0.2) && (maps.distanceToTargetPoint(stateX, stateY) < 0.5) && (!straight))   // approaching
           || ((linearMotionStartTime != 0) && (millis() < linearMotionStartTime + 3000))                      // leaving  
        ) 
