@@ -172,9 +172,10 @@ void aprilTagLocalization(){
 
         double deltaTime = tim - transform.stamp_.toSec(); 
         
-          
+        // detect false positives with invalid position
         if ( (deltaTime < 0.2) && (abs(x) < 4.0) && (abs(y) < 4.0) && (abs(z) < 2.0) ){
 
+          // detect false positives with jumps from low-pass-filtered past
           float deltaX = abs(stateXAprilTagLP - x);
           float deltaY = abs(stateYAprilTagLP - y);
           float deltaZ = abs(stateZAprilTagLP - z);
