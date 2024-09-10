@@ -180,10 +180,10 @@ void aprilTagLocalization(){
           float deltaZ = abs(stateZAprilTagLP - z);
           float deltaYaw = abs(stateYawAprilTagLP - yaw);
 
-          stateXAprilTagLP = 0.99 * stateXAprilTagLP + 0.01 * x;
-          stateYAprilTagLP = 0.99 * stateYAprilTagLP + 0.01 * y;
-          stateZAprilTagLP = 0.99 * stateZAprilTagLP + 0.01 * z;
-          stateYawAprilTagLP = 0.99 * stateYawAprilTagLP + 0.01 * yaw;
+          stateXAprilTagLP = 0.995 * stateXAprilTagLP + 0.005 * x;
+          stateYAprilTagLP = 0.995 * stateYAprilTagLP + 0.005 * y;
+          stateZAprilTagLP = 0.995 * stateZAprilTagLP + 0.005 * z;
+          stateYawAprilTagLP = 0.995 * stateYawAprilTagLP + 0.005 * yaw;
 
           if ((deltaX < 0.2) && (deltaY < 0.2) && (deltaZ < 0.2) && (deltaYaw < 0.2)){
             //ROS_WARN("APRIL_TAG: x=%.2f  y=%.2f  z=%.2f yaw=%.2f deltaT=%.2f", x, y, z, yaw/3.1415*180.0, deltaTime);        
