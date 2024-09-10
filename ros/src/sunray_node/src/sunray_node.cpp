@@ -44,6 +44,12 @@ double match_ratio_lp = 0;
 int convergence_status = 0;
 int globalLocalizationTriggerCounter = 0;
 
+float stateXAprilTagLP = 0;
+float stateYAprilTagLP = 0;
+float stateZAprilTagLP = 0;
+float stateYawAprilTagLP = 0;
+
+
 
 void obstacleStateCallback(const std_msgs::Int8 &msg)
 {
@@ -152,7 +158,7 @@ void aprilTagLocalization(){
         x = transform.getOrigin().x();
         y = transform.getOrigin().y();
         z = transform.getOrigin().z();
-        
+
         // https://gist.github.com/LimHyungTae/2499a68ea8ee4d8a876a149858a5b08e
         tf::Quaternion q = transform.getRotation(); 
         
@@ -164,10 +170,29 @@ void aprilTagLocalization(){
         // rotation Matrix -> rpy 
         m.getRPY(roll, pitch, yaw);
 
-        //ROS_WARN("APRIL_TAG: x=%.2f  y=%.2f  z=%.2f yaw=%.2f", x, y, z, yaw/3.1415*180.0);        
-        stateXAprilTag = x;
-        stateYAprilTag = y;
-        stateDeltaAprilTag = yaw;      
+        double deltaTime = tim - transform.stamp_.toSec(); 
+        
+          
+        if ( (deltaTime < 0.2) && (abs(x) < 4.0) && (abs(y) < 4.0) && (abs(z) < 2.0) ){
+
+          float deltaX = abs(stateXAprilTagLP - x);
+          float deltaY = abs(stateYAprilTagLP - y);
+          float deltaZ = abs(stateZAprilTagLP - z);
+          float deltaYaw = abs(stateYawAprilTagLP - yaw);
+
+          stateXAprilTagLP = 0.99 * stateXAprilTagLP + 0.01 * x;
+          stateYAprilTagLP = 0.99 * stateYAprilTagLP + 0.01 * y;
+          stateZAprilTagLP = 0.99 * stateZAprilTagLP + 0.01 * z;
+          stateYawAprilTagLP = 0.99 * stateYawAprilTagLP + 0.01 * yaw;
+
+          if ((deltaX < 0.2) && (deltaY < 0.2) && (deltaZ < 0.2) && (deltaYaw < 0.2)){
+            //ROS_WARN("APRIL_TAG: x=%.2f  y=%.2f  z=%.2f yaw=%.2f deltaT=%.2f", x, y, z, yaw/3.1415*180.0, deltaTime);        
+            stateXAprilTag = x;
+            stateYAprilTag = y;
+            stateDeltaAprilTag = yaw;
+            stateAprilTagFound = true;
+          }
+        }      
     }
     catch (tf::TransformException ex){
         if (tim > nextErrorTime){

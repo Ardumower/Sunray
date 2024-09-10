@@ -24,6 +24,7 @@ float stateDeltaGPS = 0;
 float stateDeltaIMU = 0;
 float stateGroundSpeed = 0; // m/s
 
+bool stateAprilTagFound = false;
 float stateXAprilTag = 0; // camera-position in april-tag frame
 float stateYAprilTag = 0;  
 float stateDeltaAprilTag = 0; 
@@ -229,15 +230,17 @@ void computeRobotState(){
     useGPSposition = false;
     useGPSdelta = false;
     useImuAbsoluteYaw = false;
-    float robotX = stateXAprilTag; // robot-in-april-tag-frame (x towards outside tag, y left, z up)
-    float robotY = stateYAprilTag;
-    float robotDelta = scalePI(stateDeltaAprilTag);    
-    //CONSOLE.print(robotX);
-    //CONSOLE.print(",");
-    //CONSOLE.println(robotY);
-    //CONSOLE.print(",");    
-    //CONSOLE.println(robotDelta/3.1415*180.0);    
-    if ( (abs(robotX) < 4) && (abs(robotY) < 4) ){  
+    if (stateAprilTagFound){  
+      stateAprilTagFound = false;
+      //CONSOLE.println("APRIL TAG found");
+      float robotX = stateXAprilTag; // robot-in-april-tag-frame (x towards outside tag, y left, z up)
+      float robotY = stateYAprilTag;
+      float robotDelta = scalePI(stateDeltaAprilTag);    
+      //CONSOLE.print(robotX);
+      //CONSOLE.print(",");
+      //CONSOLE.println(robotY);
+      //CONSOLE.print(",");    
+      //CONSOLE.println(robotDelta/3.1415*180.0);        
       float dockX;
       float dockY;
       float dockDelta;

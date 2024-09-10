@@ -19,6 +19,7 @@ extern float statePitch;
 extern float stateDeltaGPS;
 extern float stateDeltaIMU;
 
+extern bool stateAprilTagFound; // found april-tag in camera stream?
 extern float stateXAprilTag; // camera-position in april-tag frame
 extern float stateYAprilTag;  
 extern float stateDeltaAprilTag; 
