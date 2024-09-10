@@ -222,6 +222,13 @@ void trackLine(bool runControl){
       }
     }
   }
+  if (stateLocalizationMode == LOC_APRIL_TAG){
+    if (!stateAprilTagFound){
+      if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
+      linear = 0; // wait until april-tag found 
+      angular = 0; 
+    }
+  }
 
   // gps-jump/false fix check
   if (KIDNAP_DETECT){
