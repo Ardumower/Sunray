@@ -396,7 +396,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define UNDOCK_IGNORE_GPS_DISTANCE 2 // set distance (m) from dock to ignore gps while undocking
 
-#define DOCK_FRONT_SIDE false    // dock with mower front side (true) or back side (false)? 
+#define DOCK_FRONT_SIDE true    // dock with mower front side (true) or back side (false)? 
 
 #define DOCK_APRIL_TAG 1         // use visual (april-tag) docking?
 #define DOCK_LINEAR_SPEED 0.05   // linear speed for docking

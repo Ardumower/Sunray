@@ -224,9 +224,10 @@ void trackLine(bool runControl){
   }
   if (stateLocalizationMode == LOC_APRIL_TAG){
     if (!stateAprilTagFound){
-      if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
       linear = 0; // wait until april-tag found 
       angular = 0; 
+    } else {
+      if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
     }
   }
 
@@ -288,6 +289,7 @@ void trackLine(bool runControl){
         langleToTargetFits = angleToTargetFits;
     }
 
+    CONSOLE.println(linear);
     motor.setLinearAngularSpeed(linear, angular);      
     motor.setMowState(mow);    
   }

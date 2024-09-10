@@ -196,7 +196,7 @@ void aprilTagLocalization(){
             stateYAprilTag = y;
             stateDeltaAprilTag = yaw;
             stateAprilTagFound = true;
-            aprilTagTimeout = tim + 0.1;
+            aprilTagTimeout = tim + 0.2;
           }
         }      
     }
