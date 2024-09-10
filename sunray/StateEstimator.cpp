@@ -15,6 +15,8 @@
 #include "events.h"
 
 
+LocalizationMode stateLocalizationMode = LOC_GPS;
+
 float stateX = 0;  // position-east (m)
 float stateY = 0;  // position-north (m)
 float stateDelta = 0;  // direction (rad)
@@ -230,9 +232,11 @@ void computeRobotState(){
     if (maps.dockPointsIdx >= maps.dockPoints.numPoints-2){
       useAprilTag = true;
     }
+    useAprilTag = true;
   #endif
 
   if (useAprilTag){
+    stateLocalizationMode = LOC_APRIL_TAG;
     useGPSposition = false;
     useGPSdelta = false;
     useImuAbsoluteYaw = false;
@@ -260,6 +264,8 @@ void computeRobotState(){
         if (DOCK_FRONT_SIDE) stateDelta = scalePI(stateDelta + 3.1415);
       }
     }
+  } else {
+    stateLocalizationMode = LOC_GPS;
   }
 
   // ---------- odometry ticks ---------------------------

@@ -10,6 +10,14 @@
 
 #include <Arduino.h>
 
+// localization modes
+enum LocalizationMode {
+      LOC_GPS,          // RTK localization
+      LOC_APRIL_TAG,    // vision (camera) localization (april-tag) 
+};    
+
+extern LocalizationMode stateLocalizationMode;
+
 
 extern float stateX;  // position-east (m)
 extern float stateY;  // position-north (m)

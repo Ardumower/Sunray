@@ -143,7 +143,7 @@ void trackLine(bool runControl){
       //CONSOLE.println("SLOW: approach")
     } 
     else {
-      if (gps.solution == SOL_FLOAT){        
+      if ((stateLocalizationMode == LOC_GPS) && (gps.solution == SOL_FLOAT)){        
         linear = min(setSpeed, 0.1); // reduce speed for float solution
         //CONSOLE.println("SLOW: float");
       } else
@@ -193,31 +193,33 @@ void trackLine(bool runControl){
     //if (!SMOOTH_CURVES) angular = max(-PI/16, min(PI/16, angular)); 
   }
   // check some pre-conditions that can make linear+angular speed zero
-  if (fixTimeout != 0){
+  if ((stateLocalizationMode == LOC_GPS) && (fixTimeout != 0)){
     if (millis() > lastFixTime + fixTimeout * 1000.0){
       activeOp->onGpsFixTimeout();        
-    }       
+    }           
   }     
 
-  if ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT)){        
-    if (abs(linear) > 0.06) {
-      if ((millis() > linearMotionStartTime + 5000) && (stateGroundSpeed < 0.03)){
-        // if in linear motion and not enough ground speed => obstacle
-        //if ( (GPS_SPEED_DETECTION) && (!maps.isUndocking()) ) { 
-        if (GPS_SPEED_DETECTION) {         
-          CONSOLE.println("gps no speed => obstacle!");
-          statMowGPSNoSpeedCounter++;
-          Logger.event(EVT_NO_GPS_SPEED_OBSTACLE);
-          triggerObstacle();
-          return;
+  if (stateLocalizationMode == LOC_GPS){
+    if  ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT)){        
+      if (abs(linear) > 0.06) {
+        if ((millis() > linearMotionStartTime + 5000) && (stateGroundSpeed < 0.03)){
+          // if in linear motion and not enough ground speed => obstacle
+          //if ( (GPS_SPEED_DETECTION) && (!maps.isUndocking()) ) { 
+          if (GPS_SPEED_DETECTION) {         
+            CONSOLE.println("gps no speed => obstacle!");
+            statMowGPSNoSpeedCounter++;
+            Logger.event(EVT_NO_GPS_SPEED_OBSTACLE);
+            triggerObstacle();
+            return;
+          }
         }
+      }  
+    } else {
+      // no gps solution
+      if (REQUIRE_VALID_GPS){
+        CONSOLE.println("WARN: no gps solution!");
+        activeOp->onGpsNoSignal();
       }
-    }  
-  } else {
-    // no gps solution
-    if (REQUIRE_VALID_GPS){
-      CONSOLE.println("WARN: no gps solution!");
-      activeOp->onGpsNoSignal();
     }
   }
 
@@ -235,8 +237,8 @@ void trackLine(bool runControl){
         if (dist < KIDNAP_DETECT_DISTANCE_DOCK_UNDOCK) {
             allowedPathTolerance = KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK;
         }
-    }
-    if (fabs(distToPath) > allowedPathTolerance){ // actually, this should not happen (except on false GPS fixes or robot being kidnapped...)
+    }    
+    if ((stateLocalizationMode == LOC_GPS) && (fabs(distToPath) > allowedPathTolerance)){ // actually, this should not happen (except on false GPS fixes or robot being kidnapped...)
       if (!stateKidnapped){
         stateKidnapped = true;
         CONSOLE.print("KIDNAP_DETECT: stateKidnapped=");
