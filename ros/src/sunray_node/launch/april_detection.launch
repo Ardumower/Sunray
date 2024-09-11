@@ -29,7 +29,7 @@
 
   <!-- ros2 run tf2_ros static_transform_publisher x y z yaw pitch roll parent_frame child_frame -->
   <node pkg="tf" type="static_transform_publisher" name="camera_to_robot_tf" 
-        args="0.25 0 0 -1.5708 0 -1.5708 base_link usb_cam 100" />
+        args="0.3 0 0 -1.5708 0 -1.5708 base_link usb_cam 100" />
 
   <node pkg="tf" type="static_transform_publisher" name="docktag_to_dock_tf" 
         args="0 0 0 -1.5708 -1.5708 0 docktag dock 100" />

@@ -228,6 +228,8 @@ void trackLine(bool runControl){
       angular = 0; 
     } else {
       if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
+      //linear = 0; // wait until april-tag found 
+      //angular = 0; 
     }
   }
 
@@ -289,7 +291,9 @@ void trackLine(bool runControl){
         langleToTargetFits = angleToTargetFits;
     }
 
-    CONSOLE.print("linear=");
+    CONSOLE.print("trackReverse=");
+    CONSOLE.print(maps.trackReverse);
+    CONSOLE.print(" linear=");
     CONSOLE.print(linear);
     CONSOLE.print(" angular=");
     CONSOLE.print(angular);    
@@ -298,7 +302,7 @@ void trackLine(bool runControl){
     if (stateLocalizationMode == LOC_GPS) CONSOLE.print("gps");
     CONSOLE.print(" isNearDock=");
     CONSOLE.print(maps.isNearDock());
-    CONSOLE.print("maps.dockPointsIdx=");
+    CONSOLE.print(" maps.dockPointsIdx=");
     CONSOLE.print(maps.dockPointsIdx);
     CONSOLE.println();
 
