@@ -194,7 +194,7 @@ CMD+="; export ROS_PYTHON_LOG_CONFIG_FILE=/root/Sunray/ros/python_logging.config
 CMD+="  ; cd /root/Sunray/ros"
 CMD+="  ; . devel/setup.bash"
 CMD+="; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node"
-CMD+="; cp -r src/sunray_node/config/camera_info /root/Sunray/alfred"
+CMD+="; cp -n -r src/sunray_node/config/camera_info /root/Sunray/alfred"
 CMD+="; cd /root/Sunray/alfred"
 CMD+="; pwd"
 CMD+="; chmod o+x+r+w /root"
