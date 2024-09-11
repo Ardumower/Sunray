@@ -18,7 +18,7 @@ fi
 apt update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata \
     software-properties-common build-essential sudo nano wget curl git subversion cmake python-pip python3-pip pybind11-dev gfortran \
     pcl-tools network-manager bluez bluez-tools libbluetooth-dev python-can python3-can can-utils iproute2 psmisc libsox-fmt-all sox \
-    mplayer alsa-utils pulseaudio libnotify-bin net-tools dbus libv4l-dev
+    mplayer alsa-utils pulseaudio libnotify-bin net-tools dbus libv4l-dev guvcview x11-apps
 
 
 # Livox SDK2

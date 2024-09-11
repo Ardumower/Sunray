@@ -8,6 +8,8 @@
 # -start Sunray ROS LiDAR localization
 
 
+# test camera:  guvcview --device=/dev/video2 --format=mjpeg
+
 
 IMAGE_NAME="ros:melodic-perception-bionic"
 CONTAINER_NAME="ros1"
