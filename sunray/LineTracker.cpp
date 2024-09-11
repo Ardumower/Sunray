@@ -289,7 +289,19 @@ void trackLine(bool runControl){
         langleToTargetFits = angleToTargetFits;
     }
 
-    //CONSOLE.println(linear);
+    CONSOLE.print("linear=");
+    CONSOLE.print(linear);
+    CONSOLE.print(" angular=");
+    CONSOLE.print(angular);    
+    CONSOLE.print(" loc=");
+    if (stateLocalizationMode == LOC_APRIL_TAG) CONSOLE.print("april");
+    if (stateLocalizationMode == LOC_GPS) CONSOLE.print("gps");
+    CONSOLE.print(" isNearDock=");
+    CONSOLE.print(maps.isNearDock());
+    CONSOLE.print("maps.dockPointsIdx=");
+    CONSOLE.print(maps.dockPointsIdx);
+    CONSOLE.println();
+
     motor.setLinearAngularSpeed(linear, angular);      
     motor.setMowState(mow);    
   }

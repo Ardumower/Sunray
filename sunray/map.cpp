@@ -966,7 +966,7 @@ bool Map::retryDocking(float stateX, float stateY){
   } 
   if (dockPointsIdx > 0) dockPointsIdx--;    
   shouldRetryDock = true;
-  trackReverse = (DOCK_FRONT_SIDE) || ((!DOCK_FRONT_SIDE) && (dockPointsIdx < dockPoints.numPoints-2));
+  trackReverse = (DOCK_FRONT_SIDE) || ((!DOCK_FRONT_SIDE) && (dockPointsIdx < dockPoints.numPoints-3));
   return true;
 }
 
@@ -1314,10 +1314,10 @@ bool Map::nextDockPoint(bool sim){
         if (shouldRetryDock) {
           CONSOLE.println("nextDockPoint: shouldRetryDock=true");
           dockPointsIdx--;
-          trackReverse = (DOCK_FRONT_SIDE) || ((!DOCK_FRONT_SIDE) && (dockPointsIdx < dockPoints.numPoints-2));                    
+          trackReverse = (DOCK_FRONT_SIDE) || ((!DOCK_FRONT_SIDE) && (dockPointsIdx < dockPoints.numPoints-3));                    
         } else {
           dockPointsIdx++; 
-          trackReverse = (!DOCK_FRONT_SIDE) && (dockPointsIdx >= dockPoints.numPoints-2) ; // dock reverse only in dock
+          trackReverse = (!DOCK_FRONT_SIDE) && (dockPointsIdx >= dockPoints.numPoints-3) ; // dock reverse only in dock
         }
       }              
       if (!sim) trackSlow = true;
@@ -1337,7 +1337,7 @@ bool Map::nextDockPoint(bool sim){
       if (!sim) lastTargetPoint.assign(targetPoint);
       if (!sim) dockPointsIdx--;              
       if (!sim) {
-        trackReverse = (DOCK_FRONT_SIDE) && (dockPointsIdx >= dockPoints.numPoints-2) ; // undock reverse only in dock
+        trackReverse = (DOCK_FRONT_SIDE) && (dockPointsIdx >= dockPoints.numPoints-3) ; // undock reverse only in dock
       }              
       if (!sim) trackSlow = true;      
       return true;
