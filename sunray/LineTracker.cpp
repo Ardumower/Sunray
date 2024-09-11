@@ -291,7 +291,7 @@ void trackLine(bool runControl){
         langleToTargetFits = angleToTargetFits;
     }
 
-    CONSOLE.print("trackReverse=");
+    /*CONSOLE.print("trackReverse=");
     CONSOLE.print(maps.trackReverse);
     CONSOLE.print(" linear=");
     CONSOLE.print(linear);
@@ -304,7 +304,7 @@ void trackLine(bool runControl){
     CONSOLE.print(maps.isNearDock());
     CONSOLE.print(" maps.dockPointsIdx=");
     CONSOLE.print(maps.dockPointsIdx);
-    CONSOLE.println();
+    CONSOLE.println();*/
 
     motor.setLinearAngularSpeed(linear, angular);      
     motor.setMowState(mow);    

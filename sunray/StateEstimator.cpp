@@ -243,12 +243,12 @@ void computeRobotState(){
       float robotX = stateXAprilTag; // robot-in-april-tag-frame (x towards outside tag, y left, z up)
       float robotY = stateYAprilTag;
       float robotDelta = scalePI(stateDeltaAprilTag);    
-      CONSOLE.print("APRIL TAG found: ");      
+      /*CONSOLE.print("APRIL TAG found: ");      
       CONSOLE.print(robotX);
       CONSOLE.print(",");
       CONSOLE.print(robotY);
       CONSOLE.print(",");    
-      CONSOLE.println(robotDelta/3.1415*180.0);        
+      CONSOLE.println(robotDelta/3.1415*180.0);*/        
       float dockX;
       float dockY;
       float dockDelta;
