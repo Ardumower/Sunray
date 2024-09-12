@@ -191,8 +191,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define ENABLE_OVERLOAD_DETECTION  false    // robot will slow down on overload
 
 // should the motor fault (error) detection be enabled? 
-//#define ENABLE_FAULT_DETECTION  true
-#define ENABLE_FAULT_DETECTION  false       // use this if you keep getting 'motor error'
+#define ENABLE_FAULT_DETECTION  true
+//#define ENABLE_FAULT_DETECTION  false       // use this if you keep getting 'motor error'
 
 //#define ENABLE_RPM_FAULT_DETECTION  true     // use mow rpm signal to detect a motor fault (requires mowing motor with rpm output!)
 #define ENABLE_RPM_FAULT_DETECTION  false     // do not use mow rpm signal to detect a motor fault
