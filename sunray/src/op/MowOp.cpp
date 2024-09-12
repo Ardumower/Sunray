@@ -212,7 +212,7 @@ void MowOp::onMotorError(){
             CONSOLE.print("MowOp::onMotorError motorErrorCounter=");       
             CONSOLE.println(motorErrorCounter);
             if (maps.wayMode != WAY_DOCK){
-                if (motorErrorCounter < 5){                     
+                if (motorErrorCounter < FAULT_MAX_SUCCESSIVE_ALLOWED_COUNT){                     
                     //stateSensor = SENS_MOTOR_ERROR;
                     Logger.event(EVT_ERROR_MOTOR_ERROR);            
                     changeOp(escapeReverseOp, true);     // trigger obstacle avoidance 
