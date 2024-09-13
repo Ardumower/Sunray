@@ -231,11 +231,15 @@ void CanRobotDriver::requestMotorMowPwm(int mowPwm){
   #ifdef MAX_MOW_RPM
     // cutter speed (velocity control)
     data.floatVal = ((float)mowPwm) / 255.0 * ((float)MAX_MOW_RPM)/60.0 * 3.1415*2.0;   // convert 0..255 to target velocity (motor radiant/sec)    
-    sendCanData(OWL_DRIVE_MSG_ID, MOW1_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_velocity, data);
+    for (int i=0; i < MOW_MOTOR_COUNT; i++){
+      sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_IDS[i], can_cmd_set, owldrv::can_val_velocity, data);
+    }
   #else
     // cutter speed (voltage control)
-    data.floatVal = ((float)mowPwm) / 255.0;    
-    sendCanData(OWL_DRIVE_MSG_ID, MOW1_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
+    data.floatVal = ((float)mowPwm) / 255.0;
+    for (int i=0; i < MOW_MOTOR_COUNT; i++){    
+      sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_IDS[i], can_cmd_set, owldrv::can_val_pwm_speed, data);
+    }
   #endif
 
   for (int i=0; i < MOW_MOTOR_COUNT; i++){
