@@ -24,7 +24,7 @@ fi
 
 function run_as_user() {
   CMD=$1
-  # echo "CMD:$CMD"
+  #echo "EUID=$EUID CMD:$CMD"
   if [ "$EUID" -eq 0 ]
   then 
     # root
@@ -66,7 +66,9 @@ sudo dbus-monitor --system "interface='de.sunray.Bus'" | while read -r line; do
       killall mplayer >/dev/null 2>&1
       #sleep 0.5
       # -volume 100 -af volume=5:1   //  volume 100% (-volume 100) and amplify by 5dB (-af volume=5:1)
-      run_as_user "mplayer -ao alsa -volume 100 -af volume=5:1 $filepath"
+      run_as_user "mplayer -volume 100 -af volume=5:1 $filepath"
+      #run_as_user "mplayer -ao alsa -volume 100 -af volume=5:1 $filepath"
+      #run_as_user "mplayer -ao pulse -volume 100 -af volume=5:1 $filepath"
       #echo "OK"
     else
       echo "File $filepath does not exist."

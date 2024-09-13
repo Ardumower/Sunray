@@ -65,8 +65,8 @@ function export_ros_ip {
   #sudo chmod 666 /var/run/pulse/native
   #export PULSE_SERVER=unix:/var/run/pulse/native
   # set default volume 
-  adduser root dialout audio pulse-access pulse
-  amixer -D pulse sset Master 100%
+  #adduser root dialout audio pulse-access pulse
+  #amixer -D pulse sset Master 100%
   #   echo "====> we will test host audio now... (you should hear a voice)" 
   #   mplayer /home/pi/Sunray/tts/de/system_starting.mp3
   #exit
@@ -124,8 +124,6 @@ function docker_build_container {
   export_ros_ip  
   echo "====> enter 'exit' to exit docker container"   
   docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
-    --env PULSE_SERVER=unix:/var/run/pulse/native \
-    --volume /var/run/pulse/native:/var/run/pulse/native \
     --volume /etc/machine-id:/etc/machine-id:ro \
     --volume /var/run/dbus:/var/run/dbus \
     --device /dev/snd \

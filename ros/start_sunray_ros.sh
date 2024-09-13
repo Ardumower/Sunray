@@ -181,8 +181,7 @@ echo "WIFI IP: $WIP"
 xhost +local:* 
 
 # source ROS setup  
-CMD="export PULSE_SERVER=unix:/var/run/pulse/native"
-CMD+="; export DISPLAY=$DISPLAY"
+CMD="export DISPLAY=$DISPLAY"
 if [[ $WIP != "" ]]; then
   CMD+="; export ROS_IP=$WIP"
 fi 
@@ -198,8 +197,8 @@ CMD+="; cp -n -r src/sunray_node/config/camera_info /root/Sunray/alfred"
 CMD+="; cd /root/Sunray/alfred"
 CMD+="; pwd"
 CMD+="; chmod o+x+r+w /root"
-CMD+="; groupadd -g 1000 pi || true"
-CMD+="; useradd -g 1000 -u 1000 pi || true"
+#CMD+="; groupadd -g 1000 pi || true"
+#CMD+="; useradd -g 1000 -u 1000 pi || true"
 CMD+="; roslaunch sunray_node run.launch sunray_ros_launch:=$SUNRAY_ROS_LAUNCH sunray_ros_mode:=$SUNRAY_ROS_MODE rviz:=$SUNRAY_ROS_RVIZ use_bag_file:=$USE_BAG_FILE bag_file:=$BAG_FILE map_pcd:=/root/PCD/dlio_map.pcd"
 docker stop $CONTAINER_NAME && docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME bash -c "$CMD" 
 
