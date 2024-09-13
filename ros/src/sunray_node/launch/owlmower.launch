@@ -14,7 +14,7 @@
 	<arg name="start_sunray_node" default="true" />
 	<arg name="sunray_ros_mode" default="SIMPLE" />
 
-	<arg name="start_april_detect" default="true" />
+	<arg name="start_april_detect" default="false" />
 
 	<arg name="start_ground_lidar_processor" default="true" />
     <arg name="ground_lidar_angle_opening" default="180.0" />
