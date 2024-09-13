@@ -9,12 +9,23 @@
 
 # ----------------------------
 
-#mplayer -nolirc -noconsolecontrols -really-quiet -volume 100 /home/pi/Sunray/tts/de/testing_audio.mp3
-#exit
+if [  ]; then
+  id
+  killall mplayer >/dev/null 2>&1
+  CMD="mplayer -nolirc -noconsolecontrols -really-quiet -volume 100 /home/pi/Sunray/tts/de/testing_audio.mp3"
+  if [ "$EUID" -eq 0 ]; then
+    runuser pi -c "export XDG_RUNTIME_DIR=\"/run/user/1000\"; $CMD" &
+  else
+    $CMD &
+  fi
+  exit
+fi
+
 
 echo "dbus_monitor started"
 
-sudo killall -s SIGKILL dbus-monitor
+# sudo killall -s SIGKILL dbus-monitor
+sudo killall dbus-monitor
 
 
 if [[ `pidof dbus-monitor` != "" ]]; then
@@ -33,15 +44,16 @@ function run_as_user() {
   CMD=$1
   #CMD+=" >/dev/null 2>&1"
   BLOCKING=$2
-  #echo "EUID=$EUID CMD:$CMD BLOCKING:$BLOCKING"
+  echo "EUID=$EUID USER:$USER CMD:$CMD BLOCKING:$BLOCKING"
   if [ "$EUID" -eq 0 ]
   then 
     # root
-    #runuser $USER -c "export XDG_RUNTIME_DIR=\"/run/user/1000\"; $CMD >/dev/null 2>&1" &
     if [ "$BLOCKING" = true ] ; then
-      runuser $USER -c "$CMD" 
+      runuser $USER -c "export XDG_RUNTIME_DIR=\"/run/user/1000\"; $CMD" 
+      #runuser $USER -c "$CMD" 
     else
-      runuser $USER -c "$CMD" &
+      runuser $USER -c "export XDG_RUNTIME_DIR=\"/run/user/1000\"; $CMD" &    
+      #runuser $USER -c "$CMD" &
     fi
   else
     if [ "$BLOCKING" = true ] ; then
