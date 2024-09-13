@@ -164,7 +164,7 @@ void trackLine(bool runControl){
           CONSOLE.println("motor overload detected: reduce linear speed to 0.1");
       }
       printmotoroverload = true;
-      linear = 0.1;  
+      linear = MOTOR_OVERLOAD_SPEED;  
       //CONSOLE.println("SLOW: overload");
     } else {
       printmotoroverload = false;

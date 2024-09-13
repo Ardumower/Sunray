@@ -150,6 +150,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define MOTOR_TOO_LOW_CURRENT 0.00   // gear motor too low current (amps), set to zero (0) to disable
 #define MOTOR_OVERLOAD_CURRENT 1.5    // gear motors overload current (amps)
 
+#define MOTOR_OVERLOAD_SPEED  0.3    // speed (m/s) to use at motor overload
+
 //#define USE_LINEAR_SPEED_RAMP  true      // use a speed ramp for the linear speed
 #define USE_LINEAR_SPEED_RAMP  false      // do not use a speed ramp 
 
