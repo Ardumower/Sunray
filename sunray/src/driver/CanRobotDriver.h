@@ -155,7 +155,7 @@ class CanRobotDriver: public RobotDriver {
     float batteryVoltage;
     float chargeVoltage;
     float chargeCurrent;
-    float mowCurr;
+    float mowCurr[MOW_MOTOR_COUNT];
     float motorLeftCurr;
     float motorRightCurr;
     float motorHeightAngleCurr;
@@ -177,6 +177,7 @@ class CanRobotDriver: public RobotDriver {
     float getCpuTemperature() override;
     void requestMotorDrivePwm(int leftPwm, int rightPwm);
     void requestMotorMowPwm(int mowPwm);
+    void requestMotorMowCurrent();
     void requestMowHeight(int mowHeightMillimeter);
     void requestMotorErrorStatus();
     void requestSummary();

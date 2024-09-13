@@ -22,12 +22,14 @@ void CanRobotDriver::begin(){
   can.begin();
   encoderTicksLeft = 0;
   encoderTicksRight = 0;
-  for (int i=0; i < MOW_MOTOR_COUNT; i++) encoderTicksMow[i] = 0;
+  for (int i=0; i < MOW_MOTOR_COUNT; i++) {
+    encoderTicksMow[i] = 0;
+    mowCurr[i] = 0;
+  }
   chargeVoltage = 0;
   chargeCurrent = 0;  
   batteryVoltage = 28;
   cpuTemp = 30;
-  mowCurr = 0;
   motorLeftCurr = 0;
   motorRightCurr = 0;
   resetMotorTicks = true;
@@ -304,6 +306,13 @@ void CanRobotDriver::requestMotorErrorStatus(){
   sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_error, data);
 }
 
+void CanRobotDriver::requestMotorMowCurrent(){
+  canDataType_t data;
+  for (int i=0; i < MOW_MOTOR_COUNT; i++){
+    sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_IDS[i], can_cmd_request, owldrv::can_val_current, data);
+  }  
+}
+
 void CanRobotDriver::versionResponse(){
 }
 
@@ -349,6 +358,13 @@ void CanRobotDriver::processResponse(){
                         rightMotorFault = (data.byteVal[0] != err_ok);
                         break;
                     }                    
+                    break;
+                  case owldrv::can_val_current:
+                    for (int i=0; i < MOW_MOTOR_COUNT; i++){
+                      if (node.sourceAndDest.sourceNodeID == MOW_MOTOR_NODE_IDS[i]){
+                        mowCurr[i] = data.floatVal;                        
+                      }
+                    }
                     break;
                   case owldrv::can_val_endswitch:
                     switch(node.sourceAndDest.sourceNodeID){
@@ -464,10 +480,11 @@ void CanRobotDriver::run(){
   if (millis() > nextCheckErrorTime){
     nextCheckErrorTime = millis() + 2000; // 0.5 hz
     requestMotorErrorStatus();
-  }
+  }  
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;  // 1 hz    
     requestMotorMowPwm(requestMowPwm);
+    requestMotorMowCurrent();
     if (MOW_ADJUST_HEIGHT){   // can the mowing height be adjusted by an additional motor?
       requestMowHeight(requestMowHeightMillimeter);
     }    
@@ -601,7 +618,10 @@ void CanMotorDriver::getMotorCurrent(float &leftCurrent, float &rightCurrent, fl
   //mowCurrent = 0.8;
   leftCurrent = canRobot.motorLeftCurr;
   rightCurrent = canRobot.motorRightCurr;
-  mowCurrent = canRobot.mowCurr;
+  mowCurrent = 0;
+  for (int i=0; i < MOW_MOTOR_COUNT; i++){
+    mowCurrent = max(mowCurrent, canRobot.mowCurr[i]);
+  }
 }
 
 void CanMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks){
