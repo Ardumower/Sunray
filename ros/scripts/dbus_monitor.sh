@@ -25,7 +25,7 @@ fi
 echo "dbus_monitor started"
 
 # sudo killall -s SIGKILL dbus-monitor
-sudo killall dbus-monitor
+sudo killall -9 dbus-monitor
 
 
 if [[ `pidof dbus-monitor` != "" ]]; then
@@ -80,6 +80,11 @@ USER=`who | head -n1 | cut -d' ' -f1 | xargs`
 #run_as_user 'amixer -D pulse sset Master 100%' true
 #run_as_user "mplayer -nolirc -noconsolecontrols -really-quiet -volume 100 /home/$USER/Sunray/tts/de/testing_audio.mp3" true
 #exit
+#while :
+#do
+#  run_as_user "mplayer -nolirc -noconsolecontrols -really-quiet -volume 100 /home/$USER/Sunray/tts/de/testing_audio.mp3" true
+#  sleep 2
+#done
 
 
 # Überwache den dbus auf Nachrichten
@@ -99,8 +104,9 @@ sudo dbus-monitor --system "interface='de.sunray.Bus'" | while read -r line; do
       #echo "Playing $filepath..."
       #mplayer "$filepath"
       #sleep 1.0
-      killall mplayer >/dev/null 2>&1
-      #sleep 2.0
+      # pkill mplayer >/dev/null 2>&1
+      killall -9 mplayer >/dev/null 2>&1
+      sleep 0.5
       # -volume 100 -af volume=5:1   //  volume 100% (-volume 100) and amplify by 5dB (-af volume=5:1)
       run_as_user "mplayer -nolirc -noconsolecontrols -really-quiet -volume 100 $filepath" false
       #echo "OK"
