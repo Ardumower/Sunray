@@ -149,11 +149,12 @@ bool LinuxCAN::run(){
 		struct can_frame fr; 
 		fr.can_id = fframe.can_id;
 		fr.can_dlc = fframe.can_dlc;
-		for (int i=0; i < 8; i++) fr.data[i] = fframe.data[i]; 
+		for (int i=0; i < 8; i++) fr.data[i] = fframe.data[i]; 		
 		if (::write(sock, &fr, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
 			perror("ERROR writing CAN socket");
 			break;			
-		} 
+		} 		
+		delayMicroseconds(500);
 	}
 	return true;
 }
