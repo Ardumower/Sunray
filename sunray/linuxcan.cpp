@@ -47,6 +47,8 @@ void *canThreadFun(void *user_data)
 
 LinuxCAN::LinuxCAN(){
   sock = -1;
+  frameCounterRx = 0;
+  frameCounterTx = 0;
 }
 
 bool LinuxCAN::begin(){  
@@ -87,22 +89,22 @@ bool LinuxCAN::begin(){
 }
 
 bool LinuxCAN::available(){
-	return (fifoRxStart != fifoRxEnd); 
+	return (fifoRx.available()); 
 }
 
 bool LinuxCAN::read(can_frame_t &frame){	
-	if (fifoRxStart == fifoRxEnd) return false;
+	can_frame_t fframe;
+	if (!fifoRx.read(fframe)) return false;
+    
 	//printf("can: rx_frames=%d\n", frameCounterRx);
 
-	frame.idx = fifoRx[fifoRxStart].idx;
-	frame.secs = fifoRx[fifoRxStart].secs;
-	frame.usecs = fifoRx[fifoRxStart].usecs;
+	frame.idx = fframe.idx;
+	frame.secs = fframe.secs;
+	frame.usecs = fframe.usecs;
 	
-	frame.can_id = fifoRx[fifoRxStart].can_id;
-	frame.can_dlc = fifoRx[fifoRxStart].can_dlc;
-	for (int i=0; i < sizeof(frame.data); i++) frame.data[i] = fifoRx[fifoRxStart].data[i];
-	if (fifoRxStart == CAN_FIFO_FRAMES_RX-1) fifoRxStart = 0; 
-	  else fifoRxStart++;
+	frame.can_id = fframe.can_id;
+	frame.can_dlc = fframe.can_dlc;
+	for (int i=0; i < sizeof(frame.data); i++) frame.data[i] = fframe.data[i];
 
 	#if defined(CAN_DEBUG)
 		printf("frame %d, secs: %d, usecs: %d, CAN: 0x%03X [%d] ", frame.idx, frame.secs, frame.usecs, frame.can_id, frame.can_dlc);
@@ -128,26 +130,17 @@ bool LinuxCAN::run(){
 	ioctl(sock, SIOCGSTAMP_KERNEL, &tv);
 	
 
-	int nextFifoRxEnd = fifoRxEnd;
-	if (nextFifoRxEnd == CAN_FIFO_FRAMES_RX-1) nextFifoRxEnd = 0; 
-	  else nextFifoRxEnd++;
-	
-	if (nextFifoRxEnd != fifoRxStart){
-		// no fifoRx overflow 
-		fifoRx[fifoRxEnd].idx = frameCounterRx;
-		fifoRx[fifoRxEnd].secs =tv.tv_sec;
-		fifoRx[fifoRxEnd].usecs = tv.tv_usec;
-
-		fifoRx[fifoRxEnd].can_id = frame.can_id;
-		fifoRx[fifoRxEnd].can_dlc = frame.can_dlc;
-		for (int i=0; i < sizeof(frame.data); i++) fifoRx[fifoRxEnd].data[i] = frame.data[i]; 
-		fifoRxEnd = nextFifoRxEnd;
-	} else {
+	can_frame_t fframe;
+	fframe.idx = frameCounterRx;
+	fframe.secs = tv.tv_sec;
+	fframe.usecs = tv.tv_usec;
+	fframe.can_id = frame.can_id;
+	fframe.can_dlc = frame.can_dlc;
+	for (int i=0; i < sizeof(fframe.data); i++) fframe.data[i] = frame.data[i]; 
+    if (!fifoRx.write(fframe)){
 		// fifoRx overflow
 		fprintf(stderr, "CAN: FIFO RX overflow\n");
-		fifoRxEnd = fifoRxStart;
 	}
-
 	frameCounterRx++;
 	
 	return true;

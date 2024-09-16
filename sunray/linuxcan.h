@@ -9,6 +9,8 @@
 
 #include <Arduino.h>
 #include "can.h"
+#include "fifo.h"
+
 
 #include <net/if.h>
 #include <sys/epoll.h>
@@ -23,7 +25,9 @@
 
 #include <pthread.h>
 
+
 #define CAN_FIFO_FRAMES_RX 2000
+#define CAN_FIFO_FRAMES_TX 2000
 
 class LinuxCAN : public CAN
 {
@@ -35,10 +39,11 @@ class LinuxCAN : public CAN
     virtual bool write(can_frame_t frame) override;
     virtual bool close() override;
     virtual bool run();
+    unsigned long frameCounterRx;
+    unsigned long frameCounterTx;    
   private:
-    can_frame_t fifoRx[CAN_FIFO_FRAMES_RX];
-    int fifoRxStart = 0;
-    int fifoRxEnd = 0;
+    FiFo<can_frame_t, CAN_FIFO_FRAMES_RX> fifoRx;
+    FiFo<can_frame_t, CAN_FIFO_FRAMES_RX> fifoTx;
     pthread_t thread_id;
     int sock;
 };
