@@ -161,7 +161,7 @@ bool LinuxCAN::write(can_frame_t frame){
 	fr.can_dlc = frame.can_dlc;
 	for (int i=0; i < 8; i++) fr.data[i] = frame.data[i]; 
 	if (::write(sock, &fr, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
-		//perror("ERROR writing CAN socket");
+		perror("ERROR writing CAN socket");
 		return false;
 	} else {
 		frameCounterTx++;
