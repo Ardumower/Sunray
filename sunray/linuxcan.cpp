@@ -84,7 +84,7 @@ bool LinuxCAN::begin(){
 	}
 
 	Serial.println("linuxcan: server listening");
-  	pthread_create(&thread_id, NULL, canThreadFun, (void*)this);
+  	pthread_create(&thread_id, NULL, canThreadFun, (void*)this);	
 	return true;
 }
 
@@ -120,45 +120,60 @@ bool LinuxCAN::read(can_frame_t &frame){
 bool LinuxCAN::run(){
 	if (sock < 0) return false;
 	struct can_frame frame;		
+	// ----------- read from CAN bus into RX FIFO ---------------
 	int nbytes = ::read(sock, &frame, sizeof(struct can_frame));		
 	
-	if (nbytes <= 0) {
-		//perror("ERROR reading CAN socket");
-		return false;
+	if (nbytes > 0) {
+		struct timeval tv;
+		ioctl(sock, SIOCGSTAMP_KERNEL, &tv);
+		
+		can_frame_t fframe;
+		fframe.idx = frameCounterRx;
+		fframe.secs = tv.tv_sec;
+		fframe.usecs = tv.tv_usec;
+		fframe.can_id = frame.can_id;
+		fframe.can_dlc = frame.can_dlc;
+		for (int i=0; i < sizeof(fframe.data); i++) fframe.data[i] = frame.data[i]; 
+		if (!fifoRx.write(fframe)){
+			// fifoRx overflow
+			fprintf(stderr, "CAN: FIFO RX overflow\n");
+		}
+		frameCounterRx++;
 	}
-	struct timeval tv;
-	ioctl(sock, SIOCGSTAMP_KERNEL, &tv);
-	
 
+	// ---------- write to CAN bus from TX FIFO ---------------
+	//frame.secs = tv.tv_sec;
+	//frame.usecs = tv.tv_usec;
 	can_frame_t fframe;
-	fframe.idx = frameCounterRx;
-	fframe.secs = tv.tv_sec;
-	fframe.usecs = tv.tv_usec;
-	fframe.can_id = frame.can_id;
-	fframe.can_dlc = frame.can_dlc;
-	for (int i=0; i < sizeof(fframe.data); i++) fframe.data[i] = frame.data[i]; 
-    if (!fifoRx.write(fframe)){
-		// fifoRx overflow
-		fprintf(stderr, "CAN: FIFO RX overflow\n");
+	if (fifoTx.read(fframe)){
+		struct can_frame fr; 
+		fr.can_id = fframe.can_id;
+		fr.can_dlc = fframe.can_dlc;
+		for (int i=0; i < 8; i++) fr.data[i] = fframe.data[i]; 
+		if (::write(sock, &fr, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
+			perror("ERROR writing CAN socket");
+			return false;
+		} else {
+			frameCounterTx++;
+		}
 	}
-	frameCounterRx++;
-	
 	return true;
 }
+
 
 bool LinuxCAN::write(can_frame_t frame){
   	if (sock < 0) return false; 
 	//Serial.println("LinuxCAN::write");
-	struct can_frame fr; 
-	fr.can_id = frame.can_id;
-	fr.can_dlc = frame.can_dlc;
-	for (int i=0; i < 8; i++) fr.data[i] = frame.data[i]; 
-	if (::write(sock, &fr, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
-		perror("ERROR writing CAN socket");
+	
+	frame.idx = frameCounterTx;
+	//frame.secs = tv.tv_sec;
+	//frame.usecs = tv.tv_usec;
+    if (!fifoTx.write(frame)){
+		// fifoRx overflow
+		fprintf(stderr, "CAN: FIFO TX overflow\n");
 		return false;
-	} else {
-		frameCounterTx++;
 	}
+	frameCounterTx++;
   	return true;
 }
 
