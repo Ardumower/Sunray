@@ -33,11 +33,22 @@
 
 
 
-void *canThreadFun(void *user_data)
+void *canRxThreadFun(void *user_data)
 {
     LinuxCAN *can = (LinuxCAN*)user_data;
 	while (true){
-	  can->run();
+	  can->runRx();
+      //usleep(300);
+	}
+	return NULL;
+}
+
+
+void *canTxThreadFun(void *user_data)
+{
+    LinuxCAN *can = (LinuxCAN*)user_data;
+	while (true){
+	  can->runTx();
       //usleep(300);
 	}
 	return NULL;
@@ -84,7 +95,8 @@ bool LinuxCAN::begin(){
 	}
 
 	Serial.println("linuxcan: server listening");
-  	pthread_create(&thread_id, NULL, canThreadFun, (void*)this);	
+  	pthread_create(&thread_rx_id, NULL, canRxThreadFun, (void*)this);	
+  	pthread_create(&thread_tx_id, NULL, canTxThreadFun, (void*)this);	
 	return true;
 }
 
@@ -117,7 +129,7 @@ bool LinuxCAN::read(can_frame_t &frame){
 }
 
 
-bool LinuxCAN::run(){
+bool LinuxCAN::runRx(){
 	if (sock < 0) return false;
 	struct can_frame frame;		
 	// ----------- read from CAN bus into RX FIFO ---------------
@@ -140,7 +152,10 @@ bool LinuxCAN::run(){
 		}
 		frameCounterRx++;
 	}
+}
 
+bool LinuxCAN::runTx(){
+	if (sock < 0) return false;
 	// ---------- write to CAN bus from TX FIFO ---------------
 	//frame.secs = tv.tv_sec;
 	//frame.usecs = tv.tv_usec;

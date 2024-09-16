@@ -38,13 +38,15 @@ class LinuxCAN : public CAN
     virtual bool read(can_frame_t &frame) override;  
     virtual bool write(can_frame_t frame) override;
     virtual bool close() override;
-    virtual bool run();
+    virtual bool runTx();
+    virtual bool runRx();
     unsigned long frameCounterRx;
     unsigned long frameCounterTx;    
   private:
     FiFo<can_frame_t, CAN_FIFO_FRAMES_RX> fifoRx;
     FiFo<can_frame_t, CAN_FIFO_FRAMES_RX> fifoTx;
-    pthread_t thread_id;
+    pthread_t thread_rx_id;
+    pthread_t thread_tx_id;
     int sock;
 };
 
