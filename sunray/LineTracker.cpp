@@ -161,10 +161,10 @@ void trackLine(bool runControl){
     if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
       if (!printmotoroverload) {
           Logger.event(EVT_MOTOR_OVERLOAD_REDUCE_SPEED);
-          CONSOLE.println("motor overload detected: reduce linear speed to 0.1");
+          CONSOLE.println("motor overload detected: reducing linear speed");
       }
       printmotoroverload = true;
-      linear = MOTOR_OVERLOAD_SPEED;  
+      linear = min(linear, MOTOR_OVERLOAD_SPEED);  
       //CONSOLE.println("SLOW: overload");
     } else {
       printmotoroverload = false;
