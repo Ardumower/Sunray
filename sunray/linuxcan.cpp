@@ -145,17 +145,15 @@ bool LinuxCAN::run(){
 	//frame.secs = tv.tv_sec;
 	//frame.usecs = tv.tv_usec;
 	can_frame_t fframe;
-	if (fifoTx.read(fframe)){
+	while (fifoTx.read(fframe)){
 		struct can_frame fr; 
 		fr.can_id = fframe.can_id;
 		fr.can_dlc = fframe.can_dlc;
 		for (int i=0; i < 8; i++) fr.data[i] = fframe.data[i]; 
 		if (::write(sock, &fr, sizeof(struct can_frame)) != sizeof(struct can_frame)) {
 			perror("ERROR writing CAN socket");
-			return false;
-		} else {
-			frameCounterTx++;
-		}
+			break;			
+		} 
 	}
 	return true;
 }
