@@ -29,8 +29,10 @@ endif()
 
 # find_path (LIBNL_INCLUDE_DIR netlink/netlink.h libnl3)
 
+SET(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+SET(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads REQUIRED)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -lbluetooth")
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x c")
 # SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x c -I /usr/include/libnl3/")
 SET(CMAKE_BUILD_TYPE Debug)
@@ -87,6 +89,7 @@ set_source_files_properties(${FIRMWARE_PATH}/sunray.ino PROPERTIES COMPILE_FLAGS
 ##  add_definitions("-x c++")
 ## endif()
 
+target_link_libraries(sunray Threads::Threads;bluetooth)
 add_executable(sunray ${pi_sources} ${sunray_cpp} ${sunray_c} ${FIRMWARE_PATH}/sunray.ino)
 target_include_directories(sunray PRIVATE src ${FIRMWARE_PATH}/src)
 # target_link_libraries(sunray "${CMAKE_SOURCE_DIR}/lib/libarduino_${CMAKE_SYSTEM_PROCESSOR}.a")
