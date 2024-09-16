@@ -201,6 +201,7 @@ class CanRobotDriver: public RobotDriver {
     unsigned long motorHeightFoundEndswitchTime;
     unsigned long nextCheckErrorTime;
     unsigned long nextConsoleTime;
+    unsigned long nextMowTime;    
     unsigned long nextTempTime;
     unsigned long nextWifiTime;
     unsigned long nextLedTime;

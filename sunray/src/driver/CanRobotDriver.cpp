@@ -45,7 +45,8 @@ void CanRobotDriver::begin(){
   mcuCommunicationLost = true;
   nextSummaryTime = 0;
   nextCheckErrorTime = 0;
-  nextConsoleTime = 0; 
+  nextConsoleTime = 0;
+  nextMowTime = 0; 
   nextMotorTime = 0;
   nextTempTime = 0;
   nextWifiTime = 0;
@@ -485,9 +486,12 @@ void CanRobotDriver::run(){
     nextCheckErrorTime = millis() + 2000; // 0.5 hz
     requestMotorErrorStatus();
   }  
+  if (millis() > nextMowTime){
+    nextMowTime = millis() + 300;  // 3 hz      
+    requestMotorMowPwm(requestMowPwm);
+  }
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;  // 1 hz    
-    requestMotorMowPwm(requestMowPwm);
     requestMotorMowCurrent();
     if (MOW_ADJUST_HEIGHT){   // can the mowing height be adjusted by an additional motor?
       requestMowHeight(requestMowHeightMillimeter);
