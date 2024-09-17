@@ -38,7 +38,7 @@ void *canRxThreadFun(void *user_data)
     LinuxCAN *can = (LinuxCAN*)user_data;
 	while (true){
 	  can->runRx();
-      //usleep(300);
+      delayMicroseconds(500);
 	}
 	return NULL;
 }
@@ -49,7 +49,7 @@ void *canTxThreadFun(void *user_data)
     LinuxCAN *can = (LinuxCAN*)user_data;
 	while (true){
 	  can->runTx();
-      //usleep(300);
+      delayMicroseconds(500);
 	}
 	return NULL;
 }
@@ -133,9 +133,10 @@ bool LinuxCAN::runRx(){
 	if (sock < 0) return false;
 	struct can_frame frame;		
 	// ----------- read from CAN bus into RX FIFO ---------------
-	int nbytes = ::read(sock, &frame, sizeof(struct can_frame));		
-	
-	if (nbytes > 0) {
+	while (true){
+		int nbytes = ::read(sock, &frame, sizeof(struct can_frame));		
+		
+		if (nbytes == 0) break;
 		struct timeval tv;
 		ioctl(sock, SIOCGSTAMP_KERNEL, &tv);
 		
