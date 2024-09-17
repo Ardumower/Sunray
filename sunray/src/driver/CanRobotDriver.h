@@ -26,7 +26,7 @@
 #define OWL_DRIVE_MSG_ID   300  // owlDrive PCB 
 #define OWL_CONTROL_MSG_ID 200  // owlControl PCB 
 
-#define MY_NODE_ID 60 
+#define MY_NODE_ID 61
 
 // owlDrive PCB 
 #define LEFT_MOTOR_NODE_ID    1 
