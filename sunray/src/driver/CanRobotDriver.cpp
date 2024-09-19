@@ -318,6 +318,11 @@ void CanRobotDriver::requestMotorMowCurrent(){
   }  
 }
 
+void CanRobotDriver::requestPushboxState(){
+  canDataType_t data;
+  sendCanData(OWL_RECEIVER_MSG_ID, RECEIVER_PUSHBOX_NODE_ID, can_cmd_request, owlrecv::can_val_button_state, data);  
+}
+
 void CanRobotDriver::versionResponse(){
 }
 
@@ -344,6 +349,16 @@ void CanRobotDriver::processResponse(){
         data.byteVal[3] = frame.data[7];    
 
         switch (frame.can_id){
+          case OWL_RECEIVER_MSG_ID:
+            if (cmd == can_cmd_info){
+              switch (val){
+                case owlrecv::can_val_button_state:                  
+                  CONSOLE.print("PUSHBOX: ");
+                  CONSOLE.println(data.intValue, BIN);
+                  break;
+              }
+            }              
+            break;
           case OWL_DRIVE_MSG_ID:
             if (cmd == can_cmd_info){
                 //CONSOLE.println("can_cmd_info");                
@@ -493,6 +508,7 @@ void CanRobotDriver::run(){
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;  // 1 hz    
     requestMotorMowCurrent();
+    requestPushboxState();
     if (MOW_ADJUST_HEIGHT){   // can the mowing height be adjusted by an additional motor?
       requestMowHeight(requestMowHeightMillimeter);
     }    

@@ -23,8 +23,9 @@
 
 // -----CAN frame data types----------------
 
-#define OWL_DRIVE_MSG_ID   300  // owlDrive PCB 
-#define OWL_CONTROL_MSG_ID 200  // owlControl PCB 
+#define OWL_DRIVE_MSG_ID     300  // owlDrive PCB 
+#define OWL_CONTROL_MSG_ID   200  // owlControl PCB 
+#define OWL_RECEIVER_MSG_ID  100  // owlReceiver PCB 
 
 #define MY_NODE_ID 61
 
@@ -42,7 +43,10 @@
 
 #define MOW_HEIGHT_MOTOR_NODE_ID     8
 
+
 #define CONTROL_NODE_ID       1 // owlControl PCB 
+
+#define RECEIVER_PUSHBOX_NODE_ID    3 // owlReceiver PCB 
 
 
 typedef union canNodeType_t {   
@@ -111,6 +115,23 @@ namespace owlctl {
       can_val_charger_voltage   = 7, // charger voltage      
   };
 }
+
+namespace owlrecv {
+
+  // which variable to use for the action...
+  enum canValueType_t: uint8_t {
+      can_val_button_state     = 1, // button state
+      can_val_axis_x1          = 2, // x1-axis state
+      can_val_axis_y1          = 3, // y1-axis state
+      can_val_axis_z1          = 4, // z1-axis state
+      can_val_axis_x2          = 5, // x2-axis state
+      can_val_axis_y2          = 6, // y2-axis state
+      can_val_axis_z2          = 7, // z2-axis state
+      can_val_battery_voltage  = 8, // battery voltage 
+  };
+
+}  // namespace
+
 
 // motor driver error values
 enum errType_t: uint8_t {
@@ -181,6 +202,7 @@ class CanRobotDriver: public RobotDriver {
     void requestMowHeight(int mowHeightMillimeter);
     void requestMotorErrorStatus();
     void requestSummary();
+    void requestPushboxState();        
     void requestVersion();
     void updateCpuTemperature();
     void updateWifiConnectionState();
