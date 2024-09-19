@@ -8,6 +8,7 @@
 #include "../../config.h"
 #include "../../ioboard.h"
 #include "../../config.h"
+#include "../../robot.h"
 
 //#define COMM  ROBOT
 
@@ -353,8 +354,12 @@ void CanRobotDriver::processResponse(){
             if (cmd == can_cmd_info){
               switch (val){
                 case owlrecv::can_val_button_state:                  
-                  CONSOLE.print("PUSHBOX: ");
-                  CONSOLE.println(data.intValue, BIN);
+                  if (data.intValue != 0){
+                    CONSOLE.print("PUSHBOX: ");                   
+                    CONSOLE.println(data.intValue, BIN);                  
+                    if (data.intValue == 1) setOperation(OP_MOW, false);
+                    if (data.intValue == 8) setOperation(OP_DOCK, false);
+                  }
                   break;
               }
             }              
