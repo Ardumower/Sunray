@@ -76,6 +76,7 @@ USER=`who | head -n1 | cut -d' ' -f1 | xargs`
 #fi
 #echo "USER: $USER"
 
+run_as_user systemctl --user restart pulseaudio
 #run_as_user "amixer cset numid=1 100%" true
 #run_as_user 'amixer -D pulse sset Master 100%' true
 #run_as_user "mplayer -nolirc -noconsolecontrols -really-quiet -volume 100 /home/$USER/Sunray/tts/de/testing_audio.mp3" true
