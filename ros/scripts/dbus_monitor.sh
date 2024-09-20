@@ -102,11 +102,11 @@ sudo dbus-monitor --system "interface='de.sunray.Bus'" | while read -r line; do
     # Extrahiere den Dateipfad (angenommen, der Pfad wird als Argument gesendet)
     read -r path_line
     filepath=$(echo "$path_line" | grep -oP '(?<=string ").*(?=")')
-    #echo "filepath=$filepath"
+    echo "filepath=$filepath"
     #echo "USER=$USER"
     # Prüfe, ob die Datei existiert und spiele sie ab
     filepath="${filepath/root/"home/$USER"}"      
-    #echo "filepath=$filepath"
+    echo "filepath=$filepath"
 
     if [ -f "$filepath" ]; then
       #echo "Playing $filepath..."
