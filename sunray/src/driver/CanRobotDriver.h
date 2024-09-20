@@ -191,6 +191,7 @@ class CanRobotDriver: public RobotDriver {
     bool triggeredLift;
     bool triggeredRain;
     bool triggeredStopButton;
+    bool triggeredPushboxStopButton;
     void begin() override;
     void run() override;
     bool getRobotID(String &id) override;

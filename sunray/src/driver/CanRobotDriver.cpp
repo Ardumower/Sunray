@@ -40,6 +40,7 @@ void CanRobotDriver::begin(){
   triggeredRightBumper = false;
   triggeredRain = false;
   triggeredStopButton = false;
+  triggeredPushboxStopButton = false;
   triggeredLift = false;
   for (int i=0; i < MOW_MOTOR_COUNT; i++) mowFault[i] = false;
   leftMotorFault = false;
@@ -358,12 +359,14 @@ void CanRobotDriver::processResponse(){
                   if (data.intValue != 0){
                     CONSOLE.print("PUSHBOX: ");                   
                     CONSOLE.println(data.intValue, BIN);                  
-                    if (data.intValue != 0) buzzer.sound(SND_READY, true);
                     if (data.intValue == 1) setOperation(OP_MOW, false);
-                    if (data.intValue == 2) Logger.event(EVT_AUDIO_SHEEP);
-                    if (data.intValue == 4) Logger.event(EVT_AUDIO_TEST);                    
+                    if (data.intValue == 2) {
+                      buzzer.sound(SND_READY, true);
+                      Logger.event(EVT_AUDIO_SHEEP);
+                    }
                     if (data.intValue == 8) setOperation(OP_DOCK, false);
                   }
+                  triggeredPushboxStopButton = (data.intValue == 4);
                   break;
               }
             }              
@@ -855,7 +858,7 @@ void CanStopButtonDriver::run(){
 }
 
 bool CanStopButtonDriver::triggered(){
-  return (canRobot.triggeredStopButton); 
+  return (canRobot.triggeredStopButton) || (canRobot.triggeredPushboxStopButton); 
 }
 
 // ------------------------------------------------------------------------------------
