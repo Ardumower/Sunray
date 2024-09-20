@@ -361,13 +361,13 @@ void CanRobotDriver::processResponse(){
                     CONSOLE.println(data.intValue, BIN);                                      
                     if (data.intValue == 1) setOperation(OP_MOW, false);
                     if (data.intValue == 2) Logger.event(EVT_AUDIO_SHEEP);                    
-                    if (data.intValue == 4) setOperation(OP_IDLE, false);                                      
-                    if (data.intValue == 8) setOperation(OP_DOCK, false);
+                    if (data.intValue == 4) setOperation(OP_DOCK, false);                                                          
+                    if (data.intValue == 8) setOperation(OP_IDLE, false);
                     //if (data.intValue != 4){    // do not play any buzzer sound for pushbox STOP button
                       buzzer.sound(SND_READY, true);
                     //}
                   }  
-                  //triggeredPushboxStopButton = (data.intValue == 4); // classic STOP button handling (pushbox button simulates robot button)
+                  //triggeredPushboxStopButton = (data.intValue == 4); // classic STOP button handling (pushbox STOP button simulates robot button)
                   break;
               }
             }              
