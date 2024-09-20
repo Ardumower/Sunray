@@ -7,6 +7,13 @@
 #   dbus-send --system --dest=de.sunray.Bus --print-reply /de/sunray/Bus de.sunray.Bus.Play string:"/home/alex/Sunray/tts/de/testing_audio.mp3"
 
 
+# https://linuxconfig.org/how-to-install-pipewire-on-ubuntu-linux
+# audio system installation:
+#   sudo apt purge pulseaudio
+#   sudo apt install --reinstall pipewire pipewire-audio-client-libraries
+#   systemctl --user --now disable pulseaudio.service pulseaudio.socket
+#   systemctl --user --now enable pipewire pipewire-pulse
+
 # ----------------------------
 
 if [  ]; then
@@ -76,7 +83,7 @@ USER=`who | head -n1 | cut -d' ' -f1 | xargs`
 #fi
 #echo "USER: $USER"
 
-run_as_user "systemctl --user restart pulseaudio" true
+#run_as_user "systemctl --user restart pulseaudio" true
 #run_as_user "amixer cset numid=1 100%" true
 #run_as_user 'amixer -D pulse sset Master 100%' true
 #run_as_user "mplayer -nolirc -noconsolecontrols -really-quiet -volume 100 /home/$USER/Sunray/tts/de/testing_audio.mp3" true
