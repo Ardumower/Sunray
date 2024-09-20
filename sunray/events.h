@@ -72,6 +72,9 @@
 #define TXT_DOCK_RECOVERY_GIVEUP            F("dock_recovery_giveup")
 #define TXT_LIDAR_RELOCALIZATION            F("lidar_relocalization")
 #define TXT_LIDAR_MAPPING_COMPLETED         F("lidar_mapping_completed")
+#define TXT_AUDIO_TEST                      F("testing_audio")
+#define TXT_AUDIO_SHEEP                     F("sheep")
+
 
 
 // event codes 
@@ -136,6 +139,8 @@ enum EventCode {
     EVT_DOCK_RECOVERY_GIVEUP,
     EVT_LIDAR_RELOCALIZATION,
     EVT_LIDAR_MAPPING_COMPLETED,
+    EVT_AUDIO_TEST,
+    EVT_AUDIO_SHEEP,
 };
 
 

@@ -206,6 +206,13 @@ void EventLogger::event(EventCode evt, const String &additionalData) {
             case EVT_USER_UPLOAD_TIME_TABLE:
                 evtText = TXT_USER_UPLOAD_TIMETABLE;
                 break;
+            case EVT_AUDIO_TEST:
+                evtText = TXT_AUDIO_TEST;
+                break;
+            case EVT_AUDIO_SHEEP:
+                evtText = TXT_AUDIO_SHEEP;
+                break;
+
             default:
                 evtText = TXT_UNKNOWN;
                 break;
