@@ -513,11 +513,11 @@ void CanRobotDriver::run(){
   if (millis() > nextMowTime){
     nextMowTime = millis() + 300;  // 3 hz      
     requestMotorMowPwm(requestMowPwm);
+    requestPushboxState();
   }
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;  // 1 hz    
     requestMotorMowCurrent();
-    requestPushboxState();
     if (MOW_ADJUST_HEIGHT){   // can the mowing height be adjusted by an additional motor?
       requestMowHeight(requestMowHeightMillimeter);
     }    
