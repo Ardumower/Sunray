@@ -251,11 +251,11 @@ void EventLogger::playMP3(String &filename) {
     #ifdef __linux__        
         //String command = "killall mplayer; mplayer ";
         // volume 100% (-volume 100) and amplify by 5dB (-af volume=5:1)
-        String command = "../ros/scripts/dbus_send.sh -m Play -p ";
+        String command = "../ros/scripts/dbus_send.sh -m Play -p > /dev/null 2>&1 &";
         command += filename;
         //Process p;
-        CONSOLE.print("RUN: ");
-        CONSOLE.println(command.c_str());
+        //CONSOLE.print("RUN: ");
+        //CONSOLE.println(command.c_str());
         //p.runShellCommand(command.c_str());    
         system(command.c_str());
     #endif

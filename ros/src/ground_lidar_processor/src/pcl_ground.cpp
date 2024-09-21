@@ -104,14 +104,14 @@ public:
                     obstacle_points, ground_points,
                     (int)obstacleFar, (int)obstacleNear );                        
 
-                std::string command = "../ros/scripts/dbus_send.sh -m Play -p ";
+                //std::string command = "../ros/scripts/dbus_send.sh -m Play -p ";
                 //std::string command = "mplayer -volume 100 -af volume=5:1 ";                
-                command += pkg_loc; 
-                if (obstacleNear){
-                    command += "/launch/tada.mp3";                
-                } else {
-                    command += "/launch/beep.mp3";                
-                }
+                //command += pkg_loc; 
+                //if (obstacleNear){
+                //    command += "/launch/tada.mp3";                
+                //} else {
+                //    command += "/launch/beep.mp3";                
+                //}
                 //ROS_WARN("%s", command.c_str());
                 //system(command.c_str());
                 soundTimeout = 5;                
