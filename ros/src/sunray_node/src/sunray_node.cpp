@@ -22,6 +22,7 @@
 #include "config.h"  
 #include "robot.h"
 #include "StateEstimator.h"
+#include "events.h"
 
 
 char **argv = NULL;
@@ -57,8 +58,8 @@ void obstacleStateCallback(const std_msgs::Int8 &msg)
   double tim = ros::Time::now().toSec();     
 
   //ROS_INFO("obstacleStateCallback %d", msg.data);
-  std::string command = "../ros/scripts/dbus_send.sh -m Play -p ";
-  command += pkg_loc;                 
+  //std::string command = "../ros/scripts/dbus_send.sh -m Play -p ";
+  //command += pkg_loc;                 
 
   if (msg.data == 1){
     // near obstacle
@@ -66,9 +67,9 @@ void obstacleStateCallback(const std_msgs::Int8 &msg)
     lidarBumper.triggerBumper = false;
     if (tim > nextSoundTime){
       nextSoundTime = tim + 1.0; 
-      command += "/launch/beep.mp3";               
+      //command += "/launch/beep.mp3";               
       //ROS_WARN("%s", command.c_str());      
-      if (stateOp != OP_CHARGE) system(command.c_str());
+      if (stateOp != OP_CHARGE) Logger.event(EVT_AUDIO_BEEP); //system(command.c_str());
     }        
   } else if (msg.data == 2){
     // bumper 
@@ -76,9 +77,9 @@ void obstacleStateCallback(const std_msgs::Int8 &msg)
     lidarBumper.triggerBumper = true;    
     if (tim > nextSoundTime){
       nextSoundTime = tim + 1.0; 
-      command += "/launch/tada.mp3";                
+      //command += "/launch/tada.mp3";                
       //ROS_WARN("%s", command.c_str());      
-      if (stateOp != OP_CHARGE) system(command.c_str());
+      if (stateOp != OP_CHARGE) Logger.event(EVT_AUDIO_TADA); //system(command.c_str());
     }        
   } else {
     // no obstacle

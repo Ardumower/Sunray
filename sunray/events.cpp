@@ -212,6 +212,15 @@ void EventLogger::event(EventCode evt, const String &additionalData) {
             case EVT_AUDIO_SHEEP:
                 evtText = TXT_AUDIO_SHEEP;
                 break;
+            case EVT_AUDIO_BELL:
+                evtText = TXT_AUDIO_BELL;
+                break;
+            case EVT_AUDIO_BEEP:
+                evtText = TXT_AUDIO_BEEP;
+                break;
+            case EVT_AUDIO_TADA:
+                evtText = TXT_AUDIO_TADA;
+                break;
 
             default:
                 evtText = TXT_UNKNOWN;
