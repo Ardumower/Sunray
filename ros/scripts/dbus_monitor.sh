@@ -51,24 +51,25 @@ function run_as_user() {
   CMD=$1
   #CMD+=" >/dev/null 2>&1"
   BLOCKING=$2
-  echo "EUID=$EUID USER:$USER CMD:$CMD BLOCKING:$BLOCKING"
+  #echo "EUID=$EUID USER:$USER CMD:$CMD BLOCKING:$BLOCKING"
   if [ "$EUID" -eq 0 ]
   then 
     # root
+    # https://unix.stackexchange.com/questions/224370/how-to-stop-sudo-pam-messages-in-auth-log-for-a-specific-user
     if [ "$BLOCKING" = true ] ; then
-      runuser $USER -c "export XDG_RUNTIME_DIR=\"/run/user/1000\"; $CMD" 
+      runuser $USER -c "export XDG_RUNTIME_DIR=\"/run/user/1000\"; $CMD" > /dev/null 2>&1
       #runuser $USER -c "$CMD" 
     else
-      runuser $USER -c "export XDG_RUNTIME_DIR=\"/run/user/1000\"; $CMD" &    
+      runuser $USER -c "export XDG_RUNTIME_DIR=\"/run/user/1000\"; $CMD" > /dev/null 2>&1 &    
       #runuser $USER -c "$CMD" &
     fi
   else
     if [ "$BLOCKING" = true ] ; then
       #eval " $CMD"
-      $CMD
+      $CMD > /dev/null 2>&1
     else
       #eval " $CMD" &
-      $CMD &
+      $CMD > /dev/null 2>&1 &
     fi
   fi
   #echo "CMD done"
@@ -76,12 +77,8 @@ function run_as_user() {
 
 
 id
-#USER=`whoami`
-USER=`who | head -n1 | cut -d' ' -f1 | xargs`
-#if [ -z "USER" ]; then
-#  USER=`whoami`
-#fi
-#echo "USER: $USER"
+USER=`id -u -n 1000`
+echo "USER: $USER"
 
 #run_as_user "systemctl --user restart pulseaudio" true
 #run_as_user "amixer cset numid=1 100%" true
@@ -102,11 +99,12 @@ sudo dbus-monitor --system "interface='de.sunray.Bus'" | while read -r line; do
     # Extrahiere den Dateipfad (angenommen, der Pfad wird als Argument gesendet)
     read -r path_line
     filepath=$(echo "$path_line" | grep -oP '(?<=string ").*(?=")')
-    echo "filepath=$filepath"
+    #echo "filepath=$filepath"
     #echo "USER=$USER"
+
     # Prüfe, ob die Datei existiert und spiele sie ab
     filepath="${filepath/root/"home/$USER"}"      
-    echo "filepath=$filepath"
+    #echo "filepath=$filepath"
 
     if [ -f "$filepath" ]; then
       #echo "Playing $filepath..."
