@@ -6,6 +6,10 @@ echo "PWD=$PWD"
 CMD=""
 
 
+if [ -f /.dockerenv ]; then
+    echo "Please run outside docker container"
+    exit
+fi
 
 if [ "$EUID" -ne 0 ]
   then echo "Please run as root (sudo)"
