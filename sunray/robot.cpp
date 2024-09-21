@@ -1139,16 +1139,16 @@ void run(){
     if(loopTimeMax > 500){
       CONSOLE.print("WARNING - LoopTime: ");
     }else{
-      CONSOLE.print("Info - LoopTime: ");
+      CONSOLE.print("Info - LoopTime(ms) now=");
     }
     CONSOLE.print(loopTimeNow);
-    CONSOLE.print(" - ");
+    CONSOLE.print(" min=");
     CONSOLE.print(loopTimeMin);
-    CONSOLE.print(" - ");
+    CONSOLE.print(" mean=");
     CONSOLE.print(loopTimeMean);
-    CONSOLE.print(" - ");
+    CONSOLE.print(" max=");
     CONSOLE.print(loopTimeMax);
-    CONSOLE.println("ms");
+    CONSOLE.println();
     if (psOutput != "") CONSOLE.println(psOutput);
 
     loopTimeMin = 99999; 
