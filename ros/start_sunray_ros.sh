@@ -170,6 +170,8 @@ echo "WIFI CON: $WCON"
 WIP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
 echo "WIFI IP: $WIP"
 
+# ROS_IP="$WIP"
+
 # allow non-root to start http server 
 #sudo setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node
 
@@ -182,8 +184,8 @@ xhost +local:*
 
 # source ROS setup  
 CMD="export DISPLAY=$DISPLAY"
-if [[ $WIP != "" ]]; then
-  CMD+="; export ROS_IP=$WIP"
+if [[ $ROS_IP != "" ]]; then
+  CMD+="; export ROS_IP=$ROS_IP"
 fi 
 CMD+="; export ROS_HOME=/root/Sunray/alfred"
 CMD+="; . /ros_entrypoint.sh"
