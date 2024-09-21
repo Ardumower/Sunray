@@ -34,9 +34,8 @@ if [ -z "$USE_BAG_FILE" ]; then
 fi
 
 
-
-function export_ros_ip {
-  echo "export_ros_ip"
+function prepare_for_ros {
+  echo "prepare_for_ros"
   WCON=$(nmcli c | grep wifi | head -1 | tail -c 12 | xargs )
   echo "WIFI CON: $WCON"
   WIP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
@@ -121,7 +120,7 @@ function docker_build_container {
   echo "IMAGE_NAME: $IMAGE_NAME"
   echo "DISPLAY: $DISPLAY"
   #exit
-  export_ros_ip  
+  prepare_for_ros  
   echo "====> enter 'exit' to exit docker container"   
   docker run --name=$CONTAINER_NAME -t -it --net=host --privileged -v /dev:/dev \
     --volume /etc/machine-id:/etc/machine-id:ro \
@@ -156,7 +155,7 @@ function docker_terminal {
     exit
   fi
   # -------------continue container...---------------------
-  export_ros_ip
+  prepare_for_ros
   CMD=". /ros_entrypoint.sh"
   if [[ $WIP != "" ]]; then
     CMD+="; export ROS_IP=$WIP"
@@ -173,7 +172,7 @@ function docker_prepare_tools {
     exit
   fi  
   # -------------continue container...---------------------
-  export_ros_ip    
+  prepare_for_ros    
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME /root/Sunray/ros/install_tools.sh
 }
 
@@ -196,7 +195,7 @@ function ros_compile {
 
   # build single package:    catkin_make -DCATKIN_WHITELIST_PACKAGES="ground_lidar_processor"
   # build Sunray ROS node
-  export_ros_ip    
+  prepare_for_ros    
   CMD=". /ros_entrypoint.sh ;"
   CMD+="cd /root/Sunray/ros/ ;"
   CMD+="rm -Rf build ; rm -Rf devel ;"
@@ -213,7 +212,7 @@ function ros_recompile {
   fi 
   # build single package:    catkin_make -DCATKIN_WHITELIST_PACKAGES="ground_lidar_processor"
   # build Sunray ROS node
-  export_ros_ip    
+  prepare_for_ros    
   CMD=". /ros_entrypoint.sh ;"
   CMD+="cd /root/Sunray/ros/ ;"
   CMD+="catkin_make"
@@ -229,7 +228,7 @@ function rviz {
   #rviz -d src/direct_lidar_odometry/launch/dlo_mid360.rviz
   #rviz -d src/ground_lidar_processor/launch/test.rviz
   # allow docker to access host Xserver 
-  export_ros_ip
+  prepare_for_ros
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c ". /ros_entrypoint.sh ; cd /root/Sunray/ros/ ; export DISPLAY=$DISPLAY ; export QT_QPA_PLATFORM=xcb ; rviz -d src/ground_lidar_processor/launch/test.rviz"
 }
@@ -277,7 +276,7 @@ function ros_stop_mapping {
       exit
     fi
     echo "ros_stop_mapping"
-    export_ros_ip
+    prepare_for_ros
 
     CMD=""    
     if [[ $WIP != "" ]]; then
@@ -321,7 +320,7 @@ function ros_sunray {
 
 function ros_trigger_relocalization {
   echo "ros_trigger_relocalization"
-  export_ros_ip
+  prepare_for_ros
   CMD=""
   if [[ $WIP != "" ]]; then
     CMD+="export ROS_IP=$WIP"
@@ -332,6 +331,22 @@ function ros_trigger_relocalization {
   CMD+="; cd /root/Sunray/alfred ; pwd ; rosservice call /global_localization ; rostopic echo /mcl_3dl/status"
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c "$CMD"
+}
+
+function toggle_ros_ip {
+  if [ -z "$ROS_IP" ]; then
+    WCON=$(nmcli c | grep wifi | head -1 | tail -c 12 | xargs )
+    echo "WIFI CON: $WCON"
+    WIP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
+    echo "WIFI IP: $WIP"
+    if [[ $WIP != "" ]]; then
+      echo "setting ROS_IP"
+      export ROS_IP=`ifconfig $WCON | grep 'inet ' | awk -F'[: ]+' '{ print $3 }'`
+    fi  
+  else
+    echo "unsetting ROS_IP"
+    unset ROS_IP
+  fi
 }
 
 
@@ -401,6 +416,7 @@ function savelog(){
 function menu {
   echo "SUNRAY_ROS_RVIZ: $SUNRAY_ROS_RVIZ"
   echo "USE_BAG_FILE: $USE_BAG_FILE"
+  echo "ROS_IP: $ROS_IP"
   PS3='Please enter your choice: '
   options=(
       "Docker install"
@@ -421,6 +437,7 @@ function menu {
       "ROS trigger re-localization"
       "toggle SUNRAY_ROS_RVIZ"
       "toggle USE_BAG_FILE"
+      "toggle ROS_IP"
       "Start sunray ROS service"
       "Stop sunray ROS service"
       "Show sunray ROS service log"
@@ -504,6 +521,11 @@ function menu {
               ;;
           "toggle USE_BAG_FILE")
               toggle_use_bag_file
+              menu
+              break
+              ;;              
+          "toggle ROS_IP")
+              toggle_ros_ip
               menu
               break
               ;;              
