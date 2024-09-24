@@ -226,7 +226,7 @@ void computeRobotState(){
     useImuAbsoluteYaw = true;
   #endif      
   
-  // ------- sideways uidance sheets ---------------------
+  // ------- sideways guidance sheets ---------------------
   #ifdef DOCK_GUIDANCE_SHEET // use guidance sheet for docking?
     if (maps.isTargetingLastDockPoint()){
       stateLocalizationMode = LOC_IMU_ODO_ONLY;
