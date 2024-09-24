@@ -232,6 +232,10 @@ void trackLine(bool runControl){
       //angular = 0; 
     }
   }
+  if (stateLocalizationMode == LOC_GUIDANCE_SHEET){
+      if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
+      angular = 0;
+  }
 
   // gps-jump/false fix check
   if (KIDNAP_DETECT){
@@ -300,6 +304,7 @@ void trackLine(bool runControl){
     CONSOLE.print(" loc=");
     if (stateLocalizationMode == LOC_APRIL_TAG) CONSOLE.print("april");
     if (stateLocalizationMode == LOC_GPS) CONSOLE.print("gps");
+    if (stateLocalizationMode == LOC_GUIDANCE_SHEET) CONSOLE.print("guide");    
     CONSOLE.print(" isBetweenLastAndNextToLastDockPoint=");
     CONSOLE.print(maps.isBetweenLastAndNextToLastDockPoint());
     CONSOLE.print(" maps.dockPointsIdx=");

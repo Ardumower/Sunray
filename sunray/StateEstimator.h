@@ -15,6 +15,7 @@ enum LocalizationMode {
       LOC_IMU_ODO_ONLY, // IMU/odometry-only localization 
       LOC_GPS,          // RTK localization
       LOC_APRIL_TAG,    // vision (camera) localization (april-tag) 
+      LOC_GUIDANCE_SHEET, // sideways guidance sheets localization (one dimension)
 };    
 
 extern LocalizationMode stateLocalizationMode;
