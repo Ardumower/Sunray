@@ -228,7 +228,7 @@ void computeRobotState(){
   
   // ------- sideways guidance sheets ---------------------
   #ifdef DOCK_GUIDANCE_SHEET // use guidance sheet for docking?
-    if (maps.isTargetingLastDockPoint()){
+    if ( (maps.isTargetingLastDockPoint()) || (maps.isTargetingNextToLastDockPoint()) ){
       stateLocalizationMode = LOC_IMU_ODO_ONLY;
       useGPSposition = false;
       useGPSdelta = false;
@@ -238,7 +238,7 @@ void computeRobotState(){
 
   // ------- vision (april-tag) --------------------------
   #ifdef DOCK_APRIL_TAG  
-    if (maps.isTargetingLastDockPoint()){
+    if (maps.isTargetingLastDockPoint()) || (maps.isTargetingNextToLastDockPoint()) ){
       stateLocalizationMode = LOC_APRIL_TAG;
       useGPSposition = false;
       useGPSdelta = false;
