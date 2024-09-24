@@ -208,6 +208,7 @@ class Map
     bool isUndocking();
     // is robot on docking points and docking?
     bool isDocking();
+    bool isBetweenLastAndNextToLastDockPoint();
     bool isTargetingLastDockPoint();
     bool isTargetingNextToLastDockPoint();    
     // call this to inform mapping to start docking

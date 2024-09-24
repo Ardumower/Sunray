@@ -949,6 +949,13 @@ bool Map::isDocking(){
   return ((maps.wayMode == WAY_DOCK) && (maps.shouldDock));
 }
 
+bool Map::isBetweenLastAndNextToLastDockPoint(){
+  return (
+     ((maps.wayMode == WAY_DOCK) && (isTargetingLastDockPoint())) || 
+     ((maps.wayMode == WAY_MOW)  && (isTargetingNextToLastDockPoint())) 
+  );
+}
+
 bool Map::isTargetingLastDockPoint(){
   // is on the way to the last docking point
   return ((maps.wayMode == WAY_DOCK) && (maps.dockPoints.numPoints >= 2) && (maps.dockPointsIdx == maps.dockPoints.numPoints-1));
