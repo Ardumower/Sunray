@@ -949,9 +949,14 @@ bool Map::isDocking(){
   return ((maps.wayMode == WAY_DOCK) && (maps.shouldDock));
 }
 
-bool Map::isNearDock(){
+bool Map::isTargetingLastDockPoint(){
   // is on the way to the last docking point
-  return ((maps.wayMode == WAY_DOCK) && (maps.dockPoints.numPoints >= 2) && (maps.dockPointsIdx >= maps.dockPoints.numPoints-2));
+  return ((maps.wayMode == WAY_DOCK) && (maps.dockPoints.numPoints >= 2) && (maps.dockPointsIdx == maps.dockPoints.numPoints-1));
+}
+
+bool Map::isTargetingNextToLastDockPoint(){
+  // is on the way to the next-to-last docking point
+  return ((maps.wayMode == WAY_DOCK) && (maps.dockPoints.numPoints >= 2) && (maps.dockPointsIdx == maps.dockPoints.numPoints-2));
 }
 
 bool Map::retryDocking(float stateX, float stateY){
@@ -1317,7 +1322,7 @@ bool Map::nextDockPoint(bool sim){
           trackReverse = (DOCK_FRONT_SIDE) || ((!DOCK_FRONT_SIDE) && (dockPointsIdx < dockPoints.numPoints-3));                    
         } else {
           dockPointsIdx++; 
-          trackReverse = (!DOCK_FRONT_SIDE) && (dockPointsIdx >= dockPoints.numPoints-3) ; // dock reverse only in dock
+          trackReverse = (!DOCK_FRONT_SIDE) && (dockPointsIdx >= dockPoints.numPoints-3) ; // dock reverse only near dock
         }
       }              
       if (!sim) trackSlow = true;

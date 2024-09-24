@@ -300,8 +300,8 @@ void trackLine(bool runControl){
     CONSOLE.print(" loc=");
     if (stateLocalizationMode == LOC_APRIL_TAG) CONSOLE.print("april");
     if (stateLocalizationMode == LOC_GPS) CONSOLE.print("gps");
-    CONSOLE.print(" isNearDock=");
-    CONSOLE.print(maps.isNearDock());
+    CONSOLE.print(" isTargetingLastDockPoint=");
+    CONSOLE.print(maps.isTargetingLastDockPoint());
     CONSOLE.print(" maps.dockPointsIdx=");
     CONSOLE.print(maps.dockPointsIdx);
     CONSOLE.println();*/

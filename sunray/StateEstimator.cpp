@@ -215,56 +215,59 @@ void resetImuTimeout(){
 // with IMU: heading (stateDelta) is computed by gyro (stateDeltaIMU)
 // without IMU: heading (stateDelta) is computed by odometry (deltaOdometry)
 void computeRobotState(){  
+  stateLocalizationMode = LOC_GPS;
   bool useGPSposition = true; // use GPS position?
   bool useGPSdelta = true; // correct yaw with gps delta estimation?
+  bool useImuAbsoluteYaw = false; // use IMU yaw absolute value?
+
+  // ------- lidar localization --------------------------
   #ifdef GPS_LIDAR
     useGPSdelta = false;
-  #endif      
-  bool useImuAbsoluteYaw = false; // use IMU yaw absolute value?
-  #ifdef GPS_LIDAR
     useImuAbsoluteYaw = true;
+  #endif      
+  
+  // ------- sideways uidance sheets ---------------------
+  #ifdef DOCK_GUIDANCE_SHEET // use guidance sheet for docking?
+    if (maps.isTargetingLastDockPoint()){
+      stateLocalizationMode = LOC_IMU_ODO_ONLY;
+      useGPSposition = false;
+      useGPSdelta = false;
+      useImuAbsoluteYaw = false;
+    }
   #endif
 
   // ------- vision (april-tag) --------------------------
-  bool useAprilTag = false; // use vision (april-tag) localization?
-  
-  #ifdef DOCK_APRIL_TAG
-    if (maps.isNearDock()){
-      useAprilTag = true;
-    }
-  #endif
-
-  if (useAprilTag){
-    stateLocalizationMode = LOC_APRIL_TAG;
-    useGPSposition = false;
-    useGPSdelta = false;
-    useImuAbsoluteYaw = false;
-    if (stateAprilTagFound){  
-      float robotX = stateXAprilTag; // robot-in-april-tag-frame (x towards outside tag, y left, z up)
-      float robotY = stateYAprilTag;
-      float robotDelta = scalePI(stateDeltaAprilTag);    
-      /*CONSOLE.print("APRIL TAG found: ");      
-      CONSOLE.print(robotX);
-      CONSOLE.print(",");
-      CONSOLE.print(robotY);
-      CONSOLE.print(",");    
-      CONSOLE.println(robotDelta/3.1415*180.0);*/        
-      float dockX;
-      float dockY;
-      float dockDelta;
-      if (maps.getDockingPos(dockX, dockY, dockDelta)){
-        // transform robot-in-april-tag-frame into world frame
-        float worldX = dockX + robotX * cos(dockDelta+3.1415) - robotY * sin(dockDelta+3.1415);
-        float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            
-        stateX = worldX;
-        stateY = worldY;
-        stateDelta = scalePI(robotDelta + dockDelta);
-        if (DOCK_FRONT_SIDE) stateDelta = scalePI(stateDelta + 3.1415);
+  #ifdef DOCK_APRIL_TAG  
+    if (maps.isTargetingLastDockPoint()){
+      stateLocalizationMode = LOC_APRIL_TAG;
+      useGPSposition = false;
+      useGPSdelta = false;
+      useImuAbsoluteYaw = false;
+      if (stateAprilTagFound){  
+        float robotX = stateXAprilTag; // robot-in-april-tag-frame (x towards outside tag, y left, z up)
+        float robotY = stateYAprilTag;
+        float robotDelta = scalePI(stateDeltaAprilTag);    
+        /*CONSOLE.print("APRIL TAG found: ");      
+        CONSOLE.print(robotX);
+        CONSOLE.print(",");
+        CONSOLE.print(robotY);
+        CONSOLE.print(",");    
+        CONSOLE.println(robotDelta/3.1415*180.0);*/        
+        float dockX;
+        float dockY;
+        float dockDelta;
+        if (maps.getDockingPos(dockX, dockY, dockDelta)){
+          // transform robot-in-april-tag-frame into world frame
+          float worldX = dockX + robotX * cos(dockDelta+3.1415) - robotY * sin(dockDelta+3.1415);
+          float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            
+          stateX = worldX;
+          stateY = worldY;
+          stateDelta = scalePI(robotDelta + dockDelta);
+          if (DOCK_FRONT_SIDE) stateDelta = scalePI(stateDelta + 3.1415);
+        }
       }
     }
-  } else {
-    stateLocalizationMode = LOC_GPS;
-  }
+  #endif
 
   // ---------- odometry ticks ---------------------------
   long leftDelta = motor.motorLeftTicks-stateLeftTicks;

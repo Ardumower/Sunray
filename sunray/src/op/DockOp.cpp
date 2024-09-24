@@ -145,7 +145,7 @@ void DockOp::onObstacle(){
       CONSOLE.println("triggerObstacle: ignoring, because charger connected");      
       return;
     }
-    if ((!DOCK_DETECT_OBSTACLE_IN_DOCK) && (maps.isNearDock())) {
+    if ((!DOCK_DETECT_OBSTACLE_IN_DOCK) && (maps.isTargetingLastDockPoint())) {
       //CONSOLE.println("triggerObstacle: ignoring, because in dock");      
       return;
     }
