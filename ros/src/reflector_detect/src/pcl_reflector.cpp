@@ -53,6 +53,9 @@ vertical line1  (0.27m apart from vertical line3 - forms with line3 a plane thus
 
 
 
+#define DEBUG false
+
+
 struct Line {
     Eigen::Vector3f point;  // Ein Punkt auf der Linie
     Eigen::Vector3f direction;  // Richtungsvektor der Linie
