@@ -15,8 +15,9 @@
 	<arg name="sunray_ros_mode" default="SIMPLE" />
 
 	<arg name="start_april_detect" default="false" />
-
+	<arg name="start_reflector_detect" default="true" />
 	<arg name="start_ground_lidar_processor" default="true" />
+
     <arg name="ground_lidar_angle_opening" default="180.0" />
     <arg name="ground_lidar_max_distance" default="1.0" />
     <arg name="ground_lidar_max_width" default="1.25" />
@@ -59,6 +60,14 @@
 		<include file="$(find ground_lidar_processor)/launch/run.launch" pass_all_args="true"   if="$(arg start_ground_lidar_processor)" />
 		<node pkg="sunray_node" type="sunray_node" name="sunray_node" output="screen"   if="$(arg start_sunray_node)" />		
 		<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ground_lidar_processor)/launch/test.rviz"  if="$(arg rviz)" />
+		<group if="$(arg start_reflector_detect)"> 	
+			<!-- ros2 run tf2_ros static_transform_publisher x y z yaw pitch roll parent_frame child_frame -->
+			<node pkg="tf" type="static_transform_publisher" name="lidar_to_robot_tf" 
+				args="0.6 0 0.2 0.03 0.3 -0.05 base_link livox_frame 100" />
+			<node pkg="tf" type="static_transform_publisher" name="reflector_frame_to_dock_tf" 
+				args="0 0 0 0 -0.6 0 reflector_frame dock 100" />
+			<node pkg="reflector_detect" type="reflector_detect" name="reflector_detect" output="screen" />
+		</group>
 	</group>
 
 

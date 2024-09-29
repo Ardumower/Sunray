@@ -31,6 +31,11 @@ float stateXAprilTag = 0; // camera-position in april-tag frame
 float stateYAprilTag = 0;  
 float stateDeltaAprilTag = 0; 
 
+bool stateReflectorTagFound = false;
+float stateXReflectorTag = 0; // camera-position in reflector-tag frame
+float stateYReflectorTag = 0;  
+float stateDeltaReflectorTag = 0; 
+
 unsigned long stateLeftTicks = 0;
 unsigned long stateRightTicks = 0;
 
@@ -248,6 +253,39 @@ void computeRobotState(){
         float robotY = stateYAprilTag;
         float robotDelta = scalePI(stateDeltaAprilTag);    
         /*CONSOLE.print("APRIL TAG found: ");      
+        CONSOLE.print(robotX);
+        CONSOLE.print(",");
+        CONSOLE.print(robotY);
+        CONSOLE.print(",");    
+        CONSOLE.println(robotDelta/3.1415*180.0);*/        
+        float dockX;
+        float dockY;
+        float dockDelta;
+        if (maps.getDockingPos(dockX, dockY, dockDelta)){
+          // transform robot-in-april-tag-frame into world frame
+          float worldX = dockX + robotX * cos(dockDelta+3.1415) - robotY * sin(dockDelta+3.1415);
+          float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            
+          stateX = worldX;
+          stateY = worldY;
+          stateDelta = scalePI(robotDelta + dockDelta);
+          if (DOCK_FRONT_SIDE) stateDelta = scalePI(stateDelta + 3.1415);
+        }
+      }
+    }
+  #endif
+
+  // ------- LiDAR (reflector-tag) --------------------------
+  #ifdef DOCK_REFLECTOR_TAG  // use reflector-tag for docking/undocking?
+    if (maps.isBetweenLastAndNextToLastDockPoint() ){
+      stateLocalizationMode = LOC_REFLECTOR_TAG;
+      useGPSposition = false;
+      useGPSdelta = false;
+      useImuAbsoluteYaw = false;
+      if (stateReflectorTagFound){  
+        float robotX = stateXReflectorTag; // robot-in-reflector-tag-frame (x towards outside tag, y left, z up)
+        float robotY = stateYReflectorTag;
+        float robotDelta = scalePI(stateDeltaReflectorTag);    
+        /*CONSOLE.print("REFLECTOR TAG found: ");      
         CONSOLE.print(robotX);
         CONSOLE.print(",");
         CONSOLE.print(robotY);

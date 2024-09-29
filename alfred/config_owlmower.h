@@ -404,6 +404,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 //#define DOCK_APRIL_TAG 1         // use visual (april-tag) docking/undocking?
 //#define DOCK_GUIDANCE_SHEET  1   // use guidance sheet for docking/undocking?
+#define DOCK_REFLECTOR_TAG  1   // use reflector tag for docking/undocking?
 #define DOCK_LINEAR_SPEED 0.1   // linear speed for docking
 
 #define DOCK_DETECT_OBSTACLE_IN_DOCK false   // enable obstacle detection in dock?
