@@ -1,0 +1,4 @@
+<launch>
+
+    <node pkg="reflector_detect" type="reflector_detect" name="reflector_detect" output="screen" />
+</launch>
