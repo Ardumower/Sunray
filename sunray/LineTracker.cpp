@@ -232,6 +232,16 @@ void trackLine(bool runControl){
       //angular = 0; 
     }
   }
+  if (stateLocalizationMode == LOC_REFLECTOR_TAG){
+    if (!stateReflectorTagFound){
+      linear = 0; // wait until reflector-tag found 
+      angular = 0; 
+    } else {
+      if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
+      //linear = 0; // wait until reflector-tag found 
+      //angular = 0; 
+    }
+  }
   if (stateLocalizationMode == LOC_GUIDANCE_SHEET){
       if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
       angular = 0;

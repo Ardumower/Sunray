@@ -295,7 +295,7 @@ void computeRobotState(){
         float dockY;
         float dockDelta;
         if (maps.getDockingPos(dockX, dockY, dockDelta)){
-          // transform robot-in-april-tag-frame into world frame
+          // transform robot-in-reflector-tag-frame into world frame
           float worldX = dockX + robotX * cos(dockDelta+3.1415) - robotY * sin(dockDelta+3.1415);
           float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            
           stateX = worldX;
