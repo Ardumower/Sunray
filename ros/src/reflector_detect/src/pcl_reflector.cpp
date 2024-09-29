@@ -438,12 +438,12 @@ public:
                             std::vector<pcl::PointIndices>& line_inliers,
                             int max_lines = 3) {
 
-        ROS_WARN("cluster %d", (int)cloud->points.size());                    
+        if (DEBUG) ROS_WARN("cluster %d", (int)cloud->points.size());                    
         // Region Growing Setup
         std::vector<pcl::PointIndices> clusters;
 
         regionGrowing(cloud, 0.055, clusters, line_inliers);
-        ROS_WARN("region clusters %d", (int)clusters.size());
+        if (DEBUG) ROS_WARN("region clusters %d", (int)clusters.size());
 
         if (clusters.size() != 3) return false;
 
@@ -456,7 +456,7 @@ public:
                 region_cluster->points.push_back(cloud->points[idx]);
             }
             int numPoints = region_cluster->points.size();
-            ROS_WARN("region_cluster %d", (int)numPoints);        
+            if (DEBUG) ROS_WARN("region_cluster %d", (int)numPoints);        
             if (region_cluster->points.size() < 3) return false;
             pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
             //pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
@@ -478,7 +478,7 @@ public:
             //if ( inliers->indices.size() < 3)  {            
             //    return false;
             //}
-            //ROS_WARN("inliers: %d", (int)inliers->indices.size());
+            //if (DEBUG) ROS_WARN("inliers: %d", (int)inliers->indices.size());
 
             if (coefficients->values[5] < 0){ // direction vector should point upwards
                 coefficients->values[3] *= -1;
@@ -496,9 +496,9 @@ public:
     // Funktion zur Überprüfung, ob die Linien die relative Orientierung des Reflektorkoordinatensystems haben
     bool isReflectorCoordinateSystem(const std::vector<pcl::ModelCoefficients::Ptr>& line_coefficients, 
                                     const std::vector<double>& line_lengths) {        
-        ROS_INFO("lines %d", (int)line_lengths.size());
+        if (DEBUG) ROS_INFO("lines %d", (int)line_lengths.size());
         if (line_lengths.size() != 3) {
-            ROS_WARN("invalid line count: %d", (int)line_lengths.size());
+            if (DEBUG) ROS_WARN("invalid line count: %d", (int)line_lengths.size());
             return false;
         }
 
@@ -507,18 +507,18 @@ public:
         Eigen::Vector3f pt3(line_coefficients[2]->values[0], line_coefficients[2]->values[1], line_coefficients[2]->values[2]);
 
         /*if ( (abs(pt1.y() - 0) > 0.8) ||  (abs(pt2.y() - 0) > 0.8) || (abs(pt3.y() - 0) > 0.8) ){
-            ROS_WARN("line points not in lidar fov");
+            if (DEBUG) ROS_WARN("line points not in lidar fov");
             return false;
         } */
 
         if ( !isBetween(pt1, pt2, pt3, 0.1) ) {
-            ROS_WARN("line2 not in between lines 1,3");
+            if (DEBUG) ROS_WARN("line2 not in between lines 1,3");
             return false;
         }
     
         // line1,2,3 should be left-to-right
         if ( ! ( (pt2.y() > pt1.y()) && (pt3.y() > pt2.y()) )  ) {
-            ROS_WARN("line1,2,3 not left-to-right");
+            if (DEBUG) ROS_WARN("line1,2,3 not left-to-right");
             return false;  
         }
     
@@ -529,10 +529,10 @@ public:
         bool isLine3Valid = (line_lengths[2] > 0.03) && (line_lengths[2] < 0.8);
 
         if (!(isLine1Valid && isLine2Valid && isLine3Valid)) {
-            ROS_WARN("invalid lens: %.2f, %.2f, %.2f", line_lengths[0], line_lengths[1], line_lengths[2]);
+            if (DEBUG) ROS_WARN("invalid lens: %.2f, %.2f, %.2f", line_lengths[0], line_lengths[1], line_lengths[2]);
             return false;
         }
-        //ROS_WARN("lines ok");
+        //if (DEBUG) ROS_WARN("lines ok");
         
         // Winkelprüfung: Linien müssen senkrecht zueinander sein (innerhalb eines Toleranzwinkels)
         // Winkel zwischen den Linien wird anhand der Richtungsvektoren (dx, dy, dz) berechnet
@@ -552,7 +552,7 @@ public:
         //isPerpendicular = true;
 
         if (! (areParallel1 && areParallel2)){
-            ROS_WARN("not parallel %.2f, %.2f", std::abs(dot_product_12 - 1.0), std::abs(dot_product_13 - 1.0));
+            if (DEBUG) ROS_WARN("not parallel %.2f, %.2f", std::abs(dot_product_12 - 1.0), std::abs(dot_product_13 - 1.0));
             return false;
         }
 
@@ -561,13 +561,13 @@ public:
         float distance = calculateMinimalDistanceBetweenParallelLines(pt1, pt3, direction);
 
         if ((distance < 0.1) || (distance > 0.35)){
-            ROS_WARN("invalid dist: %.2f", distance);
+            if (DEBUG) ROS_WARN("invalid dist: %.2f", distance);
             return false;            
         }
 
-        //ROS_WARN("len %.2f, %.2f, %.2f", line_lengths[0], line_lengths[1], line_lengths[2]);
-        //ROS_WARN("parallel %.2f, %.2f", std::abs(dot_product_12 - 1.0), std::abs(dot_product_13 - 1.0));
-        //ROS_WARN("dist %.2f", distance);            
+        //if (DEBUG) ROS_WARN("len %.2f, %.2f, %.2f", line_lengths[0], line_lengths[1], line_lengths[2]);
+        //if (DEBUG) ROS_WARN("parallel %.2f, %.2f", std::abs(dot_product_12 - 1.0), std::abs(dot_product_13 - 1.0));
+        //if (DEBUG) ROS_WARN("dist %.2f", distance);            
         return true;
     }
 
@@ -688,7 +688,7 @@ public:
         
         pcl::fromROSMsg(*cloudMsg, *cloud);
 
-        //ROS_WARN("processCloud %d", (int)cloud->points.size());
+        //if (DEBUG) ROS_WARN("processCloud %d", (int)cloud->points.size());
         if (cloud->points.size() == 0) return;
 
         // Add the new cloud to the buffer
@@ -729,8 +729,8 @@ public:
         ec.extract(cluster_indices);
 
 
-        ROS_INFO("-----------------------------");
-        ROS_INFO("cluster %d", (int)cluster_indices.size());
+        if (DEBUG) ROS_INFO("-----------------------------");
+        if (DEBUG) ROS_INFO("cluster %d", (int)cluster_indices.size());
 
         // Schritt 2: Verarbeitung jedes Clusters zur Liniendetektion
         int clusterCounter = 0;
@@ -738,7 +738,7 @@ public:
         for (const auto& cluster_idx : cluster_indices) {
             pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_cluster(new pcl::PointCloud<pcl::PointXYZI>);
             pcl::copyPointCloud(*high_gradient_points, cluster_idx.indices, *cloud_cluster);
-            //ROS_INFO("pts %d", (int)cloud_cluster->points.size());
+            //if (DEBUG) ROS_INFO("pts %d", (int)cloud_cluster->points.size());
             for (size_t i = 0; i < cloud_cluster->points.size(); ++i) {
                 pcl::PointXYZI pt;
                 pt = cloud_cluster->points[i];
@@ -756,10 +756,10 @@ public:
                     // Schritt 4: Berechnung der Linienlängen und Speicherung
                     std::vector<double> line_lengths;
                     int lineCounter = 0;
-                    ROS_WARN("line_inliers %d", (int)line_inliers.size());
+                    if (DEBUG) ROS_WARN("line_inliers %d", (int)line_inliers.size());
                     for (const auto& inliers : line_inliers) {
                         pcl::PointXYZI pt;
-                        ROS_WARN("inliers %d", (int)inliers.indices.size());
+                        if (DEBUG) ROS_WARN("inliers %d", (int)inliers.indices.size());
                         for (size_t i = 0; i < inliers.indices.size(); ++i) {
                             pt = cloud_cluster->points[inliers.indices[i]];
                             pt.intensity = (lineCounter * 40) % (255-30) + 30;
@@ -836,7 +836,7 @@ private:
         //printf("pointCloudCallback dense=%d height=%d\n", (int)msg->is_dense, (int)msg->height);
         if (cloudReceived) return;
         cloudMsg = msg;
-        ROS_INFO("cloud %d", cloudCounter);
+        if (DEBUG) ROS_INFO("cloud %d", cloudCounter);
         cloudReceived = true;
     }
 
@@ -865,7 +865,7 @@ int main(int argc, char **argv)
         ros::spinOnce();
         rate->sleep();
         if (detect.cloudReceived) {
-            //ROS_INFO("processCloud");
+            //if (DEBUG) ROS_INFO("processCloud");
             detect.processCloud();            
             detect.cloudReceived = false;            
         }
