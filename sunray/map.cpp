@@ -950,6 +950,7 @@ bool Map::isDocking(){
 }
 
 bool Map::isBetweenLastAndNextToLastDockPoint(){
+  //return true;
   return (
      ((maps.wayMode == WAY_DOCK) && (isTargetingLastDockPoint())) || 
      ((maps.wayMode == WAY_MOW)  && (isTargetingNextToLastDockPoint())) 

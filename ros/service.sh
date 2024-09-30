@@ -160,6 +160,7 @@ function docker_terminal {
   if [[ $WIP != "" ]]; then
     CMD+="; export ROS_IP=$WIP"
   fi
+  CMD+="; export DISPLAY=$DISPLAY"
   CMD+="; export ROS_HOME=/root/Sunray/alfred ; cd /root/Sunray/ros ; . devel/setup.bash ; /bin/bash"
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c "$CMD"
@@ -417,6 +418,12 @@ function menu {
   echo "SUNRAY_ROS_RVIZ: $SUNRAY_ROS_RVIZ"
   echo "USE_BAG_FILE: $USE_BAG_FILE"
   echo "ROS_IP: $ROS_IP"
+  echo "HOME: $HOME"
+  echo "XDG_RUNTIME_DIR: $XDG_RUNTIME_DIR"
+  echo "HOST_SUNRAY_PATH: $HOST_SUNRAY_PATH"
+  echo "HOST_PCD_PATH: $HOST_PCD_PATH"  
+  echo "IMAGE_NAME: $IMAGE_NAME"
+  echo "DISPLAY: $DISPLAY"
   PS3='Please enter your choice: '
   options=(
       "Docker install"
