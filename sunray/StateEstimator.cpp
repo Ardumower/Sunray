@@ -335,7 +335,7 @@ void computeRobotState(){
     posN = gps.relPosN;  
     posE = gps.relPosE;     
   }   
-  
+
   if (fabs(motor.linearSpeedSet) < 0.001){       
     resetLastPos = true;
   }
@@ -442,6 +442,13 @@ void computeRobotState(){
     //CONSOLE.print(stateDeltaSpeedIMU/PI*180.0);
     //CONSOLE.print(",");
     //CONSOLE.println(stateDeltaSpeedWheels/PI*180.0);
+  }
+
+
+  // invalid position => reset to zero
+  if ( (abs(stateX) > 10000) || (abs(stateY) > 10000) ){
+    stateX = 0;
+    stateY = 0;
   }
 }
 
