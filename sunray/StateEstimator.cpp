@@ -274,12 +274,14 @@ void computeRobotState(){
     }
   #endif
 
-  // ------- LiDAR (reflector-tag) -----------------------------------------------------
-  // map dockpoints setup:
-  //                 x----------------------x--------------------------O   (last dockpoint)
-  //                GPS                   outside                   inside
-  //                waypoint              marker                    marker
-  // localization:              GPS               LiDAR          
+  // ------- LiDAR (reflector-tag) -----                outside marker
+  // map dockpoints setup:                                  |===============================
+  //               GPS waypoint         GPS waypoint        |
+  //                 x----------------------x---------------|-----------------------------O (last dockpoint)
+  //                                      outside           |    inside marker visible      inside marker
+  //                                      marker visible    |===============================          
+  //                                                           
+  // localization:              GPS                     LiDAR          
   
   #ifdef DOCK_REFLECTOR_TAG  // use reflector-tag for docking/undocking?
     if (maps.isBetweenLastAndNextToLastDockPoint() ){
