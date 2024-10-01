@@ -101,7 +101,7 @@ struct PoseFilter {
         // Alpha für dynamische Zeitkonstante
         //float alpha_dynamic = 1.0; 
         float alpha_dynamic = alpha/(alpha + dt);
-        printf("dt:%.4f, alpha_dynamic:%.4f\n", dt, alpha_dynamic);
+        //printf("dt:%.4f, alpha_dynamic:%.4f\n", dt, alpha_dynamic);
 
         // Position filtern
         filtered_position = alpha_dynamic * filtered_position + (1.0f - alpha_dynamic) * new_position;
@@ -779,9 +779,9 @@ public:
         Eigen::Vector3f dir2(line2->values[3], line2->values[4], line2->values[5]);
         Eigen::Vector3f dir3(line3->values[3], line3->values[4], line3->values[5]);
 
-        std::cout << "dir1 " << dir1 << std::endl;
-        std::cout << "dir2 " << dir2 << std::endl;
-        std::cout << "dir3 " << dir3 << std::endl;
+        //std::cout << "dir1 " << dir1 << std::endl;
+        //std::cout << "dir2 " << dir2 << std::endl;
+        //std::cout << "dir3 " << dir3 << std::endl;
 
         // Berechne den Durchschnittsvektor der Richtungen als z-Achse
         Eigen::Vector3f zAxis = ((dir1 + dir2 + dir3)/3.0).normalized();
@@ -791,16 +791,16 @@ public:
         // Berechne die y-Achse durch das Kreuzprodukt von x-Achse und z-Achse
         Eigen::Vector3f yAxis = zAxis.cross(xAxis).normalized();
 
-        std::cout << "xAxis " << xAxis << std::endl;
-        std::cout << "yAxis " << yAxis << std::endl;
-        std::cout << "zAxis " << zAxis << std::endl;
+        //std::cout << "xAxis " << xAxis << std::endl;
+        //std::cout << "yAxis " << yAxis << std::endl;
+        //std::cout << "zAxis " << zAxis << std::endl;
 
         // Erstelle eine 3x3-Rotationsmatrix aus den berechneten Achsen
         Eigen::Matrix3f rotationMatrix;
         rotationMatrix.col(0) = -yAxis; // x-Achse
         rotationMatrix.col(1) = xAxis ; // y-Achse
         rotationMatrix.col(2) = zAxis; // z-Achse
-        std::cout << "rotationMatrix " << std::endl << rotationMatrix << std::endl;
+        //std::cout << "rotationMatrix " << std::endl << rotationMatrix << std::endl;
 
         // Konvertiere die Rotationsmatrix in ein Quaternion
         Eigen::Quaternionf quaternion(rotationMatrix);
