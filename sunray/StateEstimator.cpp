@@ -276,10 +276,10 @@ void computeRobotState(){
 
   // ------- LiDAR (reflector-tag) -----                
   // map dockpoints setup:                                  |===============================
-  //               GPS waypoint         GPS waypoint    outside marker     
+  //               GPS waypoint         GPS waypoint    outside tag     
   //                 x----------------------x---------------x-----------------------------O (last dockpoint)
-  //                                      outside                inside marker visible      inside marker
-  //                                      marker visible    |===============================          
+  //                                      outside                inside tag visible      inside tag
+  //                                      tag visible       |===============================          
   //                                                           
   // localization:              GPS                     LiDAR          
   
