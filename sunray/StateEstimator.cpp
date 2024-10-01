@@ -278,7 +278,7 @@ void computeRobotState(){
   // map dockpoints setup:
   //                 x----------------------x--------------------------O   (last dockpoint)
   //                GPS                   outside                   inside
-  //                waypoint              matker                    marker
+  //                waypoint              marker                    marker
   // localization:              GPS               LiDAR          
   
   #ifdef DOCK_REFLECTOR_TAG  // use reflector-tag for docking/undocking?
