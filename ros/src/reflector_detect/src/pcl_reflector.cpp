@@ -47,7 +47,9 @@ vertical line1  (0.27m apart from vertical line3 - forms with line3 a plane thus
 #include <cmath>
 #include <Eigen/Geometry> 
 #include <Eigen/Core>
+#include <Eigen/Dense>
 #include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 #include <deque>  // For ring buffer
 #include <random>
 
@@ -76,7 +78,7 @@ struct PoseFilter {
     bool init; 
     ros::Time last_time;
 
-    PoseFilter() : alpha(0.9f) {  // Beispielwert für den Filter
+    PoseFilter() : alpha(0.1f) {  // 0.9 Beispielwert für den Filter
         filtered_position = Eigen::Vector3f::Zero();
         filtered_orientation = Eigen::Quaternionf::Identity();
         init = false;
@@ -91,23 +93,25 @@ struct PoseFilter {
 
         // Zeitschritt berechnen
         ros::Time current_time = ros::Time::now();
-        float dt = (current_time - last_time).toSec();
+        float dt = (current_time - last_time).toSec();        
         if (dt > 1.0) dt = 1.0;
         if (dt < 0.0001) dt = 0.0001; 
         last_time = current_time;
-
+        
         // Alpha für dynamische Zeitkonstante
-        float alpha_dynamic = alpha * dt;
+        //float alpha_dynamic = 1.0; 
+        float alpha_dynamic = alpha/(alpha + dt);
+        printf("dt:%.4f, alpha_dynamic:%.4f\n", dt, alpha_dynamic);
 
         // Position filtern
-        filtered_position = alpha_dynamic * new_position + (1.0f - alpha_dynamic) * filtered_position;
+        filtered_position = alpha_dynamic * filtered_position + (1.0f - alpha_dynamic) * new_position;
 
         // Orientierung filtern
         filtered_orientation = filtered_orientation.slerp(alpha_dynamic, new_orientation);
     }
 };
 
-
+ 
 
 // Hilfsfunktion zum Berechnen des Abstands eines Punktes von einer Linie
 float distancePointToLine(const Eigen::Vector3f& point, const Eigen::Vector3f& line_start, const Eigen::Vector3f& line_direction) {
@@ -118,11 +122,101 @@ float distancePointToLine(const Eigen::Vector3f& point, const Eigen::Vector3f& l
 }
 
 
-#include <ros/ros.h>
-#include <visualization_msgs/Marker.h>
-#include <tf/transform_broadcaster.h>
-#include <Eigen/Dense>
 
+
+// Funktion, die eine Pose basierend auf einer Linie (Ursprung und Richtungsvektor) berechnet
+geometry_msgs::Pose calculatePoseFromLine(const pcl::ModelCoefficients::Ptr& line_coefficients) {
+    geometry_msgs::Pose pose;
+
+    // Extrahiere Ursprung und Richtungsvektor
+    Eigen::Vector3f origin(line_coefficients->values[0], line_coefficients->values[1], line_coefficients->values[2]);
+    Eigen::Vector3f direction(line_coefficients->values[3], line_coefficients->values[4], line_coefficients->values[5]);
+
+    // Normalisiere den Richtungsvektor
+    Eigen::Vector3f normalized_direction = direction.normalized();
+
+    // Setze die Position der Pose (Startpunkt der Linie)
+    pose.position.x = origin.x();
+    pose.position.y = origin.y();
+    pose.position.z = origin.z();
+
+    // Bestimme die Orientierung der Linie als Quaternion
+    Eigen::Quaternionf quat = Eigen::Quaternionf::FromTwoVectors(Eigen::Vector3f::UnitX(), normalized_direction);
+
+    pose.orientation.x = quat.x();
+    pose.orientation.y = quat.y();
+    pose.orientation.z = quat.z();
+    pose.orientation.w = quat.w();
+
+    return pose;
+}
+
+// Funktion zur Visualisierung der drei Linien als Posen in RViz
+void visualizeLinePoses(ros::Publisher& marker_pub, const std::vector<pcl::ModelCoefficients::Ptr>& line_coefficients) {
+    visualization_msgs::MarkerArray marker_array;
+
+    for (size_t i = 0; i < line_coefficients.size(); ++i) {
+        visualization_msgs::Marker marker;
+        marker.header.frame_id = "livox_frame"; // Frame anpassen, in dem die Marker visualisiert werden
+        marker.header.stamp = ros::Time::now();
+        marker.ns = "line_poses";
+        marker.id = i;
+        marker.type = visualization_msgs::Marker::ARROW;
+        marker.action = visualization_msgs::Marker::ADD;
+
+        marker.scale.x = 1.0;  // Länge des Pfeils
+        marker.scale.y = 0.01; // Dicke des Pfeils
+        marker.scale.z = 0.05;
+
+        // Farbe festlegen (hier rot für alle Marker)
+        marker.color.r = 0.0f;  // Rot
+        marker.color.g = 1.0f;
+        marker.color.b = 1.0f;
+        marker.color.a = 1.0f;
+
+        // Berechne die Pose aus den Linienkoeffizienten
+        marker.pose = calculatePoseFromLine(line_coefficients[i]);
+
+        // Füge den Marker zum MarkerArray hinzu
+        marker_array.markers.push_back(marker);
+    }
+
+    // Publiziere das MarkerArray
+    marker_pub.publish(marker_array);
+}
+
+
+// Funktion zur Berechnung des Normalvektors mit PCA, basierend auf einer Punktwolke
+Eigen::Vector3f computeNormalUsingPCA(const pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud) {
+    // Schritt 1: Berechnung des Schwerpunkts (Centroid) aller Punkte
+    Eigen::Vector3f centroid(0.0f, 0.0f, 0.0f);
+    for (const auto& point : cloud->points) {
+        centroid += Eigen::Vector3f(point.x, point.y, point.z);
+    }
+    centroid /= cloud->points.size();
+
+    // Schritt 2: Erstelle eine Kovarianzmatrix der Punktwolke
+    Eigen::Matrix3f covariance_matrix = Eigen::Matrix3f::Zero();
+    for (const auto& point : cloud->points) {
+        Eigen::Vector3f centered_point = Eigen::Vector3f(point.x, point.y, point.z) - centroid;
+        covariance_matrix += centered_point * centered_point.transpose();
+    }
+    covariance_matrix /= cloud->points.size();
+
+    // Schritt 3: Berechne die Eigenwerte und Eigenvektoren der Kovarianzmatrix
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigen_solver(covariance_matrix);
+    Eigen::Vector3f normal_vector = eigen_solver.eigenvectors().col(0);  // Kleinster Eigenwert => Normalvektor
+
+    // Schritt 4: Sicherstellen, dass der Normalvektor nach "oben" zeigt (oder eine Referenzrichtung hat)
+    Eigen::Vector3f reference_direction(0.0f, 0.0f, 1.0f); // z-Achse als Referenz
+
+    // Wenn der Normalvektor in die entgegengesetzte Richtung zeigt, invertiere ihn
+    if (normal_vector.dot(reference_direction) < 0) {
+        normal_vector = -normal_vector;
+    }
+
+    return normal_vector;
+}
 
 
 void approximateLine(const pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud, pcl::ModelCoefficients::Ptr& line_coefficients) {
@@ -144,13 +238,19 @@ void approximateLine(const pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud, pcl::Mod
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigen_solver(covariance_matrix);
     Eigen::Vector3f direction = eigen_solver.eigenvectors().col(2);  // Eigenvektor mit größtem Eigenwert (Richtungsvektor)
 
+    if (direction.z() < 0){
+        direction[0] = direction[0] * -1.0;
+        direction[1] = direction[1] * -1.0;
+        direction[2] = direction[2] * -1.0;
+    }
+
     // Speichern der Parameter in ModelCoefficients
     line_coefficients->values.resize(6);
     line_coefficients->values[0] = centroid.x();
     line_coefficients->values[1] = centroid.y();
     line_coefficients->values[2] = centroid.z();
     line_coefficients->values[3] = direction.x();
-    line_coefficients->values[4] = direction.y();
+    line_coefficients->values[4] = direction.y();  
     line_coefficients->values[5] = direction.z();
 }
 
@@ -367,6 +467,7 @@ public:
         pose_pub = nh.advertise<geometry_msgs::PoseStamped>("/reflector/pose", 1);
         //lidarAccumulator = new LidarAccumulator(nh, "/livox/lidar_aligned", "livox_frame");
         cube_pub = nh.advertise<visualization_msgs::Marker>("/reflector/cube", 1);
+        line_poses_pub = nh.advertise<visualization_msgs::MarkerArray>("/reflector/line_poses", 1);
     }
 
     void publishCubeMarker(const Eigen::Vector3f& position, float x_length, float y_width, float z_height, float angle_deg, const std::string& frame_id) {
@@ -611,53 +712,109 @@ public:
     }
 
 
+
+    // Funktion zur Projektion eines Punktes auf eine Ebene
+    Eigen::Vector3f projectPointOntoPlane(const Eigen::Vector3f& point, const Eigen::Vector3f& plane_point, const Eigen::Vector3f& normal) {
+        // Berechnung der Projektion
+        Eigen::Vector3f point_to_plane = point - plane_point;
+        float distance_to_plane = point_to_plane.dot(normal);
+        return point - distance_to_plane * normal;
+    }
+
+    // Funktion zur Modifikation der Linien, damit sie in einer Ebene liegen
+    void approximateLinesToPlane(std::vector<pcl::ModelCoefficients::Ptr>& line_coefficients_perm) {
+        std::vector<Eigen::Vector3f> line_origins;
+        std::vector<Eigen::Vector3f> line_directions;
+
+        // Extrahiere Ursprünge und Richtungsvektoren aus den pcl::ModelCoefficients
+        for (const auto& coeff : line_coefficients_perm) {
+            Eigen::Vector3f origin(coeff->values[0], coeff->values[1], coeff->values[2]);
+            Eigen::Vector3f direction(coeff->values[3], coeff->values[4], coeff->values[5]);
+            line_origins.push_back(origin);
+            line_directions.push_back(direction.normalized());
+        }
+
+        // Schritt 1: Berechne den durchschnittlichen Richtungsvektor
+        Eigen::Vector3f avg_direction = (line_directions[0] + line_directions[1] + line_directions[2]).normalized();
+        
+        // Berechne den Normalvektor der Ebene mit zwei Linien (hier Linien 1 und 3)
+        Eigen::Vector3f normal = (line_directions[0].cross(line_directions[2])).normalized();
+
+        // Schritt 2: Projektion der Startpunkte auf die Ebene
+        for (size_t i = 0; i < line_origins.size(); ++i) {
+            line_origins[i] = projectPointOntoPlane(line_origins[i], line_origins[0], normal);
+            // Setze die Richtung der Linien auf den durchschnittlichen Richtungsvektor
+            line_directions[i] = avg_direction;
+        }
+
+        // Aktualisiere die pcl::ModelCoefficients mit den neuen Werten
+        for (size_t i = 0; i < line_coefficients_perm.size(); ++i) {
+            auto& coeff = line_coefficients_perm[i];
+            coeff->values[0] = line_origins[i][0];
+            coeff->values[1] = line_origins[i][1];
+            coeff->values[2] = line_origins[i][2];
+            coeff->values[3] = line_directions[i][0];
+            coeff->values[4] = line_directions[i][1];
+            coeff->values[5] = line_directions[i][2];
+        }
+    }
+
+
+
     // Funktion zur Publikation des Reflektorkoordinatensystems als Pose-Nachricht
-    void publishReflectorPose(ros::Publisher& pub, const pcl::ModelCoefficients::Ptr& line1, 
-        const pcl::ModelCoefficients::Ptr& line2, const pcl::ModelCoefficients::Ptr& line3) {
+    void publishReflectorPose(ros::Publisher& pub,
+        const pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud, 
+        const pcl::ModelCoefficients::Ptr& line1, const pcl::ModelCoefficients::Ptr& line2, const pcl::ModelCoefficients::Ptr& line3) {
         geometry_msgs::PoseStamped pose;
 
         pose.header.stamp = ros::Time::now();
         pose.header.frame_id = "livox_frame";
             
-        Eigen::Vector3f point1(line1->values[0], line1->values[1], line1->values[2]);  // Startpunkt der ersten Linie
-        Eigen::Vector3f point3(line3->values[0], line3->values[1], line3->values[2]);  // Startpunkt der zweiten Linie
-
-        //Eigen::Vector3f dir2(line2->values[3], line2->values[4], line2->values[5]);
+        Eigen::Vector3f pt1(line1->values[0], line1->values[1], line1->values[2]);  // Startpunkt der ersten Linie
+        Eigen::Vector3f pt2(line2->values[0], line2->values[1], line2->values[2]);  // Startpunkt der zweiten Linie
+        Eigen::Vector3f pt3(line3->values[0], line3->values[1], line3->values[2]);  // Startpunkt der dritten Linie
 
         // Extrahieren der Richtungsvektoren der drei Linien
         Eigen::Vector3f dir1(line1->values[3], line1->values[4], line1->values[5]);
         Eigen::Vector3f dir2(line2->values[3], line2->values[4], line2->values[5]);
         Eigen::Vector3f dir3(line3->values[3], line3->values[4], line3->values[5]);
-        dir1.normalize();
-        dir2.normalize();
-        dir3.normalize();
 
-        // Mittelung der Richtungsvektoren
-        Eigen::Vector3f averaged_dir = (dir1 + dir2 + dir3) / 3.0;
+        std::cout << "dir1 " << dir1 << std::endl;
+        std::cout << "dir2 " << dir2 << std::endl;
+        std::cout << "dir3 " << dir3 << std::endl;
 
-        // Normieren des gemittelten Vektors
-        averaged_dir.normalize();
-        
-        //Eigen::Vector3f x_axis = (-(point3 -point1)).normalized();  // Richtung der X-Achse
+        // Berechne den Durchschnittsvektor der Richtungen als z-Achse
+        Eigen::Vector3f zAxis = ((dir1 + dir2 + dir3)/3.0).normalized();
 
-        //Eigen::Vector3f z_axis = dir2;
-
-        // Y-Achse: Senkrecht zur X- und Z-Achse
-        //Eigen::Vector3f y_axis = z_axis.cross(x_axis).normalized();
-
-        // Rotieren um 180 Grad um den X-Richtungsvektor
-        //rotateAroundVector(x_axis, y_axis, 180.0f);  // Rotiert Y um die X-Achse
-        //rotateAroundVector(x_axis, z_axis, 180.0f);  // Rotiert Z um die X-Achse
-        
-        // Berechnung der Quaternion für die Orientierung aus den Achsen
-        //Eigen::Matrix3f rotation_matrix;
-        //rotation_matrix.col(0) = x_axis; // X-Achse
-        //rotation_matrix.col(1) = y_axis; // Y-Achse
-        //rotation_matrix.col(2) = z_axis; // Z-Achse
-
-        Eigen::Quaternionf quaternion;
-        quaternion.setFromTwoVectors(Eigen::Vector3f(0.0, 0.0, 1.0), averaged_dir);  // Richtungsvektor in Pose-Orientierung umwandeln
+        Eigen::Vector3f xAxis = (pt3 - pt1).normalized();
     
+        // Berechne die y-Achse durch das Kreuzprodukt von x-Achse und z-Achse
+        Eigen::Vector3f yAxis = zAxis.cross(xAxis).normalized();
+
+        std::cout << "xAxis " << xAxis << std::endl;
+        std::cout << "yAxis " << yAxis << std::endl;
+        std::cout << "zAxis " << zAxis << std::endl;
+
+        // Erstelle eine 3x3-Rotationsmatrix aus den berechneten Achsen
+        Eigen::Matrix3f rotationMatrix;
+        rotationMatrix.col(0) = -yAxis; // x-Achse
+        rotationMatrix.col(1) = xAxis ; // y-Achse
+        rotationMatrix.col(2) = zAxis; // z-Achse
+        std::cout << "rotationMatrix " << std::endl << rotationMatrix << std::endl;
+
+        // Konvertiere die Rotationsmatrix in ein Quaternion
+        Eigen::Quaternionf quaternion(rotationMatrix);
+        
+        
+        /*
+        // Wenn eine gültige Permutation gefunden wurde, berechne und veröffentliche die Pose
+        // Berechne den Normalvektor der Ebene mit PCA
+        Eigen::Vector3f normal_vector = computeNormalUsingPCA(cloud);
+
+        // Berechne das Quaternion für den Richtungsvektor
+        Eigen::Quaternionf quaternion = Eigen::Quaternionf::FromTwoVectors(Eigen::Vector3f::UnitX(), normal_vector);
+        */
+
         Eigen::Vector3f position(line2->values[0], line2->values[1], line2->values[2]);
 
         pose_filter.update(position, quaternion);
@@ -672,9 +829,6 @@ public:
         pose.pose.orientation.w = pose_filter.filtered_orientation.w();
         
         pub.publish(pose);
-
-        // Dummy-Daten für Position und Achsen des Reflektors (Normalerweise aus Berechnungen)
-        Eigen::Vector3f reflector_position(line2->values[0], line2->values[1], line2->values[2]);
 
         // LiDAR-Frame und Reflektor-Frame Namen
         std::string lidar_frame = "livox_frame";
@@ -788,9 +942,10 @@ public:
                         line_lengths_perm.push_back(line_lengths[perm[1]]);
                         line_lengths_perm.push_back(line_lengths[perm[2]]);
 
-                        if (isReflectorCoordinateSystem(line_coefficients_perm, line_lengths_perm)) {
-                            // Wenn eine gültige Permutation gefunden wurde, berechne und veröffentliche die Pose
-                            publishReflectorPose(pose_pub, 
+                        if (isReflectorCoordinateSystem(line_coefficients_perm, line_lengths_perm)) {                            
+                            //approximateLinesToPlane(line_coefficients_perm);
+                            visualizeLinePoses(line_poses_pub, line_coefficients_perm);
+                            publishReflectorPose(pose_pub, cloud_cluster,  
                                 line_coefficients_perm[0], 
                                 line_coefficients_perm[1], 
                                 line_coefficients_perm[2]);
@@ -852,6 +1007,7 @@ private:
     ros::Publisher grad_pub_;
     ros::Publisher pose_pub;
     ros::Publisher cube_pub;
+    ros::Publisher line_poses_pub;
     sensor_msgs::PointCloud2ConstPtr cloudMsg;
 };
 
