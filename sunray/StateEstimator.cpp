@@ -274,7 +274,6 @@ void computeRobotState(){
     }
   #endif
 
-  // ------- LiDAR (reflector-tag) -----                
   // map dockpoints setup:                                  |===============================
   //               GPS waypoint         GPS waypoint    outside tag     
   //                 x----------------------x---------------x-----------------------------O (last dockpoint)
@@ -284,7 +283,7 @@ void computeRobotState(){
   // localization:              GPS                     LiDAR          
   
   #ifdef DOCK_REFLECTOR_TAG  // use reflector-tag for docking/undocking?
-    if (maps.isBetweenLastAndNextToLastDockPoint() ){
+    if (maps.isBetweenLastThreeDockPoints() ){
       stateLocalizationMode = LOC_REFLECTOR_TAG;
       useGPSposition = false;
       useGPSdelta = false;
@@ -302,7 +301,11 @@ void computeRobotState(){
         float dockX;
         float dockY;
         float dockDelta;
-        if (maps.getDockingPos(dockX, dockY, dockDelta)){
+        int dockIdxFromEnd=0;
+        if ( (robotX < 0) || ((maps.wayMode == WAY_DOCK) && (maps.dockPointsIdx == maps.dockPoints.numPoints-2)) ) {
+          dockIdxFromEnd = 1;
+        } 
+        if (maps.getDockingPos(dockX, dockY, dockDelta, dockIdxFromEnd)){
           // transform robot-in-reflector-tag-frame into world frame
           float worldX = dockX + robotX * cos(dockDelta+3.1415) - robotY * sin(dockDelta+3.1415);
           float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            

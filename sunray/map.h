@@ -199,7 +199,7 @@ class Map
     // next point is straight and not a sharp curve?   
     bool nextPointIsStraight();
     // get docking position and orientation
-    bool getDockingPos(float &x, float &y, float &delta);
+    bool getDockingPos(float &x, float &y, float &delta, int idxFromEnd = 0);
     
     // ------docking------------------------------------------
     // if docked manually, call this to inform mapping that robot has been docked
@@ -209,6 +209,7 @@ class Map
     // is robot on docking points and docking?
     bool isDocking();
     bool isBetweenLastAndNextToLastDockPoint();
+    bool isBetweenLastThreeDockPoints();
     bool isTargetingLastDockPoint();
     bool isTargetingNextToLastDockPoint();    
     // call this to inform mapping to start docking
