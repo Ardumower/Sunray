@@ -543,6 +543,8 @@ public:
                             int max_lines = 3) {
 
         if (DEBUG) ROS_WARN("cluster %d", (int)cloud->points.size());                    
+        if (cloud->points.size() < 10) return false;                    
+
         // Region Growing Setup
         std::vector<pcl::PointIndices> clusters;
 
@@ -870,7 +872,8 @@ public:
                 }
             }
         }
-                
+
+        if (high_gradient_points->points.size() < 10) return;                                    
 
         // Schritt 1: Clustering der Punktwolke mit Euclidean Cluster Extraction
         pcl::search::KdTree<pcl::PointXYZI>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZI>);
