@@ -281,12 +281,12 @@ Visualization Manager:
       Update Interval: 0
       Value: true
     - Class: rviz/Axes
-      Enabled: true
+      Enabled: false
       Length: 0.30000001192092896
       Name: Axes
       Radius: 0.019999999552965164
       Reference Frame: livox_frame
-      Value: true
+      Value: false
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /reflector/cube
@@ -315,7 +315,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: livox_frame
+    Fixed Frame: dock
     Frame Rate: 5
   Name: root
   Tools:
