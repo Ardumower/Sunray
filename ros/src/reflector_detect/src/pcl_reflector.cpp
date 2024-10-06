@@ -968,14 +968,14 @@ public:
         }
 
         if (markerFound){
-            if (abs(best_marker_distance-markerDistanceLpf) < 0.3){                
+            if (abs(best_marker_distance-markerDistanceLpf) < 0.2){                
                 visualizeLinePoses(line_poses_pub, best_coefficients_perm);
                 publishReflectorPose(pose_pub, //cloud_cluster,  
                     best_coefficients_perm[0], 
                     best_coefficients_perm[1], 
                     best_coefficients_perm[2]);
             } 
-            markerDistanceLpf = 0.95 * markerDistanceLpf + 0.05 * best_marker_distance;
+            markerDistanceLpf = 0.9 * markerDistanceLpf + 0.1 * best_marker_distance;
         }
 
         sensor_msgs::PointCloud2 line_msg;
