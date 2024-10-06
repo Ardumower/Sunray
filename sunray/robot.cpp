@@ -842,11 +842,13 @@ bool detectObstacle(){
     float delta = sqrt( sq(dX) + sq(dY) );    
     if (delta < 0.05){
       if (GPS_MOTION_DETECTION){
-        CONSOLE.println("gps no motion => obstacle!");
-        Logger.event(EVT_NO_ROBOT_MOTION_OBSTACLE);    
-        statMowGPSMotionTimeoutCounter++;
-        triggerObstacle();
-        return true;
+        if (stateLocalizationMode == LOC_GPS) {
+          CONSOLE.println("gps no motion => obstacle!");
+          Logger.event(EVT_NO_ROBOT_MOTION_OBSTACLE);    
+          statMowGPSMotionTimeoutCounter++;
+          triggerObstacle();
+          return true;
+        }
       }
     }
     lastGPSMotionX = stateX;      

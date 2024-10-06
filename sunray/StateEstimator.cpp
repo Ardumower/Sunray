@@ -415,7 +415,18 @@ void computeRobotState(){
       }
     }
   } 
-  
+
+  /*
+  // for testing lidar marker-based docking without GPS  
+  if (useGPSposition){
+    stateX = 0;
+    stateY = 0;
+    stateDelta = 0;
+    stateLocalizationMode = LOC_REFLECTOR_TAG;
+  }
+  */
+
+
   // odometry
   stateX += distOdometry/100.0 * cos(stateDelta);
   stateY += distOdometry/100.0 * sin(stateDelta);        
