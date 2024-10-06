@@ -900,12 +900,12 @@ bool Map::nextPointIsStraight(){
 
 
 // get docking position and orientation (x,y,delta)
-bool Map::getDockingPos(float &x, float &y, float &delta){
-  if (dockPoints.numPoints < 2) return false;
+bool Map::getDockingPos(float &x, float &y, float &delta, int idxFromEnd){
+  if (dockPoints.numPoints < 2+idxFromEnd) return false;
   Point dockFinalPt;
   Point dockPrevPt;
-  dockFinalPt.assign(dockPoints.points[ dockPoints.numPoints-1]);  
-  dockPrevPt.assign(dockPoints.points[ dockPoints.numPoints-2]);
+  dockFinalPt.assign(dockPoints.points[ dockPoints.numPoints-(1+idxFromEnd)]);  
+  dockPrevPt.assign(dockPoints.points[ dockPoints.numPoints-(2+idxFromEnd)]);
   x = dockFinalPt.x();
   y = dockFinalPt.y();
   delta = pointsAngle(dockPrevPt.x(), dockPrevPt.y(), dockFinalPt.x(), dockFinalPt.y());  
@@ -957,14 +957,21 @@ bool Map::isBetweenLastAndNextToLastDockPoint(){
   );
 }
 
+bool Map::isBetweenLastThreeDockPoints(){
+  return (
+     ((maps.wayMode == WAY_DOCK) && (maps.dockPointsIdx >= maps.dockPoints.numPoints-2)) || 
+     ((maps.wayMode == WAY_MOW)  && (maps.dockPointsIdx >= maps.dockPoints.numPoints-3))  
+  );
+}
+
 bool Map::isTargetingLastDockPoint(){
   // is on the way to the last docking point
-  return ((maps.wayMode == WAY_DOCK) && (maps.dockPoints.numPoints >= 2) && (maps.dockPointsIdx == maps.dockPoints.numPoints-1));
+  return (maps.dockPointsIdx == maps.dockPoints.numPoints-1);
 }
 
 bool Map::isTargetingNextToLastDockPoint(){
   // is on the way to the next-to-last docking point
-  return ((maps.wayMode == WAY_DOCK) && (maps.dockPoints.numPoints >= 2) && (maps.dockPointsIdx == maps.dockPoints.numPoints-2));
+  return (maps.dockPointsIdx == maps.dockPoints.numPoints-2);
 }
 
 bool Map::retryDocking(float stateX, float stateY){

@@ -1,7 +1,7 @@
 
 <launch>
 
-  <arg name="use_bag_file" default="false" />
+  <arg name="use_bag_file" default="true" />
 	<arg name="bag_file" default="/root/PCD/tisch3.bag" />
 
   <arg name="do_processing" default="true"/>
