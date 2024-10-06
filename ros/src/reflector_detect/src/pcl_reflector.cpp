@@ -468,6 +468,7 @@ public:
         //lidarAccumulator = new LidarAccumulator(nh, "/livox/lidar_aligned", "livox_frame");
         cube_pub = nh.advertise<visualization_msgs::Marker>("/reflector/cube", 1);
         line_poses_pub = nh.advertise<visualization_msgs::MarkerArray>("/reflector/line_poses", 1);
+        markerDistanceLpf = 0;
     }
 
     void publishCubeMarker(const Eigen::Vector3f& position, float x_length, float y_width, float z_height, float angle_deg, const std::string& frame_id) {
@@ -765,7 +766,7 @@ public:
 
     // Funktion zur Publikation des Reflektorkoordinatensystems als Pose-Nachricht
     void publishReflectorPose(ros::Publisher& pub,
-        const pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud, 
+        //const pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud, 
         const pcl::ModelCoefficients::Ptr& line1, const pcl::ModelCoefficients::Ptr& line2, const pcl::ModelCoefficients::Ptr& line3) {
         geometry_msgs::PoseStamped pose;
 
@@ -862,7 +863,7 @@ public:
         // Filter based on intensity
         pcl::PointCloud<pcl::PointXYZI>::Ptr high_gradient_points(new pcl::PointCloud<pcl::PointXYZI>());
         for (const auto& point : accumulated_cloud->points) {
-            if (point.x < 0.0) {  // must be at backside of lidar  
+            //if (point.x < 0.0) {  // must be at backside of lidar  
                 if (abs(point.y -0) < 0.7) {  // must be in lidar FOV 
                     //if (point.z < 1.0) { 
                         if (point.intensity > 50) {  // Set your intensity threshold here
@@ -870,7 +871,7 @@ public:
                         }
                     //}
                 }
-            }
+            //}
         }
 
         if (high_gradient_points->points.size() < 10) return;                                    
@@ -895,6 +896,9 @@ public:
         // Schritt 2: Verarbeitung jedes Clusters zur Liniendetektion
         int clusterCounter = 0;
         bool markerFound = false;
+        std::vector<pcl::ModelCoefficients::Ptr> best_coefficients_perm;
+        float best_marker_distance = 9999;                        
+        
         for (const auto& cluster_idx : cluster_indices) {
             pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_cluster(new pcl::PointCloud<pcl::PointXYZI>);
             pcl::copyPointCloud(*high_gradient_points, cluster_idx.indices, *cloud_cluster);
@@ -934,7 +938,7 @@ public:
                     std::vector<int> perm = {0, 1, 2};
                     // Teste alle Permutationen der drei Linien
                     do {
-                        if (markerFound) break;
+                        //if (markerFound) break;
                         // Rufe isReflectorCoordinateSystem mit der aktuellen Permutation der Linien auf
                         std::vector<pcl::ModelCoefficients::Ptr> line_coefficients_perm;
                         std::vector<double> line_lengths_perm;
@@ -945,15 +949,17 @@ public:
                         line_lengths_perm.push_back(line_lengths[perm[1]]);
                         line_lengths_perm.push_back(line_lengths[perm[2]]);
 
-                        if (isReflectorCoordinateSystem(line_coefficients_perm, line_lengths_perm)) {                            
+                        if (isReflectorCoordinateSystem(line_coefficients_perm, line_lengths_perm)) {                                                        
                             //approximateLinesToPlane(line_coefficients_perm);
-                            visualizeLinePoses(line_poses_pub, line_coefficients_perm);
-                            publishReflectorPose(pose_pub, cloud_cluster,  
-                                line_coefficients_perm[0], 
-                                line_coefficients_perm[1], 
-                                line_coefficients_perm[2]);
+                            float dist = std::sqrt(std::pow(line_coefficients_perm[2]->values[0] - 0, 2) +
+                                std::pow(line_coefficients_perm[2]->values[1] - 0, 2) +
+                                std::pow(line_coefficients_perm[2]->values[2] - 0, 2));
+                            if (dist < best_marker_distance){
+                                best_marker_distance = dist;
+                                best_coefficients_perm = line_coefficients_perm;
+                            }                            
                             markerFound = true;
-                            break;  // Beende die Funktion, da die Pose bereits veröffentlicht wurde
+                            //break;  // Beende die Funktion, da die Pose bereits veröffentlicht wurde
                         }
                     } while (std::next_permutation(perm.begin(), perm.end()));  // Erzeuge die nächste Permutation
                 }
@@ -961,6 +967,16 @@ public:
             clusterCounter++;
         }
 
+        if (markerFound){
+            if (abs(best_marker_distance-markerDistanceLpf) < 0.3){                
+                visualizeLinePoses(line_poses_pub, best_coefficients_perm);
+                publishReflectorPose(pose_pub, //cloud_cluster,  
+                    best_coefficients_perm[0], 
+                    best_coefficients_perm[1], 
+                    best_coefficients_perm[2]);
+            } 
+            markerDistanceLpf = 0.95 * markerDistanceLpf + 0.05 * best_marker_distance;
+        }
 
         sensor_msgs::PointCloud2 line_msg;
         pcl::toROSMsg(*line_points, line_msg);
@@ -1012,6 +1028,7 @@ private:
     ros::Publisher cube_pub;
     ros::Publisher line_poses_pub;
     sensor_msgs::PointCloud2ConstPtr cloudMsg;
+    float markerDistanceLpf;  // low-pass filter
 };
 
 
