@@ -541,7 +541,7 @@ public:
     bool detectLinesInCluster(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud,
                             std::vector<pcl::ModelCoefficients::Ptr>& line_coefficients,
                             std::vector<pcl::PointIndices>& line_inliers,
-                            int max_lines = 3) {
+                            int max_lines = 4) {
 
         if (DEBUG) ROS_WARN("cluster %d", (int)cloud->points.size());                    
         if (cloud->points.size() < 10) return false;                    
@@ -552,7 +552,7 @@ public:
         regionGrowing(cloud, 0.055, clusters, line_inliers);
         if (DEBUG) ROS_WARN("region clusters %d", (int)clusters.size());
 
-        if (clusters.size() != 3) return false;
+        if ( (clusters.size() != 3) && (clusters.size() != 4) ) return false;
 
         // Iterate over each region/cluster and apply RANSAC line fitting
         for (const auto& cluster : clusters) {
@@ -604,7 +604,7 @@ public:
     bool isReflectorCoordinateSystem(const std::vector<pcl::ModelCoefficients::Ptr>& line_coefficients, 
                                     const std::vector<double>& line_lengths) {        
         if (DEBUG) ROS_INFO("lines %d", (int)line_lengths.size());
-        if (line_lengths.size() != 3) {
+        if ( (line_lengths.size() != 3) && (line_lengths.size() != 4) ) {
             if (DEBUG) ROS_WARN("invalid line count: %d", (int)line_lengths.size());
             return false;
         }
@@ -612,6 +612,9 @@ public:
         Eigen::Vector3f pt1(line_coefficients[0]->values[0], line_coefficients[0]->values[1], line_coefficients[0]->values[2]);
         Eigen::Vector3f pt2(line_coefficients[1]->values[0], line_coefficients[1]->values[1], line_coefficients[1]->values[2]);
         Eigen::Vector3f pt3(line_coefficients[2]->values[0], line_coefficients[2]->values[1], line_coefficients[2]->values[2]);
+        Eigen::Vector3f pt4;
+        if (line_coefficients.size() == 4) 
+            pt4 = Eigen::Vector3f(line_coefficients[3]->values[0], line_coefficients[3]->values[1], line_coefficients[3]->values[2]);
 
         /*if ( (abs(pt1.y() - 0) > 0.8) ||  (abs(pt2.y() - 0) > 0.8) || (abs(pt3.y() - 0) > 0.8) ){
             if (DEBUG) ROS_WARN("line points not in lidar fov");
@@ -622,11 +625,24 @@ public:
             if (DEBUG) ROS_WARN("line2 not in between lines 1,3");
             return false;
         }
+        if (line_coefficients.size() == 4){
+            if ( !isBetween(pt2, pt3, pt4, 0.1) ) {
+                if (DEBUG) ROS_WARN("line3 not in between lines 2,4");
+                return false;
+            }            
+        } 
+        
     
         // line1,2,3 should be left-to-right
         if ( ! ( (pt2.y() > pt1.y()) && (pt3.y() > pt2.y()) )  ) {
             if (DEBUG) ROS_WARN("line1,2,3 not left-to-right");
             return false;  
+        }
+        if (line_coefficients.size() == 4){
+            if ( ! ( (pt3.y() > pt2.y()) && (pt4.y() > pt3.y()) )  ) {
+                if (DEBUG) ROS_WARN("line2,3,4 not left-to-right");
+                return false;  
+            }
         }
     
         // Längenprüfung: zwei horizontale Linien (ca. 45 cm) und eine vertikale Linie (ca. 16 cm)
@@ -638,6 +654,13 @@ public:
         if (!(isLine1Valid && isLine2Valid && isLine3Valid)) {
             if (DEBUG) ROS_WARN("invalid lens: %.2f, %.2f, %.2f", line_lengths[0], line_lengths[1], line_lengths[2]);
             return false;
+        }
+        if (line_coefficients.size() == 4){
+            bool isLine4Valid = (line_lengths[3] > 0.03) && (line_lengths[3] < 0.8);
+            if (!(isLine4Valid)) {
+                if (DEBUG) ROS_WARN("invalid lens4: %.2f", line_lengths[3]);
+                return false;
+            }        
         }
         //if (DEBUG) ROS_WARN("lines ok");
         
@@ -652,14 +675,22 @@ public:
         bool areParallel1 = std::abs(dot_product_12 - 1.0) < 0.1;
 
         // Linie 2 und 3 müssen parallel sein
-        float dot_product_13 = dir2.dot(dir3);
-        bool areParallel2 = std::abs(dot_product_13 - 1.0) < 0.1;
+        float dot_product_23 = dir2.dot(dir3);
+        bool areParallel2 = std::abs(dot_product_23 - 1.0) < 0.1;
 
+        bool areParallel3 = true;
+        float dot_product_34 = 0;
+        if (line_coefficients.size() == 4){
+            Eigen::Vector3f dir4(line_coefficients[3]->values[3], line_coefficients[3]->values[4], line_coefficients[3]->values[5]);
+            float dot_product_34 = dir3.dot(dir4);
+            areParallel3 = std::abs(dot_product_34 - 1.0) < 0.1;
+        
+        }
         //areParallel = true;
         //isPerpendicular = true;
 
-        if (! (areParallel1 && areParallel2)){
-            if (DEBUG) ROS_WARN("not parallel %.2f, %.2f", std::abs(dot_product_12 - 1.0), std::abs(dot_product_13 - 1.0));
+        if (! (areParallel1 && areParallel2 && areParallel3)){
+            if (DEBUG) ROS_WARN("not parallel %.2f, %.2f, %.2f", std::abs(dot_product_12 - 1.0), std::abs(dot_product_23 - 1.0), std::abs(dot_product_34 - 1.0));
             return false;
         }
 
@@ -935,19 +966,19 @@ public:
                     }
 
                     // Schritt 5: Prüfung, ob die Linien das gewünschte Koordinatensystem bilden
-                    std::vector<int> perm = {0, 1, 2};
+                    std::vector<int> perm;
+                    if (line_coefficients.size() == 4) perm = {0, 1, 2, 3};
+                    if (line_coefficients.size() == 3) perm = {0, 1, 2};                
                     // Teste alle Permutationen der drei Linien
                     do {
                         //if (markerFound) break;
                         // Rufe isReflectorCoordinateSystem mit der aktuellen Permutation der Linien auf
                         std::vector<pcl::ModelCoefficients::Ptr> line_coefficients_perm;
                         std::vector<double> line_lengths_perm;
-                        line_coefficients_perm.push_back(line_coefficients[perm[0]]);
-                        line_coefficients_perm.push_back(line_coefficients[perm[1]]);
-                        line_coefficients_perm.push_back(line_coefficients[perm[2]]);
-                        line_lengths_perm.push_back(line_lengths[perm[0]]);
-                        line_lengths_perm.push_back(line_lengths[perm[1]]);
-                        line_lengths_perm.push_back(line_lengths[perm[2]]);
+                        for (int permIdx =0; permIdx < line_coefficients.size(); permIdx++){
+                            line_coefficients_perm.push_back(line_coefficients[perm[permIdx]]);
+                            line_lengths_perm.push_back(line_lengths[perm[permIdx]]);                    
+                        }
 
                         if (isReflectorCoordinateSystem(line_coefficients_perm, line_lengths_perm)) {                                                        
                             //approximateLinesToPlane(line_coefficients_perm);
@@ -974,6 +1005,7 @@ public:
                     best_coefficients_perm[0], 
                     best_coefficients_perm[1], 
                     best_coefficients_perm[2]);
+                if (DEBUG) ROS_WARN("line count: %d", (int)best_coefficients_perm.size());
             } 
             markerDistanceLpf = 0.9 * markerDistanceLpf + 0.1 * best_marker_distance;
         }
