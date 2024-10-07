@@ -900,12 +900,14 @@ bool Map::nextPointIsStraight(){
 
 
 // get docking position and orientation (x,y,delta)
-bool Map::getDockingPos(float &x, float &y, float &delta, int idxFromEnd){
-  if (dockPoints.numPoints < 2+idxFromEnd) return false;
+bool Map::getDockingPos(float &x, float &y, float &delta, int idx){
+  if (idx == -1) idx = dockPoints.numPoints-1; 
+  if ((idx < 0) || (idx >= dockPoints.numPoints) || (dockPoints.numPoints < 2)) return false;
   Point dockFinalPt;
   Point dockPrevPt;
-  dockFinalPt.assign(dockPoints.points[ dockPoints.numPoints-(1+idxFromEnd)]);  
-  dockPrevPt.assign(dockPoints.points[ dockPoints.numPoints-(2+idxFromEnd)]);
+  dockFinalPt.assign(dockPoints.points[ idx]);  
+  if (idx > 0) dockPrevPt.assign(dockPoints.points[ idx-1]);
+    else dockPrevPt.assign(dockPoints.points[ 1 ]);
   x = dockFinalPt.x();
   y = dockFinalPt.y();
   delta = pointsAngle(dockPrevPt.x(), dockPrevPt.y(), dockFinalPt.x(), dockFinalPt.y());  
@@ -952,21 +954,28 @@ bool Map::isDocking(){
 bool Map::isBetweenLastAndNextToLastDockPoint(){
   //return true;
   return (
-     ((maps.wayMode == WAY_DOCK) && (isTargetingLastDockPoint())) || 
-     ((maps.wayMode == WAY_MOW)  && (isTargetingNextToLastDockPoint())) 
+      ((maps.wayMode == WAY_FREE) && (isTargetingLastFreePoint()))  || 
+      ((maps.wayMode == WAY_DOCK) && (isTargetingLastDockPoint()))  || 
+      ((maps.wayMode == WAY_DOCK)  && (isTargetingNextToLastDockPoint()))  
   );
 }
 
 bool Map::isBetweenLastThreeDockPoints(){
   return (
+     ((maps.wayMode == WAY_FREE) && (isTargetingLastFreePoint()))  || 
      ((maps.wayMode == WAY_DOCK) && (maps.dockPointsIdx >= maps.dockPoints.numPoints-2)) || 
-     ((maps.wayMode == WAY_MOW)  && (maps.dockPointsIdx >= maps.dockPoints.numPoints-3))  
+     ((maps.wayMode == WAY_DOCK)  && (maps.dockPointsIdx >= maps.dockPoints.numPoints-3))  
   );
 }
 
 bool Map::isTargetingLastDockPoint(){
   // is on the way to the last docking point
   return (maps.dockPointsIdx == maps.dockPoints.numPoints-1);
+}
+
+bool Map::isTargetingLastFreePoint(){
+  // is on the way to the last docking point
+  return (maps.freePointsIdx == maps.freePoints.numPoints-1);
 }
 
 bool Map::isTargetingNextToLastDockPoint(){
@@ -1322,6 +1331,13 @@ bool Map::nextMowPoint(bool sim){
 
 // get next docking point  
 bool Map::nextDockPoint(bool sim){    
+  /*CONSOLE.print("nextDockPoint: shouldDock=");
+  CONSOLE.print(shouldDock);
+  CONSOLE.print("  dockPointsIdx=");
+  CONSOLE.print(dockPointsIdx);
+  CONSOLE.print("  dockPoints.numPoints=");
+  CONSOLE.print(dockPoints.numPoints);
+  CONSOLE.println();*/
   if (shouldDock){
     // should dock  
     if (dockPointsIdx+1 < dockPoints.numPoints){
@@ -1399,7 +1415,8 @@ bool Map::nextFreePoint(bool sim){
       // start docking
       if (!sim) lastTargetPoint.assign(targetPoint);
       if (!sim) dockPointsIdx = 0;      
-      if (!sim) wayMode = WAY_DOCK;      
+      if (!sim) wayMode = WAY_DOCK;
+      if (!sim) trackReverse = (!DOCK_FRONT_SIDE) && (dockPointsIdx >= dockPoints.numPoints-3) ; // dock reverse only near dock    
       return true;
     } else return false;
   }  

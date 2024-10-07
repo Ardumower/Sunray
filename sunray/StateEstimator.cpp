@@ -276,20 +276,21 @@ void computeRobotState(){
 
   // map dockpoints setup:                                  |===============================
   //               GPS waypoint         GPS waypoint    outside tag     
-  //                 x----------------------x---------------x-----------------------------O (last dockpoint)
+  //                 x----------------------x---------------------------------------------O (last dockpoint)
   //                                      outside                inside tag visible      inside tag
   //                                      tag visible       |===============================          
   //                                                           
   // localization:              GPS                     LiDAR          
   
   #ifdef DOCK_REFLECTOR_TAG  // use reflector-tag for docking/undocking?
-    if (maps.isBetweenLastThreeDockPoints() ){
+    if (maps.isBetweenLastAndNextToLastDockPoint() ){
       stateLocalizationMode = LOC_REFLECTOR_TAG;
       useGPSposition = false;
       useGPSdelta = false;
       useImuAbsoluteYaw = false;
       if (stateReflectorTagFound){  
-        float robotX = stateXReflectorTag; // robot-in-reflector-tag-frame (x towards outside tag, y left, z up)
+        // don't use stateXReflectorTag as we don't know which tag was detected   
+        float robotX = 0.5;  // robot-in-reflector-tag-frame (x towards outside tag, y left, z up)      
         float robotY = stateYReflectorTag;
         float robotDelta = scalePI(stateDeltaReflectorTag);    
         /*CONSOLE.print("REFLECTOR TAG found: ");      
@@ -301,11 +302,8 @@ void computeRobotState(){
         float dockX;
         float dockY;
         float dockDelta;
-        int dockIdxFromEnd=0;
-        if ( (robotX < 0) || ((maps.wayMode == WAY_DOCK) && (maps.dockPointsIdx == maps.dockPoints.numPoints-2)) ) {
-          dockIdxFromEnd = 1;
-        } 
-        if (maps.getDockingPos(dockX, dockY, dockDelta, dockIdxFromEnd)){
+        int dockPointsIdx = maps.dockPointsIdx;
+        if (maps.getDockingPos(dockX, dockY, dockDelta, dockPointsIdx)){
           // transform robot-in-reflector-tag-frame into world frame
           float worldX = dockX + robotX * cos(dockDelta+3.1415) - robotY * sin(dockDelta+3.1415);
           float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            
@@ -416,7 +414,7 @@ void computeRobotState(){
     }
   } 
 
-  /*
+  
   // for testing lidar marker-based docking without GPS  
   if (useGPSposition){
     stateX = 0;
@@ -424,8 +422,7 @@ void computeRobotState(){
     stateDelta = 0;
     stateLocalizationMode = LOC_REFLECTOR_TAG;
   }
-  */
-
+  
 
   // odometry
   stateX += distOdometry/100.0 * cos(stateDelta);

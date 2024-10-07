@@ -144,7 +144,7 @@ void MowOp::onTimetableStartMowing(){
 }
 
 void MowOp::onObstacle(){
-    if ((!DOCK_DETECT_OBSTACLE_IN_DOCK) && (maps.isBetweenLastThreeDockPoints())) {
+    if ((!DOCK_DETECT_OBSTACLE_IN_DOCK) && (maps.isBetweenLastAndNextToLastDockPoint())) {
       //CONSOLE.println("triggerObstacle: ignoring, because in dock");      
       return;
     }

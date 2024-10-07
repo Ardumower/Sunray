@@ -418,8 +418,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define STANLEY_CONTROL_P_NORMAL  2.0   // 3.0 for path tracking control (angular gain) when mowing
 #define STANLEY_CONTROL_K_NORMAL  0.3   // 1.0 for path tracking control (lateral gain) when mowing
 
-#define STANLEY_CONTROL_P_SLOW    1.1   // 1.0 for path tracking control (angular gain) when docking tracking
-#define STANLEY_CONTROL_K_SLOW    0.1   // 0.2 for path tracking control (lateral gain) when docking tracking
+#define STANLEY_CONTROL_P_SLOW    1.1   // 1.1 for path tracking control (angular gain) when docking tracking
+#define STANLEY_CONTROL_K_SLOW    0.1   // 0.1 for path tracking control (lateral gain) when docking tracking
 
 
 // ----- other options --------------------------------------------

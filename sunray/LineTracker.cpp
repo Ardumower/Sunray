@@ -305,6 +305,7 @@ void trackLine(bool runControl){
         langleToTargetFits = angleToTargetFits;
     }
 
+
     /*    
     CONSOLE.print("trackReverse=");
     CONSOLE.print(maps.trackReverse);
@@ -317,8 +318,8 @@ void trackLine(bool runControl){
     if (stateLocalizationMode == LOC_GPS) CONSOLE.print("gps");
     if (stateLocalizationMode == LOC_GUIDANCE_SHEET) CONSOLE.print("guide");    
     if (stateLocalizationMode == LOC_REFLECTOR_TAG) CONSOLE.print("reflector");        
-    CONSOLE.print(" isBetweenLastThreeDockPoints=");
-    CONSOLE.print(maps.isBetweenLastThreeDockPoints());
+    CONSOLE.print(" isBetweenLastAndNextToLastDockPoint=");
+    CONSOLE.print(maps.isBetweenLastAndNextToLastDockPoint());
     CONSOLE.print(" maps.dockPointsIdx=");
     CONSOLE.print(maps.dockPointsIdx);
     CONSOLE.print(" maps.freePointsIdx=");
