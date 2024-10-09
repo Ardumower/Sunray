@@ -55,7 +55,7 @@ vertical line1  (0.27m apart from vertical line3 - forms with line3 a plane thus
 
 
 
-#define DEBUG false
+#define DEBUG true
 
 
 struct Line {
@@ -552,7 +552,8 @@ public:
         regionGrowing(cloud, 0.055, clusters, line_inliers);
         if (DEBUG) ROS_WARN("region clusters %d", (int)clusters.size());
 
-        if ( (clusters.size() != 3) && (clusters.size() != 4) ) return false;
+        //if ( (clusters.size() != 3) && (clusters.size() != 4) ) return false;
+        if (clusters.size() != 3) return false;
 
         // Iterate over each region/cluster and apply RANSAC line fitting
         for (const auto& cluster : clusters) {
@@ -604,7 +605,8 @@ public:
     bool isReflectorCoordinateSystem(const std::vector<pcl::ModelCoefficients::Ptr>& line_coefficients, 
                                     const std::vector<double>& line_lengths) {        
         if (DEBUG) ROS_INFO("lines %d", (int)line_lengths.size());
-        if ( (line_lengths.size() != 3) && (line_lengths.size() != 4) ) {
+        if (line_lengths.size() != 3) {        
+        //if ( (line_lengths.size() != 3) && (line_lengths.size() != 4) ) {
             if (DEBUG) ROS_WARN("invalid line count: %d", (int)line_lengths.size());
             return false;
         }
@@ -621,7 +623,7 @@ public:
             return false;
         } */
 
-        if ( !isBetween(pt1, pt2, pt3, 0.1) ) {
+        if ( !isBetween(pt1, pt2, pt3, 0.5) ) {
             if (DEBUG) ROS_WARN("line2 not in between lines 1,3");
             return false;
         }
@@ -698,7 +700,7 @@ public:
         Eigen::Vector3f direction(line_coefficients[0]->values[3], line_coefficients[0]->values[4], line_coefficients[0]->values[5]);
         float distance = calculateMinimalDistanceBetweenParallelLines(pt1, pt3, direction);
 
-        if ((distance < 0.1) || (distance > 0.35)){
+        if ((distance < 0.03) || (distance > 0.35)){
             if (DEBUG) ROS_WARN("invalid dist: %.2f", distance);
             return false;            
         }
@@ -896,11 +898,11 @@ public:
         for (const auto& point : accumulated_cloud->points) {
             if (point.x < 0.0) {  // must be at backside of lidar  
                 if (abs(point.y -0) < 1.0) {  // must be in lidar FOV 
-                    //if (point.z < 1.0) { 
+                    if (abs(point.z) < 1.0) { 
                         if (point.intensity > 50) {  // Set your intensity threshold here
                             high_gradient_points->points.push_back(point);
                         }
-                    //}
+                    }
                 }
             }
         }
