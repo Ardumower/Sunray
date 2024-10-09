@@ -47,6 +47,9 @@ fi
 # mplayer -ao help
 
 
+function nop() {  
+}
+
 function run_as_user() {
   CMD=$1
   #CMD+=" >/dev/null 2>&1"
@@ -92,6 +95,7 @@ echo "USER: $USER"
 #done
 
 
+
 # Überwache den dbus auf Nachrichten
 sudo dbus-monitor --system "interface='de.sunray.Bus'" | while read -r line; do
   # Wenn eine bestimmte Methode aufgerufen wird (z.B. Play)
@@ -117,7 +121,8 @@ sudo dbus-monitor --system "interface='de.sunray.Bus'" | while read -r line; do
       run_as_user "mplayer -nolirc -noconsolecontrols -really-quiet -volume 100 $filepath" false
       #echo "OK"
     else
-      echo "File $filepath does not exist."
+      #echo "File $filepath does not exist."
+      nop
     fi
   fi
 done

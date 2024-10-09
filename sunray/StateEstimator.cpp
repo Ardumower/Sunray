@@ -283,14 +283,14 @@ void computeRobotState(){
   // localization:              GPS                     LiDAR          
   
   #ifdef DOCK_REFLECTOR_TAG  // use reflector-tag for docking/undocking?
-    if (maps.isBetweenLastAndNextToLastDockPoint() ){
+    if (maps.isTargetingLastDockPoint() ){
       stateLocalizationMode = LOC_REFLECTOR_TAG;
       useGPSposition = false;
       useGPSdelta = false;
       useImuAbsoluteYaw = false;
       if (stateReflectorTagFound){  
         // don't use stateXReflectorTag as we don't know which tag was detected   
-        float robotX = 0.5;  // robot-in-reflector-tag-frame (x towards outside tag, y left, z up)      
+        float robotX = stateXReflectorTag;  // robot-in-reflector-tag-frame (x towards outside tag, y left, z up)      
         float robotY = stateYReflectorTag;
         float robotDelta = scalePI(stateDeltaReflectorTag);    
         /*CONSOLE.print("REFLECTOR TAG found: ");      
@@ -302,9 +302,14 @@ void computeRobotState(){
         float dockX;
         float dockY;
         float dockDelta;
-        int dockPointsIdx = maps.dockPointsIdx;
+        int dockPointsIdx = maps.dockPoints.numPoints-1; //maps.dockPointsIdx;
         if (maps.getDockingPos(dockX, dockY, dockDelta, dockPointsIdx)){
           // transform robot-in-reflector-tag-frame into world frame
+          if (robotX < 0) {
+            // flip robot at marker
+            robotX *= -1;
+            //robotY *= -1;
+          }
           float worldX = dockX + robotX * cos(dockDelta+3.1415) - robotY * sin(dockDelta+3.1415);
           float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            
           stateX = worldX;
@@ -416,12 +421,14 @@ void computeRobotState(){
 
   
   // for testing lidar marker-based docking without GPS  
-  if (useGPSposition){
-    stateX = 0;
-    stateY = 0;
-    stateDelta = 0;
-    stateLocalizationMode = LOC_REFLECTOR_TAG;
-  }
+  #ifdef DOCK_REFLECTOR_TAG
+    if (useGPSposition){
+      stateX = 0;
+      stateY = 0;
+      stateDelta = 0;
+      stateLocalizationMode = LOC_REFLECTOR_TAG;
+    }
+  #endif
   
 
   // odometry

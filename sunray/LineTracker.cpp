@@ -238,8 +238,15 @@ void trackLine(bool runControl){
       angular = 0; 
     } else {
       if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
-      //linear = 0; // wait until reflector-tag found 
-      //angular = 0; 
+      float maxAngular = 0.02;
+      //angular =  max(min(1.0 * trackerDiffDelta, maxAngular), -maxAngular);
+      //angular =  max(min(angular, maxAngular), -maxAngular);      
+      if (maps.shouldDock){
+        linear = 0.05;
+      } else {
+        linear = -0.05;
+      }
+      if (maps.trackReverse) linear *= -1;   // reverse line tracking needs negative speed
     }
   }
   if (stateLocalizationMode == LOC_GUIDANCE_SHEET){
@@ -305,47 +312,48 @@ void trackLine(bool runControl){
         langleToTargetFits = angleToTargetFits;
     }
 
-
-    /*    
-    CONSOLE.print("trackReverse=");
-    CONSOLE.print(maps.trackReverse);
-    CONSOLE.print(" linear=");
-    CONSOLE.print(linear);
-    CONSOLE.print(" angular=");
-    CONSOLE.print(angular);    
-    CONSOLE.print(" loc=");
-    if (stateLocalizationMode == LOC_APRIL_TAG) CONSOLE.print("april");
-    if (stateLocalizationMode == LOC_GPS) CONSOLE.print("gps");
-    if (stateLocalizationMode == LOC_GUIDANCE_SHEET) CONSOLE.print("guide");    
-    if (stateLocalizationMode == LOC_REFLECTOR_TAG) CONSOLE.print("reflector");        
-    CONSOLE.print(" isBetweenLastAndNextToLastDockPoint=");
-    CONSOLE.print(maps.isBetweenLastAndNextToLastDockPoint());
-    CONSOLE.print(" maps.dockPointsIdx=");
-    CONSOLE.print(maps.dockPointsIdx);
-    CONSOLE.print(" maps.freePointsIdx=");
-    CONSOLE.print(maps.freePointsIdx);
-    CONSOLE.print(" maps.wayMode=");
-    if (maps.wayMode == WAY_DOCK) CONSOLE.print("WAY_DOCK");
-    if (maps.wayMode == WAY_MOW) CONSOLE.print("WAY_MOW");
-    if (maps.wayMode == WAY_FREE) CONSOLE.print("WAY_FREE");
-    CONSOLE.println();
-    */
+    #ifdef DOCK_REFLECTOR_TAG
+      CONSOLE.print("trackReverse=");
+      CONSOLE.print(maps.trackReverse);
+      CONSOLE.print(" linear=");
+      CONSOLE.print(linear);
+      CONSOLE.print(" angular=");
+      CONSOLE.print(angular);    
+      CONSOLE.print(" loc=");
+      if (stateLocalizationMode == LOC_APRIL_TAG) CONSOLE.print("april");
+      if (stateLocalizationMode == LOC_GPS) CONSOLE.print("gps");
+      if (stateLocalizationMode == LOC_GUIDANCE_SHEET) CONSOLE.print("guide");    
+      if (stateLocalizationMode == LOC_REFLECTOR_TAG) CONSOLE.print("reflector");        
+      CONSOLE.print(" isBetweenLastAndNextToLastDockPoint=");
+      CONSOLE.print(maps.isBetweenLastAndNextToLastDockPoint());
+      CONSOLE.print(" maps.dockPointsIdx=");
+      CONSOLE.print(maps.dockPointsIdx);
+      CONSOLE.print(" maps.freePointsIdx=");
+      CONSOLE.print(maps.freePointsIdx);
+      CONSOLE.print(" maps.wayMode=");
+      if (maps.wayMode == WAY_DOCK) CONSOLE.print("WAY_DOCK");
+      if (maps.wayMode == WAY_MOW) CONSOLE.print("WAY_MOW");
+      if (maps.wayMode == WAY_FREE) CONSOLE.print("WAY_FREE");
+      CONSOLE.println();
+    #endif
 
     motor.setLinearAngularSpeed(linear, angular);      
     motor.setMowState(mow);    
   }
 
-  if (targetReached){
-    rotateLeft = false;
-    rotateRight = false;
-    activeOp->onTargetReached();
-    bool straight = maps.nextPointIsStraight();
-    if (!maps.nextPoint(false,stateX,stateY)){
-      // finish        
-      activeOp->onNoFurtherWaypoints();      
-    } else {      
-      // next waypoint          
-      //if (!straight) angleToTargetFits = false;      
+  if (!maps.isTargetingLastDockPoint()){
+    if (targetReached){
+      rotateLeft = false;
+      rotateRight = false;
+      activeOp->onTargetReached();
+      bool straight = maps.nextPointIsStraight();
+      if (!maps.nextPoint(false,stateX,stateY)){
+        // finish        
+        activeOp->onNoFurtherWaypoints();      
+      } else {      
+        // next waypoint          
+        //if (!straight) angleToTargetFits = false;      
+      }
     }
   }  
 }

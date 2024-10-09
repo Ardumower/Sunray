@@ -64,7 +64,7 @@
 		<group if="$(arg start_reflector_detect)"> 	
 			<!-- ros2 run tf2_ros static_transform_publisher x y z yaw pitch roll parent_frame child_frame -->
 			<node pkg="tf" type="static_transform_publisher" name="lidar_to_robot_tf" 
-				args="0.6 0 0.2 0.03 0.3 -0.05 base_link livox_frame 100" />
+				args="0.25 0 0.2  0.0 0.3 0.0 base_link livox_frame 100" />
 			<node pkg="tf" type="static_transform_publisher" name="reflector_frame_to_dock_tf" 
 				args="0 0 0 0 -0.6 0 reflector_frame dock 100" />
 			<node pkg="reflector_detect" type="reflector_detect" name="reflector_detect" output="screen" />
