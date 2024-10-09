@@ -55,7 +55,7 @@ vertical line1  (0.27m apart from vertical line3 - forms with line3 a plane thus
 
 
 
-#define DEBUG true
+#define DEBUG false
 
 
 struct Line {
