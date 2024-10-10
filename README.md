@@ -18,6 +18,8 @@ Platform | Hardware required
 --- | ---
 Ardumower | Ardumower kit mowing and gear motors, PCB 1.3, Adafruit Grand Central M4 (or Arduino Due) and ArduSimple RTK kit
 Alfred | Alfred robot with Alfred RTK conversion kit (tiny Linux computer, IO-board, ArduSimple RTK kit, base antenna etc.)
+owlRobotPlatform | Do-It-Yourself robot mower with owlRobotPlatform hardware/PCB (More details: https://github.com/owlRobotics-GmbH/owlRobotPlatform)
+
 
 The robot mower uses RTK to localize itself (without a perimeter wire)
 
@@ -27,6 +29,7 @@ Platform | Compilation
 --- | ---
 Ardumower | The complete Sunray firmware and software drivers are compiled for a specific MCU (Due/M4)
 Alfred | Sunray firmware is compiled for Linux. Additionally, a tiny serial robot driver is compiled for the specific Alfred MCU (STM32). The Linux Sunray firmware will communicate with this serial robot driver to control motors, read sensors etc.
+owlRobotPlatform | Sunray firmware is compiled for Linux. The Linux Sunray firmware will communicate with the owlRobotPlatform hardware via CAN bus.
 Simulator | The complete Sunray firmware and simulated hardware is compiled for Linux.
 
 # Sunray for Ardumower <a name="sunray_ardumower"></a>
