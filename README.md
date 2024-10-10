@@ -18,7 +18,7 @@ Platform | Hardware required
 --- | ---
 Ardumower | Ardumower kit mowing and gear motors, PCB 1.3, Adafruit Grand Central M4 (or Arduino Due) and ArduSimple RTK kit
 Alfred | Alfred robot with Alfred RTK conversion kit (tiny Linux computer, IO-board, ArduSimple RTK kit, base antenna etc.)
-owlRobotPlatform | Do-It-Yourself robot mower with owlRobotPlatform hardware/PCB (More details: https://github.com/owlRobotics-GmbH/owlRobotPlatform)
+owlRobotPlatform | Universal Do-It-Yourself robot mower with owlRobotPlatform hardware/PCB (More details: https://github.com/owlRobotics-GmbH/owlRobotPlatform)
 
 
 The robot mower uses RTK to localize itself (without a perimeter wire)
