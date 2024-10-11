@@ -955,8 +955,7 @@ bool Map::isBetweenLastAndNextToLastDockPoint(){
   //return true;
   return (
       ((maps.wayMode == WAY_FREE) && (isTargetingLastFreePoint()))  || 
-      ((maps.wayMode == WAY_DOCK) && (isTargetingLastDockPoint()))  || 
-      ((maps.wayMode == WAY_DOCK)  && (isTargetingNextToLastDockPoint()))  
+      ((maps.wayMode == WAY_DOCK) && (isTargetingLastDockPoint()))   
   );
 }
 
