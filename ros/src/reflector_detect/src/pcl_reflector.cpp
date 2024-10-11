@@ -896,15 +896,15 @@ public:
         // Filter based on intensity
         pcl::PointCloud<pcl::PointXYZI>::Ptr high_gradient_points(new pcl::PointCloud<pcl::PointXYZI>());
         for (const auto& point : accumulated_cloud->points) {
-            if (point.x < 0.0) {  // must be at backside of lidar  
+            //if (point.x < 0.0) {  // must be at backside of lidar  
                 if (abs(point.y -0) < 1.0) {  // must be in lidar FOV 
-                    if (abs(point.z) < 1.0) { 
+                    //if (abs(point.z) < 1.0) { 
                         if (point.intensity > 50) {  // Set your intensity threshold here
                             high_gradient_points->points.push_back(point);
                         }
-                    }
+                    //}
                 }
-            }
+            //}
         }
 
         if (high_gradient_points->points.size() < 10) return;                                    

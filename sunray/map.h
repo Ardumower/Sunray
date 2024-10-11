@@ -209,9 +209,7 @@ class Map
     // is robot on docking points and docking?
     bool isDocking();
     bool isBetweenLastAndNextToLastDockPoint();
-    bool isBetweenLastThreeDockPoints();
     bool isTargetingLastDockPoint();
-    bool isTargetingLastFreePoint();
     bool isTargetingNextToLastDockPoint();    
     // call this to inform mapping to start docking
     bool startDocking(float stateX, float stateY);

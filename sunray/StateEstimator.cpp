@@ -302,8 +302,8 @@ void computeRobotState(){
         float dockX;
         float dockY;
         float dockDelta;
-        int dockPointsIdx = maps.dockPoints.numPoints-1; 
-        //int dockPointsIdx = maps.dockPointsIdx;
+        //int dockPointsIdx = maps.dockPoints.numPoints-1; 
+        int dockPointsIdx = maps.dockPointsIdx;
         if (maps.getDockingPos(dockX, dockY, dockDelta, dockPointsIdx)){
           // transform robot-in-reflector-tag-frame into world frame
           robotX = 0.2;
@@ -428,6 +428,7 @@ void computeRobotState(){
     static bool initializedXYDelta = false;
     if (useGPSposition){
       if (!initializedXYDelta){
+        CONSOLE.println("initializedXYDelta");
         stateX = 0;
         stateY = 0;
         stateDelta = 0;      

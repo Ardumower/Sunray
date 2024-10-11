@@ -954,27 +954,14 @@ bool Map::isDocking(){
 bool Map::isBetweenLastAndNextToLastDockPoint(){
   //return true;
   return (
-      ((maps.wayMode == WAY_FREE) && (isTargetingLastFreePoint()))  || 
-      ((maps.wayMode == WAY_DOCK) && (isTargetingLastDockPoint()))   
-  );
-}
-
-bool Map::isBetweenLastThreeDockPoints(){
-  return (
-     ((maps.wayMode == WAY_FREE) && (isTargetingLastFreePoint()))  || 
-     ((maps.wayMode == WAY_DOCK) && (maps.dockPointsIdx >= maps.dockPoints.numPoints-2)) || 
-     ((maps.wayMode == WAY_DOCK)  && (maps.dockPointsIdx >= maps.dockPoints.numPoints-3))  
+      ((isUndocking()) && ((isTargetingLastDockPoint()) || (isTargetingNextToLastDockPoint())))  || 
+      ((isDocking())   && (isTargetingLastDockPoint()))   
   );
 }
 
 bool Map::isTargetingLastDockPoint(){
   // is on the way to the last docking point
   return (maps.dockPointsIdx == maps.dockPoints.numPoints-1);
-}
-
-bool Map::isTargetingLastFreePoint(){
-  // is on the way to the last docking point
-  return (maps.freePointsIdx == maps.freePoints.numPoints-1);
 }
 
 bool Map::isTargetingNextToLastDockPoint(){
