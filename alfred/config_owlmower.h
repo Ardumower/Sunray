@@ -205,7 +205,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define FAULT_MAX_SUCCESSIVE_ALLOWED_COUNT 20   // max. successive allowed motor errors
 
 // shall the mow motor be activated for normal operation? Deactivate this option for GPS tests and path tracking running tests
-#define ENABLE_MOW_MOTOR true // Default is true, set false for testing purpose to switch off mow motor permanently
+#define ENABLE_MOW_MOTOR false // Default is true, set false for testing purpose to switch off mow motor permanently
 
 
 // ------ WIFI module (ESP8266 ESP-01 with ESP firmware 2.2.1) --------------------------------

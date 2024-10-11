@@ -1055,6 +1055,7 @@ bool Map::startMowing(float stateX, float stateY){
     Point dst;
     src.setXY(stateX, stateY);
     if ((wayMode == WAY_DOCK) && (dockPoints.numPoints > 0)) {
+      trackReverse = (DOCK_FRONT_SIDE);               
       src.assign(dockPoints.points[0]);
     } else {
       wayMode = WAY_FREE;      

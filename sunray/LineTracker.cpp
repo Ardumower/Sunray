@@ -46,7 +46,7 @@ void trackLine(bool runControl){
   if (stateOp == OP_DOCK) mow = false;
   float angular = 0;      
   float targetDelta = pointsAngle(stateX, stateY, target.x(), target.y());      
-  if (maps.trackReverse) targetDelta = scalePI(targetDelta + PI);
+  if (maps.trackReverse) targetDelta = scalePI(targetDelta + PI);  
   targetDelta = scalePIangles(targetDelta, stateDelta);
   trackerDiffDelta = distancePI(stateDelta, targetDelta);                         
   lateralError = distanceLineInfinite(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
@@ -239,14 +239,11 @@ void trackLine(bool runControl){
     } else {
       if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
       float maxAngular = 0.02;
+      float maxLinear = 0.05;      
       angular =  max(min(1.0 * trackerDiffDelta, maxAngular), -maxAngular);
       angular =  max(min(angular, maxAngular), -maxAngular);      
-      if (maps.shouldDock){
-        linear = 0.05;
-      } else {
-        linear = -0.05;
-      }
-      if (maps.trackReverse) linear *= -1;   // reverse line tracking needs negative speed
+      linear = 0.05;      
+      if (maps.trackReverse) linear = -0.05;   // reverse line tracking needs negative speed           
     }
   }
   if (stateLocalizationMode == LOC_GUIDANCE_SHEET){
@@ -313,7 +310,13 @@ void trackLine(bool runControl){
     }
 
     #ifdef DOCK_REFLECTOR_TAG
-      CONSOLE.print("trackReverse=");
+      CONSOLE.print("tagFound=");
+      CONSOLE.print(stateReflectorTagFound);
+      CONSOLE.print(" mow=");
+      CONSOLE.print(mow);      
+      CONSOLE.print(" shouldDock=");
+      CONSOLE.print(maps.shouldDock);      
+      CONSOLE.print(" trackReverse=");
       CONSOLE.print(maps.trackReverse);
       CONSOLE.print(" linear=");
       CONSOLE.print(linear);
@@ -341,7 +344,8 @@ void trackLine(bool runControl){
     motor.setMowState(mow);    
   }
 
-  if (!maps.isTargetingLastDockPoint()){
+  //if (!maps.isTargetingLastDockPoint()){
+  if (stateLocalizationMode != LOC_REFLECTOR_TAG){
     if (targetReached){
       rotateLeft = false;
       rotateRight = false;
