@@ -305,9 +305,10 @@ void computeRobotState(){
         int dockPointsIdx = maps.dockPoints.numPoints-1; //maps.dockPointsIdx;
         if (maps.getDockingPos(dockX, dockY, dockDelta, dockPointsIdx)){
           // transform robot-in-reflector-tag-frame into world frame
+          robotX = 0.2;
           if (robotX < 0) {
             // flip robot at marker
-            robotX *= -1;
+            //robotX *= -1;
             //robotY *= -1;
           }
           float worldX = dockX + robotX * cos(dockDelta+3.1415) - robotY * sin(dockDelta+3.1415);
