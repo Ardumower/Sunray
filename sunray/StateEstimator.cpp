@@ -439,6 +439,7 @@ void computeRobotState(){
   } 
 
   
+  /*
   // for testing lidar marker-based docking without GPS  
   #ifdef DOCK_REFLECTOR_TAG
     static bool initializedXYDelta = false;
@@ -452,6 +453,7 @@ void computeRobotState(){
       }
     }
   #endif
+  */
   
 
   // odometry
