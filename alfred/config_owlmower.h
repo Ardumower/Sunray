@@ -332,8 +332,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define GPS_SKYTRAQ  1               // comment out for ublox gps, uncomment for skytraq gps/NMEA
 //#define GPS_LIDAR 1                    // decomment for LiDAR
 
-//#define REQUIRE_VALID_GPS  true       // mower will pause if no float and no fix GPS solution during mowing (recommended)
-#define REQUIRE_VALID_GPS  false    // mower will continue to mow if no float or no fix solution (not recommended)
+#define REQUIRE_VALID_GPS  true       // mower will pause if no float and no fix GPS solution during mowing (recommended)
+//#define REQUIRE_VALID_GPS  false    // mower will continue to mow if no float or no fix solution (not recommended)
 
 //#define GPS_SPEED_DETECTION true  // will detect obstacles via GPS feedback (no speed)
 #define GPS_SPEED_DETECTION false
