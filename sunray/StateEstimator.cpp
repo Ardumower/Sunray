@@ -33,6 +33,7 @@ float stateDeltaAprilTag = 0;
 
 bool stateReflectorTagFound = false;
 bool stateReflectorTagOutsideFound = false;
+bool stateReflectorUndockCompleted = false;
 float stateXReflectorTag = 0; // camera-position in reflector-tag frame
 float stateYReflectorTag = 0;  
 float stateXReflectorTagLast = 0;
@@ -286,8 +287,12 @@ void computeRobotState(){
   
   #ifdef DOCK_REFLECTOR_TAG  // use reflector-tag for docking/undocking?
     if (maps.isBetweenLastAndNextToLastDockPoint()) {
-      if (maps.shouldDock) stateReflectorTagOutsideFound = false;        
-      if (! ((stateReflectorTagOutsideFound) && (stateXReflectorTag > 0.5))  ) { 
+      if (maps.shouldDock) {
+        stateReflectorTagOutsideFound = false;        
+        stateReflectorUndockCompleted = false;
+      }
+      if ((stateReflectorTagOutsideFound) && (stateXReflectorTag > 0.5)) stateReflectorUndockCompleted = true;
+      if (!stateReflectorUndockCompleted) { 
         stateLocalizationMode = LOC_REFLECTOR_TAG;
         useGPSposition = false;
         useGPSdelta = false;
