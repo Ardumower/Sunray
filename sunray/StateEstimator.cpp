@@ -32,8 +32,10 @@ float stateYAprilTag = 0;
 float stateDeltaAprilTag = 0; 
 
 bool stateReflectorTagFound = false;
+bool stateReflectorTagOutsideFound = false;
 float stateXReflectorTag = 0; // camera-position in reflector-tag frame
 float stateYReflectorTag = 0;  
+float stateXReflectorTagLast = 0;
 float stateDeltaReflectorTag = 0; 
 
 unsigned long stateLeftTicks = 0;
@@ -291,6 +293,17 @@ void computeRobotState(){
       if (stateReflectorTagFound){  
         // don't use stateXReflectorTag as we don't know which tag was detected   
         float robotX = stateXReflectorTag;  // robot-in-reflector-tag-frame (x towards outside tag, y left, z up)      
+        if ((stateXReflectorTag > 0) && (stateXReflectorTagLast < 0)){
+          if (!maps.shouldDock){
+            stateReflectorTagOutsideFound = true;
+          } 
+        }
+        if ((stateXReflectorTag < 0) && (stateXReflectorTagLast > 0)){
+          if (maps.shouldDock){
+            stateReflectorTagOutsideFound = false;
+          } 
+        }
+        stateXReflectorTagLast = stateXReflectorTag;
         float robotY = stateYReflectorTag;
         float robotDelta = scalePI(stateDeltaReflectorTag);    
         /*CONSOLE.print("REFLECTOR TAG found: ");      

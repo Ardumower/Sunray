@@ -36,6 +36,7 @@ extern float stateYAprilTag;
 extern float stateDeltaAprilTag; 
 
 extern bool stateReflectorTagFound; // found reflector-tag in camera stream?
+extern bool stateReflectorTagOutsideFound; // found outside reflector-tag in camera stream?
 extern float stateXReflectorTag; // camera-position in reflector-tag frame
 extern float stateYReflectorTag;  
 extern float stateDeltaReflectorTag; 
