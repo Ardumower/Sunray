@@ -286,52 +286,50 @@ void computeRobotState(){
   
   #ifdef DOCK_REFLECTOR_TAG  // use reflector-tag for docking/undocking?
     if (maps.isBetweenLastAndNextToLastDockPoint()) {
-      stateLocalizationMode = LOC_REFLECTOR_TAG;
-      useGPSposition = false;
-      useGPSdelta = false;
-      useImuAbsoluteYaw = false;
-      if (stateReflectorTagFound){  
-        // don't use stateXReflectorTag as we don't know which tag was detected   
-        float robotX = stateXReflectorTag;  // robot-in-reflector-tag-frame (x towards outside tag, y left, z up)      
-        if ((stateXReflectorTag > 0) && (stateXReflectorTagLast < 0)){
-          if (!maps.shouldDock){
-            stateReflectorTagOutsideFound = true;
-          } 
-        }
-        if ((stateXReflectorTag < 0) && (stateXReflectorTagLast > 0)){
-          if (maps.shouldDock){
-            stateReflectorTagOutsideFound = false;
-          } 
-        }
-        stateXReflectorTagLast = stateXReflectorTag;
-        float robotY = stateYReflectorTag;
-        float robotDelta = scalePI(stateDeltaReflectorTag);    
-        /*CONSOLE.print("REFLECTOR TAG found: ");      
-        CONSOLE.print(robotX);
-        CONSOLE.print(",");
-        CONSOLE.print(robotY);
-        CONSOLE.print(",");    
-        CONSOLE.println(robotDelta/3.1415*180.0);*/        
-        float dockX;
-        float dockY;
-        float dockDelta;
-        //int dockPointsIdx = maps.dockPoints.numPoints-1; 
-        int dockPointsIdx = maps.dockPointsIdx;
-        if (maps.getDockingPos(dockX, dockY, dockDelta, dockPointsIdx)){
-          // transform robot-in-reflector-tag-frame into world frame
-          robotX = 0.2;
-          if (!maps.shouldDock) robotX = -0.2;  
-          if (robotX < 0) {
-            // flip robot at marker
-            //robotX *= -1;
-            //robotY *= -1;
+      if (maps.shouldDock) stateReflectorTagOutsideFound = false;        
+      if (! ((stateReflectorTagOutsideFound) && (stateXReflectorTag > 0.5))  ) { 
+        stateLocalizationMode = LOC_REFLECTOR_TAG;
+        useGPSposition = false;
+        useGPSdelta = false;
+        useImuAbsoluteYaw = false;
+        if (stateReflectorTagFound){  
+          // don't use stateXReflectorTag as we don't know which tag was detected   
+          float robotX = stateXReflectorTag;  // robot-in-reflector-tag-frame (x towards outside tag, y left, z up)      
+          if ((stateXReflectorTag > 0) && (stateXReflectorTagLast < 0)){
+            if (!maps.shouldDock){
+              stateReflectorTagOutsideFound = true;
+            } 
+          }        
+          stateXReflectorTagLast = stateXReflectorTag;
+          float robotY = stateYReflectorTag;
+          float robotDelta = scalePI(stateDeltaReflectorTag);    
+          /*CONSOLE.print("REFLECTOR TAG found: ");      
+          CONSOLE.print(robotX);
+          CONSOLE.print(",");
+          CONSOLE.print(robotY);
+          CONSOLE.print(",");    
+          CONSOLE.println(robotDelta/3.1415*180.0);*/        
+          float dockX;
+          float dockY;
+          float dockDelta;
+          //int dockPointsIdx = maps.dockPoints.numPoints-1; 
+          int dockPointsIdx = maps.dockPointsIdx;
+          if (maps.getDockingPos(dockX, dockY, dockDelta, dockPointsIdx)){
+            // transform robot-in-reflector-tag-frame into world frame
+            robotX = 0.2;
+            if (!maps.shouldDock) robotX = -0.2;  
+            if (robotX < 0) {
+              // flip robot at marker
+              //robotX *= -1;
+              //robotY *= -1;
+            }
+            float worldX = dockX + robotX * cos(dockDelta+3.1415) - robotY * sin(dockDelta+3.1415);
+            float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            
+            stateX = worldX;
+            stateY = worldY;
+            stateDelta = scalePI(robotDelta + dockDelta);
+            if (DOCK_FRONT_SIDE) stateDelta = scalePI(stateDelta + 3.1415);
           }
-          float worldX = dockX + robotX * cos(dockDelta+3.1415) - robotY * sin(dockDelta+3.1415);
-          float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            
-          stateX = worldX;
-          stateY = worldY;
-          stateDelta = scalePI(robotDelta + dockDelta);
-          if (DOCK_FRONT_SIDE) stateDelta = scalePI(stateDelta + 3.1415);
         }
       }
     }

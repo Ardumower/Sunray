@@ -310,10 +310,17 @@ void trackLine(bool runControl){
     }
 
     #ifdef DOCK_REFLECTOR_TAG
-      CONSOLE.print("tagOut=");
-      CONSOLE.print(stateReflectorTagOutsideFound);      
+      CONSOLE.print("loc=");
+      if (stateLocalizationMode == LOC_APRIL_TAG) CONSOLE.print("april");
+      if (stateLocalizationMode == LOC_GPS) CONSOLE.print("gps");
+      if (stateLocalizationMode == LOC_GUIDANCE_SHEET) CONSOLE.print("guide");    
+      if (stateLocalizationMode == LOC_REFLECTOR_TAG) CONSOLE.print("reflector");        
       CONSOLE.print(" tagFound=");
       CONSOLE.print(stateReflectorTagFound);
+      CONSOLE.print(" tagOut=");
+      CONSOLE.print(stateReflectorTagOutsideFound);      
+      CONSOLE.print(" reflX=");
+      CONSOLE.print(stateXReflectorTag);
       CONSOLE.print(" mow=");
       CONSOLE.print(mow);      
       CONSOLE.print(" shouldDock=");
@@ -324,12 +331,7 @@ void trackLine(bool runControl){
       CONSOLE.print(linear);
       CONSOLE.print(" ang=");
       CONSOLE.print(angular);    
-      CONSOLE.print(" loc=");
-      if (stateLocalizationMode == LOC_APRIL_TAG) CONSOLE.print("april");
-      if (stateLocalizationMode == LOC_GPS) CONSOLE.print("gps");
-      if (stateLocalizationMode == LOC_GUIDANCE_SHEET) CONSOLE.print("guide");    
-      if (stateLocalizationMode == LOC_REFLECTOR_TAG) CONSOLE.print("reflector");        
-      CONSOLE.print(" isBetwLastNextToLastDockPt=");
+      CONSOLE.print(" isBetwLNTLDockPt=");
       CONSOLE.print(maps.isBetweenLastAndNextToLastDockPoint());
       CONSOLE.print(" dockPtIdx=");
       CONSOLE.print(maps.dockPointsIdx);
