@@ -238,7 +238,7 @@ void trackLine(bool runControl){
       angular = 0; 
     } else {
       if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
-      float maxAngular = 0.02;
+      float maxAngular = 0.015;  // 0.02
       float maxLinear = 0.05;      
       angular =  max(min(1.0 * trackerDiffDelta, maxAngular), -maxAngular);
       angular =  max(min(angular, maxAngular), -maxAngular);      
