@@ -310,38 +310,42 @@ void trackLine(bool runControl){
     }
 
     #ifdef DOCK_REFLECTOR_TAG
-      CONSOLE.print("loc=");
-      if (stateLocalizationMode == LOC_APRIL_TAG) CONSOLE.print("april");
-      if (stateLocalizationMode == LOC_GPS) CONSOLE.print("gps");
-      if (stateLocalizationMode == LOC_GUIDANCE_SHEET) CONSOLE.print("guide");    
-      if (stateLocalizationMode == LOC_REFLECTOR_TAG) CONSOLE.print("reflector");        
-      CONSOLE.print(" tagFound=");
-      CONSOLE.print(stateReflectorTagFound);
-      CONSOLE.print(" tagOut=");
-      CONSOLE.print(stateReflectorTagOutsideFound);      
-      CONSOLE.print(" reflX=");
-      CONSOLE.print(stateXReflectorTag);
-      CONSOLE.print(" mow=");
-      CONSOLE.print(mow);      
-      CONSOLE.print(" shouldDock=");
-      CONSOLE.print(maps.shouldDock);      
-      CONSOLE.print(" trackRev=");
-      CONSOLE.print(maps.trackReverse);
-      CONSOLE.print(" lin=");
-      CONSOLE.print(linear);
-      CONSOLE.print(" ang=");
-      CONSOLE.print(angular);    
-      CONSOLE.print(" isBetwLNTLDockPt=");
-      CONSOLE.print(maps.isBetweenLastAndNextToLastDockPoint());
-      CONSOLE.print(" dockPtIdx=");
-      CONSOLE.print(maps.dockPointsIdx);
-      CONSOLE.print(" freePtIdx=");
-      CONSOLE.print(maps.freePointsIdx);
-      CONSOLE.print(" wayMode=");
-      if (maps.wayMode == WAY_DOCK) CONSOLE.print("WAY_DOCK");
-      if (maps.wayMode == WAY_MOW) CONSOLE.print("WAY_MOW");
-      if (maps.wayMode == WAY_FREE) CONSOLE.print("WAY_FREE");
-      CONSOLE.println();
+      if (stateLocalizationMode == LOC_REFLECTOR_TAG){             
+        CONSOLE.print("loc=");
+        if (stateLocalizationMode == LOC_APRIL_TAG) CONSOLE.print("april");
+        if (stateLocalizationMode == LOC_GPS) CONSOLE.print("gps");
+        if (stateLocalizationMode == LOC_GUIDANCE_SHEET) CONSOLE.print("guide");    
+        if (stateLocalizationMode == LOC_REFLECTOR_TAG) CONSOLE.print("reflector");        
+        CONSOLE.print(" tagFound=");
+        CONSOLE.print(stateReflectorTagFound);
+        CONSOLE.print(" tagOut=");
+        CONSOLE.print(stateReflectorTagOutsideFound);      
+        CONSOLE.print(" reflX=");
+        CONSOLE.print(stateXReflectorTag);
+        CONSOLE.print(" reflY=");
+        CONSOLE.print(stateYReflectorTag);
+        CONSOLE.print(" mow=");
+        CONSOLE.print(mow);      
+        CONSOLE.print(" shouldDock=");
+        CONSOLE.print(maps.shouldDock);      
+        CONSOLE.print(" trackRev=");
+        CONSOLE.print(maps.trackReverse);
+        CONSOLE.print(" lin=");
+        CONSOLE.print(linear);
+        CONSOLE.print(" ang=");
+        CONSOLE.print(angular);    
+        CONSOLE.print(" isBetwLNTLDockPt=");
+        CONSOLE.print(maps.isBetweenLastAndNextToLastDockPoint());
+        CONSOLE.print(" dockPtIdx=");
+        CONSOLE.print(maps.dockPointsIdx);
+        CONSOLE.print(" freePtIdx=");
+        CONSOLE.print(maps.freePointsIdx);
+        CONSOLE.print(" wayMode=");
+        if (maps.wayMode == WAY_DOCK) CONSOLE.print("WAY_DOCK");
+        if (maps.wayMode == WAY_MOW) CONSOLE.print("WAY_MOW");
+        if (maps.wayMode == WAY_FREE) CONSOLE.print("WAY_FREE");
+        CONSOLE.println();
+      }
     #endif
 
     motor.setLinearAngularSpeed(linear, angular);      
