@@ -3,7 +3,7 @@
 # Table of contents
 1. [Description](#description)
 2. [Sunray for Ardumower](#sunray_ardumower)
-3. [Sunray for Alfred/RaspberryPI](#sunray_alfred)
+3. [Sunray for Alfred / owlPlatform](#sunray_alfred)
 4. [Sunray Simulator](#sunray_sim)
 5. [Further topics](#further_topics)
 6. [Sunray ROS](#sunray_ros)
@@ -48,11 +48,11 @@ __WARNING__: Do not use the master version (via download button), that is 'code 
 
 https://github.com/Ardumower/Sunray/releases
 
-# Sunray for Alfred / Sunray for Raspberry PI <a name="sunray_alfred"></a>
+# Sunray for Alfred / owlPlatform <a name="sunray_alfred"></a>
 
-NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' firmware. The code for all steps will require a Linux system (either the Alfred, a Raspberry PI or some PC).
+NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' (or owlPlatform) firmware. The code for all steps will require a Linux system (either the Alfred, a Raspberry PI or some PC).
 
-## How to install code and compile 'Sunray for Alfred' (required only once)
+## How to install code and compile 'Sunray for Alfred / owlPlatform' (required only once)
 Run this on your Alfred Linux terminal (in your Alfred home folder):
 
 ```
@@ -60,29 +60,38 @@ Run this on your Alfred Linux terminal (in your Alfred home folder):
 cd ~
 git clone https://github.com/Ardumower/Sunray.git
 
-## make a customized copy of the Alfred config file
+## make a customized copy of the Alfred config file (or olwPlatform config file)
 cd ~/Sunray/alfred
-cp config_alfred.h config.h
+cp config_alfred.h config.h    (for Alfred)
+cp config_owlmower.h config.h   (for owlPlatform)
 
-## run service script and choose point 'Build sunray executable', when being asked, choose 'config.h' as config file 
+## adjust your new 'config.h', then run service script and choose point 'Build sunray executable', when being asked, choose 'config.h' as config file 
 ./service.sh
 
-## run service script and choose point 'Install sunray executable on Alfred',
-## when being asked, enter your user password (see Sunray PDF manual for password) 
+## For Alfred: run service script and choose point 'Install sunray executable on Alfred',
+## when being asked, enter your user password (see Sunray PDF manual for password)
+##
+## For owlPlatform: run service script and choose point 'Start sunray service'
+
 ./service.sh
 ```
 
-## How to update installed code and re-compile 'Sunray for Alfred'
+## How to update installed code and re-compile 'Sunray for Alfred / owlPlatform'
 ```
 ## update repository ##
 cd ~/Sunray
 git pull
 
-## run service script and choose point 'Build sunray executable', when being asked, choose 'config.h' as config file 
+## run service script and choose point 'Rebuild sunray executable', when being asked, choose 'config.h' as config file 
 ./service.sh
 
-## run service script and choose point 'Install sunray executable on Alfred',
+## For Alfred: run service script and choose point 'Install sunray executable on Alfred',
 ## when being asked, enter your user password (see Sunray PDF manual for password)
+##
+## For owlPlatform: run service script and choose point 'Stop sunray service',
+## when being asked, enter your user password. Finally restart service script and choose
+## 'Start sunray service'
+
 ./service.sh
 ```
 
