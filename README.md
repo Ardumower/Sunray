@@ -65,7 +65,8 @@ cd ~/Sunray/alfred
 cp config_alfred.h config.h    (for Alfred)
 cp config_owlmower.h config.h   (for owlPlatform)
 
-## adjust your new 'config.h', then run service script and choose point 'Build sunray executable', when being asked, choose 'config.h' as config file 
+## adjust your new 'config.h', then run service script and choose point 'Build sunray executable',
+## when being asked, choose 'config.h' as config file 
 ./service.sh
 
 ## For Alfred: run service script and choose point 'Install sunray executable on Alfred',
