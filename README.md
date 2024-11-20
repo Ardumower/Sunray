@@ -82,7 +82,8 @@ cp config_owlmower.h config.h   (for owlPlatform)
 cd ~/Sunray
 git pull
 
-## run service script and choose point 'Rebuild sunray executable', when being asked, choose 'config.h' as config file 
+## run service script and choose point 'Rebuild sunray executable', when being asked,
+## choose 'config.h' as config file 
 ./service.sh
 
 ## For Alfred: run service script and choose point 'Install sunray executable on Alfred',
@@ -105,7 +106,7 @@ sudo ./flash.sh
 2. Choose 'Build+Flash NGP firmware (Sunray-compatible)'
 
 
-## How to compile 'Sunray for Alfred' on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
+## How to solve USB serial port issues on a Raspberry PI (OS Lite 64 bit, Debian Bullseye)
 Before running above commands, install required libs:
 ```
 sudo apt-get -y install cmake
