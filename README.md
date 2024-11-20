@@ -3,7 +3,7 @@
 # Table of contents
 1. [Description](#description)
 2. [Sunray for Ardumower](#sunray_ardumower)
-3. [Sunray for Alfred](#sunray_alfred)
+3. [Sunray for Alfred/RaspberryPI](#sunray_alfred)
 4. [Sunray Simulator](#sunray_sim)
 5. [Further topics](#further_topics)
 6. [Sunray ROS](#sunray_ros)
