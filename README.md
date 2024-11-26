@@ -85,6 +85,7 @@ git pull
 
 ## run service script and choose point 'Rebuild sunray executable', when being asked,
 ## choose 'config.h' as config file 
+cd ~/Sunray/alfred
 ./service.sh
 
 ## For Alfred: run service script and choose point 'Install sunray executable on Alfred',
