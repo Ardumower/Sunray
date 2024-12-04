@@ -95,6 +95,7 @@ class Lddc final {
 
  public:
   Lds *lds_;
+  const float gravity = 9.8; // m/s^2
 
  private:
   void PollingLidarPointCloudData(uint8_t index, LidarDevice *lidar);
