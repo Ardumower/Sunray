@@ -124,21 +124,9 @@ protected:
       out[2] = p.z;
     }
   };
-
-  void infoMsg()
-  {
-    double tim = ros::Time::now().toSec();
-    //ROS_WARN("%.3f", tim);
-    if (tim > nextInfoTime){
-      nextInfoTime = tim + 2.0;
-      ROS_WARN("mapCounter=%d, cloudCounter=%d, odomCounter=%d, imuCounter=%d", cbMapCounter, cbCloudCounter, cbOdomCounter, cbImuCounter);
-    }
-  }
-
   void cbMapcloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
-    ROS_INFO("map received");    
-    infoMsg();    
+    ROS_INFO("map received");
     pcl::PointCloud<PointType>::Ptr pc_tmp(new pcl::PointCloud<PointType>);
     if (!mcl_3dl::fromROSMsg(*msg, *pc_tmp))
     {
@@ -149,12 +137,10 @@ protected:
     pcl_conversions::toPCL(map_stamp, pc_tmp->header.stamp);
 
     loadMapCloud(pc_tmp);
-    cbMapCounter++;
   }
   void cbMapcloudUpdate(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
     ROS_INFO("map_update received");
-    infoMsg();    
     pcl::PointCloud<PointType>::Ptr pc_tmp(new pcl::PointCloud<PointType>);
     if (!mcl_3dl::fromROSMsg(*msg, *pc_tmp))
       return;
@@ -164,7 +150,6 @@ protected:
     ds.setInputCloud(pc_tmp);
     ds.setLeafSize(params_.update_downsample_x_, params_.update_downsample_y_, params_.update_downsample_z_);
     ds.filter(*pc_update_);
-    cbMapCounter++;
   }
 
   void cbPosition(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
@@ -214,7 +199,6 @@ protected:
 
   void cbOdom(const nav_msgs::Odometry::ConstPtr& msg)
   {
-    infoMsg();    
     odom_ =
         State6DOF(
             Vec3(msg->pose.pose.position.x,
@@ -260,11 +244,9 @@ protected:
       imu->orientation = msg->pose.pose.orientation;
       cbImu(imu);
     }
-    cbOdomCounter++;
   }
   void cbCloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
-    infoMsg();
     status_ = mcl_3dl_msgs::Status();
     status_.header.stamp = ros::Time::now();
     status_.status = mcl_3dl_msgs::Status::NORMAL;
@@ -280,7 +262,6 @@ protected:
         std::bind(&MCL3dlNode::measure, this),
         std::bind(&MCL3dlNode::accumCloud, this, std::placeholders::_1),
         std::bind(&MCL3dlNode::accumClear, this));
-    cbCloudCounter++;
   }
 
   void accumClear()
@@ -342,8 +323,6 @@ protected:
           pc_local_accum_->header.frame_id,
           header.stamp, ros::Duration(0.1));
 
-      //ROS_WARN("transform1 %.3f", trans.transform.translation.x);
-
       const Eigen::Affine3f trans_eigen =
           Eigen::Translation3f(
               trans.transform.translation.x,
@@ -368,7 +347,6 @@ protected:
       {
         const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
             params_.frame_ids_["base_link"], header.stamp, h.frame_id, h.stamp, params_.frame_ids_["odom"]);
-        //ROS_WARN("transform2 %.3f", trans.transform.translation.x);
         origins.push_back(Vec3(trans.transform.translation.x,
                                trans.transform.translation.y,
                                trans.transform.translation.z));
@@ -473,8 +451,6 @@ protected:
     }
     auto e = pf_->expectationBiased();
     const auto e_max = pf_->max();
-
-    //ROS_WARN("pf %.3f", e.pos_.x_);
 
     assert(std::isfinite(e.pos_.x_));
     assert(std::isfinite(e.pos_.y_));
@@ -699,17 +675,6 @@ protected:
     }
     map_rot.setRPY(f_ang_->in(rpy));
     map_pos = f_pos_->in(map_pos);
-
-    //ROS_WARN("map transform %.3f", map_pos.x_);
-
-    assert(std::isfinite(map_pos.x_));
-    assert(std::isfinite(map_pos.y_));
-    assert(std::isfinite(map_pos.z_));
-    assert(std::isfinite(map_rot.x_));
-    assert(std::isfinite(map_rot.y_));
-    assert(std::isfinite(map_rot.z_));
-    assert(std::isfinite(map_rot.w_));
-
     trans.transform.translation = tf2::toMsg(tf2::Vector3(map_pos.x_, map_pos.y_, map_pos.z_));
     trans.transform.rotation = tf2::toMsg(tf2::Quaternion(map_rot.x_, map_rot.y_, map_rot.z_, map_rot.w_));
 
@@ -739,7 +704,7 @@ protected:
 
     // Calculate covariance from sampled particles to reduce calculation cost on global localization.
     // Use the number of original particles or at least 10% of full particles.
-    auto cov = pf_->covariance(
+    const auto cov = pf_->covariance(
         1.0,
         std::max(
             0.1f, static_cast<float>(params_.num_particles_) / pf_->getParticleSize()));
@@ -762,9 +727,9 @@ protected:
 
     if (!global_localization_fix_cnt_)
     {
-      if (std::sqrt(cov[0][0] + cov[1][1]) > params_.std_warn_thresh_[0] ||
-          std::sqrt(cov[2][2]) > params_.std_warn_thresh_[1] ||
-          std::sqrt(cov[5][5]) > params_.std_warn_thresh_[2])
+      if (std::sqrt(pose.pose.covariance[0] + pose.pose.covariance[1 * 6 + 1]) > params_.std_warn_thresh_[0] ||
+          std::sqrt(pose.pose.covariance[2 * 6 + 2]) > params_.std_warn_thresh_[1] ||
+          std::sqrt(pose.pose.covariance[5 * 6 + 5]) > params_.std_warn_thresh_[2])
       {
         status_.convergence_status = mcl_3dl_msgs::Status::CONVERGENCE_STATUS_LARGE_STD_VALUE;
       }
@@ -773,8 +738,10 @@ protected:
     if (status_.convergence_status != mcl_3dl_msgs::Status::CONVERGENCE_STATUS_LARGE_STD_VALUE)
     {
       Vec3 fix_axis;
-      const float fix_ang = std::sqrt(cov[3][3] + cov[4][4] + cov[5][5]);
-      const float fix_dist = std::sqrt(cov[0][0] + cov[1][1] + cov[2][2]);
+      const float fix_ang = std::sqrt(
+          pose.pose.covariance[3 * 6 + 3] + pose.pose.covariance[4 * 6 + 4] + pose.pose.covariance[5 * 6 + 5]);
+      const float fix_dist = std::sqrt(
+          pose.pose.covariance[0] + pose.pose.covariance[1 * 6 + 1] + pose.pose.covariance[2 * 6 + 2]);
       ROS_DEBUG("cov: lin %0.3f ang %0.3f", fix_dist, fix_ang);
       if (fix_dist < params_.fix_dist_ &&
           fabs(fix_ang) < params_.fix_ang_)
@@ -974,7 +941,6 @@ protected:
   }
   void cbImu(const sensor_msgs::Imu::ConstPtr& msg)
   {
-    infoMsg();
     const Vec3 acc = f_acc_->in(Vec3(
         msg->linear_acceleration.x,
         msg->linear_acceleration.y,
@@ -1050,7 +1016,6 @@ protected:
         cbOdom(odom);
       }
     }
-    cbImuCounter++;
   }
   bool cbResizeParticle(mcl_3dl_msgs::ResizeParticleRequest& request,
                         mcl_3dl_msgs::ResizeParticleResponse& response)
@@ -1075,7 +1040,6 @@ protected:
   bool cbGlobalLocalization(std_srvs::TriggerRequest& request,
                             std_srvs::TriggerResponse& response)
   {
-    ROS_WARN("global localization");
     if (!has_map_)
     {
       response.success = false;
@@ -1132,7 +1096,6 @@ protected:
     }
     response.success = true;
     response.message = std::to_string(pf_->getParticleSize()) + " particles";
-    ROS_WARN("global localization done");    
     return true;
   }
 
@@ -1210,7 +1173,6 @@ protected:
   bool cbLoadPCD(mcl_3dl_msgs::LoadPCD::Request& req, mcl_3dl_msgs::LoadPCD::Response& resp)
   {
     ROS_INFO("map received");
-    infoMsg();
 
     pcl::PointCloud<PointType>::Ptr pc_tmp(new pcl::PointCloud<PointType>);
     if (pcl::io::loadPCDFile<PointType>(req.pcd_path, *pc_tmp) == -1)
@@ -1227,7 +1189,6 @@ protected:
     loadMapCloud(pc_tmp);
 
     resp.success = true;
-    cbMapCounter++;
     return true;
   }
 
@@ -1458,12 +1419,6 @@ protected:
   ros::Duration tf_tolerance_base_;
 
   Parameters params_;
-
-  double nextInfoTime = 0;
-  int cbImuCounter = 0;
-  int cbMapCounter = 0;
-  int cbCloudCounter = 0;
-  int cbOdomCounter = 0;  
 
   ros::Time match_output_last_;
   ros::Time odom_last_;
