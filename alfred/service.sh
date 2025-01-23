@@ -113,6 +113,9 @@ function start_sunray_service() {
   # enable sunray service
   echo "starting sunray service..."
   #ln -s /home/pi/sunray_install/config_files/sunray.service /etc/systemd/system/sunray.service
+  REPLACEPATH="/home/pi/Sunray/alfred"
+  sed "s+$REPLACEPATH+$PWD+g" <$PWD/config_files/sunray/sunray.service.example >$PWD/config_files/sunray/sunray.service
+
   cp $PWD/config_files/sunray/sunray.service /etc/systemd/system/sunray.service
   chmod 644 /etc/systemd/system/sunray.service
   mkdir -p /boot/sunray
