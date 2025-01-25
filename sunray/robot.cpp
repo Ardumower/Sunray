@@ -1162,7 +1162,9 @@ void run(){
 
   // compute button state (stateButton)
   if (BUTTON_CONTROL){
-    if (stopButton.triggered()){
+    bool buttonTriggered = stopButton.triggered();
+    if (BUTTON_INVERT) buttonTriggered = !buttonTriggered; 
+    if (buttonTriggered){
       if (millis() > stateButtonTimeout){
         stateButtonTimeout = millis() + 1000;
         stateButtonTemp++; // next state
