@@ -319,6 +319,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define GO_HOME_VOLTAGE   21.5  // start going to dock below this voltage
 // The battery will charge if both battery voltage is below that value and charging current is above that value.
 #define BAT_FULL_VOLTAGE  28.7  // start mowing again at this voltage
+#define BAT_UNDERVOLTAGE  18.9  // battery switch off voltage
 #define BAT_FULL_CURRENT  0.2   // start mowing again below this charging current (amps)
 #define BAT_FULL_SLOPE    0.002  // start mowing again below this voltage slope (V/min - choose 0.0 if you have charging issues)
 
