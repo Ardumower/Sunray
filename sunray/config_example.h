@@ -296,6 +296,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // https://wiki.ardumower.de/index.php?title=Free_wheel_sensor
 //#define BUMPER_ENABLE true
 #define BUMPER_ENABLE false
+#define BUMPER_INVERT false       // invert bumper sensor state? 
 #define BUMPER_DEADTIME 1000  // linear motion dead-time (ms) after bumper is allowed to trigger
 #define BUMPER_TRIGGER_DELAY  0 // bumper must be active for (ms) to trigger
 #define BUMPER_MAX_TRIGGER_TIME 30  // if bumpersensor stays permanent triggered mower will stop with bumper error (time in seconds; 0 = disabled)
