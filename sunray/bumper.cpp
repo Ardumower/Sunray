@@ -35,7 +35,7 @@ void Bumper::run() {
   inputRightPressed  = bumperDriver.getRightBumper();
 
   if (BUMPER_INVERT){
-    inpurtLeftPressed = !inpurtLeftPressed;
+    inputLeftPressed = !inputLeftPressed;
     inputRightPressed = !inputRightPressed;
   }
 
