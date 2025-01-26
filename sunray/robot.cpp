@@ -1161,19 +1161,26 @@ void run(){
   //##############################################################################
 
   // compute button state (stateButton)
-  if (BUTTON_CONTROL){
+  if (BUTTON_STOP){  // should we use the stop/emergency button?
     bool buttonTriggered = stopButton.triggered();
     if (BUTTON_INVERT) buttonTriggered = !buttonTriggered; 
     if (buttonTriggered){
-      if (millis() > stateButtonTimeout){
-        stateButtonTimeout = millis() + 1000;
-        stateButtonTemp++; // next state
-        buzzer.sound(SND_READY, true);
-        CONSOLE.print("BUTTON ");
-        CONSOLE.print(stateButtonTemp);
-        CONSOLE.println("s");                                     
-      }
-                          
+      if (stateOp != OP_IDLE){   // if not in idle state
+        // stop all pendings actions if bumper pressed 
+        stateSensor = SENS_STOP_BUTTON;  
+        setOperation(OP_IDLE, false);  // go into idle-state
+      } 
+      if (BUTTON_CONTROL){     
+        // additional button features (start mowing, docking etc.)
+        if (millis() > stateButtonTimeout){
+          stateButtonTimeout = millis() + 1000;
+          stateButtonTemp++; // next state
+          buzzer.sound(SND_READY, true);
+          CONSOLE.print("BUTTON ");
+          CONSOLE.print(stateButtonTemp);
+          CONSOLE.println("s");                                     
+        }
+      }                          
     } else {
       if (stateButtonTemp > 0){
         // button released => set stateButton

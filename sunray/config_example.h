@@ -435,6 +435,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // ----- other options --------------------------------------------
 
 // button control (turns on additional features via the POWER-ON button)
+#define BUTTON_STOP    true      // use the stop/emergency button? (also required for additional button features)
 #define BUTTON_CONTROL true      // additional features activated (press-and-hold button for specific beep count: 
                                  //  1 beep=stop, 6 beeps=start, 5 beeps=dock, 3 beeps=R/C mode ON/OFF, 9 beeps=shutdown, 12 beeps=WiFi WPS
 //#define BUTTON_CONTROL false   // additional features deactivated

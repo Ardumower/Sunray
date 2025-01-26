@@ -351,8 +351,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define GPS_REBOOT_RECOVERY  true // allow GPS receiver rebooting (recommended - requires GPS wire fix above! otherwise firmware will stuck at boot!)
 //#define GPS_REBOOT_RECOVERY   false  // do not allow rebooting GPS receiver (no GPS wire fix required)
 
-#define GPS_CONFIG   true     // configure GPS receiver (recommended - requires GPS wire fix above! otherwise firmware will stuck at boot!)
-//#define GPS_CONFIG   false  // do not configure GPS receiver (no GPS wire fix required)
+//#define GPS_CONFIG   true     // configure GPS receiver (recommended - requires GPS wire fix above! otherwise firmware will stuck at boot!)
+#define GPS_CONFIG   false  // do not configure GPS receiver (no GPS wire fix required)
 
 #define GPS_CONFIG_FILTER   true     // use signal strength filter? (recommended to get rid of 'FIX jumps') - adjust filter settings below
 //#define GPS_CONFIG_FILTER   false     // use this if you have difficulties to get a FIX solution (uses ublox default filter settings)
@@ -429,9 +429,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // ----- other options --------------------------------------------
 
 // button control (turns on additional features via the POWER-ON button)
-//#define BUTTON_CONTROL true      // additional features activated (press-and-hold button for specific beep count: 
+#define BUTTON_STOP    false      // use the stop/emergency button? (also required for additional button features)
+#define BUTTON_CONTROL true      // additional features activated (press-and-hold button for specific beep count: 
                                  //  1 beep=stop, 6 beeps=start, 5 beeps=dock, 3 beeps=R/C mode ON/OFF)
-#define BUTTON_CONTROL false   // additional features deactivated
+//#define BUTTON_CONTROL false   // additional features deactivated
 #define BUTTON_INVERT false    // invert button sensor?
 
 //#define USE_TEMP_SENSOR true  // only activate if temp sensor (htu21d) connected
