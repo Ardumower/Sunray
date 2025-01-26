@@ -1166,7 +1166,7 @@ void run(){
     if (BUTTON_INVERT) buttonTriggered = !buttonTriggered; 
     if (buttonTriggered){
       if (stateOp != OP_IDLE){   // if not in idle state
-        // stop all pendings actions if bumper pressed 
+        // stop all pendings actions if button pressed 
         stateSensor = SENS_STOP_BUTTON;  
         setOperation(OP_IDLE, false);  // go into idle-state
       } 
