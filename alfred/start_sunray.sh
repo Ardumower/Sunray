@@ -112,6 +112,16 @@ for _ in `seq 1 20`; do
 done; 
 
 
+echo "---starting custom script----"
+if [ -e "custom_script.sh" ]; then
+  echo "custom script exists"
+  ./custom_script.sh
+  # will terminate whole process group on termination
+  trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+else 
+  echo "custom script does not exist"
+fi 
+
 
 echo "----starting sunray----"
 echo "CMD=$CMD"
