@@ -796,14 +796,18 @@ bool detectObstacle(){
   }   
   
   #ifdef ENABLE_LIFT_DETECTION
-    #ifdef LIFT_OBSTACLE_AVOIDANCE
-      if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (liftDriver.triggered()) ) {
-        CONSOLE.println("lift sensor obstacle!");    
-        Logger.event(EVT_LIFTED_OBSTACLE);
-        //statMowBumperCounter++;
-        statMowLiftCounter++;
-        triggerObstacle();    
-        return true;
+    #ifdef LIFT_OBSTACLE_AVOIDANCE    
+      if ( millis() > linearMotionStartTime + BUMPER_DEADTIME) { 
+        bool liftTriggered = liftDriver.triggered();  
+        if (LIFT_INVERT) liftTriggered = !liftTriggered; 
+        if (liftTriggered)  {
+          CONSOLE.println("lift sensor obstacle!");    
+          Logger.event(EVT_LIFTED_OBSTACLE);
+          //statMowBumperCounter++;
+          statMowLiftCounter++;
+          triggerObstacle();    
+          return true;
+        }
       }
     #endif
   #endif
