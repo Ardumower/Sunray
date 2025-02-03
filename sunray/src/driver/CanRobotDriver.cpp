@@ -478,6 +478,9 @@ void CanRobotDriver::processResponse(){
                 case owlctl::can_val_rain_state:
                   triggeredRain = (data.byteVal[0] != 0);
                   break;
+                case owlctl::can_val_lift_state:
+                  triggeredLift = (data.byteVal[0] != 0);
+                  break;
                 case owlctl::can_val_charger_voltage:
                   float volt = data.floatVal;                  
                   //CONSOLE.print("charger: ");

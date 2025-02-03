@@ -113,6 +113,7 @@ namespace owlctl {
       can_val_buzzer_state      = 5, // buzzer state
       can_val_rain_state        = 6, // rain state
       can_val_charger_voltage   = 7, // charger voltage      
+      can_val_lift_state        = 8, // lift sensor state      
   };
 }
 
