@@ -193,7 +193,7 @@ void CanRobotDriver::requestSummary(){
   canDataType_t data;
   data.floatVal = 0;
   
-  switch (cmdSummaryCounter % 6){
+  switch (cmdSummaryCounter % 7){
     case 0:
       sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_stop_button_state, data );  
       break;
@@ -211,6 +211,9 @@ void CanRobotDriver::requestSummary(){
       break;
     case 5:
       sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_lift_state, data );
+      break;
+    case 6:
+      sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_slow_down_state, data );
       break;
   }
   cmdSummaryCounter++;
@@ -480,6 +483,9 @@ void CanRobotDriver::processResponse(){
                   break;
                 case owlctl::can_val_rain_state:
                   triggeredRain = (data.byteVal[0] != 0);
+                  break;
+                case owlctl::can_val_slow_down_state:
+                  triggeredSlowDown = (data.byteVal[0] != 0);
                   break;
                 case owlctl::can_val_lift_state:
                   triggeredLift = (data.byteVal[0] != 0);
@@ -830,7 +836,7 @@ void CanBumperDriver::run(){
 }
 
 bool CanBumperDriver::nearObstacle(){
-  return false;
+  return canRobot.triggeredSlowDown;
 }
 
 bool CanBumperDriver::obstacle(){

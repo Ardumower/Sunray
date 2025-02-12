@@ -114,6 +114,7 @@ namespace owlctl {
       can_val_rain_state        = 6, // rain state
       can_val_charger_voltage   = 7, // charger voltage      
       can_val_lift_state        = 8, // lift sensor state      
+      can_val_slow_down_state   = 9, // slow-down state      
   };
 }
 
@@ -192,6 +193,7 @@ class CanRobotDriver: public RobotDriver {
     bool triggeredLift;
     bool triggeredRain;
     bool triggeredStopButton;
+    bool triggeredSlowDown;
     bool triggeredPushboxStopButton;
     void begin() override;
     void run() override;

@@ -148,6 +148,10 @@ void trackLine(bool runControl){
         //CONSOLE.println("SLOW: float");
       } else
         linear = setSpeed;         // desired speed
+      if (bumperDriver.nearObstacle()){
+        linear = 0.1;  // slow down near obstacles 
+        //CONSOLE.println("SLOW: BUMPER");      
+      }
       if (lidarBumper.nearObstacle()){
         linear = 0.1;  // slow down near obstacles 
         //CONSOLE.println("SLOW: LiDAR");      
