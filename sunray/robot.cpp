@@ -1169,8 +1169,9 @@ void run(){
     bool buttonTriggered = stopButton.triggered();
     if (BUTTON_INVERT) buttonTriggered = !buttonTriggered; 
     if (buttonTriggered){
-      if (stateOp != OP_IDLE){   // if not in idle state
+      if ((stateOp != OP_IDLE) && (stateOp != OP_CHARGE)) {   // if not in idle or charge state
         // stop all pendings actions if button pressed 
+        CONSOLE.println("BUTTON triggered, going IDLE");
         stateSensor = SENS_STOP_BUTTON;  
         setOperation(OP_IDLE, false);  // go into idle-state
       } 
