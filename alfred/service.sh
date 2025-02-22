@@ -194,6 +194,15 @@ function savelog(){
   journalctl -u sunray > log.txt
 }
 
+function clearlog(){
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
+  echo "clearing log..."
+  journalctl --rotate --vacuum-time=1s -u sunray
+}
+
 function kernel_log(){
   echo "kernel log..."
   dmesg -wH
@@ -224,7 +233,7 @@ options=(
   "Start logging service" "Stop logging service"
   "Start display manager" "Stop display manager"   
   "List services"   
-  "Show log" "Save log" "Kernel log"
+  "Show log" "Save log" "Clear log" "Kernel log"
   "Quit")
 select opt in "${options[@]}"
 do
@@ -283,6 +292,10 @@ do
             ;;     
         "Save log")
             savelog
+            break
+            ;;
+        "Clear log")
+            clearlog
             break
             ;;
         "Kernel log")
