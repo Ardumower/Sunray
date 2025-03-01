@@ -84,7 +84,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // --------- lift sensor (e.g. Alfred mower) ---------------------------------------------
 // should the lift sensor be enabled? (yes: uncomment line, no: comment line)
 //#define ENABLE_LIFT_DETECTION  1
-// should the lift sensor be used for obstacle avoidance (if not, mower will simply go into error if lifted)
+// should the lift sensor be used for obstacle avoidance (if not, mower will simply turn off cutter motor if lifted)
 #define LIFT_OBSTACLE_AVOIDANCE 1  
 #define LIFT_INVERT  false       // invert lift sensor state? 
 
