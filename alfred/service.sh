@@ -255,6 +255,7 @@ fi
 
 
 compile_menu () {
+    echo "Compile and test menu (NOTE: press CTRL+C to stop any pending actions)"
     options=(
         "Build sunray executable" 
         "Rebuild sunray executable"
@@ -298,6 +299,7 @@ compile_menu () {
 
 
 linux_services_menu () {
+    echo "Linux services menu (NOTE: press CTRL+C to stop any pending actions)"
     options=(
         "Install sunray executable on existing Alfred file system (Alfred-only)" 
         "Start sunray service (as Linux autostart)"
@@ -366,6 +368,7 @@ linux_services_menu () {
 
 
 linux_logging_menu () {
+    echo "Linux logging menu (NOTE: press CTRL+C to stop any pending actions)"
     options=(
         "Show log" 
         "Save log"
@@ -404,7 +407,7 @@ linux_logging_menu () {
 
 
 main_menu () {
-    echo "Main menu (press CTRL+C to stop)"
+    echo "Main menu (NOTE: press CTRL+C to stop any pending actions)"
     options=(
         "Compile and test menu"
         "Linux services menu"
