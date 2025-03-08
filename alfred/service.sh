@@ -139,6 +139,36 @@ function stop_sunray_service() {
   echo "sunray service stopped!"
 }
 
+
+function start_sunray() {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
+  echo "starting sunray... (press CTRL+C to stop)"
+  ./start_sunray.sh
+}
+
+function start_sunray_motor_test() {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
+  echo "starting sunray... (press CTRL+C to stop)"
+  ./start_sunray.sh <<< "AT+E"
+}
+
+function start_sunray_sensor_test() {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
+  echo "starting sunray... (press CTRL+C to stop)"  
+  ./start_sunray.sh <<< "AT+F"
+}
+
+
+
 function start_log_service(){
   if [ "$EUID" -ne 0 ]
     then echo "Please run as root (sudo)"
@@ -228,6 +258,9 @@ compile_menu () {
     options=(
         "Build sunray executable" 
         "Rebuild sunray executable"
+        "Run sunray executable"
+        "Run sunray executable with motor test"
+        "Run sunray executable with sensor test"
         "Back"
     )
     select option in "${options[@]}"; do
@@ -241,6 +274,18 @@ compile_menu () {
                 break
             ;;
             ${options[2]})
+                start_sunray
+                break
+            ;;
+            ${options[3]})
+                start_sunray_motor_test
+                break
+            ;;
+            ${options[4]})
+                start_sunray_sensor_test
+                break
+            ;;
+            ${options[5]})
                 return
              ;;
             *) 
@@ -255,9 +300,9 @@ compile_menu () {
 linux_services_menu () {
     options=(
         "Install sunray executable on existing Alfred file system (Alfred-only)" 
-        "Start sunray service"
+        "Start sunray service (as Linux autostart)"
         "Stop sunray service"
-        "Start camera service"
+        "Start camera service (as Linux autostart)"
         "Stop camera service"
         "Start display manager"
         "Stop display manager"
@@ -358,7 +403,7 @@ linux_logging_menu () {
 
 main_menu () {
     options=(
-        "Compile menu"
+        "Compile and test menu"
         "Linux services menu"
         "Linux logging menu"
         "Quit"
