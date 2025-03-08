@@ -239,6 +239,7 @@ void sensorTest(){
     bumper.run();
     lidarBumper.run();
     liftDriver.run();
+    robotDriver.run();   
     if (millis() > nextMeasureTime){
       nextMeasureTime = millis() + 1000;      
       if (SONAR_ENABLE){
@@ -284,7 +285,6 @@ void sensorTest(){
 	
       CONSOLE.println();  
       watchdogReset();
-      robotDriver.run();   
     }
   }
   CONSOLE.println("end of sensor test - please ignore any IMU/GPS errors");
