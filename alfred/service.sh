@@ -185,7 +185,7 @@ function list_services(){
 }
 
 function show_log(){
-  echo "show log..."
+  echo "show log... (press CTRL+C to stop)"
   journalctl -f -u sunray
 }
 
@@ -204,9 +204,10 @@ function clear_log(){
 }
 
 function kernel_log(){
-  echo "kernel log..."
+  echo "kernel log... (press CTRL+C to stop)"
   dmesg -wH
 }
+
 
 if [ ! -d "/etc/motion" ]; then
   echo installing motion...
