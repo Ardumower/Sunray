@@ -257,10 +257,10 @@ fi
 compile_menu () {
     echo "Compile and test menu (NOTE: press CTRL+C to stop any pending actions)"
     options=(
-        "Build sunray executable" 
-        "Rebuild sunray executable"
+        "Build sunray executable (you can choose config file)" 
+        "Rebuild sunray executable (using last choosen config file)"
         "Run sunray executable"
-        "Run sunray executable with motor test"
+        "Run sunray executable with motor test (WARNING: motors will start with full speed, jack-up your robot!)"
         "Run sunray executable with sensor test"
         "Back"
     )
