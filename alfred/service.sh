@@ -175,7 +175,7 @@ function stop_dm(){
   service lightdm stop
 }
 
-function list(){
+function list_services(){
   if [ "$EUID" -ne 0 ]
     then echo "Please run as root (sudo)"
     exit
@@ -184,17 +184,17 @@ function list(){
   service --status-all
 }
 
-function showlog(){
+function show_log(){
   echo "show log..."
   journalctl -f -u sunray
 }
 
-function savelog(){
+function save_log(){
   echo "saving log.txt..."
   journalctl -u sunray > log.txt
 }
 
-function clearlog(){
+function clear_log(){
   if [ "$EUID" -ne 0 ]
     then echo "Please run as root (sudo)"
     exit
@@ -223,90 +223,170 @@ fi
 #systemctl status motion
 
 
-# show menu
-PS3='Please enter your choice: '
-options=( 
-  "Build sunray executable" "Rebuild sunray executable"
-  "Install sunray executable on Alfred"
-  "Start sunray service" "Stop sunray service" 
-  "Start camera service" "Stop camera service"
-  "Start logging service" "Stop logging service"
-  "Start display manager" "Stop display manager"   
-  "List services"   
-  "Show log" "Save log" "Clear log" "Kernel log"
-  "Quit")
-select opt in "${options[@]}"
-do
-    case $opt in
-        "Build sunray executable")
-            build_sunray
-            break
+compile_menu () {
+    options=(
+        "Build sunray executable" 
+        "Rebuild sunray executable"
+        "Back"
+    )
+    select option in "${options[@]}"; do
+        case $option in
+            ${options[0]})
+                build_sunray
+                break
             ;;
-        "Rebuild sunray executable")
-            rebuild_sunray
-            break
+            ${options[1]})
+                rebuild_sunray
+                break
             ;;
-        "Install sunray executable on Alfred")
-            install_sunray_alfred
-            break
+            ${options[2]})
+                return
+             ;;
+            *) 
+                echo invalid option
             ;;
-        "Start sunray service")
-            start_sunray_service
-            break
-            ;;
-        "Stop sunray service")
-            stop_sunray_service
-            break
-            ;;            
-        "Start camera service")
-            start_cam_service
-            break
-            ;;
-        "Stop camera service")
-            stop_cam_service
-            break
-            ;;
-        "Start logging service")
-            start_log_service
-            break
-            ;;
-        "Stop logging service")
-            stop_log_service
-            break
-            ;;
-        "Start display manager")
-            start_dm
-            break
-            ;;                                        
-        "Stop display manager")
-            stop_dm
-            break
-            ;;                                        
-        "List services")
-            list
-            break
-            ;;                                        
-        "Show log")
-            showlog
-            break
-            ;;     
-        "Save log")
-            savelog
-            break
-            ;;
-        "Clear log")
-            clearlog
-            break
-            ;;
-        "Kernel log")
-            kernel_log
-            break
-            ;;                                   
-        "Quit")
-            break
-            ;;
-        *) echo "invalid option $REPLY";;
-    esac
-done
+        esac
+    done
+}
 
+
+
+linux_services_menu () {
+    options=(
+        "Install sunray executable on existing Alfred file system (Alfred-only)" 
+        "Start sunray service"
+        "Stop sunray service"
+        "Start camera service"
+        "Stop camera service"
+        "Start display manager"
+        "Stop display manager"
+        "List services"
+        "Back"
+    )
+    select option in "${options[@]}"; do
+        case $option in
+            ${options[0]})
+                install_sunray_alfred
+                break
+            ;;
+            ${options[1]})
+                start_sunray_service
+                break
+            ;;
+            ${options[2]})
+                stop_sunray_service
+                break
+            ;;
+            ${options[3]})
+                start_cam_service
+                break
+            ;;
+            ${options[4]})
+                stop_cam_service
+                break
+            ;;
+            ${options[5]})
+                start_log_service
+                break
+            ;;
+            ${options[6]})
+                stop_log_service
+                break
+            ;;
+            ${options[7]})
+                start_dm
+                break
+            ;;
+            ${options[8]})
+                stop_dm
+                break
+            ;;
+            ${options[9]})
+                list_services
+                break
+            ;;
+            ${options[10]})
+                return
+             ;;
+            *) 
+                echo invalid option
+            ;;
+        esac
+    done
+}
+
+
+
+linux_logging_menu () {
+    options=(
+        "Show log" 
+        "Save log"
+        "Clear log"
+        "Kernel log"
+        "Back"
+    )
+    select option in "${options[@]}"; do
+        case $option in
+            ${options[0]})
+                show_log
+                break
+            ;;
+            ${options[1]})
+                save_log
+                break
+            ;;
+            ${options[2]})
+                clear_log
+                break
+            ;;
+            ${options[3]})
+                kernel_log
+                break
+            ;;
+            ${options[4]})
+                return
+             ;;
+            *) 
+                echo invalid option
+            ;;
+        esac
+    done
+}
+
+
+
+main_menu () {
+    options=(
+        "Compile menu"
+        "Linux services menu"
+        "Linux logging menu"
+        "Quit"
+    )
+    select option in "${options[@]}"; do
+        case $option in
+            ${options[0]})
+                compile_menu
+                break
+            ;;
+            ${options[1]})
+                linux_services_menu
+                break
+            ;;
+            ${options[2]})
+                linux_logging_menu
+                break
+             ;;
+            ${options[3]})
+                exit
+             ;;
+            *) 
+                echo invalid option
+            ;;
+        esac
+    done
+}
+
+
+# show main menu
+main_menu
 
