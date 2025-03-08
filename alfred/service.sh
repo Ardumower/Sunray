@@ -304,6 +304,8 @@ linux_services_menu () {
         "Stop sunray service"
         "Start camera service (as Linux autostart)"
         "Stop camera service"
+        "Start Linux logging service"
+        "Stop Linux logging service"
         "Start display manager"
         "Stop display manager"
         "List services"
@@ -434,5 +436,9 @@ main_menu () {
 
 
 # show main menu
-main_menu
+while true
+do 
+  main_menu
+done
+
 
