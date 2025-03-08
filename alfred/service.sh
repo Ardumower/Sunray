@@ -404,6 +404,7 @@ linux_logging_menu () {
 
 
 main_menu () {
+    echo "Main menu (press CTRL+C to stop)"
     options=(
         "Compile and test menu"
         "Linux services menu"
