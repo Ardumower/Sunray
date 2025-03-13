@@ -4,6 +4,10 @@
 #include "ntripclient.h"
 
 
+#define NTRIP_RECONNECT_TIMEOUT 30000
+#define GGA_TIMEOUT 30000
+
+
 void NTRIPClient::begin(){
   CONSOLE.println("using NTRIPClient");  
   reconnectTimeout = 0;
@@ -39,7 +43,7 @@ void NTRIPClient::connectNTRIP(){
 void NTRIPClient::run(){
   if (millis() > reconnectTimeout){
     if (connected()) stop();          
-    reconnectTimeout = millis() + 10000;
+    reconnectTimeout = millis() + NTRIP_RECONNECT_TIMEOUT;
     if (millis() < ggaTimeout){
       CONSOLE.println("NTRIP disconnected - reconnecting...");
       connectNTRIP();
@@ -59,7 +63,7 @@ void NTRIPClient::run(){
     if (count > 0){
       CONSOLE.print("NTRIP:");
       CONSOLE.println(count);
-      reconnectTimeout = millis() + 10000;    
+      reconnectTimeout = millis() + NTRIP_RECONNECT_TIMEOUT;    
     }
   }
   // transfer GPS NMEA data (GGA message) to NTRIP client... 
@@ -71,7 +75,7 @@ void NTRIPClient::run(){
   }
   if (nmea != ""){    
     CONSOLE.print(nmea);
-    ggaTimeout = millis() + 30000;            
+    ggaTimeout = millis() + GGA_TIMEOUT;            
   }  
 }
 
