@@ -171,7 +171,7 @@ bool UBLOX::configure(){
       CONSOLE.print("...");
       if (idx == 0){
         // ----- USB protocols (Ardumower) ----------------- 
-        setValueSuccess &= configGPS.addCfgValset8(0x10780002, 0); // CFG-USBOUTPROT-NMEA   (off)
+        setValueSuccess &= configGPS.newCfgValset8(0x10780002, 0, VAL_LAYER_RAM); // CFG-USBOUTPROT-NMEA   (off)
         setValueSuccess &= configGPS.addCfgValset8(0x10770004, 0); // CFG-USBINPROT-RTCM3X  (off)
         setValueSuccess &= configGPS.addCfgValset8(0x10770001, 1); // CFG-USBINPROT-UBX     (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10770002, 0); // CFG-USBINPROT-NMEA    (off)
@@ -198,7 +198,7 @@ bool UBLOX::configure(){
       } 
       else if (idx == 2){
         // ----- uart1 messages (Ardumower) -----------------          
-        setValueSuccess &= configGPS.addCfgValset8(0x20910007, 0); // CFG-MSGOUT-UBX_NAV_PVT_UART1   (off)
+        setValueSuccess &= configGPS.newCfgValset8(0x20910007, 0, VAL_LAYER_RAM); // CFG-MSGOUT-UBX_NAV_PVT_UART1   (off)
         setValueSuccess &= configGPS.addCfgValset8(0x2091008e, 0); // CFG-MSGOUT-UBX_NAV_RELPOSNED_UART1  (off)
         setValueSuccess &= configGPS.addCfgValset8(0x20910034, 0); // CFG-MSGOUT-UBX_NAV_HPPOSLLH_UART1   (off)
         setValueSuccess &= configGPS.addCfgValset8(0x20910043, 0); // CFG-MSGOUT-UBX_NAV_VELNED_UART1     (off)
@@ -224,7 +224,7 @@ bool UBLOX::configure(){
       }
       else if (idx == 4){
         // uart2 protocols (Xbee/NTRIP)
-        setValueSuccess &= configGPS.addCfgValset8(0x10750001, 0); // CFG-UART2INPROT-UBX        (off)
+        setValueSuccess &= configGPS.newCfgValset8(0x10750001, 0, VAL_LAYER_RAM); // CFG-UART2INPROT-UBX        (off)
         setValueSuccess &= configGPS.addCfgValset8(0x10750002, 0); // CFG-UART2INPROT-NMEA       (off)
         setValueSuccess &= configGPS.addCfgValset8(0x10750004, enable); // CFG-UART2INPROT-RTCM3X     (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10760001, 0); // CFG-UART2OUTPROT-UBX       (off)
@@ -234,7 +234,7 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.addCfgValset32(0x40530001, 115200); // CFG-UART2-BAUDRATE
       
         // ----- uart1 protocols (Ardumower) --------------- 
-        setValueSuccess &= configGPS.addCfgValset8(0x10730001, enable); // CFG-UART1INPROT-UBX     (on)
+        setValueSuccess &= configGPS.newCfgValset8(0x10730001, enable, VAL_LAYER_RAM); // CFG-UART1INPROT-UBX     (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10730002, enable); // CFG-UART1INPROT-NMEA    (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10730004, enable); // CFG-UART1INPROT-RTCM3X  (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10740001, enable); // CFG-UART1OUTPROT-UBX    (on)
@@ -246,7 +246,7 @@ bool UBLOX::configure(){
         // we contrain altitude here (when receiver is started in docking station it may report a wrong 
         // altitude without correction data and SAPOS will not work with an unplausible reported altitute - the contrains are 
         // ignored once receiver is working in RTK mode)
-        setValueSuccess &= configGPS.addCfgValset8(0x20110011, 3); // CFG-NAVSPG-FIXMODE    (1=2d only, 2=3d only, 3=auto)
+        setValueSuccess &= configGPS.newCfgValset8(0x20110011, 3, VAL_LAYER_RAM); // CFG-NAVSPG-FIXMODE    (1=2d only, 2=3d only, 3=auto)
         setValueSuccess &= configGPS.addCfgValset8(0x10110013, 0); // CFG-NAVSPG-INIFIX3D   (no 3D fix required for initial solution)
         setValueSuccess &= configGPS.addCfgValset32(0x401100c1, 10000); // CFG-NAVSPG-CONSTR_ALT    (100m)
         
@@ -286,7 +286,7 @@ bool UBLOX::configure(){
       }
       else if (idx == 7){
         // ----- uart1 messages (Ardumower) -----------------  
-        setValueSuccess &= configGPS.addCfgValset8(0x20910007, 0); // CFG-MSGOUT-UBX_NAV_PVT_UART1   (off)
+        setValueSuccess &= configGPS.newCfgValset8(0x20910007, 0, VAL_LAYER_RAM); // CFG-MSGOUT-UBX_NAV_PVT_UART1   (off)
         setValueSuccess &= configGPS.addCfgValset8(0x2091008e, 1); // CFG-MSGOUT-UBX_NAV_RELPOSNED_UART1  (every solution)
         setValueSuccess &= configGPS.addCfgValset8(0x20910034, 1); // CFG-MSGOUT-UBX_NAV_HPPOSLLH_UART1   (every solution)
         setValueSuccess &= configGPS.addCfgValset8(0x20910043, 1); // CFG-MSGOUT-UBX_NAV_VELNED_UART1     (every solution)
@@ -296,12 +296,12 @@ bool UBLOX::configure(){
       }
       else if (idx == 8){
         // ----- USB protocols (Ardumower) ----------------- 
-        setValueSuccess &= configGPS.addCfgValset8(0x10770001, 1); // CFG-USBINPROT-UBX     (on)
+        setValueSuccess &= configGPS.newCfgValset8(0x10770001, 1, VAL_LAYER_RAM); // CFG-USBINPROT-UBX     (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10770002, 0); // CFG-USBINPROT-NMEA    (off)        
         setValueSuccess &= configGPS.addCfgValset8(0x10780001, 1); // CFG-USBOUTPROT-UBX    (on)
-        setValueSuccess &= configGPS.sendCfgValset8(0x10780004, 0, timeout); // CFG-USBOUTPROT-RTCM3X (off)
+        setValueSuccess &= configGPS.addCfgValset8(0x10780004, 0); // CFG-USBOUTPROT-RTCM3X (off)
         setValueSuccess &= configGPS.addCfgValset8(0x10770004, !enable); // CFG-USBINPROT-RTCM3X  (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10780002, !enable); // CFG-USBOUTPROT-NMEA   (on)
+        setValueSuccess &= configGPS.sendCfgValset8(0x10780002, !enable, timeout); // CFG-USBOUTPROT-NMEA   (on)
       }
       delay(100);
       if (setValueSuccess){
