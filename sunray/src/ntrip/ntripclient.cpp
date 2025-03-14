@@ -82,8 +82,8 @@ void NTRIPClient::run(){
       //  nmea += ch;        
       //}
       nmea += nmeaGGAMessage;
-      if (connected()) println(nmea);             // send to NTRIP caster/server          
     #endif
+    if (connected()) println(nmea);             // send to NTRIP caster/server          
     if (nmea != ""){    
       CONSOLE.print("GPS(GGA):");
       CONSOLE.println(nmea);
