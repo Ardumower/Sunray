@@ -136,7 +136,7 @@ bool LinuxCAN::runRx(){
 	while (true){
 		int nbytes = ::read(sock, &frame, sizeof(struct can_frame));		
 		
-		if (nbytes == 0) break;
+		if (nbytes == 0) return true;
 		struct timeval tv;
 		ioctl(sock, SIOCGSTAMP_KERNEL, &tv);
 		
@@ -153,6 +153,7 @@ bool LinuxCAN::runRx(){
 		}
 		frameCounterRx++;
 	}
+	return true;
 }
 
 bool LinuxCAN::runTx(){
