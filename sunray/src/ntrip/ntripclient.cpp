@@ -72,7 +72,7 @@ void NTRIPClient::run(){
   String nmea = "";
   #ifdef NTRIP_SIM_GGA_MESSAGE
     if (millis() > nextSimGGATime){
-      nextSimGGATime = millis() + 1000;
+      nextSimGGATime = millis() + 60000;  // every 60 secs
       nmea += NTRIP_SIM_GGA_MESSAGE;
     }
   #else
