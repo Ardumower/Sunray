@@ -57,12 +57,15 @@ void NTRIPClient::run(){
   if (connected()) {
     // transfer NTRIP client data to GPS...
     int count = 0;        
+    byte buffer[8192];    
     while(available()) {
-      byte ch = read();  
-      gpsDriver->send(ch);
-      count++;            
+      byte ch = read();
+      buffer[count] = ch;  
+      count++;
+      if (count == 8192) break;            
       //CONSOLE.print(ch);            
     }
+    if (count != 0) gpsDriver->send(buffer, count);
     if (count > 0){
       CONSOLE.print("NTRIP bytes:");
       CONSOLE.println(count);

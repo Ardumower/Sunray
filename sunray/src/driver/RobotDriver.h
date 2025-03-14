@@ -173,7 +173,8 @@ class GpsDriver {
     virtual void reboot() = 0;
 
     // should send to GPS receiver
-    virtual void send(byte data) = 0; 
+    virtual void send(const uint8_t *buffer, size_t size) = 0;
+
 
     // decodes iTOW into hour, min, sec and dayOfWeek(0=Monday)
     virtual void decodeTOW(){ 

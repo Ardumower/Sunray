@@ -344,8 +344,8 @@ void UBLOX::reboot(){
   configGPS.GNSSRestart();
 }
 
-void UBLOX::send(byte data){
-  _bus->write(data); // send message to ublox receiver
+void UBLOX::send(const uint8_t *buffer, size_t size){
+  _bus->write(buffer, size); // send message to ublox receiver
 }
     
 

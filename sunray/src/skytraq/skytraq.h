@@ -36,7 +36,7 @@ class SKYTRAQ : public SkyTraqNotifyFun, public GpsDriver {
     void run() override;
     bool configure() override;  
     void reboot() override;
-    void send(byte data) override;  
+    void send(const uint8_t *buffer, size_t size) override;  
   private:
     // The SkyTraqNmeaParser object
     SkyTraqNmeaParser parser;
