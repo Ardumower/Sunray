@@ -675,7 +675,7 @@ void start(){
   // initialize ESP module
   startWIFI();
   #ifdef ENABLE_NTRIP
-    ntrip.begin();  
+    ntrip.begin(&gps);  
   #endif
   
   watchdogEnable(15000L);   // 15 seconds  
@@ -919,7 +919,8 @@ bool detectObstacleRotation(){
 // robot main loop
 void run(){  
   #ifdef ENABLE_NTRIP
-    ntrip.run();
+    ntrip.nmeaGGAMessage = gps.nmeaGGAMessage; // transfer NMEA GGA message to NTRIP client    
+    ntrip.run();    
   #endif
   #ifdef DRV_SIM_ROBOT
     tester.run();

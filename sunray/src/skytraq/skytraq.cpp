@@ -80,6 +80,10 @@ bool SKYTRAQ::configure(){
 void SKYTRAQ::reboot(){
 }
 
+void SKYTRAQ::send(byte data){
+  _bus->write(data);  
+}
+    
 // --------- skytraq binary parser (TODO) -----------
 
 void SKYTRAQ::parseBinary(int b)

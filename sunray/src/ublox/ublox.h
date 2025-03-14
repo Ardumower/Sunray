@@ -40,6 +40,7 @@ class UBLOX : public GpsDriver {
     UBLOX();
     void begin(Client &client, char *host, uint16_t port) override;
     void begin(HardwareSerial& bus,uint32_t baud) override;
+    void send(byte data) override;
     void run() override;
     bool configure() override;  
     void reboot() override;
@@ -58,6 +59,7 @@ class UBLOX : public GpsDriver {
     char payload[2000];                                          
     bool debug;
     bool verbose;
+    String unparsedMessage;
     unsigned long solutionTimeout;    
 
     void begin();

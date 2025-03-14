@@ -7,20 +7,25 @@
   //#include <WiFiClient.h>
 #include <Arduino.h>
 #include "base64.h"
+#include "../driver/RobotDriver.h"
+
+
 
 // TODO: should not extend WiFiClient to make it reusable
 class NTRIPClient : public WiFiClient{
   protected:
+    GpsDriver *gpsDriver;
     unsigned long reconnectTimeout;
     unsigned long ggaTimeout;
-    unsigned long nextSimGGATime;
+    unsigned long nextGGASendTime;
     void connectNTRIP();
     bool reqSrcTbl(char* host,int port);   //request MountPoints List serviced the NTRIP Caster 
     bool reqRaw(char* host,int port,char* mntpnt,char* user,char* psw);      //request RAW data from Caster 
     bool reqRaw(char* host,int port,char* mntpnt); //non user
     int readLine(char* buffer,int size);
   public :
-    void begin();    
+    String nmeaGGAMessage; // next NMEA message to send to NTRIP caster/server
+    void begin(GpsDriver *aGpsDriver);    
     void run();        
   
 };

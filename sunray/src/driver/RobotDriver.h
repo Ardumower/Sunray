@@ -160,6 +160,7 @@ class GpsDriver {
     int mins;          // UTC time minute (0..59)
     int sec;           // UTC time second (0..60) (incl. leap second)
     int dayOfWeek;     // UTC dayOfWeek (0=Monday)
+    String nmeaGGAMessage; // last NMEA-GGA message from GPS receiver
     // start tcp receiver
     virtual void begin(Client &client, char *host, uint16_t port) = 0;
     // start serial receiver          
@@ -170,6 +171,9 @@ class GpsDriver {
     virtual bool configure() = 0; 
     // should reboot receiver
     virtual void reboot() = 0;
+
+    // should send to GPS receiver
+    virtual void send(byte data) = 0; 
 
     // decodes iTOW into hour, min, sec and dayOfWeek(0=Monday)
     virtual void decodeTOW(){ 

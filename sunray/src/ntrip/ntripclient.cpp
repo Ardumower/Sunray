@@ -9,12 +9,13 @@
 
 
 
-void NTRIPClient::begin(){
+void NTRIPClient::begin(GpsDriver *aGpsDriver){
   CONSOLE.println("using NTRIPClient");  
   reconnectTimeout = 0;
   ggaTimeout = 0;
-  nextSimGGATime = 0;
-  NTRIP.begin(115200);
+  nextGGASendTime = 0;
+  gpsDriver = aGpsDriver;
+  //NTRIP.begin(115200);
 }
 
 void NTRIPClient::connectNTRIP(){
@@ -55,10 +56,10 @@ void NTRIPClient::run(){
   }          
   if (connected()) {
     // transfer NTRIP client data to GPS...
-    int count = 0;    
+    int count = 0;        
     while(available()) {
-      char ch = read();  
-      NTRIP.write(ch);  // send to GPS receiver (GPS receiver NTRIP serial port)
+      byte ch = read();  
+      gpsDriver->send(ch);
       count++;            
       //CONSOLE.print(ch);            
     }
@@ -68,24 +69,26 @@ void NTRIPClient::run(){
       reconnectTimeout = millis() + NTRIP_RECONNECT_TIMEOUT;    
     }
   }
-  // transfer GPS NMEA data (GGA message) to NTRIP client... 
-  String nmea = "";
-  #ifdef NTRIP_SIM_GGA_MESSAGE
-    if (millis() > nextSimGGATime){
-      nextSimGGATime = millis() + 10000;  // every 10 secs
+  // transfer GPS NMEA data (GGA message) to NTRIP caster/server... 
+  if (millis() > nextGGASendTime){
+    nextGGASendTime = millis() + 10000;  // every 10 secs  
+    String nmea = "";
+    #ifdef NTRIP_SIM_GGA_MESSAGE
       nmea += NTRIP_SIM_GGA_MESSAGE;
+    #else        
+      //while (NTRIP.available()){
+      //   char ch = NTRIP.read();
+      //  if (connected()) write(ch);             // send to NTRIP caster/server
+      //  nmea += ch;        
+      //}
+      nmea += nmeaGGAMessage;
+      if (connected()) println(nmea);             // send to NTRIP caster/server          
+    #endif
+    if (nmea != ""){    
+      CONSOLE.print("GPS(GGA):");
+      CONSOLE.println(nmea);
+      ggaTimeout = millis() + GGA_TIMEOUT;            
     }
-  #else
-    while (NTRIP.available()){
-      char ch = NTRIP.read();
-      if (connected()) write(ch);             // send to NTRIP client
-      nmea += ch;        
-    }
-  #endif
-  if (nmea != ""){    
-    CONSOLE.print("GPS(GGA):");
-    CONSOLE.println(nmea);
-    ggaTimeout = millis() + GGA_TIMEOUT;            
   }  
 }
 
