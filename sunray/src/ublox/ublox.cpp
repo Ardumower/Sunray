@@ -159,14 +159,24 @@ bool UBLOX::configure(){
   int timeout = 2000;
   int idx = 0;
   int succeeded = 0;
-  for (int idx=0; idx < 3; idx++){
+  for (int idx=0; idx < 9; idx++){
     for (int i=1; i < 3; i++){
       bool setValueSuccess = true;
       CONSOLE.print("idx=");
       CONSOLE.print(idx);
       CONSOLE.print("...");
       if (idx == 0){
-        // ----- USB messages (Ardumower) -----------------  
+        // ----- USB protocols (Ardumower) ----------------- 
+        setValueSuccess &= configGPS.addCfgValset8(0x10770001, 1); // CFG-USBINPROT-UBX     (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10770002, 0); // CFG-USBINPROT-NMEA    (off)
+        setValueSuccess &= configGPS.addCfgValset8(0x10770004, 0); // CFG-USBINPROT-RTCM3X  (off)
+        setValueSuccess &= configGPS.addCfgValset8(0x10780001, 1); // CFG-USBOUTPROT-UBX    (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10780002, 0); // CFG-USBOUTPROT-NMEA   (off)
+        setValueSuccess &= configGPS.addCfgValset8(0x10780004, 0); // CFG-USBOUTPROT-RTCM3X (off) 
+
+      } 
+      else if (idx == 1){
+        // ----- USB messages (Ardumower) -----------------        
         setValueSuccess &= configGPS.addCfgValset8(0x10770004, 0); // CFG-USBINPROT-RTCM3X  (off)
         setValueSuccess &= configGPS.addCfgValset8(0x10780002, 0); // CFG-USBOUTPROT-NMEA   (off)
         setValueSuccess &= configGPS.newCfgValset8(0x20910009, 0, VAL_LAYER_RAM); // CFG-MSGOUT-UBX_NAV_PVT_USB    (off)
@@ -176,8 +186,15 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.addCfgValset8(0x2091026b, 0); // CFG-MSGOUT-UBX_RXM_RTCM_USB   (off)
         setValueSuccess &= configGPS.addCfgValset8(0x20910348, 0); // CFG-MSGOUT-UBX_NAV_SIG_USB   (off)
         setValueSuccess &= configGPS.addCfgValset8(0x2091005e, 0); // CFG-MSGOUT-UBX_NAV_TIMEUTC_USB   (off)
+        setValueSuccess &= configGPS.addCfgValset8(0x20910352, 0); // CFG-MSGOUT-UBX-MON-COMMS_USB   (off)
         setValueSuccess &= configGPS.addCfgValset8(0x209100bd, 0); // CFG-MSGOUT-NMEA_ID_GGA_USB   (off)
-        
+        setValueSuccess &= configGPS.addCfgValset8(0x209100c7, 0); // CFG-MSGOUT-NMEA_ID_GSV_USB   (off)
+        setValueSuccess &= configGPS.addCfgValset8(0x209100cc, 0); // CFG-MSGOUT-NMEA_ID_GLL_USB   (off)      
+        setValueSuccess &= configGPS.addCfgValset8(0x209100b3, 0); // CFG-MSGOUT-NMEA_ID_VTG_USB   (off)
+        setValueSuccess &= configGPS.addCfgValset8(0x209100c2, 0); // CFG-MSGOUT-NMEA_ID_GSA_USB   (off)
+        setValueSuccess &= configGPS.addCfgValset8(0x209100ae, 0); // CFG-MSGOUT-NMEA_ID_RMC_USB   (off)          
+      } 
+      else if (idx == 2){
         // ----- uart1 messages (Ardumower) -----------------          
         setValueSuccess &= configGPS.addCfgValset8(0x20910007, 0); // CFG-MSGOUT-UBX_NAV_PVT_UART1   (off)
         setValueSuccess &= configGPS.addCfgValset8(0x2091008e, 0); // CFG-MSGOUT-UBX_NAV_RELPOSNED_UART1  (off)
@@ -187,7 +204,7 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.addCfgValset8(0x20910346, 0); // CFG-MSGOUT-UBX_NAV_SIG_UART1   (off)
         setValueSuccess &= configGPS.sendCfgValset8(0x2091005c, timeout); // CFG-MSGOUT-UBX_NAV_TIMEUTC_UART1   (off)
       }
-      else if (idx == 1){
+      else if (idx == 3){
         setValueSuccess &= configGPS.newCfgValset8(0x209100a8, 0, VAL_LAYER_RAM); // CFG-MSGOUT-NMEA_ID_DTM_UART2  (off)
         setValueSuccess &= configGPS.addCfgValset8(0x209100df, 0); // CFG-MSGOUT-NMEA_ID_GBS_UART2   (off)
         setValueSuccess &= configGPS.addCfgValset8(0x209100bc, 60); // CFG-MSGOUT-NMEA_ID_GGA_UART2  (every 60 solutions)
@@ -202,6 +219,8 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.addCfgValset8(0x209100e9, 0); // CFG-MSGOUT-NMEA_ID_VLW_UART2   (off)
         setValueSuccess &= configGPS.addCfgValset8(0x209100b2, 0); // CFG-MSGOUT-NMEA_ID_VTG_UART2   (off)
         setValueSuccess &= configGPS.addCfgValset8(0x209100da, 0);  // CFG-MSGOUT-NMEA_ID_ZDA_UART2  (off)
+      }
+      else if (idx == 4){
         // uart2 protocols (Xbee/NTRIP)
         setValueSuccess &= configGPS.addCfgValset8(0x10750001, 0); // CFG-UART2INPROT-UBX        (off)
         setValueSuccess &= configGPS.addCfgValset8(0x10750002, 0); // CFG-UART2INPROT-NMEA       (off)
@@ -219,15 +238,8 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.addCfgValset8(0x10740001, 1); // CFG-UART1OUTPROT-UBX    (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10740002, 0); // CFG-UART1OUTPROT-NMEA   (off)
         setValueSuccess &= configGPS.addCfgValset8(0x10740004, 0); // CFG-UART1OUTPROT-RTCM3X (off) 
-      
-        // ----- USB protocols (Ardumower) ----------------- 
-        setValueSuccess &= configGPS.addCfgValset8(0x10770001, 1); // CFG-USBINPROT-UBX     (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10770002, 0); // CFG-USBINPROT-NMEA    (off)
-        setValueSuccess &= configGPS.addCfgValset8(0x10770004, 1); // CFG-USBINPROT-RTCM3X  (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10780001, 1); // CFG-USBOUTPROT-UBX    (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10780002, 1); // CFG-USBOUTPROT-NMEA   (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10780004, 0); // CFG-USBOUTPROT-RTCM3X (off) 
-      
+      }
+      else if (idx == 5){        
         // ---- gps fix mode ---------------------------------------------    
         // we contrain altitude here (when receiver is started in docking station it may report a wrong 
         // altitude without correction data and SAPOS will not work with an unplausible reported altitute - the contrains are 
@@ -258,7 +270,7 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.addCfgValset16(0x30210001, 200); // CFG-RATE-MEAS       (measurement period 200 ms)  
         setValueSuccess &= configGPS.sendCfgValset16(0x30210002, 1,   timeout); //CFG-RATE-NAV  (navigation rate cycles 1)  
       } 
-      else if (idx == 2){
+      else if (idx == 6){
         // ----- USB messages (Ardumower) -----------------  
         setValueSuccess &= configGPS.newCfgValset8(0x20910009, 0, VAL_LAYER_RAM); // CFG-MSGOUT-UBX_NAV_PVT_USB    (off)        
         setValueSuccess &= configGPS.addCfgValset8(0x20910090, 1); // CFG-MSGOUT-UBX_NAV_RELPOSNED_USB  (every solution)
@@ -268,7 +280,9 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.addCfgValset8(0x20910348, 20); // CFG-MSGOUT-UBX_NAV_SIG_USB   (every 20 solutions)
         setValueSuccess &= configGPS.addCfgValset8(0x2091005e, 0); // CFG-MSGOUT-UBX_NAV_TIMEUTC_USB   (off)   
         setValueSuccess &= configGPS.addCfgValset8(0x209100bd, 60); // CFG-MSGOUT-NMEA_ID_GGA_USB   (every 60 solutions)
-
+        setValueSuccess &= configGPS.addCfgValset8(0x20910352, 1); // CFG-MSGOUT-UBX-MON-COMMS_USB   (every 20 solutions)
+      }
+      else if (idx == 7){
         // ----- uart1 messages (Ardumower) -----------------  
         setValueSuccess &= configGPS.addCfgValset8(0x20910007, 0); // CFG-MSGOUT-UBX_NAV_PVT_UART1   (off)
         setValueSuccess &= configGPS.addCfgValset8(0x2091008e, 1); // CFG-MSGOUT-UBX_NAV_RELPOSNED_UART1  (every solution)
@@ -276,7 +290,17 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.addCfgValset8(0x20910043, 1); // CFG-MSGOUT-UBX_NAV_VELNED_UART1     (every solution)
         setValueSuccess &= configGPS.addCfgValset8(0x20910269, 5); // CFG-MSGOUT-UBX_RXM_RTCM_UART1   (every 5 solutions)
         setValueSuccess &= configGPS.addCfgValset8(0x20910346, 20); // CFG-MSGOUT-UBX_NAV_SIG_UART1   (every 20 solutions)  
-        setValueSuccess &= configGPS.sendCfgValset8(0x2091005c, 0, timeout); // CFG-MSGOUT-UBX_NAV_TIMEUTC_UART1   (off)  
+        setValueSuccess &= configGPS.addCfgValset8(0x2091005c, 0); // CFG-MSGOUT-UBX_NAV_TIMEUTC_UART1   (off)  
+      }
+      else if (idx == 8){
+        // ----- USB protocols (Ardumower) ----------------- 
+        setValueSuccess &= configGPS.addCfgValset8(0x10770001, 1); // CFG-USBINPROT-UBX     (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10770002, 0); // CFG-USBINPROT-NMEA    (off)
+        setValueSuccess &= configGPS.addCfgValset8(0x10770004, 1); // CFG-USBINPROT-RTCM3X  (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10780001, 1); // CFG-USBOUTPROT-UBX    (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10780002, 1); // CFG-USBOUTPROT-NMEA   (on)
+        setValueSuccess &= configGPS.sendCfgValset8(0x10780004, 0, timeout); // CFG-USBOUTPROT-RTCM3X (off) 
+
       }
       if (setValueSuccess){
         CONSOLE.println("OK");
@@ -287,7 +311,7 @@ bool UBLOX::configure(){
       }
     }    
   }
-  if (succeeded == 3){ 
+  if (succeeded == 9){ 
     CONSOLE.println("config sent successfully");
     return true;
   }
@@ -315,8 +339,10 @@ void UBLOX::parse(int b)
   
   if ( (this->state == GOT_NONE) || (this->state == GOT_SYNC1) ) {
     char ch = char(b);
+    if (ch == '$') unparsedMessage = "";    
     unparsedMessage += ch;
     if ((ch == '\r') || (ch == '\n')) {
+      CONSOLE.println(unparsedMessage);
       if (unparsedMessage.startsWith("$GNGGA")) {
         nmeaGGAMessage = unparsedMessage;
         nmeaGGAMessage.trim();
@@ -410,7 +436,7 @@ void UBLOX::parse(int b)
 
       if (b == this->chkb) {
           this->dispatchMessage();
-          this->state = GOT_NONE;
+          this->state = GOT_NONE;          
       }
 
       else {
@@ -441,7 +467,7 @@ void UBLOX::dispatchMessage() {
     if (verbose) CONSOLE.println();
     switch (this->msgclass){
       case 0x01:
-        switch (this->msgid) {
+        switch (this->msgid) {          
           case 0x021:
             { // UBX-NAV-TIMEUTC
               iTOW = (unsigned long)this->unpack_int32(0);
@@ -636,6 +662,39 @@ void UBLOX::dispatchMessage() {
               dgpsAge = millis();
             }
             break;            
+        }
+        break;
+
+      case 0x0a:
+        switch (this->msgid){   
+          case 0x036:
+            {
+              // UBX-MON-COMMS
+              byte version = (unsigned char)this->unpack_int8(0); 
+              CONSOLE.print("UBX-MON-COMMS v");
+              CONSOLE.println(version);
+              if (version == 0){
+                byte nPorts = (unsigned char)this->unpack_int8(1); 
+                for (int i=0; i < nPorts; i++) {
+                  unsigned short portId = (unsigned short)this->unpack_int16(8 + i*40);                   
+                  const uint8_t portBank = portId & 0xff;
+                  const uint8_t portNo   = (portId >> 8) & 0xff;
+                  unsigned long skippedBytes = (unsigned long)this->unpack_int32(44 + i*40); 
+                  CONSOLE.print("port: ");
+                  switch (portNo){
+                    case 0: CONSOLE.print("I2C"); break;
+                    case 1: CONSOLE.print("UART1"); break;
+                    case 2: CONSOLE.print("UART2"); break;
+                    case 3: CONSOLE.print("USB"); break;
+                    case 4: CONSOLE.print("SPI"); break;
+                    default: CONSOLE.print(portId, HEX);
+                  }
+                  CONSOLE.print(" skipped bytes: ");
+                  CONSOLE.println(skippedBytes);
+                }
+              } 
+            }
+            break;
         }
         break;
     }    
