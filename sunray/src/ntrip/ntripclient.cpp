@@ -73,7 +73,7 @@ void NTRIPClient::run(){
   #ifdef NTRIP_SIM_GGA_MESSAGE
     if (millis() > nextSimGGATime){
       nextSimGGATime = millis() + 1000;
-      nmea += SIM_GGA_MESSAGE;
+      nmea += NTRIP_SIM_GGA_MESSAGE;
     }
   #else
     while (NTRIP.available()){
