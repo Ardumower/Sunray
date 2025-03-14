@@ -318,7 +318,7 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.sendCfgValset8(0x10770001, 1, timeout); // CFG-USBINPROT-UBX     (on)
         #endif
       }
-      delay(300);
+      delay(1000);
       if (setValueSuccess){
         CONSOLE.println("OK");
         succeeded++;
