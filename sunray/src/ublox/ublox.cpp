@@ -156,6 +156,10 @@ bool UBLOX::configure(){
     
   CONSOLE.println("ublox f9p: sending GPS rover configuration...");
 
+  int enable = 1; 
+  #ifdef ENABLE_NTRIP
+    enable = 0; 
+  #endif
   int timeout = 2000;
   int idx = 0;
   int succeeded = 0;
@@ -222,18 +226,18 @@ bool UBLOX::configure(){
         // uart2 protocols (Xbee/NTRIP)
         setValueSuccess &= configGPS.addCfgValset8(0x10750001, 0); // CFG-UART2INPROT-UBX        (off)
         setValueSuccess &= configGPS.addCfgValset8(0x10750002, 0); // CFG-UART2INPROT-NMEA       (off)
-        setValueSuccess &= configGPS.addCfgValset8(0x10750004, 1); // CFG-UART2INPROT-RTCM3X     (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10750004, enable); // CFG-UART2INPROT-RTCM3X     (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10760001, 0); // CFG-UART2OUTPROT-UBX       (off)
-        setValueSuccess &= configGPS.addCfgValset8(0x10760002, 1); // CFG-UART2OUTPROT-NMEA      (on) 
+        setValueSuccess &= configGPS.addCfgValset8(0x10760002, enable); // CFG-UART2OUTPROT-NMEA      (on) 
         setValueSuccess &= configGPS.addCfgValset8(0x10760004, 0); // CFG-UART2OUTPROT-RTCM3X    (off)
         // uart2 baudrate  (Xbee/NTRIP)
         setValueSuccess &= configGPS.addCfgValset32(0x40530001, 115200); // CFG-UART2-BAUDRATE
       
         // ----- uart1 protocols (Ardumower) --------------- 
-        setValueSuccess &= configGPS.addCfgValset8(0x10730001, 1); // CFG-UART1INPROT-UBX     (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10730002, 1); // CFG-UART1INPROT-NMEA    (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10730004, 1); // CFG-UART1INPROT-RTCM3X  (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10740001, 1); // CFG-UART1OUTPROT-UBX    (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10730001, enable); // CFG-UART1INPROT-UBX     (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10730002, enable); // CFG-UART1INPROT-NMEA    (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10730004, enable); // CFG-UART1INPROT-RTCM3X  (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10740001, enable); // CFG-UART1OUTPROT-UBX    (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10740002, 0); // CFG-UART1OUTPROT-NMEA   (off)
         setValueSuccess &= configGPS.sendCfgValset8(0x10740004, 0, timeout); // CFG-UART1OUTPROT-RTCM3X (off) 
       }
@@ -296,8 +300,8 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.addCfgValset8(0x10770002, 0); // CFG-USBINPROT-NMEA    (off)        
         setValueSuccess &= configGPS.addCfgValset8(0x10780001, 1); // CFG-USBOUTPROT-UBX    (on)
         setValueSuccess &= configGPS.sendCfgValset8(0x10780004, 0, timeout); // CFG-USBOUTPROT-RTCM3X (off)
-        setValueSuccess &= configGPS.addCfgValset8(0x10770004, 1); // CFG-USBINPROT-RTCM3X  (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10780002, 1); // CFG-USBOUTPROT-NMEA   (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10770004, !enable); // CFG-USBINPROT-RTCM3X  (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10780002, !enable); // CFG-USBOUTPROT-NMEA   (on)
       }
       delay(100);
       if (setValueSuccess){
