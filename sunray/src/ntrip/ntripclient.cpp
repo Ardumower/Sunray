@@ -70,7 +70,7 @@ void NTRIPClient::run(){
   }
   // transfer GPS NMEA data (GGA message) to NTRIP client... 
   String nmea = "";
-  #ifdef SIM_GGA_MESSAGE
+  #ifdef NTRIP_SIM_GGA_MESSAGE
     if (millis() > nextSimGGATime){
       nextSimGGATime = millis() + 1000;
       nmea += SIM_GGA_MESSAGE;
