@@ -302,6 +302,7 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.sendCfgValset8(0x10780004, 0, timeout); // CFG-USBOUTPROT-RTCM3X (off) 
 
       }
+      delay(100);
       if (setValueSuccess){
         CONSOLE.println("OK");
         succeeded++;
