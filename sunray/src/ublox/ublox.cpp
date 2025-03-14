@@ -234,7 +234,7 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.addCfgValset32(0x40530001, 115200); // CFG-UART2-BAUDRATE
       
         // ----- uart1 protocols (Ardumower) --------------- 
-        setValueSuccess &= configGPS.newCfgValset8(0x10730001, enable, VAL_LAYER_RAM); // CFG-UART1INPROT-UBX     (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10730001, enable); // CFG-UART1INPROT-UBX     (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10730002, enable); // CFG-UART1INPROT-NMEA    (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10730004, enable); // CFG-UART1INPROT-RTCM3X  (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10740001, enable); // CFG-UART1OUTPROT-UBX    (on)
@@ -282,7 +282,7 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.addCfgValset8(0x20910348, 20); // CFG-MSGOUT-UBX_NAV_SIG_USB   (every 20 solutions)
         setValueSuccess &= configGPS.addCfgValset8(0x2091005e, 0); // CFG-MSGOUT-UBX_NAV_TIMEUTC_USB   (off)   
         setValueSuccess &= configGPS.addCfgValset8(0x209100bd, 60); // CFG-MSGOUT-NMEA_ID_GGA_USB   (every 60 solutions)
-        setValueSuccess &= configGPS.sendCfgValset8(0x20910352, 20, timeout); // CFG-MSGOUT-UBX-MON-COMMS_USB   (every 20 solutions)
+        setValueSuccess &= configGPS.sendCfgValset8(0x20910352, 5, timeout); // CFG-MSGOUT-UBX-MON-COMMS_USB   (every 20 solutions)
       }
       else if (idx == 7){
         // ----- uart1 messages (Ardumower) -----------------  
