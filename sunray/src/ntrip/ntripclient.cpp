@@ -8,10 +8,12 @@
 #define GGA_TIMEOUT 30000
 
 
+
 void NTRIPClient::begin(){
   CONSOLE.println("using NTRIPClient");  
   reconnectTimeout = 0;
   ggaTimeout = 0;
+  nextSimGGATime = 0;
   NTRIP.begin(115200);
 }
 
@@ -61,20 +63,28 @@ void NTRIPClient::run(){
       //CONSOLE.print(ch);            
     }
     if (count > 0){
-      CONSOLE.print("NTRIP:");
+      CONSOLE.print("NTRIP bytes:");
       CONSOLE.println(count);
       reconnectTimeout = millis() + NTRIP_RECONNECT_TIMEOUT;    
     }
   }
   // transfer GPS NMEA data (GGA message) to NTRIP client... 
   String nmea = "";
-  while (NTRIP.available()){
-    char ch = NTRIP.read();
-    if (connected()) write(ch);             // send to NTRIP client
-    nmea += ch;        
-  }
+  #ifdef SIM_GGA_MESSAGE
+    if (millis() > nextSimGGATime){
+      nextSimGGATime = millis() + 1000;
+      nmea += SIM_GGA_MESSAGE;
+    }
+  #else
+    while (NTRIP.available()){
+      char ch = NTRIP.read();
+      if (connected()) write(ch);             // send to NTRIP client
+      nmea += ch;        
+    }
+  #endif
   if (nmea != ""){    
-    CONSOLE.print(nmea);
+    CONSOLE.print("GPS(GGA):");
+    CONSOLE.println(nmea);
     ggaTimeout = millis() + GGA_TIMEOUT;            
   }  
 }
@@ -90,7 +100,7 @@ bool NTRIPClient::reqSrcTbl(char* host,int port)
   p = p + String("User-Agent: NTRIP Enbeded\r\n");*/
   print(
       "GET / HTTP/1.0\r\n"
-      "User-Agent: NTRIPClient for Arduino v1.0\r\n"
+      "User-Agent: " NTRIP_CLIENT_AGENT_NAME "\r\n"
       );
   unsigned long timeout = millis();
   while (available() == 0) {
@@ -119,7 +129,7 @@ bool NTRIPClient::reqRaw(char* host,int port,char* mntpnt,char* user,char* psw)
     CONSOLE.println("Request NTRIP");
     
     p = p + mntpnt + String(" HTTP/1.0\r\n"
-        "User-Agent: NTRIPClient for Arduino v1.0\r\n"
+        "User-Agent: " NTRIP_CLIENT_AGENT_NAME  "\r\n"
     );
     
     if (strlen(user)==0) {

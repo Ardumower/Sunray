@@ -244,6 +244,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define NTRIP_MOUNT "VRS_3_4G_NW"
 #define NTRIP_USER "user"
 #define NTRIP_PASS "pass"
+#define NTRIP_CLIENT_AGENT_NAME "NTRIPClient for Arduino v1.0"
+// simulate GPS GGA message (do not use GPS to read GGA message)? (comment to disable)
+//#define NTRIP_SIM_GGA_MESSAGE = "$GNGGA,082947.40,52.271514,N,8.686797,E,1,12,0.67,34.2,M,41.1,M,,*7F"
 
 // ------ MQTT (for ESP8266 only, highly experimental - ENABLE_SERVER must be set to false for this to work :-/ ) -----------------------------
 // you can access your robot using a MQTT broker - choose a topic prefix for your robot below - available MQTT topics:
