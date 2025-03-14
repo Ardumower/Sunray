@@ -238,6 +238,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define UDP_SERVER_PORT 4210
 
 // --------- NTRIP client (linux only, highly experimental) ---------------------------------
+// you can activate an NTRIP client to receive RTK RTCM data from an NTRIP caster/server and to send this data 
+// (via USB-serial-adapter, configure serial path further below via 'SERIAL_NTRIP_PATH') to the ublox receiver (ublox port UART2) - 
+// some NTRIP casters require NMEA-GGA data, you can either use a fix (simulated) GGA message or use the ublox receiver to send NMEA-GGA data
+// (Sunray will properly configure the ublox receiver for this, if 'GPS_CONFIG true')
 //#define ENABLE_NTRIP 1            // must be activated to use Linux NTRIP
 #define NTRIP_HOST "195.227.70.119"   // sapos nrw
 #define NTRIP_PORT 2101
