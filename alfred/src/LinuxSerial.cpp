@@ -11,6 +11,28 @@
 #include "LinuxSerial.h"
 
 
+void *linuxSerialRxThreadFun(void *user_data)
+{
+    LinuxSerial *ser = (LinuxSerial*)user_data;
+	  while (true){
+	    ser->runRx();
+      delayMicroseconds(500);
+	  }
+	  return NULL;
+}
+
+
+void *linuxSerialTxThreadFun(void *user_data)
+{
+    LinuxSerial *ser = (LinuxSerial*)user_data;
+	  while (true){
+	    ser->runTx();
+      delayMicroseconds(500);
+	  }
+	  return NULL;
+}
+
+
 void LinuxSerial::begin(const char *devicePath){    
   open(devicePath);
 }
@@ -26,6 +48,7 @@ void LinuxSerial::begin(uint32_t baudrate){
 
   
 bool LinuxSerial::setBaudrate(uint32_t baudrate){
+  if(!_stream) return false;    
   ::printf("setting baudrate %s %d...\n", devPath.c_str(), baudrate);
   struct termios newtermios;  
   tcgetattr(_stream, &_termios);
@@ -68,6 +91,11 @@ bool LinuxSerial::open(const char *devicePath){
     ::printf("could not open serial port %s\n", devicePath);
     return false;
   }
+  if (thread_rx_id == 0){    
+    ::printf("starting serial threads...");
+    pthread_create(&thread_rx_id, NULL, linuxSerialRxThreadFun, (void*)this);	
+    pthread_create(&thread_tx_id, NULL, linuxSerialTxThreadFun, (void*)this);	
+  }
   return true;
 }
 
@@ -84,9 +112,8 @@ void LinuxSerial::end(){
 }
 
 int LinuxSerial::available(){
-    int bytes_avail = 0;
-    ioctl(_stream, FIONREAD, &bytes_avail);
-    return bytes_avail;
+    if(!_stream) return 0;  
+    return (fifoRx.available()); 
 }
 
 int LinuxSerial::peek(){
@@ -94,17 +121,10 @@ int LinuxSerial::peek(){
 }
 
 int LinuxSerial::read(){
-    char buffer = 0;
-    size_t size = 1;
-    int j = ::read(_stream, &buffer, size);
-    if(j < 0)
-    {
-      if(errno == EAGAIN)
-        return 0;
-      else
-        return buffer;
-    }
-    return buffer;
+	byte data;
+	if (!fifoRx.read(data)) return 0;
+    
+  return data;
 }
 
 void LinuxSerial::flush(){
@@ -112,32 +132,82 @@ void LinuxSerial::flush(){
 }
 
 size_t LinuxSerial::write(uint8_t c){
-    size_t size = 1;
-    char *buffer = (char*)&c;
-    int j = ::write(_stream, buffer, size);    
-    if(j < 0)
-    {
-        if(errno == EAGAIN)
-          return 0;
-        else
-          return j;
-    }
-    return j;
+  if(!_stream) return 0;      
+	
+    if (!fifoTx.write(c)){
+		// fifoTx overflow
+		fprintf(stderr, "LINUX SERIAL: FIFO TX overflow\n");
+		return 0;
+	}
+	frameCounterTx++;
+  return 1;
 }
 
     
 size_t LinuxSerial::write(const uint8_t *buffer, size_t size){
+  if(!_stream) return 0;      
+  int count = 0;
+  for (int i=0; i < size; i++){
+    int c = write(buffer[i]);
+    if (c == 0) break;
+    count++;
+  }
+  return count;
+}
+
+
+
+
+bool LinuxSerial::runRx(){
+	if(!_stream) return false;  
+  // ----------- read from serial into RX FIFO ---------------
+	while (true){    
+    int bytes_avail = 0;
+    ioctl(_stream, FIONREAD, &bytes_avail);
+    if (bytes_avail == 0) break;
+
+    char buffer = 0;
+    size_t size = 1;
+    int j = ::read(_stream, &buffer, size);
+    if(j < 0){
+      if(errno == EAGAIN) {
+        break;
+      }
+    }
+		if (!fifoRx.write(buffer)){
+			// fifoRx overflow
+			fprintf(stderr, "LINUX SERIAL: FIFO RX overflow\n");
+		}
+		frameCounterRx++;
+	}
+  return true;
+}
+
+bool LinuxSerial::runTx(){
+	if(!_stream) return false;  
+  // ---------- write to serial from TX FIFO ---------------
+	//frame.secs = tv.tv_sec;
+	//frame.usecs = tv.tv_usec;
+	byte data;
+	while (fifoTx.peek(data)){
+    size_t size = 1;
+    char *buffer = (char*)&data;
     int j = ::write(_stream, buffer, size);    
     if(j < 0)
     {
-        if(errno == EAGAIN)
-          return 0;
-        else
-          return j;
+        if(errno == EAGAIN) {
+          //perror("LINUX SERIAL: ERROR writing LinuxSerial");
+          break;
+        } else {
+          fifoTx.read(data);
+        }
+    } else {
+      fifoTx.read(data);
     }
-    return j;
+		delayMicroseconds(500);
+	}
+	return true;
 }
-
 
 
 
