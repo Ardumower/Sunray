@@ -204,7 +204,7 @@ bool LinuxSerial::runTx(){
     } else {
       fifoTx.read(data);
     }
-		delayMicroseconds(500);
+		//delayMicroseconds(500);
 	}
 	return true;
 }
