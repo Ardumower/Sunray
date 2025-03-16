@@ -227,9 +227,9 @@ bool UBLOX::configure(){
       else if (idx == 4){        
         // ----- uart1 protocols (Ardumower) --------------- 
         setValueSuccess &= configGPS.newCfgValset8(0x10730001, enable, VAL_LAYER_RAM); // CFG-UART1INPROT-UBX     (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10730002, enable); // CFG-UART1INPROT-NMEA    (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10730004, enable); // CFG-UART1INPROT-RTCM3X  (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10740001, enable); // CFG-UART1OUTPROT-UBX    (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10730002, 0); // CFG-UART1INPROT-NMEA    (off)
+        setValueSuccess &= configGPS.addCfgValset8(0x10730004, 0); // CFG-UART1INPROT-RTCM3X  (off)
+        setValueSuccess &= configGPS.addCfgValset8(0x10740001, 1); // CFG-UART1OUTPROT-UBX    (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10740002, 0); // CFG-UART1OUTPROT-NMEA   (off)
         setValueSuccess &= configGPS.sendCfgValset8(0x10740004, 0, timeout); // CFG-UART1OUTPROT-RTCM3X (off)       
       }
