@@ -156,9 +156,9 @@ bool UBLOX::configure(){
     
   CONSOLE.println("ublox f9p: sending GPS rover configuration...");
 
-  int ntripEnabled = 1; 
+  int ntripEnabled = 0; 
   #ifdef ENABLE_NTRIP
-    ntripEnabled = 0; 
+    ntripEnabled = 1; 
   #endif
   int timeout = 2000;
   int idx = 0;
@@ -217,9 +217,9 @@ bool UBLOX::configure(){
         // uart2 protocols (Xbee/NTRIP)
         setValueSuccess &= configGPS.newCfgValset8(0x10750001, 0, VAL_LAYER_RAM); // CFG-UART2INPROT-UBX        (off)
         setValueSuccess &= configGPS.addCfgValset8(0x10750002, 0); // CFG-UART2INPROT-NMEA       (off)
-        setValueSuccess &= configGPS.addCfgValset8(0x10750004, ntripEnabled); // CFG-UART2INPROT-RTCM3X     (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10750004, !ntripEnabled); // CFG-UART2INPROT-RTCM3X     (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10760001, 0); // CFG-UART2OUTPROT-UBX       (off)
-        setValueSuccess &= configGPS.addCfgValset8(0x10760002, ntripEnabled); // CFG-UART2OUTPROT-NMEA      (on) 
+        setValueSuccess &= configGPS.addCfgValset8(0x10760002, !ntripEnabled); // CFG-UART2OUTPROT-NMEA      (on) 
         setValueSuccess &= configGPS.addCfgValset8(0x10760004, 0); // CFG-UART2OUTPROT-RTCM3X    (off)
         // uart2 baudrate  (Xbee/NTRIP)
         setValueSuccess &= configGPS.addCfgValset32(0x40530001, 115200); // CFG-UART2-BAUDRATE
@@ -237,9 +237,9 @@ bool UBLOX::configure(){
         // ----- USB protocols (Ardumower) ----------------- 
         setValueSuccess &= configGPS.newCfgValset8(0x10770001, 1, VAL_LAYER_RAM); // CFG-USBINPROT-UBX     (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10770002, 1); // CFG-USBINPROT-NMEA    (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10770004, !ntripEnabled); // CFG-USBINPROT-RTCM3X  (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10770004, ntripEnabled); // CFG-USBINPROT-RTCM3X  (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10780001, 1); // CFG-USBOUTPROT-UBX    (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10780002, !ntripEnabled); // CFG-USBOUTPROT-NMEA   (off)
+        setValueSuccess &= configGPS.addCfgValset8(0x10780002, ntripEnabled); // CFG-USBOUTPROT-NMEA   (off)
         setValueSuccess &= configGPS.sendCfgValset8(0x10780004, 0, timeout); // CFG-USBOUTPROT-RTCM3X (off) 
       } 
       else if (idx == 6){                
