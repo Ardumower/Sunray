@@ -237,19 +237,23 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define UDP_SERVER_PORT 4210
 
 // --------- NTRIP client (linux only, highly experimental) ---------------------------------
-// you can activate an NTRIP client to receive RTK RTCM data from an NTRIP caster/server and to send this data 
-// (via USB-serial-adapter, configure serial path further below via 'SERIAL_NTRIP_PATH') to the ublox receiver (ublox port UART2) - 
-// some NTRIP casters require NMEA-GGA data, you can either use a fix (simulated) GGA message or use the ublox receiver to send NMEA-GGA data
+// you can activate an NTRIP client to receive RTK RTCM data from an NTRIP caster/server and to send this data to the ublox receiver (via USB)
 // (Sunray will properly configure the ublox receiver for this, if 'GPS_CONFIG true')
 //#define ENABLE_NTRIP 1            // must be activated to use Linux NTRIP
-#define NTRIP_HOST "195.227.70.119"   // sapos nrw
+#define NTRIP_HOST "www.sapos-nw-ntrip.de"   // sapos nrw
 #define NTRIP_PORT 2101
 #define NTRIP_MOUNT "VRS_3_4G_NW"
 #define NTRIP_USER "user"
 #define NTRIP_PASS "pass"
 #define NTRIP_CLIENT_AGENT_NAME "NTRIPClient for Arduino v1.0"
-// simulate GPS GGA message (do not use GPS to read GGA message)? (comment to disable)
-//#define NTRIP_SIM_GGA_MESSAGE "$GNGGA,082947.40,52.271514,N,8.686797,E,1,12,0.67,34.2,M,41.1,M,,*7F"
+// choose ONE option only how to generate the GGA message for the NTRIP login:
+// 1) the GGA message will be generated based on the base coordinate in the Sunray App (you can either use relative or absolute position mode) 
+#define NTRIP_APP_GGA_MESSAGE 1
+// 2) the GGA message from the GPS receiver is used (you can only use absolute position mode)
+// #define NTRIP_GPS_GGA_MESSAGE 1
+// 3) the GGA message is a fixed text (you will need to generate the GGA message yourself) 
+// #define NTRIP_SIM_GGA_MESSAGE "$GNGGA,082947.40,5408.81295,N,01239.42452,E,1,12,0.67,34.2,M,41.1,M,,*77"
+
 
 // ------ MQTT (for ESP8266 only, highly experimental - ENABLE_SERVER must be set to false for this to work :-/ ) -----------------------------
 // you can access your robot using a MQTT broker - choose a topic prefix for your robot below - available MQTT topics:

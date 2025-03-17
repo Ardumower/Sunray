@@ -191,14 +191,14 @@ class GpsDriver {
       sprintf(buffer, "%02d%02d%02d.0", hour, min, sec);
       s += buffer;
       s += ",";     
-      // coordinates in (d)ddmm.mmmmm    (degrees, minutes and decimal minutes)
-      sprintf(buffer, "%03d%02.05f", latdeg, latmins);
+      // coordinates in dddmm.mmmmm    (degrees, minutes and decimal minutes)
+      sprintf(buffer, "%03d%08.5f", latdeg, latmins);
       s += buffer;      
       s += ",";            
       if (lat >= 0) s+= "N";
         else s += "S";
       s += ",";
-      sprintf(buffer, "%03d%02.05f", londeg, lonmins);      
+      sprintf(buffer, "%03d%08.5f", londeg, lonmins);      
       s += buffer;      
       s += ",";      
       if (lon >= 0) s+= "E";

@@ -922,20 +922,18 @@ void run(){
     #ifdef NTRIP_SIM_GGA_MESSAGE
       ntrip.nmeaGGAMessage = NTRIP_SIM_GGA_MESSAGE; 
       ntrip.nmeaGGAMessageSource = "SIM";
-    #else    
-    if (abs(absolutePosSourceLon) > 0.001) {
+    #elif NTRIP_APP_GGA_MESSAGE    
       if (gps.iTOW != 0){
         // generate NMEA GGA messsage base on base coordinate entered in Sunray App      
         gps.decodeTOW();
         ntrip.nmeaGGAMessage = gps.generateGGA(gps.hour, gps.mins, gps.sec, absolutePosSourceLon, absolutePosSourceLat, gps.height); 
         ntrip.nmeaGGAMessageSource = "SunrayApp";
       }
-    } else {
+    #elif NTRIP_GPS_GGA_MESSAGE
       if (gps.nmeaGGAMessage.length() != 0) {
         ntrip.nmeaGGAMessage = gps.nmeaGGAMessage; // transfer NMEA GGA message to NTRIP client        
         ntrip.nmeaGGAMessageSource = "GPS";      
-      }
-    }
+      }    
     #endif
     ntrip.run();      
     #endif
