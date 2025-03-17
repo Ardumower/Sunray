@@ -932,7 +932,6 @@ void run(){
       }
     } else {
       if (gps.nmeaGGAMessage.length() != 0) {
-        CONSOLE.println("NTRIP START: using NMEA GGA message from GPS receiver...");
         ntrip.nmeaGGAMessage = gps.nmeaGGAMessage; // transfer NMEA GGA message to NTRIP client        
         ntrip.nmeaGGAMessageSource = "GPS";      
       }
