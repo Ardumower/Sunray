@@ -919,7 +919,14 @@ bool detectObstacleRotation(){
 // robot main loop
 void run(){  
   #ifdef ENABLE_NTRIP
-    ntrip.nmeaGGAMessage = gps.nmeaGGAMessage; // transfer NMEA GGA message to NTRIP client    
+    //ntrip.nmeaGGAMessage = gps.nmeaGGAMessage; // transfer NMEA GGA message to NTRIP client    
+    // transfer NMEA GGA message to NTRIP client        
+    if (ntrip.nmeaGGAMessage.length() == 0) {
+      if (gps.iTOW != 0){
+        gps.decodeTOW();
+        ntrip.nmeaGGAMessage = gps.generateGGA(gps.hour, gps.mins, gps.sec, absolutePosSourceLon, absolutePosSourceLat, 100.0); 
+      }
+    }
     ntrip.run();    
   #endif
   #ifdef DRV_SIM_ROBOT

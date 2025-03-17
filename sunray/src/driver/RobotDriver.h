@@ -175,6 +175,46 @@ class GpsDriver {
     // should send to GPS receiver
     virtual void send(const uint8_t *buffer, size_t size) = 0;
 
+    // generate NMEA GGA message
+    virtual String generateGGA(int hour, int min, int sec, double lon, double lat, double height){
+      // "$GNGGA,082947.40,5408.81295,N,01239.42452,E,1,12,0.67,34.2,M,41.1,M,,*77"
+      char buffer[32];
+      float lonint, latint;            
+      float lonfrac = modff(lon, &lonint); // get fractional and integral parts
+      float latfrac = modff(lat, &latint);
+      int londeg = fabs(lonint);
+      int latdeg = fabs(latint);
+      float lonmins = roundf(fabs(lonfrac*60)*100000)/100000.0;
+      float latmins = roundf(fabs(latfrac*60)*100000)/100000.0;
+      String s = "GNGGA,";
+      //UTC time HHMMSS.0      
+      sprintf(buffer, "%02d%02d%02d.0", hour, min, sec);
+      s += buffer;
+      s += ",";     
+      // coordinates in (d)ddmm.mmmmm    (degrees, minutes and decimal minutes)
+      sprintf(buffer, "%03d%02.05f", latdeg, latmins);
+      s += buffer;      
+      s += ",";            
+      if (lat >= 0) s+= "N";
+        else s += "S";
+      s += ",";
+      sprintf(buffer, "%03d%02.05f", londeg, lonmins);      
+      s += buffer;      
+      s += ",";      
+      if (lon >= 0) s+= "E";
+        else s += "W";
+      s += ",1,12,0.67,";
+      sprintf(buffer, "%.1f", height);
+      s += buffer;
+      s += ",M,46.1,M,,";    
+      int crc = 0;
+       // the first $ sign and the last two bytes of original CRC + the * sign
+      for (int i = 0; i < s.length(); i++) crc ^= s[i];      
+      sprintf(buffer, "%02X", crc);
+      s = "$" + s + "*";
+      s += buffer;
+      return s;
+    }
 
     // decodes iTOW into hour, min, sec and dayOfWeek(0=Monday)
     virtual void decodeTOW(){ 

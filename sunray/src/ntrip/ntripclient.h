@@ -24,7 +24,7 @@ class NTRIPClient : public WiFiClient{
     bool reqRaw(char* host,int port,char* mntpnt); //non user
     int readLine(char* buffer,int size);
   public :
-    String nmeaGGAMessage; // next NMEA message to send to NTRIP caster/server
+    String nmeaGGAMessage = ""; // next NMEA message to send to NTRIP caster/server
     void begin(GpsDriver *aGpsDriver);    
     void run();        
   
