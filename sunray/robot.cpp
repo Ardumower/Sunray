@@ -927,7 +927,7 @@ void run(){
       if (gps.iTOW != 0){
         // generate NMEA GGA messsage base on base coordinate entered in Sunray App      
         gps.decodeTOW();
-        ntrip.nmeaGGAMessage = gps.generateGGA(gps.hour, gps.mins, gps.sec, absolutePosSourceLon, absolutePosSourceLat, 100.0); 
+        ntrip.nmeaGGAMessage = gps.generateGGA(gps.hour, gps.mins, gps.sec, absolutePosSourceLon, absolutePosSourceLat, gps.height); 
         ntrip.nmeaGGAMessageSource = "SunrayApp";
       }
     } else {
