@@ -919,18 +919,22 @@ bool detectObstacleRotation(){
 // robot main loop
 void run(){  
   #ifdef ENABLE_NTRIP
-    if (abs(absolutePosSourceLon) > 0.001) {
-      // generate NMEA GGA messsage base on base coordinate entered in Sunray App
-      if (ntrip.nmeaGGAMessage.length() == 0) {
-        if (gps.iTOW != 0){
-          gps.decodeTOW();
-          ntrip.nmeaGGAMessage = gps.generateGGA(gps.hour, gps.mins, gps.sec, absolutePosSourceLon, absolutePosSourceLat, 100.0); 
-        }
+  if (ntrip.nmeaGGAMessage.length() == 0) {
+     if (abs(absolutePosSourceLon) > 0.001) {
+      if (gps.iTOW != 0){
+        CONSOLE.println("NTRIP START: generating NMEA GGA message based on base coordinate entered in Sunray App...");
+        // generate NMEA GGA messsage base on base coordinate entered in Sunray App      
+        gps.decodeTOW();
+        ntrip.nmeaGGAMessage = gps.generateGGA(gps.hour, gps.mins, gps.sec, absolutePosSourceLon, absolutePosSourceLat, 100.0); 
       }
     } else {
-      ntrip.nmeaGGAMessage = gps.nmeaGGAMessage; // transfer NMEA GGA message to NTRIP client        
+      if (gps.nmeaGGAMessage.length() != 0) {
+        CONSOLE.println("NTRIP START: using NMEA GGA message from GPS receiver...");
+        ntrip.nmeaGGAMessage = gps.nmeaGGAMessage; // transfer NMEA GGA message to NTRIP client        
+      }
     }    
-    ntrip.run();    
+  }
+  ntrip.run();      
   #endif
   #ifdef DRV_SIM_ROBOT
     tester.run();
