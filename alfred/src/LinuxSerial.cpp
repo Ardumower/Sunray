@@ -16,7 +16,8 @@ void *linuxSerialRxThreadFun(void *user_data)
     LinuxSerial *ser = (LinuxSerial*)user_data;
 	  while (true){
 	    ser->runRx();
-      delayMicroseconds(500);
+      //delayMicroseconds(500);
+      delay(5);
 	  }
 	  return NULL;
 }
@@ -27,7 +28,8 @@ void *linuxSerialTxThreadFun(void *user_data)
     LinuxSerial *ser = (LinuxSerial*)user_data;
 	  while (true){
 	    ser->runTx();
-      delayMicroseconds(500);
+      //delayMicroseconds(500);
+      delay(5);
 	  }
 	  return NULL;
 }
@@ -83,6 +85,7 @@ bool LinuxSerial::setBaudrate(uint32_t baudrate){
 }
 
 bool LinuxSerial::open(const char *devicePath){    
+  //return false;
   struct termios newtermios;
   devPath = devicePath;
   ::printf("opening serial port %s...\n", devicePath);
@@ -92,7 +95,7 @@ bool LinuxSerial::open(const char *devicePath){
     return false;
   }
   if (thread_rx_id == 0){    
-    ::printf("starting serial threads...");
+    //::printf("starting serial threads...");
     pthread_create(&thread_rx_id, NULL, linuxSerialRxThreadFun, (void*)this);	
     pthread_create(&thread_tx_id, NULL, linuxSerialTxThreadFun, (void*)this);	
   }
@@ -178,8 +181,9 @@ bool LinuxSerial::runRx(){
 			// fifoRx overflow
 			fprintf(stderr, "LINUX SERIAL: FIFO RX overflow\n");
 		}
+		//delayMicroseconds(500);
 		frameCounterRx++;
-	}
+  }
   return true;
 }
 
@@ -204,7 +208,7 @@ bool LinuxSerial::runTx(){
     } else {
       fifoTx.read(data);
     }
-		//delayMicroseconds(500);
+		//delayMicroseconds(500);    
 	}
 	return true;
 }
