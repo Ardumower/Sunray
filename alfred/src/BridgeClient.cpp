@@ -189,8 +189,8 @@ void BridgeClient::stop(){
 uint8_t BridgeClient::connected(){
   if (sockfd < 0 ) return 0;
   if(!_connected){
-    Serial.print("connected? client not connected - fd=");
-    Serial.println(sockfd);
+    //Serial.print("connected? client not connected - fd=");
+    //Serial.println(sockfd);
     return 0;
   }
   read(0,0);
