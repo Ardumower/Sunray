@@ -192,23 +192,25 @@ bool LinuxSerial::runTx(){
   // ---------- write to serial from TX FIFO ---------------
 	//frame.secs = tv.tv_sec;
 	//frame.usecs = tv.tv_usec;
-	byte data;
-	while (fifoTx.peek(data)){
-    size_t size = 1;
-    char *buffer = (char*)&data;
-    int j = ::write(_stream, buffer, size);    
-    if(j < 0)
-    {
-        if(errno == EAGAIN) {
-          //perror("LINUX SERIAL: ERROR writing LinuxSerial");
-          break;
-        } else {
-          fifoTx.read(data);
-        }
-    } else {
-      fifoTx.read(data);
-    }
-		//delayMicroseconds(500);    
+	//byte data;
+	byte buffer[4096];    
+  
+  int count = 0; 
+  while (fifoTx.available() != 0){
+    byte data;
+    fifoTx.read(data);
+    buffer[count] = data;  
+    count ++;
+    if (count == 4096) break;                
+  }
+  
+  int j = ::write(_stream, buffer, count);    
+  if(j < 0)
+  {
+      if(errno == EAGAIN) {
+        perror("LINUX SERIAL: ERROR writing LinuxSerial");
+      }
+      //delayMicroseconds(500);    
 	}
 	return true;
 }
