@@ -55,11 +55,11 @@ void NTRIPClient::run(){
     }
   }          
   if (connected()) {
-    if (available() > 500){
+    if (available() > 0){
       // transfer NTRIP client data to GPS...
       int count = 0;        
-      byte buffer[8192];
-      count = min(8192, available());     
+      byte buffer[180];
+      count = min(180, available());     
       count = read(buffer, count);        
       if (count > 0){
         byte crc = 0;

@@ -195,7 +195,7 @@ bool LinuxSerial::runTx(){
 	//frame.secs = tv.tv_sec;
 	//frame.usecs = tv.tv_usec;
 	//byte data;
-	byte buffer[4096];    
+	byte buffer[180];    
   
   int count = 0; 
   byte crc = 0;
@@ -205,7 +205,7 @@ bool LinuxSerial::runTx(){
     crc += data;
     buffer[count] = data;  
     count ++;
-    if (count == 4096) break;                
+    if (count == 180) break;                
   }
   
   fprintf(stderr, "LINUX SERIAL: sending %d crc=%02x\n", count, crc);
