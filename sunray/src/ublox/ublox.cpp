@@ -153,7 +153,13 @@ bool UBLOX::configure(){
   }
         
   CONSOLE.println("GPS receiver found!");
-    
+
+  configGPS.getProtocolVersion();
+  CONSOLE.print("UBLOX protocol: ");
+  CONSOLE.print(configGPS.versionHigh);
+  CONSOLE.print(".");
+  CONSOLE.println(configGPS.versionLow);
+  
   CONSOLE.println("ublox f9p: sending GPS rover configuration...");
 
   int usbNtripEnabled = 0; 
@@ -668,7 +674,7 @@ void UBLOX::dispatchMessage() {
 
       case 0x0a:
         switch (this->msgid){   
-          case 0x036:
+          case 0x36:
             {
               // UBX-MON-COMMS
               byte version = (unsigned char)this->unpack_int8(0); 
