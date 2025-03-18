@@ -189,6 +189,8 @@ bool LinuxSerial::runRx(){
 
 bool LinuxSerial::runTx(){
 	if(!_stream) return false;  
+  if (fifoTx.available() == 0) return true;
+
   // ---------- write to serial from TX FIFO ---------------
 	//frame.secs = tv.tv_sec;
 	//frame.usecs = tv.tv_usec;
@@ -204,6 +206,7 @@ bool LinuxSerial::runTx(){
     if (count == 4096) break;                
   }
   
+  fprintf(stderr, "LINUX SERIAL: sending %d\n", count);
   int j = ::write(_stream, buffer, count);    
   if(j < 0)
   {
