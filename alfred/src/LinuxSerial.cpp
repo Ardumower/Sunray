@@ -16,8 +16,8 @@ void *linuxSerialRxThreadFun(void *user_data)
     LinuxSerial *ser = (LinuxSerial*)user_data;
 	  while (true){
 	    ser->runRx();
-      //delayMicroseconds(500);
-      delay(5);
+      delayMicroseconds(500);
+      //delay(5);
 	  }
 	  return NULL;
 }
@@ -28,8 +28,8 @@ void *linuxSerialTxThreadFun(void *user_data)
     LinuxSerial *ser = (LinuxSerial*)user_data;
 	  while (true){
 	    ser->runTx();
-      //delayMicroseconds(500);
-      delay(5);
+      delayMicroseconds(500);
+      //delay(5);
 	  }
 	  return NULL;
 }
