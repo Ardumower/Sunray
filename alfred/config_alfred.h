@@ -246,7 +246,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define NTRIP_USER "user"
 #define NTRIP_PASS "pass"
 #define NTRIP_CLIENT_AGENT_NAME "NTRIPClient for Arduino v1.0"
-// choose ONE option only how to generate the GGA message for the NTRIP login:
+// choose ONE option only how to generate the GGA message for the NTRIP login (disable ALL to disable GGA sending):
 // 1) the GGA message will be generated based on the base coordinate in the Sunray App (you can either use relative or absolute position mode) 
 #define NTRIP_APP_GGA_MESSAGE 1
 // 2) the GGA message from the GPS receiver is used (you can only use absolute position mode)

@@ -75,21 +75,23 @@ void NTRIPClient::run(){
   // transfer GPS NMEA data (GGA message) to NTRIP caster/server... 
   if (millis() > nextGGASendTime){
     nextGGASendTime = millis() + 10000;  // every 10 secs  
-    String nmea = "";
-    //while (NTRIP.available()){
-    //   char ch = NTRIP.read();
-    //  if (connected()) write(ch);             // send to NTRIP caster/server
-    //  nmea += ch;        
-    //}
-    nmea += nmeaGGAMessage;
-    if (connected()) println(nmea);             // send to NTRIP caster/server          
-    if (nmea != ""){    
-      CONSOLE.print("GGA(");
-      CONSOLE.print(nmeaGGAMessageSource);
-      CONSOLE.print("):");
-      CONSOLE.println(nmea);
-      ggaTimeout = millis() + GGA_TIMEOUT;            
+    if (nmeaGGAMessage.length() != 0){
+      String nmea = "";
+      //while (NTRIP.available()){
+      //   char ch = NTRIP.read();
+      //  if (connected()) write(ch);             // send to NTRIP caster/server
+      //  nmea += ch;        
+      //}
+      nmea += nmeaGGAMessage;
+      if (connected()) println(nmea);             // send to NTRIP caster/server          
+      if (nmea != ""){    
+        CONSOLE.print("GGA(");
+        CONSOLE.print(nmeaGGAMessageSource);
+        CONSOLE.print("):");
+        CONSOLE.println(nmea);                  
+      }
     }
+    ggaTimeout = millis() + GGA_TIMEOUT;
   }  
 }
 
