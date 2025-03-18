@@ -170,6 +170,7 @@ unsigned long nextTempTime = 0;
 unsigned long imuDataTimeout = 0;
 unsigned long nextSaveTime = 0;
 unsigned long nextTimetableTime = 0;
+unsigned long nextGenerateGGATime = 0;
 
 //##################################################################################
 unsigned long loopTime = millis();
@@ -918,25 +919,30 @@ bool detectObstacleRotation(){
 
 // robot main loop
 void run(){  
+  
   #ifdef ENABLE_NTRIP
-    #ifdef NTRIP_SIM_GGA_MESSAGE
-      ntrip.nmeaGGAMessage = NTRIP_SIM_GGA_MESSAGE; 
-      ntrip.nmeaGGAMessageSource = "SIM";
-    #elif NTRIP_APP_GGA_MESSAGE    
-      if (gps.iTOW != 0){
-        // generate NMEA GGA messsage base on base coordinate entered in Sunray App      
-        gps.decodeTOW();
-        ntrip.nmeaGGAMessage = gps.generateGGA(gps.hour, gps.mins, gps.sec, absolutePosSourceLon, absolutePosSourceLat, gps.height); 
-        ntrip.nmeaGGAMessageSource = "SunrayApp";
-      }
-    #elif NTRIP_GPS_GGA_MESSAGE
-      if (gps.nmeaGGAMessage.length() != 0) {
-        ntrip.nmeaGGAMessage = gps.nmeaGGAMessage; // transfer NMEA GGA message to NTRIP client        
-        ntrip.nmeaGGAMessageSource = "GPS";      
-      }    
-    #endif
+    if (millis() > nextGenerateGGATime){
+      nextGenerateGGATime = millis() + 10000;
+      #ifdef NTRIP_SIM_GGA_MESSAGE
+        ntrip.nmeaGGAMessage = NTRIP_SIM_GGA_MESSAGE; 
+        ntrip.nmeaGGAMessageSource = "SIM";
+      #elif NTRIP_APP_GGA_MESSAGE    
+        if (gps.iTOW != 0){
+          // generate NMEA GGA messsage base on base coordinate entered in Sunray App      
+          gps.decodeTOW();
+          ntrip.nmeaGGAMessage = gps.generateGGA(gps.hour, gps.mins, gps.sec, absolutePosSourceLon, absolutePosSourceLat, gps.height); 
+          ntrip.nmeaGGAMessageSource = "SunrayApp";
+        }
+      #elif NTRIP_GPS_GGA_MESSAGE
+        if (gps.nmeaGGAMessage.length() != 0) {
+          ntrip.nmeaGGAMessage = gps.nmeaGGAMessage; // transfer NMEA GGA message to NTRIP client        
+          ntrip.nmeaGGAMessageSource = "GPS";      
+        }    
+      #endif
+    }
     ntrip.run();      
-    #endif
+  #endif
+
   #ifdef DRV_SIM_ROBOT
     tester.run();
   #endif
