@@ -8,6 +8,49 @@
 #define GGA_TIMEOUT 30000
 
 
+#define BUFFER_SIZE 1024  
+#define RTCM_HEADER 0xD3  // RTCM3-Header
+
+
+void NTRIPClient::processRTCMData(byte *inputBuffer, int bytesRead) {
+    static byte rtcmBuffer[BUFFER_SIZE];  
+    static int rtcmBufferLen = 0;           
+    int messageLength = 0;    
+    for (int i=0; i < bytesRead; i++){
+      byte val = inputBuffer[i];
+      if (val == RTCM_HEADER){
+        if (messageLength == 0){
+          // found potential header
+          rtcmBufferLen = 0;
+        };
+      }         
+      rtcmBuffer[rtcmBufferLen] = val;      
+      if (rtcmBufferLen < BUFFER_SIZE) rtcmBufferLen++;
+      if (messageLength != 0){
+        if (rtcmBufferLen == messageLength){
+          // message complete
+          //CONSOLE.print("RTCM packet: ");
+          //CONSOLE.println(rtcmBufferLen);          
+          gpsDriver->send(rtcmBuffer, rtcmBufferLen); 
+          bytesValid += rtcmBufferLen;
+          rtcmBufferLen = 0;
+          messageLength = 0;
+        }
+      }      
+      if (rtcmBufferLen == 3){ 
+        // parse length
+        int len = ((rtcmBuffer[1] & 0x03) << 8) | rtcmBuffer[2];  
+        if ((len > 0) && (len < BUFFER_SIZE - 6)){
+          messageLength = 3 + len + 3;  // header + message + crc
+        } else {
+          // invalid length => reset
+          rtcmBufferLen = 0;
+          messageLength = 0;
+        }
+      }
+    }
+}
+
 
 void NTRIPClient::begin(GpsDriver *aGpsDriver){
   CONSOLE.println("using NTRIPClient");  
@@ -16,6 +59,7 @@ void NTRIPClient::begin(GpsDriver *aGpsDriver){
   nextGGASendTime = 0;
   nextInfoTime = 0;
   bytesReceived = 0;
+  bytesValid = 0;
   gpsDriver = aGpsDriver;
   //NTRIP.begin(115200);
 }
@@ -60,8 +104,11 @@ void NTRIPClient::run(){
     nextInfoTime = millis() + 10000;
     if (bytesReceived != 0){ 
       CONSOLE.print("NTRIP bytes:");
-      CONSOLE.println(bytesReceived);
+      CONSOLE.print(bytesReceived);
+      CONSOLE.print(" valid:");
+      CONSOLE.println(bytesValid);
       bytesReceived = 0;
+      bytesValid = 0;
     }        
   }     
   if (connected()) {
@@ -74,7 +121,8 @@ void NTRIPClient::run(){
       if (count > 0){
         bytesReceived += count;
         reconnectTimeout = millis() + NTRIP_RECONNECT_TIMEOUT;      
-        gpsDriver->send(buffer, count);
+        //gpsDriver->send(buffer, count);
+        processRTCMData(buffer, count);
       }
     }    
   }
