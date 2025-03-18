@@ -16,7 +16,7 @@ void *linuxSerialRxThreadFun(void *user_data)
     LinuxSerial *ser = (LinuxSerial*)user_data;
 	  while (true){
 	    ser->runRx();
-      delayMicroseconds(500);
+      //delayMicroseconds(500);
       //delay(5);
 	  }
 	  return NULL;
@@ -28,7 +28,7 @@ void *linuxSerialTxThreadFun(void *user_data)
     LinuxSerial *ser = (LinuxSerial*)user_data;
 	  while (true){
 	    ser->runTx();
-      delayMicroseconds(500);
+      //delayMicroseconds(500);
       //delay(5);
 	  }
 	  return NULL;
@@ -163,6 +163,8 @@ size_t LinuxSerial::write(const uint8_t *buffer, size_t size){
 
 bool LinuxSerial::runRx(){
 	if(!_stream) return false;  
+  if (fifoTx.available() != 0) return true; // give TX FIFO highest priority for USB communication 
+
   // ----------- read from serial into RX FIFO ---------------
 	while (true){    
     int bytes_avail = 0;
@@ -188,7 +190,7 @@ bool LinuxSerial::runRx(){
 }
 
 bool LinuxSerial::runTx(){
-	if(!_stream) return false;  
+	if(!_stream) return false;    
   if (fifoTx.available() == 0) return true;
 
   // ---------- write to serial from TX FIFO ---------------
@@ -208,7 +210,7 @@ bool LinuxSerial::runTx(){
     if (count == 180) break;                
   }
   
-  fprintf(stderr, "LINUX SERIAL: sending %d crc=%02x\n", count, crc);
+  //fprintf(stderr, "LINUX SERIAL: sending %d crc=%02x\n", count, crc);
   int j = ::write(_stream, buffer, count);    
   if(j < 0)
   {

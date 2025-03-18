@@ -14,6 +14,8 @@ void NTRIPClient::begin(GpsDriver *aGpsDriver){
   reconnectTimeout = 0;
   ggaTimeout = 0;
   nextGGASendTime = 0;
+  nextInfoTime = 0;
+  bytesReceived = 0;
   gpsDriver = aGpsDriver;
   //NTRIP.begin(115200);
 }
@@ -53,7 +55,15 @@ void NTRIPClient::run(){
     } else {
       CONSOLE.println("NTRIP disconnected - waiting for GPS GGA message...");
     }
-  }          
+  }     
+  if (millis() > nextInfoTime){
+    nextInfoTime = millis() + 10000;
+    if (bytesReceived != 0){ 
+      CONSOLE.print("NTRIP bytes:");
+      CONSOLE.println(bytesReceived);
+      bytesReceived = 0;
+    }        
+  }     
   if (connected()) {
     if (available() > 0){
       // transfer NTRIP client data to GPS...
@@ -62,12 +72,7 @@ void NTRIPClient::run(){
       count = min(180, available());     
       count = read(buffer, count);        
       if (count > 0){
-        byte crc = 0;
-        for (int i=0; i < count; i++) crc += buffer[i];
-        CONSOLE.print("NTRIP bytes:");
-        CONSOLE.print(count);
-        CONSOLE.print(" crc:");        
-        CONSOLE.println(crc, HEX);
+        bytesReceived += count;
         reconnectTimeout = millis() + NTRIP_RECONNECT_TIMEOUT;      
         gpsDriver->send(buffer, count);
       }

@@ -18,6 +18,8 @@ class NTRIPClient : public WiFiClient{
     unsigned long reconnectTimeout;
     unsigned long ggaTimeout;
     unsigned long nextGGASendTime;
+    unsigned long nextInfoTime;
+    int bytesReceived;
     void connectNTRIP();
     bool reqSrcTbl(char* host,int port);   //request MountPoints List serviced the NTRIP Caster 
     bool reqRaw(char* host,int port,char* mntpnt,char* user,char* psw);      //request RAW data from Caster 
