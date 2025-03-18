@@ -171,7 +171,7 @@ bool UBLOX::configure(){
       CONSOLE.print("...");
       if (idx == 0){        
         // ----- enabled ports -----------------        
-        setValueSuccess &= configGPS.newCfgValset8(0x10530005, usbNtripEnabled?0:1, VAL_LAYER_RAM); // CFG-UART2-ENABLED            
+        setValueSuccess &= configGPS.newCfgValset8(0x10530005, usbNtripEnabled?0:1, VAL_LAYER_RAM); // CFG-UART2-ENABLED  (off/on)          
         setValueSuccess &= configGPS.addCfgValset8(0x10520005, 1); // CFG-UART1-ENABLED    
         setValueSuccess &= configGPS.sendCfgValset8(0x10650001, 1, timeout); // CFG-USB-ENABLED                     
       } 
@@ -243,9 +243,9 @@ bool UBLOX::configure(){
         // ----- USB protocols (Ardumower) ----------------- 
         setValueSuccess &= configGPS.newCfgValset8(0x10770001, 1, VAL_LAYER_RAM); // CFG-USBINPROT-UBX     (on)
         setValueSuccess &= configGPS.addCfgValset8(0x10770002, 1); // CFG-USBINPROT-NMEA    (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10770004, usbNtripEnabled); // CFG-USBINPROT-RTCM3X  (on)
+        setValueSuccess &= configGPS.addCfgValset8(0x10770004, usbNtripEnabled?1:0); // CFG-USBINPROT-RTCM3X  (on/off)
         setValueSuccess &= configGPS.addCfgValset8(0x10780001, 1); // CFG-USBOUTPROT-UBX    (on)
-        setValueSuccess &= configGPS.addCfgValset8(0x10780002, usbNtripEnabled); // CFG-USBOUTPROT-NMEA   (off)
+        setValueSuccess &= configGPS.addCfgValset8(0x10780002, usbNtripEnabled?1:0); // CFG-USBOUTPROT-NMEA   (on/off)
         setValueSuccess &= configGPS.sendCfgValset8(0x10780004, 0, timeout); // CFG-USBOUTPROT-RTCM3X (off) 
       } 
       else if (idx == 7){                
