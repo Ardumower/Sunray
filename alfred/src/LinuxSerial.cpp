@@ -149,6 +149,8 @@ size_t LinuxSerial::write(uint8_t c){
     
 size_t LinuxSerial::write(const uint8_t *buffer, size_t size){
   if(!_stream) return 0;      
+  while (fifoTx.available() != 0); // wait until last packet was sent  
+
   int count = 0;
   for (int i=0; i < size; i++){
     int c = write(buffer[i]);
@@ -163,7 +165,7 @@ size_t LinuxSerial::write(const uint8_t *buffer, size_t size){
 
 bool LinuxSerial::runRx(){
 	if(!_stream) return false;  
-  if (fifoTx.available() != 0) return true; // give TX FIFO highest priority for USB communication 
+  //if (fifoTx.available() != 0) return true; // give TX FIFO highest priority for USB communication 
 
   // ----------- read from serial into RX FIFO ---------------
 	while (true){    
@@ -212,6 +214,7 @@ bool LinuxSerial::runTx(){
     buffer[count] = data;  
     count ++;
     if (count == 4095) break;                
+    if (fifoTx.available() == 0) delay(1); // add timeout
   }
   
   //fprintf(stderr, "LINUX SERIAL: sending %d\n", count);
