@@ -172,7 +172,7 @@ bool UBLOX::configure(){
       if (idx == 0){        
         // ----- enabled ports -----------------        
         setValueSuccess &= configGPS.newCfgValset8(0x10530005, usbNtripEnabled?0:1, VAL_LAYER_RAM); // CFG-UART2-ENABLED  (off/on)          
-        setValueSuccess &= configGPS.addCfgValset8(0x10520005, 1); // CFG-UART1-ENABLED    
+        setValueSuccess &= configGPS.addCfgValset8(0x10520005, usbNtripEnabled?0:1); // CFG-UART1-ENABLED (off/on)            
         setValueSuccess &= configGPS.sendCfgValset8(0x10650001, 1, timeout); // CFG-USB-ENABLED                     
       } 
       else if (idx == 1){              
