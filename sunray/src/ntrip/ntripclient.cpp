@@ -67,7 +67,7 @@ void NTRIPClient::run(){
     }
     if (count != 0) {
       gpsDriver->send(buffer, count);
-      delay(5);
+      delay(1);
     }
     if (count > 0){
       CONSOLE.print("NTRIP bytes:");
