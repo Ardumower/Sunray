@@ -17,7 +17,7 @@ void *linuxSerialRxThreadFun(void *user_data)
 	  while (true){
 	    ser->runRx();
       //delayMicroseconds(500);
-      //delay(5);
+      delay(10);
 	  }
 	  return NULL;
 }
@@ -29,7 +29,7 @@ void *linuxSerialTxThreadFun(void *user_data)
 	  while (true){
 	    ser->runTx();
       //delayMicroseconds(500);
-      //delay(5);
+      delay(10);
 	  }
 	  return NULL;
 }
