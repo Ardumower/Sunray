@@ -62,8 +62,12 @@ void NTRIPClient::run(){
       count = min(8192, available());     
       count = read(buffer, count);        
       if (count > 0){
+        byte crc = 0;
+        for (int i=0; i < count; i++) crc += buffer[i];
         CONSOLE.print("NTRIP bytes:");
-        CONSOLE.println(count);
+        CONSOLE.print(count);
+        CONSOLE.print(" crc:");        
+        CONSOLE.println(crc, HEX);
         reconnectTimeout = millis() + NTRIP_RECONNECT_TIMEOUT;      
         gpsDriver->send(buffer, count);
       }

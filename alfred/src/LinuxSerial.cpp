@@ -198,15 +198,17 @@ bool LinuxSerial::runTx(){
 	byte buffer[4096];    
   
   int count = 0; 
+  byte crc = 0;
   while (fifoTx.available() != 0){
     byte data;
     fifoTx.read(data);
+    crc += data;
     buffer[count] = data;  
     count ++;
     if (count == 4096) break;                
   }
   
-  fprintf(stderr, "LINUX SERIAL: sending %d\n", count);
+  fprintf(stderr, "LINUX SERIAL: sending %d crc=%02x\n", count, crc);
   int j = ::write(_stream, buffer, count);    
   if(j < 0)
   {
