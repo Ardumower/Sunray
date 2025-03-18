@@ -171,20 +171,26 @@ bool LinuxSerial::runRx(){
     ioctl(_stream, FIONREAD, &bytes_avail);
     if (bytes_avail == 0) break;
 
-    char buffer = 0;
-    size_t size = 1;
-    int j = ::read(_stream, &buffer, size);
-    if(j < 0){
-      if(errno == EAGAIN) {
+    if (bytes_avail > 4095) bytes_avail = 4095;
+    byte buffer[4095];    
+    size_t size = bytes_avail;
+    int j = ::read(_stream, &buffer, size);    
+      //if(j < 0){
+    //  if(errno == EAGAIN) {
+    //     break;
+    if (j != bytes_avail){
+			fprintf(stderr, "LINUX SERIAL: error reading\n");      
+      break;
+    }    
+		for (int i=0; i < bytes_avail; i++){
+      if (!fifoRx.write(buffer[i])){
+        // fifoRx overflow
+        fprintf(stderr, "LINUX SERIAL: FIFO RX overflow\n");
         break;
       }
+      frameCounterRx++;
     }
-		if (!fifoRx.write(buffer)){
-			// fifoRx overflow
-			fprintf(stderr, "LINUX SERIAL: FIFO RX overflow\n");
-		}
 		//delayMicroseconds(500);
-		frameCounterRx++;
   }
   return true;
 }
@@ -197,20 +203,18 @@ bool LinuxSerial::runTx(){
 	//frame.secs = tv.tv_sec;
 	//frame.usecs = tv.tv_usec;
 	//byte data;
-	byte buffer[180];    
+	byte buffer[4095];    
   
   int count = 0; 
-  byte crc = 0;
   while (fifoTx.available() != 0){
     byte data;
     fifoTx.read(data);
-    crc += data;
     buffer[count] = data;  
     count ++;
-    if (count == 180) break;                
+    if (count == 4095) break;                
   }
   
-  //fprintf(stderr, "LINUX SERIAL: sending %d crc=%02x\n", count, crc);
+  //fprintf(stderr, "LINUX SERIAL: sending %d\n", count);
   int j = ::write(_stream, buffer, count);    
   if(j < 0)
   {
