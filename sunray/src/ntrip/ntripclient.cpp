@@ -55,16 +55,18 @@ void NTRIPClient::run(){
     }
   }          
   if (connected()) {
-    // transfer NTRIP client data to GPS...
-    int count = 0;        
-    byte buffer[8192];
-    count = min(8192, available());     
-    count = read(buffer, count);    
-    if (count > 0){
-      CONSOLE.print("NTRIP bytes:");
-      CONSOLE.println(count);
-      reconnectTimeout = millis() + NTRIP_RECONNECT_TIMEOUT;      
-      gpsDriver->send(buffer, count);
+    if (available() > 500){
+      // transfer NTRIP client data to GPS...
+      int count = 0;        
+      byte buffer[8192];
+      count = min(8192, available());     
+      count = read(buffer, count);        
+      if (count > 0){
+        CONSOLE.print("NTRIP bytes:");
+        CONSOLE.println(count);
+        reconnectTimeout = millis() + NTRIP_RECONNECT_TIMEOUT;      
+        gpsDriver->send(buffer, count);
+      }
     }    
   }
   // transfer GPS NMEA data (GGA message) to NTRIP caster/server... 
