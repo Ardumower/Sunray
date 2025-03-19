@@ -744,7 +744,7 @@ void UBLOX::dispatchMessage() {
                   protIds[i] = (unsigned char)this->unpack_int8(4 + i);
                 }
                 for (int i=0; i < nPorts; i++) {
-                  unsigned short portId = (unsigned short)this->unpack_int16(8 + i*40);                   
+                  int portId = ((short)this->unpack_int16(8 + i*40));                   
                   const uint8_t portBank = portId & 0xff;
                   const uint8_t portNo   = (portId >> 8) & 0xff;                                    
                   unsigned long txBytes = (unsigned long)this->unpack_int32(12 + i*40);
@@ -752,42 +752,45 @@ void UBLOX::dispatchMessage() {
                   unsigned long rxBytes = (unsigned long)this->unpack_int32(20 + i*40);
                   byte rxPeakUsage = (byte)this->unpack_int8(25 + i*40);
                   unsigned long skippedBytes = (unsigned long)this->unpack_int32(44 + i*40); 
-                  switch (portNo){
-                    case 0: CONSOLE.print("I2C"); break;
-                    case 1: CONSOLE.print("UART1"); break;
-                    case 2: CONSOLE.print("UART2"); break;
-                    case 3: CONSOLE.print("USB"); break;
-                    case 4: CONSOLE.print("SPI"); break;
-                    default: CONSOLE.print(portId, HEX);
+                  bool ignore = false;
+                  switch (portId){
+                    case 0x0100: CONSOLE.print("UART1"); break;
+                    case 0x0201: CONSOLE.print("UART2"); break;
+                    case 0x0300: CONSOLE.print("USB"); break;
+                    //default: CONSOLE.print(portId, HEX);
+                    default: ignore = true; break;
                   }
-                  CONSOLE.print(" tx=");
-                  CONSOLE.print(txBytes);
-                  CONSOLE.print(" (");
-                  CONSOLE.print(txPeakUsage);
-                  CONSOLE.print("% peak) ");
-                  CONSOLE.print(" rx=");
-                  CONSOLE.print(rxBytes);
-                  CONSOLE.print(" (");
-                  CONSOLE.print(rxPeakUsage);
-                  CONSOLE.print("% peak)  ");                    
-                  CONSOLE.print("skipped=");
-                  CONSOLE.println(skippedBytes);
-                  for (int j=0; j < 4; j++){
-                    int protId = protIds[j];                     
-                    int msgs = (unsigned short)this->unpack_int16(28 + i*40 + j*2);
-                    if ((protId != 0xFF) && (msgs != 0)) {
-                      switch (protId){
-                        case 0: CONSOLE.print("    UBX msgs="); break;
-                        case 1: CONSOLE.print("    NMEA msgs="); break;
-                        case 2: CONSOLE.print("    RTCM2 msgs="); break;
-                        case 5: CONSOLE.print("    RTCM3 msgs="); break;
-                        case 6: CONSOLE.print("    SPARTN msgs="); break;                        
-                        default: CONSOLE.print("    "); CONSOLE.print(protId, HEX); CONSOLE.print(" msgs=");
+                  if (!ignore){
+                    CONSOLE.print(" tx=");
+                    CONSOLE.print(txBytes);
+                    CONSOLE.print(" (");
+                    CONSOLE.print(txPeakUsage);
+                    CONSOLE.print("% peak) ");
+                    CONSOLE.print(" rx=");
+                    CONSOLE.print(rxBytes);
+                    CONSOLE.print(" (");
+                    CONSOLE.print(rxPeakUsage);
+                    CONSOLE.print("% peak)  ");                    
+                    CONSOLE.print("skipped=");
+                    CONSOLE.print(skippedBytes);
+                    CONSOLE.print("    in-msgs: ");                  
+                    for (int j=0; j < 4; j++){
+                      int protId = protIds[j];                     
+                      int msgs = (unsigned short)this->unpack_int16(28 + i*40 + j*2);
+                      if ((protId != 0xFF) && (msgs != 0)) {
+                        switch (protId){
+                          case 0: CONSOLE.print(" UBX="); break;
+                          case 1: CONSOLE.print(" NMEA="); break;
+                          case 2: CONSOLE.print(" RTCM2="); break;
+                          case 5: CONSOLE.print(" RTCM3="); break;
+                          case 6: CONSOLE.print(" SPARTN="); break;                        
+                          default: CONSOLE.print(" "); CONSOLE.print(protId, HEX); CONSOLE.print("=");
+                        }
+                        CONSOLE.print(msgs);
                       }
-                      CONSOLE.println(msgs);
-                    }
-                  }                
-                  //CONSOLE.println();  
+                    }                
+                    CONSOLE.println();
+                  }  
                 }
               } 
             }
