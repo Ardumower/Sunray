@@ -280,10 +280,15 @@ void sensorTest(){
       }
 	    #ifdef ENABLE_LIFT_DETECTION 
         CONSOLE.print("lift sensor (triggered): ");		
-        CONSOLE.print(((int)liftDriver.triggered()));	
+        bool liftTriggered = liftDriver.triggered();
+        if (LIFT_INVERT) liftTriggered = !liftTriggered;           
+        CONSOLE.print( ((int)liftTriggered) );	
         CONSOLE.print("\t");							            
-      #endif  
-	
+      #endif 
+      if (RAIN_ENABLE){
+        CONSOLE.print("rain (triggered): ");
+        CONSOLE.print( ((int)rainDriver.triggered()) );                                                                                        
+      } 
       CONSOLE.println();  
       watchdogReset();
     }
