@@ -743,8 +743,12 @@ void UBLOX::dispatchMessage() {
                   unsigned short portId = (unsigned short)this->unpack_int16(8 + i*40);                   
                   const uint8_t portBank = portId & 0xff;
                   const uint8_t portNo   = (portId >> 8) & 0xff;
+                  unsigned long txBytes = (unsigned long)this->unpack_int32(12 + i*40);
+                  byte txPeakUsage = (byte)this->unpack_int8(17 + i*40);
+                  unsigned long rxBytes = (unsigned long)this->unpack_int32(20 + i*40);
+                  byte rxPeakUsage = (byte)this->unpack_int8(25 + i*40);
                   unsigned long skippedBytes = (unsigned long)this->unpack_int32(44 + i*40); 
-                  CONSOLE.print("port: ");
+                  CONSOLE.print(" ublox port: ");
                   switch (portNo){
                     case 0: CONSOLE.print("I2C"); break;
                     case 1: CONSOLE.print("UART1"); break;
@@ -753,7 +757,17 @@ void UBLOX::dispatchMessage() {
                     case 4: CONSOLE.print("SPI"); break;
                     default: CONSOLE.print(portId, HEX);
                   }
-                  CONSOLE.print(" skipped bytes: ");
+                  CONSOLE.print(" tx=");
+                  CONSOLE.print(txBytes);
+                  CONSOLE.print(" (");
+                  CONSOLE.print(txPeakUsage);
+                  CONSOLE.print("% peak) ");
+                  CONSOLE.print(" rx=");
+                  CONSOLE.print(rxBytes);
+                  CONSOLE.print(" (");
+                  CONSOLE.print(rxPeakUsage);
+                  CONSOLE.print("% peak)  ");                    
+                  CONSOLE.print("skipped=");
                   CONSOLE.println(skippedBytes);
                 }
               } 
