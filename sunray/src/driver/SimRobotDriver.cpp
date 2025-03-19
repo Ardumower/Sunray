@@ -590,4 +590,10 @@ void SimGpsDriver::setSimGpsJump(bool flag){
   simGpsJump = flag;
 }
 
+void SimGpsDriver::send(const uint8_t *buffer, size_t size) {  
+}  
+
+void SimGpsDriver::sendRTCM(const uint8_t *buffer, size_t size){
+}
+
 

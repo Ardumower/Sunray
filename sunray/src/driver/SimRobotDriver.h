@@ -188,6 +188,8 @@ class SimGpsDriver : public GpsDriver {
     void run() override;
     bool configure() override;  
     void reboot() override;
+    void send(const uint8_t *buffer, size_t size) override;  
+    void sendRTCM(const uint8_t *buffer, size_t size) override;  
     // ----- simulate errors, sensor triggers ----
     void setSimSolution(SolType sol);
     void setSimGpsJump(bool flag);
