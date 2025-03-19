@@ -778,12 +778,12 @@ void UBLOX::dispatchMessage() {
                     int msgs = (unsigned short)this->unpack_int16(28 + i*40 + j*2);
                     if ((protId != 0xFF) && (msgs != 0)) {
                       switch (protId){
-                        case 0: CONSOLE.print("  UBX msgs="); break;
-                        case 1: CONSOLE.print("  NMEA msgs="); break;
-                        case 2: CONSOLE.print("  RTCM2 msgs="); break;
-                        case 5: CONSOLE.print("  RTCM3 msgs="); break;
-                        case 6: CONSOLE.print("  SPARTN msgs="); break;                        
-                        default: CONSOLE.print("  "); CONSOLE.print(protId, HEX); CONSOLE.print(" msgs=");
+                        case 0: CONSOLE.print("    UBX msgs="); break;
+                        case 1: CONSOLE.print("    NMEA msgs="); break;
+                        case 2: CONSOLE.print("    RTCM2 msgs="); break;
+                        case 5: CONSOLE.print("    RTCM3 msgs="); break;
+                        case 6: CONSOLE.print("    SPARTN msgs="); break;                        
+                        default: CONSOLE.print("    "); CONSOLE.print(protId, HEX); CONSOLE.print(" msgs=");
                       }
                       CONSOLE.println(msgs);
                     }
