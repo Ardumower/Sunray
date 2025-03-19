@@ -752,7 +752,6 @@ void UBLOX::dispatchMessage() {
                   unsigned long rxBytes = (unsigned long)this->unpack_int32(20 + i*40);
                   byte rxPeakUsage = (byte)this->unpack_int8(25 + i*40);
                   unsigned long skippedBytes = (unsigned long)this->unpack_int32(44 + i*40); 
-                  CONSOLE.print(" ublox ");
                   switch (portNo){
                     case 0: CONSOLE.print("I2C"); break;
                     case 1: CONSOLE.print("UART1"); break;
