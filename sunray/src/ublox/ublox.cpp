@@ -738,11 +738,15 @@ void UBLOX::dispatchMessage() {
               CONSOLE.print("UBX-MON-COMMS v");
               CONSOLE.println(version);
               if (version == 0){
-                byte nPorts = (unsigned char)this->unpack_int8(1); 
+                byte nPorts = (unsigned char)this->unpack_int8(1);
+                byte protIds[4];
+                for (int i=0; i < 4; i++){
+                  protIds[i] = (unsigned char)this->unpack_int8(4 + i);
+                }
                 for (int i=0; i < nPorts; i++) {
                   unsigned short portId = (unsigned short)this->unpack_int16(8 + i*40);                   
                   const uint8_t portBank = portId & 0xff;
-                  const uint8_t portNo   = (portId >> 8) & 0xff;
+                  const uint8_t portNo   = (portId >> 8) & 0xff;                                    
                   unsigned long txBytes = (unsigned long)this->unpack_int32(12 + i*40);
                   byte txPeakUsage = (byte)this->unpack_int8(17 + i*40);
                   unsigned long rxBytes = (unsigned long)this->unpack_int32(20 + i*40);
@@ -769,6 +773,22 @@ void UBLOX::dispatchMessage() {
                   CONSOLE.print("% peak)  ");                    
                   CONSOLE.print("skipped=");
                   CONSOLE.println(skippedBytes);
+                  for (int j=0; j < 4; j++){
+                    int protId = protIds[j];                     
+                    int msgs = (unsigned short)this->unpack_int16(28 + i*40 + j*2);
+                    if (protId != 0xFF){
+                      switch (protId){
+                        case 0: CONSOLE.print("  UBX="); break;
+                        case 1: CONSOLE.print("  NMEA="); break;
+                        case 2: CONSOLE.print("  RTCM2="); break;
+                        case 5: CONSOLE.print("  RTCM3="); break;
+                        case 6: CONSOLE.print("  SPARTN="); break;                        
+                        default: CONSOLE.print("  "); CONSOLE.print(protId, HEX); CONSOLE.print("=");
+                      }
+                      CONSOLE.println(msgs);
+                    }
+                  }                
+                  //CONSOLE.println();  
                 }
               } 
             }
