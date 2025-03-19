@@ -23,6 +23,11 @@
 #include "../../gps.h"
 #include "../driver/RobotDriver.h"
 
+#define UBX_SYNC1  0xB5
+#define UBX_SYNC2  0x62
+
+
+
 class UBLOX : public GpsDriver {
   public:    
     typedef enum {
@@ -41,6 +46,7 @@ class UBLOX : public GpsDriver {
     void begin(Client &client, char *host, uint16_t port) override;
     void begin(HardwareSerial& bus,uint32_t baud) override;
     void send(const uint8_t *buffer, size_t size) override;
+    void sendRTCM(const uint8_t *buffer, size_t size) override;
     void run() override;
     bool configure() override;  
     void reboot() override;
@@ -69,7 +75,8 @@ class UBLOX : public GpsDriver {
     long unpack_int16(int offset);
     long unpack_int8(int offset);
     long unpack(int offset, int size);
-    void parse(int b);	  	    
+    void parse(int b);	  	  
+    void calcUBXChecksum(uint8_t *data, size_t length, uint8_t *ck_a, uint8_t *ck_b);
 };
 
 #endif

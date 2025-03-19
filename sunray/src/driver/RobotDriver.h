@@ -172,8 +172,10 @@ class GpsDriver {
     // should reboot receiver
     virtual void reboot() = 0;
 
-    // should send to GPS receiver
+    // should send raw data to GPS receiver
     virtual void send(const uint8_t *buffer, size_t size) = 0;
+    // should send RTCM data to GPS receiver
+    virtual void sendRTCM(const uint8_t *buffer, size_t size) = 0;
 
     // generate NMEA GGA message
     virtual String generateGGA(int hour, int min, int sec, double lon, double lat, double height){

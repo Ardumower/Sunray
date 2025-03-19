@@ -83,6 +83,11 @@ void SKYTRAQ::reboot(){
 void SKYTRAQ::send(const uint8_t *buffer, size_t size){
   _bus->write(buffer, size);  
 }
+
+
+void SKYTRAQ::sendRTCM(const uint8_t *buffer, size_t size){
+  _bus->write(buffer, size);  
+}
     
 // --------- skytraq binary parser (TODO) -----------
 

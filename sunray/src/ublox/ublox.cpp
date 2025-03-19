@@ -17,6 +17,8 @@ SFE_UBLOX_GPS configGPS; // used for f9p module configuration only
 //#define GPS_DUMP   1    
 
 
+
+
 UBLOX::UBLOX()
 {
   debug = false;
@@ -334,10 +336,64 @@ void UBLOX::reboot(){
   configGPS.GNSSRestart();
 }
 
+
+// calc UBX checksum (CK_A, CK_B)
+void UBLOX::calcUBXChecksum(uint8_t *data, size_t length, uint8_t *ck_a, uint8_t *ck_b) {
+  *ck_a = 0;
+  *ck_b = 0;
+  for (size_t i = 2; i < length; i++) {  // start from Class+ID 
+      *ck_a += data[i];
+      *ck_b += *ck_a;
+  }
+}
+
 void UBLOX::send(const uint8_t *buffer, size_t size){
   _bus->write(buffer, size); // send message to ublox receiver
 }
     
+
+// send RTCM via UBX
+void UBLOX::sendRTCM(const uint8_t *rtcmData, size_t rtcmLength) {
+  if (rtcmLength > 1024) {
+    CONSOLE.print("UBLOX::sendUbxRtcm error rtcmLength=");
+    CONSOLE.println(rtcmLength);
+    return; 
+  }
+  send(rtcmData, rtcmLength);
+  return;
+  /*
+  // RTCM
+  #define UBX_CLASS_RXM  0x02
+  #define UBX_ID_RTCM    0x32
+
+  byte ubxPacket[1024];
+  size_t index = 0;
+
+  // UBX header
+  ubxPacket[index++] = UBX_SYNC1;
+  ubxPacket[index++] = UBX_SYNC2;
+  ubxPacket[index++] = UBX_CLASS_RXM; 
+  ubxPacket[index++] = UBX_ID_RTCM;   
+
+  // length (LSB, MSB)
+  ubxPacket[index++] = (uint8_t)(rtcmLength & 0xFF);       // LSB
+  ubxPacket[index++] = (uint8_t)((rtcmLength >> 8) & 0xFF); // MSB
+
+  // RTCM data as payload
+  memcpy(&ubxPacket[index], rtcmData, rtcmLength);
+  index += rtcmLength;
+
+  // UBX checksum
+  uint8_t ck_a, ck_b;
+  calcUBXChecksum(ubxPacket, index, &ck_a, &ck_b);
+  ubxPacket[index++] = ck_a;
+  ubxPacket[index++] = ck_b;
+
+  send(ubxPacket, index);
+  */
+}
+
+
 
 void UBLOX::parse(int b)
 {
@@ -359,13 +415,13 @@ void UBLOX::parse(int b)
   }
   
   
-  if ((b == 0xB5) && (this->state == GOT_NONE)) {
+  if ((b == UBX_SYNC1) && (this->state == GOT_NONE)) {
 
       if (debug) CONSOLE.println("\n");
       this->state = GOT_SYNC1;
   }
 
-  else if ((b == 0x62) && (this->state == GOT_SYNC1)) {
+  else if ((b == UBX_SYNC2) && (this->state == GOT_SYNC1)) {
 
       this->state = GOT_SYNC2;
       this->chka = 0;
