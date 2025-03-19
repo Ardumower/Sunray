@@ -31,7 +31,7 @@ void NTRIPClient::processRTCMData(byte *inputBuffer, int bytesRead) {
           // message complete
           //CONSOLE.print("RTCM packet: ");
           //CONSOLE.println(rtcmBufferLen);          
-          gpsDriver->sendRTCM(rtcmBuffer, rtcmBufferLen); 
+          //gpsDriver->sendRTCM(rtcmBuffer, rtcmBufferLen); 
           bytesValid += rtcmBufferLen;
           rtcmBufferLen = 0;
           messageLength = 0;
@@ -121,7 +121,7 @@ void NTRIPClient::run(){
       if (count > 0){
         bytesReceived += count;
         reconnectTimeout = millis() + NTRIP_RECONNECT_TIMEOUT;      
-        //gpsDriver->send(buffer, count);
+        gpsDriver->send(buffer, count);          
         processRTCMData(buffer, count);
       }
     }    
