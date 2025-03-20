@@ -12,6 +12,7 @@ class Bumper {
 	void begin();
 	void run();
 	bool obstacle();
+	bool nearObstacle();
 	bool testLeft();    // for sensortest
 	bool testRight();   // for sensortest
 	protected:

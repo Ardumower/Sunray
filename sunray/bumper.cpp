@@ -92,6 +92,10 @@ bool Bumper::obstacle(){
   else return false;
 }
 
+bool Bumper::nearObstacle(){
+  return bumperDriver.nearObstacle();
+}
+
 // send separated signals without delay to sensortest
 bool Bumper::testLeft(){
   return (inputLeftPressed);

@@ -265,17 +265,21 @@ void sensorTest(){
         CONSOLE.print("\t");
       }    
       if (BUMPER_ENABLE){
-        CONSOLE.print("bumper (left,right,triggered): ");
+        CONSOLE.print("bumper (left,right,triggered,nearObstacle): ");
         CONSOLE.print(((int)bumper.testLeft()));
         CONSOLE.print("\t");
         CONSOLE.print(((int)bumper.testRight()));
         CONSOLE.print("\t");
         CONSOLE.print(((int)bumper.obstacle()));
+        CONSOLE.print("\t");
+        CONSOLE.print(((int)bumper.nearObstacle()));        
         CONSOLE.print("\t");       
       }
       if (LIDAR_BUMPER_ENABLE) {
-        CONSOLE.print("LiDAR bumper (triggered): ");
+        CONSOLE.print("LiDAR bumper (triggered,nearObstacle): ");
         CONSOLE.print(((int)lidarBumper.obstacle()));
+        CONSOLE.print("\t");
+        CONSOLE.print(((int)lidarBumper.nearObstacle()));        
         CONSOLE.print("\t");
       }
 	    #ifdef ENABLE_LIFT_DETECTION 
