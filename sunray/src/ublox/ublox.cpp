@@ -284,6 +284,7 @@ bool UBLOX::configure(){
           setValueSuccess &= configGPS.addCfgValset8(0x201100aa, 0);  // CFG-NAVSPG-INFIL_NCNOTHRS (0 C/N0 Threshold #SVs)
           setValueSuccess &= configGPS.addCfgValset8(0x201100ab, 0);  // CFG-NAVSPG-INFIL_CNOTHRS  (0 dbHz)   
         }
+        setValueSuccess &= configGPS.addCfgValset8(0x201100c4, GPS_CONFIG_DGNSS_TIMEOUT); // CFG-NAVSPG-CONSTR_DGNSSTO  (60s DGNSS timeout)        
         // ----  gps rates ----------------------------------
         setValueSuccess &= configGPS.addCfgValset16(0x30210001, 200); // CFG-RATE-MEAS       (measurement period 200 ms)  
         setValueSuccess &= configGPS.sendCfgValset16(0x30210002, 1,   timeout); //CFG-RATE-NAV  (navigation rate cycles 1)          
