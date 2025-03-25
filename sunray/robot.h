@@ -87,6 +87,7 @@ extern float stateTemp;  // current temperature
 extern float setSpeed; // linear speed (m/s)
 extern int fixTimeout;
 extern bool finishAndRestart; // auto-restart when mowing finished?
+extern bool dockAfterFinish; // dock after mowing finished?
 extern bool absolutePosSource;
 extern double absolutePosSourceLon;
 extern double absolutePosSourceLat;
