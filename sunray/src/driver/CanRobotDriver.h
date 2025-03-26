@@ -100,6 +100,9 @@ namespace owldrv {
       can_val_angle_add       = 28,  // add angle 
       can_val_pwm_speed       = 29,  // pwm-speed (-1.0...1.0  =  classic motor controller compatiblity)
       can_val_odo_ticks       = 30,  // odometry ticks (encoder ticks   =  classic motor controller compatiblity)
+      can_val_misc_sensor1    = 31,  // miscellaneous sensor1 state
+      can_val_misc_sensor2    = 32,  // miscellaneous sensor2 state  
+      can_val_total_current   = 33,  // total current of all motor phases (low-pass filtered) 
   };
 }
 
