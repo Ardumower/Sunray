@@ -73,6 +73,7 @@ class AmMotorDriver: public MotorDriver {
     void resetMotorFaults()  override;
     void getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) override;
     void getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &mowTicks) override;
+    void getMotorTickTime(unsigned long &leftTime, unsigned long &rightTime, unsigned long &mowTime);
   protected:
     int lastLeftPwm;
     int lastRightPwm;
