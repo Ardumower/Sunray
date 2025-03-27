@@ -286,7 +286,7 @@ void MowOp::onNoFurtherWaypoints(){
     Logger.event(EVT_MOWING_COMPLETED);
     timetable.setMowingCompletedInCurrentTimeFrame(true);
     if (!finishAndRestart){             
-        if (DOCKING_STATION){
+        if (DOCKING_STATION && dockAfterFinish){
             dockOp.setInitiatedByOperator(false);
             changeOp(dockOp);               
         } else {
