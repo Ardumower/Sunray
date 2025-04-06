@@ -323,7 +323,7 @@ void CanRobotDriver::requestMotorErrorStatus(){
 void CanRobotDriver::requestMotorMowCurrent(){
   canDataType_t data;
   for (int i=0; i < MOW_MOTOR_COUNT; i++){
-    sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_IDS[i], can_cmd_request, owldrv::can_val_current, data);
+    sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_IDS[i], can_cmd_request, owldrv::can_val_total_current, data);
   }  
 }
 
@@ -398,7 +398,7 @@ void CanRobotDriver::processResponse(){
                         break;
                     }                    
                     break;
-                  case owldrv::can_val_current:
+                  case owldrv::can_val_total_current:
                     for (int i=0; i < MOW_MOTOR_COUNT; i++){
                       if (node.sourceAndDest.sourceNodeID == MOW_MOTOR_NODE_IDS[i]){
                         mowCurr[i] = data.floatVal;                        
