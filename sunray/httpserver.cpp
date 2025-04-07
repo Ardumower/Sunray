@@ -134,16 +134,17 @@ void processWifiAppServer()
     while ( (client.connected()) && (millis() < timeout) ) {              // loop while the client's connected
       if (client.available()) {               // if there's bytes to read from the client,        
         char c = client.read();               // read a byte, then
+        timeout = millis() + 50;
         buf.push(c);                          // push it to the ring buffer
         // you got two newline characters in a row
         // that's the end of the HTTP request, so send a response
         if (buf.endsWith("\r\n\r\n")) {
           cmd = "";
           while ((client.connected()) && (client.available()) && (millis() < timeout)) {
-            char ch = client.read();            
+            char ch = client.read();
+            timeout = millis() + 50;
             cmd = cmd + ch;
             gps.run();
-            timeout = millis() + 50;
           }
           #ifdef VERBOSE
             CONSOLE.print("WIF:");
@@ -164,10 +165,9 @@ void processWifiAppServer()
             client.print(cmdResponse);                                   
           }
           break;
-        }                
+        }
       } 
       gps.run();
-      timeout = millis() + 50;
     }    
     // give the web browser time to receive the data
     stopClientTime = millis() + 100;
