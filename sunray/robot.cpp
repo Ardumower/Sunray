@@ -155,6 +155,7 @@ float lastGPSMotionY = 0;
 unsigned long nextGPSMotionCheckTime = 0;
 
 bool finishAndRestart = false;
+bool dockAfterFinish = true;
 
 unsigned long nextBadChargingContactCheck = 0;
 unsigned long nextToFTime = 0;
