@@ -227,7 +227,7 @@ void CanRobotDriver::requestMotorDrivePwm(int leftPwm, int rightPwm, bool reques
 
   data.floatVal = ((float)leftPwm) / 255.0;  
   sendCanData(OWL_DRIVE_MSG_ID, LEFT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);  
-  if ((abs(leftPwm) < 0.01) && (requestReleaseBrakesWhenZero)){
+  if ((leftPwm == 0) && (requestReleaseBrakesWhenZero)){
     data.byteVal[0] = 0;      
     sendCanData(OWL_DRIVE_MSG_ID, LEFT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_motor_enable, data);  
   }
@@ -235,7 +235,7 @@ void CanRobotDriver::requestMotorDrivePwm(int leftPwm, int rightPwm, bool reques
   
   data.floatVal = ((float)rightPwm) / 255.0;    
   sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
-  if ((abs(rightPwm) < 0.01) && (requestReleaseBrakesWhenZero)){
+  if ((rightPwm == 0) && (requestReleaseBrakesWhenZero)){
     data.byteVal[0] = 0;      
     sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_motor_enable, data);  
   }
