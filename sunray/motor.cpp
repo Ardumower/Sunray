@@ -196,7 +196,7 @@ void Motor::enableTractionMotors(bool enable){
 void Motor::setReleaseBrakesWhenZero(bool release){
   if (release == releaseBrakesWhenZero) return;
   if (release)
-    CONSOLE.println("traction motors will release brakes when zero");
+    CONSOLE.println("traction motors will release brakes when zero (may only work on owlPlatform)");
   else 
     CONSOLE.println("traction motors will not release brakes when zero");
   releaseBrakesWhenZero = release;
