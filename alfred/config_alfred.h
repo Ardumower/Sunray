@@ -416,6 +416,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define DOCK_FRONT_SIDE true    // dock with mower front side (true) or back side (false)? 
 
+//#define DOCK_RELEASE_BRAKES true   // robot will release electrical brakes in dock
+#define DOCK_RELEASE_BRAKES false   // robot will not release electrical brakes in dock
+
 //#define DOCK_APRIL_TAG 1         // use visual (april-tag) docking?
 #define DOCK_LINEAR_SPEED 0.1   // linear speed for docking
 

@@ -28,9 +28,12 @@ void ChargeOp::begin(){
     CONSOLE.print(" dockReasonRainTriggered=");
     CONSOLE.println(dockOp.dockReasonRainTriggered);
 
+    if (DOCK_RELEASE_BRAKES){
+        motor.setReleaseBrakesWhenZero(true);
+    }
     //motor.stopImmediately(true); // do not use PID to get to stop 
     motor.setLinearAngularSpeed(0,0, false); 
-    motor.setMowState(false);     
+    motor.setMowState(false);         
     //motor.enableTractionMotors(false); // keep traction motors off (motor drivers tend to generate some incorrect encoder values when stopped while not turning)                 
 }
 

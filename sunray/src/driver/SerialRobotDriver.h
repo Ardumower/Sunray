@@ -92,7 +92,7 @@ class SerialMotorDriver: public MotorDriver {
     void begin() override;
     void run() override;
     void setMowHeight(int mowHeightMillimeter) override;
-    void setMotorPwm(int leftPwm, int rightPwm, int mowPwm) override;
+    void setMotorPwm(int leftPwm, int rightPwm, int mowPwm, bool releaseBrakesWhenZero) override;
     void getMotorFaults(bool &leftFault, bool &rightFault, bool &mowFault) override;
     void resetMotorFaults()  override;
     void getMotorCurrent(float &leftCurrent, float &rightCurrent, float &mowCurrent) override;

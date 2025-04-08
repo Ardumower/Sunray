@@ -28,6 +28,7 @@ void MowOp::begin(){
 
     CONSOLE.println("OP_MOW");      
     motor.enableTractionMotors(true); // allow traction motors to operate         
+    motor.setReleaseBrakesWhenZero(false);
     motor.setLinearAngularSpeed(0,0);      
     if (((previousOp != &escapeReverseOp) && (previousOp != &escapeForwardOp)) || (DISABLE_MOW_MOTOR_AT_OBSTACLE))  motor.setMowState(false);              
     battery.setIsDocked(false);                

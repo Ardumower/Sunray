@@ -147,7 +147,7 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
   pwmRight = min(pwmMax, max(-pwmMax, pwmRight));  
   pwmMow = min(pwmMaxMow, max(-pwmMaxMow, pwmMow)); 
   
-  motorDriver.setMotorPwm(pwmLeft, pwmRight, pwmMow);
+  motorDriver.setMotorPwm(pwmLeft, pwmRight, pwmMow, releaseBrakesWhenZero);
 }
 
 // linear: m/s
@@ -191,6 +191,15 @@ void Motor::enableTractionMotors(bool enable){
   else 
     CONSOLE.println("traction motors disabled");
   tractionMotorsEnabled = enable;
+}
+
+void Motor::setReleaseBrakesWhenZero(bool release){
+  if (release == releaseBrakesWhenZero) return;
+  if (release)
+    CONSOLE.println("traction motors will release brakes when zero");
+  else 
+    CONSOLE.println("traction motors will not release brakes when zero");
+  releaseBrakesWhenZero = release;
 }
 
 

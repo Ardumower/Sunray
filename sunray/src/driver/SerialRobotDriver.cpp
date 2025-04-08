@@ -558,7 +558,7 @@ void SerialMotorDriver::run(){
 void SerialMotorDriver::setMowHeight(int mowHeightMillimeter){
 }
 
-void SerialMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  
+void SerialMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm, bool releaseBrakesWhenZero){  
   //serialRobot.requestMotorPwm(leftPwm, rightPwm, mowPwm);
   serialRobot.requestLeftPwm = leftPwm;
   serialRobot.requestRightPwm = rightPwm;

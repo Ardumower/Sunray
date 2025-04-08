@@ -61,6 +61,7 @@ void CanRobotDriver::begin(){
   cmdSummaryCounter = 0;
   consoleCounter = 0;
   requestLeftPwm = requestRightPwm = requestMowPwm = 0;
+  requestReleaseBrakesWhenZero = false;
   requestMowHeightMillimeter = 50;
   motorHeightAngleEndswitch = 0;
   motorHeightAngleEndswitchSet = false;
@@ -221,15 +222,23 @@ void CanRobotDriver::requestSummary(){
 
 
 // request MCU motor PWM
-void CanRobotDriver::requestMotorDrivePwm(int leftPwm, int rightPwm){
+void CanRobotDriver::requestMotorDrivePwm(int leftPwm, int rightPwm, bool requestReleaseBrakesWhenZero){
   canDataType_t data;
 
   data.floatVal = ((float)leftPwm) / 255.0;  
   sendCanData(OWL_DRIVE_MSG_ID, LEFT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);  
+  if ((abs(leftPwm) < 0.01) && (requestReleaseBrakesWhenZero)){
+    data.byteVal[0] = 0;      
+    sendCanData(OWL_DRIVE_MSG_ID, LEFT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_motor_enable, data);  
+  }
   sendCanData(OWL_DRIVE_MSG_ID, LEFT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_odo_ticks, data);    
   
   data.floatVal = ((float)rightPwm) / 255.0;    
   sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
+  if ((abs(rightPwm) < 0.01) && (requestReleaseBrakesWhenZero)){
+    data.byteVal[0] = 0;      
+    sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_motor_enable, data);  
+  }
   sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_odo_ticks, data);    
   cmdMotorCounter++;
 }
@@ -516,7 +525,7 @@ void CanRobotDriver::run(){
       can.read(frame);
     }*/
     //CONSOLE.println(requestLeftPwm);
-    requestMotorDrivePwm(requestLeftPwm, requestRightPwm);        
+    requestMotorDrivePwm(requestLeftPwm, requestRightPwm, requestReleaseBrakesWhenZero);        
   }
   if (millis() > nextSummaryTime){
     nextSummaryTime = millis() + 100; // 10 hz
@@ -621,7 +630,7 @@ void CanMotorDriver::setMowHeight(int mowHeightMillimeter){
   canRobot.requestMowHeightMillimeter = mowHeightMillimeter;
 }
 
-void CanMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  
+void CanMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm, bool releaseBrakesWhenZero){  
   //CONSOLE.print("CanMotorDriver::setMotorPwm ");  
   //CONSOLE.print(leftPwm);
   //CONSOLE.print(",");  
@@ -631,6 +640,7 @@ void CanMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){
   //canRobot.requestMotorPwm(leftPwm, rightPwm, mowPwm);
   canRobot.requestLeftPwm = leftPwm;
   canRobot.requestRightPwm = rightPwm;
+  canRobot.requestReleaseBrakesWhenZero = releaseBrakesWhenZero;
   // Alfred mowing motor driver seem to start start mowing motor more successfully with full PWM (100%) values...  
   //if (mowPwm > 0) mowPwm = 255;
   //  else if (mowPwm < 0) mowPwm = -255;
