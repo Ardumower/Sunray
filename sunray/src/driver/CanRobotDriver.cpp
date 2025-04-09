@@ -225,19 +225,21 @@ void CanRobotDriver::requestSummary(){
 void CanRobotDriver::requestMotorDrivePwm(int leftPwm, int rightPwm, bool requestReleaseBrakesWhenZero){
   canDataType_t data;
 
-  data.floatVal = ((float)leftPwm) / 255.0;  
-  sendCanData(OWL_DRIVE_MSG_ID, LEFT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);  
   if ((leftPwm == 0) && (requestReleaseBrakesWhenZero)){
     data.byteVal[0] = 0;      
     sendCanData(OWL_DRIVE_MSG_ID, LEFT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_motor_enable, data);  
+  } else {
+    data.floatVal = ((float)leftPwm) / 255.0;  
+    sendCanData(OWL_DRIVE_MSG_ID, LEFT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);  
   }
   sendCanData(OWL_DRIVE_MSG_ID, LEFT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_odo_ticks, data);    
   
-  data.floatVal = ((float)rightPwm) / 255.0;    
-  sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
   if ((rightPwm == 0) && (requestReleaseBrakesWhenZero)){
     data.byteVal[0] = 0;      
     sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_motor_enable, data);  
+  } else {
+    data.floatVal = ((float)rightPwm) / 255.0;    
+    sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_set, owldrv::can_val_pwm_speed, data);
   }
   sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_odo_ticks, data);    
   cmdMotorCounter++;

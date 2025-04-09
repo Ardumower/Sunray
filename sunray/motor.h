@@ -57,6 +57,7 @@ class Motor {
     float motorLeftSenseLPNorm; 
     float motorRightSenseLPNorm;
     unsigned long motorMowSpinUpTime;
+    unsigned long motorReleaseBrakesTime;
     bool motorRecoveryState;    
     PID motorLeftPID;
     PID motorRightPID;    

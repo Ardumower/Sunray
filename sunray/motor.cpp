@@ -147,7 +147,11 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
   pwmRight = min(pwmMax, max(-pwmMax, pwmRight));  
   pwmMow = min(pwmMaxMow, max(-pwmMaxMow, pwmMow)); 
   
-  motorDriver.setMotorPwm(pwmLeft, pwmRight, pwmMow, releaseBrakesWhenZero);
+  bool releaseBrakes = false;
+  if (releaseBrakesWhenZero){
+    if (millis() > motorReleaseBrakesTime) releaseBrakes = true;
+  }
+  motorDriver.setMotorPwm(pwmLeft, pwmRight, pwmMow, releaseBrakes);
 }
 
 // linear: m/s
@@ -195,10 +199,12 @@ void Motor::enableTractionMotors(bool enable){
 
 void Motor::setReleaseBrakesWhenZero(bool release){
   if (release == releaseBrakesWhenZero) return;
-  if (release)
+  if (release){
+    motorReleaseBrakesTime = millis() + 2000;
     CONSOLE.println("traction motors will release brakes when zero (may only work on owlPlatform)");
-  else 
+  } else { 
     CONSOLE.println("traction motors will not release brakes when zero");
+  }
   releaseBrakesWhenZero = release;
 }
 
