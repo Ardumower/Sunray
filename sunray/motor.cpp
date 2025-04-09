@@ -147,10 +147,14 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
   pwmRight = min(pwmMax, max(-pwmMax, pwmRight));  
   pwmMow = min(pwmMaxMow, max(-pwmMaxMow, pwmMow)); 
   
-  bool releaseBrakes = false;
+  bool releaseBrakes = false;  
   if (releaseBrakesWhenZero){
-    if (millis() > motorReleaseBrakesTime) releaseBrakes = true;
-  }
+    if ((pwmLeft == 0) && (pwmRight == 0)){
+      if (millis() > motorReleaseBrakesTime) releaseBrakes = true;
+    } else {
+      motorReleaseBrakesTime = millis() + 2000;
+    }
+  }  
   motorDriver.setMotorPwm(pwmLeft, pwmRight, pwmMow, releaseBrakes);
 }
 
