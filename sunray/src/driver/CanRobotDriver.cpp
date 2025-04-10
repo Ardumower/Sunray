@@ -336,6 +336,8 @@ void CanRobotDriver::requestMotorMowCurrent(){
   for (int i=0; i < MOW_MOTOR_COUNT; i++){
     sendCanData(OWL_DRIVE_MSG_ID, MOW_MOTOR_NODE_IDS[i], can_cmd_request, owldrv::can_val_total_current, data);
   }  
+  sendCanData(OWL_DRIVE_MSG_ID, LEFT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_total_current, data);
+  sendCanData(OWL_DRIVE_MSG_ID, RIGHT_MOTOR_NODE_ID, can_cmd_request, owldrv::can_val_total_current, data);
 }
 
 void CanRobotDriver::requestPushboxState(){
@@ -410,6 +412,8 @@ void CanRobotDriver::processResponse(){
                     }                    
                     break;
                   case owldrv::can_val_total_current:
+                    if (node.sourceAndDest.sourceNodeID == LEFT_MOTOR_NODE_ID) motorLeftCurr = data.floatVal;
+                    if (node.sourceAndDest.sourceNodeID == RIGHT_MOTOR_NODE_ID) motorRightCurr = data.floatVal;
                     for (int i=0; i < MOW_MOTOR_COUNT; i++){
                       if (node.sourceAndDest.sourceNodeID == MOW_MOTOR_NODE_IDS[i]){
                         mowCurr[i] = data.floatVal;                        
