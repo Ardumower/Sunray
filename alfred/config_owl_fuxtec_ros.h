@@ -182,7 +182,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define MOW_FAULT_CURRENT 8.0       // mowing motor fault current (amps)
 #define MOW_TOO_LOW_CURRENT 0.00   // mowing motor too low current (amps) , set to zero (0) to disable
-#define MOW_OVERLOAD_CURRENT 2.0    // mowing motor overload current (amps)
+#define MOW_OVERLOAD_CURRENT 1.0    // mowing motor overload current (amps)
 
 // should the direction of mowing motor toggle each start? (yes: true, no: false)
 #define MOW_TOGGLE_DIR       true
