@@ -898,7 +898,8 @@ void processCmd(String channel, bool checkCrc, bool decrypt, bool verbose){
   int idx = cmd.lastIndexOf(',');
   if (idx < 1){
     if (checkCrc){
-      CONSOLE.print("COMM CRC ERROR: ");
+      CONSOLE.print(channel);
+      CONSOLE.print(":COMM CRC ERROR: ");
       CONSOLE.println(cmd);
       return;
     }
@@ -911,7 +912,8 @@ void processCmd(String channel, bool checkCrc, bool decrypt, bool verbose){
     if ((simFaultyConn) && (simFaultConnCounter % 10 == 0)) crcErr = true;
     if ((expectedCrc != crc) && (checkCrc)) crcErr = true;      
     if (crcErr) {
-      CONSOLE.print("CRC ERROR");
+      CONSOLE.print(channel);
+      CONSOLE.print(":CRC ERROR");
       CONSOLE.print(crc,HEX);
       CONSOLE.print(",");
       CONSOLE.print(expectedCrc,HEX);
