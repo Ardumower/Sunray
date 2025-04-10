@@ -28,7 +28,7 @@ unsigned long nextWifiClientCheckTime = 0;
 ERingBuffer buf(8);
 int reqCount = 0;                // number of requests received
 unsigned long stopClientTime = 0;
-
+unsigned long wifiVerboseStopTime = 0;
 
 
 // process WIFI input (relay client)
@@ -78,7 +78,7 @@ void processWifiRelayClient(){
         CONSOLE.print("WIF:");
         CONSOLE.println(cmd);
         if (wifiClient.connected()) {
-          processCmd(true,true);
+          processCmd("WIF", true,true,true);
           String s = "HTTP/1.1 200 OK\r\n";
             s += "Host: " RELAY_USER "." RELAY_MACHINE "." RELAY_HOST ":";        
             s += String(RELAY_PORT) + "\r\n";
@@ -146,12 +146,15 @@ void processWifiAppServer()
             cmd = cmd + ch;
             gps.run();
           }
-          #ifdef VERBOSE
+          if (millis() > wifiVerboseStopTime){
+            wifiVerboseStopTime = 0;
+          }    
+          if (wifiVerboseStopTime != 0){          
             CONSOLE.print("WIF:");
-            CONSOLE.println(cmd);
-          #endif
+            CONSOLE.println(cmd);            
+          }
           if (client.connected()) {
-            processCmd(true,true);
+            processCmd("WIF",true,true, (wifiVerboseStopTime != 0) );
             client.print(
               "HTTP/1.1 200 OK\r\n"
               "Access-Control-Allow-Origin: *\r\n"              
@@ -174,6 +177,7 @@ void processWifiAppServer()
     unsigned long httpEndTime = millis();    
     int httpDuration = httpEndTime - httpStartTime;
     if (httpDuration > 500){
+      wifiVerboseStopTime = millis() + 30000;
       CONSOLE.print("HTTP WARN: high server duration: ");
       CONSOLE.println(httpDuration);
     }

@@ -866,7 +866,7 @@ void cmdFirmwareUpdate(){
 }
 
 // process request
-void processCmd(bool checkCrc, bool decrypt){
+void processCmd(String channel, bool checkCrc, bool decrypt, bool verbose){
   cmdResponse = "";      
   if (cmd.length() < 4) return;
 #ifdef ENABLE_PASS
@@ -883,10 +883,13 @@ void processCmd(bool checkCrc, bool decrypt){
             cmd[i] = char(code);  
           }
         }
-        #ifdef VERBOSE
-          CONSOLE.print("decrypt:");
+        //#ifdef VERBOSE
+        if (verbose){  
+          CONSOLE.print(channel);
+          CONSOLE.print("(decrypt):");
           CONSOLE.println(cmd);
-        #endif
+        }
+        //#endif
       }
     } 
   }
@@ -987,7 +990,7 @@ void processConsole(){
       if ((ch == '\r') || (ch == '\n')) {        
         CONSOLE.print("CON:");
         CONSOLE.println(cmd);
-        processCmd(false, false);              
+        processCmd("CON", false, false, false);              
         CONSOLE.print(cmdResponse);    
         cmd = "";
       } else if (cmd.length() < 500){
