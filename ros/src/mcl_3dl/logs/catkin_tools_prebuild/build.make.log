@@ -1,0 +1,22 @@
+/home/alex/.local/lib/python2.7/site-packages/cmake/data/bin/cmake -S/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild -B/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild --check-build-system CMakeFiles/Makefile.cmake 0
+/usr/bin/make  -f CMakeFiles/Makefile2 run_tests
+make[1]: Entering directory '/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild'
+/home/alex/.local/lib/python2.7/site-packages/cmake/data/bin/cmake -S/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild -B/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild --check-build-system CMakeFiles/Makefile.cmake 0
+/home/alex/.local/lib/python2.7/site-packages/cmake/data/bin/cmake -E cmake_progress_start /home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild/CMakeFiles 0
+/usr/bin/make  -f CMakeFiles/Makefile2 CMakeFiles/run_tests.dir/all
+make[2]: Entering directory '/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild'
+/usr/bin/make  -f CMakeFiles/run_tests.dir/build.make CMakeFiles/run_tests.dir/depend
+make[3]: Entering directory '/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild'
+cd /home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild && /home/alex/.local/lib/python2.7/site-packages/cmake/data/bin/cmake -E cmake_depends "Unix Makefiles" /home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild /home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild /home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild /home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild /home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild/CMakeFiles/run_tests.dir/DependInfo.cmake --color=
+Dependee "/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild/CMakeFiles/run_tests.dir/DependInfo.cmake" is newer than depender "/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild/CMakeFiles/run_tests.dir/depend.internal".
+Dependee "/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild/CMakeFiles/CMakeDirectoryInformation.cmake" is newer than depender "/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild/CMakeFiles/run_tests.dir/depend.internal".
+[35m[1mScanning dependencies of target run_tests[0m
+make[3]: Leaving directory '/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild'
+/usr/bin/make  -f CMakeFiles/run_tests.dir/build.make CMakeFiles/run_tests.dir/build
+make[3]: Entering directory '/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild'
+make[3]: Nothing to be done for 'CMakeFiles/run_tests.dir/build'.
+make[3]: Leaving directory '/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild'
+Built target run_tests
+make[2]: Leaving directory '/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild'
+/home/alex/.local/lib/python2.7/site-packages/cmake/data/bin/cmake -E cmake_progress_start /home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild/CMakeFiles 0
+make[1]: Leaving directory '/home/alex/robomower/ros/fast_lio_mid360/src/mcl_3dl/build/catkin_tools_prebuild'

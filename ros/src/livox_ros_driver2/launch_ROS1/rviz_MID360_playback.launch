@@ -1,0 +1,25 @@
+<launch>
+
+	<param name="/use_sim_time" value="true"/>
+	<arg name="rviz" default="false"/>
+
+
+	<group if="$(arg rviz)">
+		<node name="livox_rviz" pkg="rviz" type="rviz" respawn="true"
+				args="-d $(find livox_ros_driver2)/config/display_point_cloud_ROS1.rviz"/>
+	</group>
+
+
+	<node pkg="rosbag" type="play" name="player" args="-s 0 --clock $(arg bag_file)"/>
+
+
+	<!-- <node pkg="livox_ros_driver2" name="filter" type="filter.py" output="screen">
+	</node> -->
+
+    <!--
+	<node pkg="pcl_cone_tracking" name="pcl_cone_tracking" type="pcl_cone_tracking" output="screen">
+	</node> 
+	
+	-->
+  
+</launch>

@@ -43,7 +43,7 @@ void Battery::begin()
 
   batMonitor = true;              // monitor battery and charge voltage?      
   batGoHomeIfBelow = GO_HOME_VOLTAGE; // 21.5  drive home voltage (Volt)  
-  batSwitchOffIfBelow = 18.9;  // switch off battery if below voltage (Volt)  
+  batSwitchOffIfBelow = BAT_UNDERVOLTAGE;  // switch off battery if below voltage (Volt)  
   batSwitchOffIfIdle = 300;      // switch off battery if idle (seconds)
   // The battery will charge if both battery voltage is below that value and charging current is above that value.
   batFullCurrent  = BAT_FULL_CURRENT;  // 0.2  current flowing when battery is fully charged (A)
@@ -196,7 +196,7 @@ void Battery::run(){
       badChargerContactState = false;
       if (chargerConnectedState){
         if (!chargingCompleted){
-          if (chargingVoltBatteryVoltDiff < -1.0){
+          if (chargingVoltBatteryVoltDiff < -3.0){  // allow larger resistance (as mower chassis is getting older) 
           //if (batteryVoltageSlope < 0){
             badChargerContactState = true;
             DEBUG(F("CHARGER BAD CONTACT chgV="));
@@ -210,7 +210,7 @@ void Battery::run(){
           }      
         } 
       }
-      if (abs(batteryVoltageSlope) < 0.002){
+      if (abs(batteryVoltageSlope) < BAT_FULL_SLOPE){
         batteryVoltageSlopeLowCounter = min(10, batteryVoltageSlopeLowCounter + 1);
       } else {
         batteryVoltageSlopeLowCounter = 0; //max(0, batteryVoltageSlopeLowCounter - 1);
@@ -219,25 +219,30 @@ void Battery::run(){
 
 		if (millis() >= nextPrintTime){
 			nextPrintTime = millis() + 60000;  // 1 minute  	   	   	
-			
-      //print();			
-			/*DEBUG(F("charger conn="));
-			DEBUG(chargerConnected());
-			DEBUG(F(" chgEnabled="));
-			DEBUG(chargingEnabled);
-			DEBUG(F(" chgTime="));      
-			DEBUG(timeMinutes);
-			DEBUG(F(" charger: "));      
-			DEBUG(chargingVoltage);
-			DEBUG(F(" V  "));    
-			DEBUG(chargingCurrent);   
-			DEBUG(F(" A "));         
-			DEBUG(F(" bat: "));
-			DEBUG(batteryVoltage);
-			DEBUG(F(" V  "));    
-			DEBUG(F("switchOffAllowed="));   
-			DEBUG(switchOffAllowed);      
-			DEBUGLN();      */					
+			//if (chargerConnectedState){      
+        //print();			
+        DEBUG(F("charger conn="));
+        DEBUG(chargerConnected());
+        DEBUG(F(" chgEnabled="));
+        DEBUG(chargingEnabled);
+        DEBUG(F(" chgTime="));      
+        DEBUG(timeMinutes);
+        DEBUG(F(" charger: "));      
+        DEBUG(chargingVoltage);
+        DEBUG(F(" V  "));    
+        DEBUG(chargingCurrent);   
+        DEBUG(F(" A "));         
+        DEBUG(F(" bat: "));
+        DEBUG(batteryVoltage);
+        DEBUG(F(" V  "));    
+        DEBUG(" diffV=");
+        DEBUG(chargingVoltBatteryVoltDiff);
+        DEBUG(" slope(v/min)=");
+        DEBUG(batteryVoltageSlope);
+        DEBUG(" slopeLowCounter=");
+        DEBUG(batteryVoltageSlopeLowCounter);
+        DEBUGLN();      
+     // }
     }	
   }
   

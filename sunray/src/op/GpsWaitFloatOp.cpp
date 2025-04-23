@@ -7,6 +7,8 @@
 #include <Arduino.h>
 #include "../../robot.h"
 #include "../../map.h"
+#include "../../events.h"
+
 
 String GpsWaitFloatOp::name(){
   return "GpsWaitFloat";
@@ -15,6 +17,7 @@ String GpsWaitFloatOp::name(){
 void GpsWaitFloatOp::begin(){
     // no gps solution
     CONSOLE.println("WARN: no gps solution!");
+    Logger.event(EVT_NO_GPS_POSITION);
     stateSensor = SENS_GPS_INVALID;
     //setOperation(OP_ERROR);
     //buzzer.sound(SND_STUCK, true);          

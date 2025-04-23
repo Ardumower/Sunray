@@ -9,6 +9,7 @@
 #include "mqtt.h"
 #include "httpserver.h"
 #include "ble.h"
+#include "events.h"
 
 #ifdef __linux__
   #include <BridgeClient.h>
@@ -86,6 +87,29 @@ void cmdTuneParam(){
             case 3: 
               stanleyTrackingSlowK = floatValue;
               break;
+            case 4:
+              motor.motorLeftPID.Kp = floatValue;
+              motor.motorRightPID.Kp = floatValue;              
+              break;
+            case 5:
+              motor.motorLeftPID.Ki = floatValue;
+              motor.motorRightPID.Ki = floatValue;
+              break;
+            case 6:
+              motor.motorLeftPID.Kd = floatValue;
+              motor.motorRightPID.Kd = floatValue;              
+              break;
+            case 7:
+              motor.motorLeftLpf.Tf = floatValue;
+              motor.motorRightLpf.Tf = floatValue;              
+              break;
+            case 8:
+              motor.motorLeftPID.output_ramp = floatValue;
+              motor.motorRightPID.output_ramp = floatValue;              
+              break;
+            case 9:
+              motor.pwmMax = floatValue;
+              break;
           } 
       } 
       counter++;
@@ -138,7 +162,11 @@ void cmdControl(){
       } else if (counter == 8){
           if (intValue >= 0) sonar.enabled = (intValue == 1);
       } else if (counter == 9){
-         if (intValue >= 0) motor.setMowMaxPwm(intValue);
+          if (intValue >= 0) motor.setMowMaxPwm(intValue);
+      } else if (counter == 10){
+          if (intValue >= 0) motor.setMowHeightMillimeter(intValue);
+      } else if (counter == 11){
+          if (intValue >= 0) dockAfterFinish = (intValue == 1);
       }
       counter++;
       lastCommaIdx = idx;
@@ -249,6 +277,7 @@ void cmdTimetable(){
     stateSensor = SENS_MEM_OVERFLOW;
     setOperation(OP_ERROR);
   } else {
+    Logger.event(EVT_USER_UPLOAD_TIME_TABLE);
     saveState();
   }
 }
@@ -425,10 +454,22 @@ void cmdVersion(){
   s += F(",");
   s += encryptChallenge;
   s += F(",");
-  s += BOARD;
+  String board(BOARD);
+  #ifdef __linux__
+    Process p;
+    board = "Linux";
+    // returns: Sinovoip_Bananapi_M4, Raspberry Pi 5, etc.
+    p.runShellCommand("cat /sys/firmware/devicetree/base/model 2>/dev/null");        
+	  String boardAdd = p.readString();    
+    if (boardAdd != "") board += " " + boardAdd;
+    //board += getCPUArchitecture();
+  #endif
+  s += board;
   s += F(",");
   #ifdef DRV_SERIAL_ROBOT
     s += "SR";
+  #elif DRV_CAN_ROBOT
+    s += "CR";
   #elif DRV_ARDUMOWER
     s += "AM";
   #else 
@@ -450,12 +491,14 @@ void cmdVersion(){
   CONSOLE.print(" encryptChallenge=");  
   CONSOLE.println(encryptChallenge);
   cmdAnswer(s);
+  Logger.event(EVT_APP_CONNECTED);
 }
 
 // request add obstacle
 void cmdObstacle(){
   String s = F("O");
   cmdAnswer(s);  
+  Logger.event(EVT_TRIGGERED_OBSTACLE);
   triggerObstacle();  
 }
 
@@ -486,8 +529,9 @@ void cmdTriggerWatchdog(){
   cmdAnswer(s);  
   setOperation(OP_IDLE);
   #ifdef __linux__
+    Logger.event(EVT_SYSTEM_RESTARTING);
     Process p;
-    p.runShellCommand("reboot");    
+    p.runShellCommand("sleep 3; reboot");    
   #else
     triggerWatchdog = true;  
   #endif
@@ -498,6 +542,7 @@ void cmdGNSSReboot(){
   String s = F("Y2");
   cmdAnswer(s);  
   CONSOLE.println("GNNS reboot");
+  Logger.event(EVT_GPS_RESTARTED);    
   gps.reboot();
 }
 
@@ -506,6 +551,7 @@ void cmdSwitchOffRobot(){
   String s = F("Y3");
   cmdAnswer(s);  
   setOperation(OP_IDLE);
+  Logger.event(EVT_SYSTEM_SHUTTING_DOWN);
   battery.switchOff();
 }
 
@@ -674,6 +720,18 @@ void cmdStats(){
   s += statMowGPSMotionTimeoutCounter;
   s += ",";
   s += statMowDurationMotorRecovery;
+  s += ",";
+  s += statMowLiftCounter;
+  s += ",";
+  s += statMowGPSNoSpeedCounter;  
+  s += ",";
+  s += statMowToFCounter;
+  s += ",";
+  s += statMowDiffIMUWheelYawSpeedCounter;
+  s += ",";
+  s += statMowImuNoRotationSpeedCounter;
+  s += ",";
+  s += statMowRotationTimeoutCounter;
   cmdAnswer(s);  
 }
 
@@ -703,6 +761,12 @@ void cmdClearStats(){
   statMowLiftCounter = 0;
   statMowGPSMotionTimeoutCounter = 0;
   statGPSJumps = 0;
+  statMowToFCounter = 0;
+  statMowDiffIMUWheelYawSpeedCounter = 0;
+  statMowImuNoRotationSpeedCounter = 0;
+  statMowGPSNoSpeedCounter = 0;
+  statMowRotationTimeoutCounter = 0;
+  statMowToFCounter = 0;
   cmdAnswer(s);  
 }
 
@@ -802,7 +866,7 @@ void cmdFirmwareUpdate(){
 }
 
 // process request
-void processCmd(bool checkCrc, bool decrypt){
+void processCmd(String channel, bool checkCrc, bool decrypt, bool verbose){
   cmdResponse = "";      
   if (cmd.length() < 4) return;
 #ifdef ENABLE_PASS
@@ -819,10 +883,13 @@ void processCmd(bool checkCrc, bool decrypt){
             cmd[i] = char(code);  
           }
         }
-        #ifdef VERBOSE
-          CONSOLE.print("decrypt:");
+        //#ifdef VERBOSE
+        if (verbose){  
+          CONSOLE.print(channel);
+          CONSOLE.print("(decrypt):");
           CONSOLE.println(cmd);
-        #endif
+        }
+        //#endif
       }
     } 
   }
@@ -831,7 +898,8 @@ void processCmd(bool checkCrc, bool decrypt){
   int idx = cmd.lastIndexOf(',');
   if (idx < 1){
     if (checkCrc){
-      CONSOLE.print("COMM CRC ERROR: ");
+      CONSOLE.print(channel);
+      CONSOLE.print(":COMM CRC ERROR: ");
       CONSOLE.println(cmd);
       return;
     }
@@ -844,7 +912,8 @@ void processCmd(bool checkCrc, bool decrypt){
     if ((simFaultyConn) && (simFaultConnCounter % 10 == 0)) crcErr = true;
     if ((expectedCrc != crc) && (checkCrc)) crcErr = true;      
     if (crcErr) {
-      CONSOLE.print("CRC ERROR");
+      CONSOLE.print(channel);
+      CONSOLE.print(":CRC ERROR");
       CONSOLE.print(crc,HEX);
       CONSOLE.print(",");
       CONSOLE.print(expectedCrc,HEX);
@@ -923,7 +992,7 @@ void processConsole(){
       if ((ch == '\r') || (ch == '\n')) {        
         CONSOLE.print("CON:");
         CONSOLE.println(cmd);
-        processCmd(false, false);              
+        processCmd("CON", false, false, false);              
         CONSOLE.print(cmdResponse);    
         cmd = "";
       } else if (cmd.length() < 500){

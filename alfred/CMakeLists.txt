@@ -63,8 +63,16 @@ foreach (filename ${pi_sources})
     message(${filename})
 endforeach()
 
-message("--copy config.h to sunray source--")
-configure_file(${CMAKE_SOURCE_DIR}/config.h ${FIRMWARE_PATH}/config.h COPYONLY)
+message("--copy CONFIG_FILE to sunray source--")
+if (NOT DEFINED CONFIG_FILE)
+    set(CONFIG_FILE ${CMAKE_SOURCE_DIR}/config.h)
+endif()
+message("CONFIG_FILE: ${CONFIG_FILE}  (to set config file, use: cmake -D CONFIG_FILE=myconfig.h ..)")
+if(NOT EXISTS "${CONFIG_FILE}")
+    message( FATAL_ERROR "CONFIG_FILE does not exist: ${CONFIG_FILE}")
+endif()
+
+configure_file(${CONFIG_FILE} ${FIRMWARE_PATH}/config.h COPYONLY)
 
 message("main file ${FIRMWARE_PATH}/sunray.ino")
 

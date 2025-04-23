@@ -30,12 +30,23 @@ extern "C" {
 
 #include <Arduino.h>
 
+//#define BLE_PROTOCOL_DABBLE   1  // choose this for Dabble Bluetooth protocol (Dabble App)  (disable for Sunray App)
+//#define BLE_PROTOCOL_SUNRAY   1  // choose this for Sunray Bluetooth protocol (Sunray App)  (disable for Dabble App)
+
 
 #define ATT_CID 4
 
-#define UUID_CUSTOM_SERVICE    "0000ffe0-0000-1000-8000-00805f9b34fb"  // serv: custom service 
-#define UUID_CUSTOM_CHAR       "0000ffe1-0000-1000-8000-00805f9b34fb"  // char: custom char (props: read, write, notify, write_no_respons) 
 
+#ifdef BLE_PROTOCOL_DABBLE
+  // Dabble App
+  #define UUID_CUSTOM_SERVICE    "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"  // serv: custom service 
+  #define UUID_CUSTOM_CHAR_RX    "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"  // char: custom char (props: read, write, notify, write_no_respons) 
+  #define UUID_CUSTOM_CHAR_TX    "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"  // char: custom char (props: read, write, notify, write_no_respons) 
+#else
+  // Sunray App
+  #define UUID_CUSTOM_SERVICE    "0000ffe0-0000-1000-8000-00805f9b34fb"  // serv: custom service 
+  #define UUID_CUSTOM_CHAR       "0000ffe1-0000-1000-8000-00805f9b34fb"  // char: custom char (props: read, write, notify, write_no_respons) 
+#endif
 
 
 #define PRLOG(...) \
@@ -54,13 +65,25 @@ extern "C" {
 #define COLOR_BOLDGRAY	"\x1B[1;30m"
 #define COLOR_BOLDWHITE	"\x1B[1;37m"
 
-
 #ifndef __arm__
+	void baswap(bdaddr_t *dst, const bdaddr_t *src)
+	{
+		register unsigned char *d = (unsigned char *) dst;
+		register const unsigned char *s = (const unsigned char *) src;
+		register int i;
+		for (i = 0; i < 6; i++)
+			d[i] = s[5-i];
+	}
+
 	int ba2str(const bdaddr_t *ba, char *str){
-		::printf("WARN: using ba2str dummy!\n");
+		uint8_t b[6];
+		baswap((bdaddr_t *) b, ba);
+		return sprintf(str, "%2.2X:%2.2X:%2.2X:%2.2X:%2.2X:%2.2X",
+			b[0], b[1], b[2], b[3], b[4], b[5]);
 		return 0;
 	} 	
 #endif
+
 
 void *bleThreadFun(void *user_data)
 {
@@ -135,7 +158,7 @@ static void msrmt_ccc_write_cb(struct gatt_db_attribute *attrib,
 	BleUartServer *server = (BleUartServer*)user_data;
 	pthread_mutex_lock( &server->rxMutex );  	
 	uint8_t ecode = 0;
-	//::printf("BLE: msrmt_ccc_write_cb len=%d\n", len);
+	//::printf("BLE: msrmt_ccc_write_cb len=%d\n", (int)len);
 	if (len == 2){
 		if (value[0] == 0x00){	  	
 			server->msrmt_enabled = false;
@@ -257,14 +280,32 @@ void BleUartServer::populateUartService()
 	/*
 	 * Uart Characteristic. 
 	 */
-	//bt_uuid16_create(&uuid, UUID_CUSTOM_CHAR);
-	bt_string_to_uuid(&uuid, UUID_CUSTOM_CHAR);
-	msrmt = gatt_db_service_add_characteristic(service, &uuid,
-						BT_ATT_PERM_READ | BT_ATT_PERM_WRITE ,
-						BT_GATT_CHRC_PROP_READ | BT_GATT_CHRC_PROP_WRITE | BT_GATT_CHRC_PROP_NOTIFY | BT_GATT_CHRC_PROP_WRITE_WITHOUT_RESP,
-						msrmt_ccc_read_cb, msrmt_ccc_write_cb, this);
-	
-	msrmt_handle = gatt_db_attribute_get_handle(msrmt);
+	#ifdef BLE_PROTOCOL_DABBLE
+		::printf("BLE_PROTOCOL_DABBLE\n");
+		bt_string_to_uuid(&uuid, UUID_CUSTOM_CHAR_RX);
+		msrmt = gatt_db_service_add_characteristic(service, &uuid,
+							BT_ATT_PERM_READ | BT_ATT_PERM_WRITE,
+							BT_GATT_CHRC_PROP_WRITE | BT_GATT_CHRC_PROP_NOTIFY,
+							msrmt_ccc_read_cb, msrmt_ccc_write_cb, this);
+
+		bt_string_to_uuid(&uuid, UUID_CUSTOM_CHAR_TX);
+		msrmt = gatt_db_service_add_characteristic(service, &uuid,
+							BT_ATT_PERM_WRITE ,
+							BT_GATT_CHRC_PROP_WRITE | BT_GATT_CHRC_PROP_WRITE_WITHOUT_RESP,
+							msrmt_ccc_read_cb, msrmt_ccc_write_cb, this);
+		
+		msrmt_handle = gatt_db_attribute_get_handle(msrmt);
+	#else 
+		::printf("BLE_PROTOCOL_SUNRAY\n");		
+		//bt_uuid16_create(&uuid, UUID_CUSTOM_CHAR);	
+		bt_string_to_uuid(&uuid, UUID_CUSTOM_CHAR);
+		msrmt = gatt_db_service_add_characteristic(service, &uuid,
+							BT_ATT_PERM_READ | BT_ATT_PERM_WRITE ,
+							BT_GATT_CHRC_PROP_READ | BT_GATT_CHRC_PROP_WRITE | BT_GATT_CHRC_PROP_NOTIFY | BT_GATT_CHRC_PROP_WRITE_WITHOUT_RESP,
+							msrmt_ccc_read_cb, msrmt_ccc_write_cb, this);
+		
+		msrmt_handle = gatt_db_attribute_get_handle(msrmt);
+	#endif
 
 	bt_uuid16_create(&uuid, GATT_CLIENT_CHARAC_CFG_UUID);
 	gatt_db_service_add_descriptor(service, &uuid,

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<launch>
+  <env name="GCOV_PREFIX" value="/tmp/gcov/global_localization" />
+
+  <test test-name="test_global_localization" pkg="mcl_3dl" type="test_global_localization" time-limit="180" />
+
+  <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen">
+    <param name="compatible" value="1" />
+    <param name="likelihood/match_dist_min" value="0.5" />
+    <param name="likelihood/match_dist_flat" value="0.1" />
+    <param name="likelihood/clip_near" value="0.0" />
+    <param name="beam/clip_near" value="0.0" />
+    <param name="lpf_step" value="0" />
+    <param name="dist_weight_z" value="1.0" />
+    <param name="jump_dist" value="1000.0" />
+    <param name="jump_ang" value="1000.0" />
+    <param name="odom_err_lin_lin" value="0.5" />
+    <param name="odom_err_integ_lin_tc" value="120.0" />
+    <param name="odom_err_integ_lin_sigma" value="2.5" />
+    <param name="odom_err_integ_ang_tc" value="120.0" />
+    <param name="odom_err_integ_ang_sigma" value="0.1" />
+    <param name="global_localization_grid_lin" value="0.15" />
+  </node>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="stf_base_link" args="0 5 0 0 0 0 odom base_link" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="stf_laser" args="0 0 0.5 0 0 0 base_link laser" />
+</launch>

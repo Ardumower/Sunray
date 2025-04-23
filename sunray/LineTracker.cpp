@@ -10,6 +10,8 @@
 #include "helper.h"
 #include "pid.h"
 #include "src/op/op.h"
+#include "Stats.h"
+#include "events.h"
 
 
 //PID pidLine(0.2, 0.01, 0); // not used
@@ -22,7 +24,6 @@ float stanleyTrackingSlowK = STANLEY_CONTROL_K_SLOW;
 float stanleyTrackingSlowP = STANLEY_CONTROL_P_SLOW;    
 
 float setSpeed = 0.1; // linear speed (m/s)
-Point last_rotation_target;
 bool rotateLeft = false;
 bool rotateRight = false;
 bool angleToTargetFits = false;
@@ -32,87 +33,7 @@ float trackerDiffDelta = 0;
 bool stateKidnapped = false;
 bool printmotoroverload = false;
 bool trackerDiffDelta_positive = false;
-
-int get_turn_direction_preference() {
-  Point target = maps.targetPoint;
-  float targetDelta = pointsAngle(stateX, stateY, target.x(), target.y());
-  float center_x = stateX;
-  float center_y = stateY;
-  float r = (MOWER_SIZE / 100);
-  float cur_angle = stateDelta;
-
-  if (FREEWHEEL_IS_AT_BACKSIDE) {
-	  cur_angle = scalePI(stateDelta + PI);
-	  targetDelta = scalePI(targetDelta + PI);
-  }
-
-  // create circle / octagon around center angle 0 - "360"
-  circle.points[0].setXY(center_x + cos(deg2rad(0)) * r, center_y + sin(deg2rad(0)) * r);
-  circle.points[1].setXY(center_x + cos(deg2rad(45)) * r, center_y + sin(deg2rad(45)) * r);
-  circle.points[2].setXY(center_x + cos(deg2rad(90)) * r, center_y + sin(deg2rad(90)) * r);
-  circle.points[3].setXY(center_x + cos(deg2rad(135)) * r, center_y + sin(deg2rad(135)) * r);
-  circle.points[4].setXY(center_x + cos(deg2rad(180)) * r, center_y + sin(deg2rad(180)) * r);
-  circle.points[5].setXY(center_x + cos(deg2rad(225)) * r, center_y + sin(deg2rad(225)) * r);
-  circle.points[6].setXY(center_x + cos(deg2rad(270)) * r, center_y + sin(deg2rad(270)) * r);
-  circle.points[7].setXY(center_x + cos(deg2rad(315)) * r, center_y + sin(deg2rad(315)) * r);
-
-  // CONSOLE.print("get_turn_direction_preference: ");
-  // CONSOLE.print(" pos: ");
-  // CONSOLE.print(stateX);
-  // CONSOLE.print("/");
-  // CONSOLE.print(stateY);
-  // CONSOLE.print(" stateDelta: ");
-  // CONSOLE.print(cur_angle);
-  // CONSOLE.print(" targetDelta: ");
-  // CONSOLE.println(targetDelta);
-  int right = 0;
-  int left = 0;
-  for(int i = 0; i < circle.numPoints; ++i) {
-    float angle = pointsAngle(stateX, stateY, circle.points[i].x(), circle.points[i].y());
-    // CONSOLE.print(angle);
-    // CONSOLE.print(" ");
-    // CONSOLE.print(i);
-    // CONSOLE.print(": ");
-    // CONSOLE.print(circle.points[i].x());
-    // CONSOLE.print("/");
-    // CONSOLE.println(circle.points[i].y());
-    if (maps.checkpoint(circle.points[i].x(), circle.points[i].y())) {
-
-            // skip points in front of us
-            if (fabs(angle-cur_angle) < 0.05) {
-                    continue;
-            }
-
-            if (cur_angle < targetDelta) {
-                if (angle >= cur_angle && angle <= targetDelta) {
-                    left++;
-                } else {
-                    right++;
-                }
-            } else {
-                   if (angle <= cur_angle && angle >= targetDelta) {
-                    right++;
-                } else {
-                    left++;
-                }
-            }
-    }
-  }
-  // CONSOLE.print("left/right: ");
-  // CONSOLE.print(left);
-  // CONSOLE.print("/");
-  // CONSOLE.println(right);
-
-  if (right == left) {
-          return 0;
-  }
-
-  if (right < left) {
-          return 1;
-  }
-
-  return -1;
-}
+float lastLineDist = 0;
 
 // control robot velocity (linear,angular) to track line to next waypoint (target)
 // uses a stanley controller for line tracking
@@ -125,11 +46,30 @@ void trackLine(bool runControl){
   if (stateOp == OP_DOCK) mow = false;
   float angular = 0;      
   float targetDelta = pointsAngle(stateX, stateY, target.x(), target.y());      
-  if (maps.trackReverse) targetDelta = scalePI(targetDelta + PI);
+  if (maps.trackReverse) targetDelta = scalePI(targetDelta + PI);  
   targetDelta = scalePIangles(targetDelta, stateDelta);
   trackerDiffDelta = distancePI(stateDelta, targetDelta);                         
   lateralError = distanceLineInfinite(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
   float distToPath = distanceLine(stateX, stateY, lastTarget.x(), lastTarget.y(), target.x(), target.y());        
+
+  float lineDist = maps.distanceToTargetPoint(lastTarget.x(), lastTarget.y());
+  /*if ((abs(lineDist-lastLineDist ) > 0.0) || (abs(distToPath) > 0.5)) {
+    CONSOLE.print("distToPath=");
+    CONSOLE.print(distToPath);
+    CONSOLE.print(" x=");
+    CONSOLE.print(stateX);
+    CONSOLE.print(" y=");    
+    CONSOLE.print(stateY);
+    CONSOLE.print(" lastX=");    
+    CONSOLE.print(lastTarget.x());
+    CONSOLE.print(" lastY=");    
+    CONSOLE.print(lastTarget.y());
+    CONSOLE.print(" tgX=");    
+    CONSOLE.print(target.x());
+    CONSOLE.print(" tgY=");    
+    CONSOLE.println(target.y());
+    lastLineDist = lineDist;
+  }*/
   float targetDist = maps.distanceToTargetPoint(stateX, stateY);
   
   float lastTargetDist = maps.distanceToLastTargetPoint(stateX, stateY);  
@@ -138,13 +78,7 @@ void trackLine(bool runControl){
   else 
     targetReached = (targetDist < TARGET_REACHED_TOLERANCE);
 
-  if ( (last_rotation_target.x() != target.x() || last_rotation_target.y() != target.y()) &&
-        (rotateLeft || rotateRight ) ) {
-    // CONSOLE.println("reset left / right rot (target point changed)");
-    rotateLeft = false;
-    rotateRight = false;
-  }
-
+  
   // allow rotations only near last or next waypoint or if too far away from path
   // it might race between rotating mower and targetDist check below
   // if we race we still have rotateLeft or rotateRight true
@@ -155,48 +89,27 @@ void trackLine(bool runControl){
     else     
       angleToTargetFits = (fabs(trackerDiffDelta)/PI*180.0 < 20);
   } else {
-     angleToTargetFits = true;
+    // while tracking the mowing line do allow rotations if angle to target increases (e.g. due to gps jumps)
+    angleToTargetFits = (fabs(trackerDiffDelta)/PI*180.0 < 45);       
+    //angleToTargetFits = true;
   }
+
+  //if (!angleToTargetFits) CONSOLE.println("!angleToTargetFits");
 
   if (!angleToTargetFits){
     // angular control (if angle to far away, rotate to next waypoint)
     linear = 0;
     angular = 29.0 / 180.0 * PI; //  29 degree/s (0.5 rad/s);               
-    if ((!rotateLeft) && (!rotateRight)){ // decide for one rotation direction (and keep it)
-      int r = 0;
-      // no idea but don't work in reverse mode...
-      if (!maps.trackReverse) {
-        r = get_turn_direction_preference();
-      }
-      // store last_rotation_target point
-      last_rotation_target.setXY(target.x(), target.y());
-      
-      if (r == 1) {
-        //CONSOLE.println("force turn right");
-        rotateLeft = false;
-        rotateRight = true;
-      }
-      else if (r == -1) {
-        //CONSOLE.println("force turn left");
-        rotateLeft = true;
-        rotateRight = false;
-      }
-      else if (trackerDiffDelta < 0) {
-        rotateRight = true;
-      } else {
-        rotateLeft = true;
-      }
-
-      trackerDiffDelta_positive = (trackerDiffDelta >= 0);
-    }        
-    if (trackerDiffDelta_positive != (trackerDiffDelta >= 0)) {
-      CONSOLE.println("reset left / right rotation - DiffDelta overflow");
-      rotateLeft = false;
-      rotateRight = false;
-      // reverse rotation (*-1) - slowly rotate back
-      angular = 10.0 / 180.0 * PI * -1; //  10 degree/s (0.19 rad/s);               
+     // decide for one rotation direction (and keep it)
+    if ((!rotateLeft) && (!rotateRight)) {
+      if (trackerDiffDelta < 0) rotateLeft = true;
+        else rotateRight = true;      
     }
-    if (rotateRight) angular *= -1;
+    if (rotateLeft) angular *= -1;
+    if (fabs(trackerDiffDelta)/PI*180.0 < 90){
+      rotateLeft = false;  // reset rotate direction
+      rotateRight = false;
+    }   
   } 
   else {
     // line control (stanley)    
@@ -221,27 +134,42 @@ void trackLine(bool runControl){
 
     if (maps.trackSlow && trackslow_allowed) {
       // planner forces slow tracking (e.g. docking etc)
-      linear = 0.1;           
+      linear = DOCK_LINEAR_SPEED; // 0.1           
     } else if (     ((setSpeed > 0.2) && (maps.distanceToTargetPoint(stateX, stateY) < 0.5) && (!straight))   // approaching
           || ((linearMotionStartTime != 0) && (millis() < linearMotionStartTime + 3000))                      // leaving  
        ) 
     {
       linear = 0.1; // reduce speed when approaching/leaving waypoints          
+      //CONSOLE.println("SLOW: approach")
     } 
     else {
-      if (gps.solution == SOL_FLOAT)        
+      if ((stateLocalizationMode == LOC_GPS) && (gps.solution == SOL_FLOAT)){        
         linear = min(setSpeed, 0.1); // reduce speed for float solution
-      else
+        //CONSOLE.println("SLOW: float");
+      } else
         linear = setSpeed;         // desired speed
-      if (sonar.nearObstacle()) linear = 0.1; // slow down near obstacles
+      if (bumperDriver.nearObstacle()){
+        linear = 0.1;  // slow down near obstacles 
+        //CONSOLE.println("SLOW: BUMPER");      
+      }
+      if (lidarBumper.nearObstacle()){
+        linear = 0.1;  // slow down near obstacles 
+        //CONSOLE.println("SLOW: LiDAR");      
+      }
+      if (sonar.nearObstacle()) {
+        linear = 0.1; // slow down near obstacles
+        //CONSOLE.println("SLOW: sonar");      
+      }
     }      
     // slow down speed in case of overload and overwrite all prior speed 
     if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
       if (!printmotoroverload) {
-          CONSOLE.println("motor overload detected: reduce linear speed to 0.1");
+          Logger.event(EVT_MOTOR_OVERLOAD_REDUCE_SPEED);
+          CONSOLE.println("motor overload detected: reducing linear speed");
       }
       printmotoroverload = true;
-      linear = 0.1;  
+      linear = min(linear, MOTOR_OVERLOAD_SPEED);  
+      //CONSOLE.println("SLOW: overload");
     } else {
       printmotoroverload = false;
     }   
@@ -269,30 +197,62 @@ void trackLine(bool runControl){
     //if (!SMOOTH_CURVES) angular = max(-PI/16, min(PI/16, angular)); 
   }
   // check some pre-conditions that can make linear+angular speed zero
-  if (fixTimeout != 0){
+  if ((stateLocalizationMode == LOC_GPS) && (fixTimeout != 0)){
     if (millis() > lastFixTime + fixTimeout * 1000.0){
       activeOp->onGpsFixTimeout();        
-    }       
+    }           
   }     
 
-  if ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT)){        
-    if (abs(linear) > 0.06) {
-      if ((millis() > linearMotionStartTime + 5000) && (stateGroundSpeed < 0.03)){
-        // if in linear motion and not enough ground speed => obstacle
-        //if ( (GPS_SPEED_DETECTION) && (!maps.isUndocking()) ) { 
-        if (GPS_SPEED_DETECTION) {         
-          CONSOLE.println("gps no speed => obstacle!");
-          triggerObstacle();
-          return;
+  if (stateLocalizationMode == LOC_GPS){
+    if  ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT)){        
+      if (abs(linear) > 0.06) {
+        if ((millis() > linearMotionStartTime + 5000) && (stateGroundSpeed < 0.03)){
+          // if in linear motion and not enough ground speed => obstacle
+          //if ( (GPS_SPEED_DETECTION) && (!maps.isUndocking()) ) { 
+          if (GPS_SPEED_DETECTION) {         
+            CONSOLE.println("gps no speed => obstacle!");
+            statMowGPSNoSpeedCounter++;
+            Logger.event(EVT_NO_GPS_SPEED_OBSTACLE);
+            triggerObstacle();
+            return;
+          }
         }
+      }  
+    } else {
+      // no gps solution
+      if (REQUIRE_VALID_GPS){
+        CONSOLE.println("WARN: no gps solution!");
+        activeOp->onGpsNoSignal();
       }
-    }  
-  } else {
-    // no gps solution
-    if (REQUIRE_VALID_GPS){
-      CONSOLE.println("WARN: no gps solution!");
-      activeOp->onGpsNoSignal();
     }
+  }
+  if (stateLocalizationMode == LOC_APRIL_TAG){
+    if (!stateAprilTagFound){
+      linear = 0; // wait until april-tag found 
+      angular = 0; 
+    } else {
+      if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
+      //linear = 0; // wait until april-tag found 
+      //angular = 0; 
+    }
+  }
+  if (stateLocalizationMode == LOC_REFLECTOR_TAG){
+    if (!stateReflectorTagFound){
+      linear = 0; // wait until reflector-tag found 
+      angular = 0; 
+    } else {
+      if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
+      float maxAngular = 0.015;  // 0.02
+      float maxLinear = 0.05;      
+      angular =  max(min(1.0 * trackerDiffDelta, maxAngular), -maxAngular);
+      angular =  max(min(angular, maxAngular), -maxAngular);      
+      linear = 0.05;      
+      if (maps.trackReverse) linear = -0.05;   // reverse line tracking needs negative speed           
+    }
+  }
+  if (stateLocalizationMode == LOC_GUIDANCE_SHEET){
+      if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
+      angular = 0;
   }
 
   // gps-jump/false fix check
@@ -309,25 +269,38 @@ void trackLine(bool runControl){
         if (dist < KIDNAP_DETECT_DISTANCE_DOCK_UNDOCK) {
             allowedPathTolerance = KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK;
         }
-    }
-    if (fabs(distToPath) > allowedPathTolerance){ // actually, this should not happen (except on false GPS fixes or robot being kidnapped...)
+    }    
+    if ((stateLocalizationMode == LOC_GPS) && (fabs(distToPath) > allowedPathTolerance)){ // actually, this should not happen (except on false GPS fixes or robot being kidnapped...)
       if (!stateKidnapped){
         stateKidnapped = true;
+        CONSOLE.print("KIDNAP_DETECT: stateKidnapped=");
+        CONSOLE.print(stateKidnapped);
+        CONSOLE.print(" distToPath=");
+        CONSOLE.println(distToPath);
         activeOp->onKidnapped(stateKidnapped);
       }            
     } else {
       if (stateKidnapped) {
         stateKidnapped = false;
+        CONSOLE.print("KIDNAP_DETECT: stateKidnapped=");
+        CONSOLE.print(stateKidnapped);
+        CONSOLE.print(" distToPath=");
+        CONSOLE.println(distToPath);
         activeOp->onKidnapped(stateKidnapped);        
       }
     }
   }
    
-  if (mow)  {  // wait until mowing motor is running
+  // in any case, turn off mower motor if lifted 
+  // also, if lifted, do not turn on mowing motor so that the robot will drive and can do obstacle avoidance 
+  if (detectLift()) mow = false;
+  
+  if (mow)  { 
     if (millis() < motor.motorMowSpinUpTime + 10000){
+       // wait until mowing motor is running
       if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
       linear = 0;
-      angular = 0;   
+      angular = 0;          
     }
   }
 
@@ -340,22 +313,63 @@ void trackLine(bool runControl){
         langleToTargetFits = angleToTargetFits;
     }
 
+    #ifdef DOCK_REFLECTOR_TAG
+      if (stateLocalizationMode == LOC_REFLECTOR_TAG){             
+        CONSOLE.print("loc=");
+        if (stateLocalizationMode == LOC_APRIL_TAG) CONSOLE.print("april");
+        if (stateLocalizationMode == LOC_GPS) CONSOLE.print("gps");
+        if (stateLocalizationMode == LOC_GUIDANCE_SHEET) CONSOLE.print("guide");    
+        if (stateLocalizationMode == LOC_REFLECTOR_TAG) CONSOLE.print("reflector");        
+        CONSOLE.print(" tagFound=");
+        CONSOLE.print(stateReflectorTagFound);
+        CONSOLE.print(" tagOut=");
+        CONSOLE.print(stateReflectorTagOutsideFound);      
+        CONSOLE.print(" reflX=");
+        CONSOLE.print(stateXReflectorTag);
+        CONSOLE.print(" reflY=");
+        CONSOLE.print(stateYReflectorTag);
+        CONSOLE.print(" mow=");
+        CONSOLE.print(mow);      
+        CONSOLE.print(" shouldDock=");
+        CONSOLE.print(maps.shouldDock);      
+        CONSOLE.print(" trackRev=");
+        CONSOLE.print(maps.trackReverse);
+        CONSOLE.print(" lin=");
+        CONSOLE.print(linear);
+        CONSOLE.print(" ang=");
+        CONSOLE.print(angular);    
+        CONSOLE.print(" isBetwLNTLDockPt=");
+        CONSOLE.print(maps.isBetweenLastAndNextToLastDockPoint());
+        CONSOLE.print(" dockPtIdx=");
+        CONSOLE.print(maps.dockPointsIdx);
+        CONSOLE.print(" freePtIdx=");
+        CONSOLE.print(maps.freePointsIdx);
+        CONSOLE.print(" wayMode=");
+        if (maps.wayMode == WAY_DOCK) CONSOLE.print("WAY_DOCK");
+        if (maps.wayMode == WAY_MOW) CONSOLE.print("WAY_MOW");
+        if (maps.wayMode == WAY_FREE) CONSOLE.print("WAY_FREE");
+        CONSOLE.println();
+      }
+    #endif
+
     motor.setLinearAngularSpeed(linear, angular);      
-    if (detectLift()) mow = false; // in any case, turn off mower motor if lifted 
     motor.setMowState(mow);    
   }
 
-  if (targetReached){
-    rotateLeft = false;
-    rotateRight = false;
-    activeOp->onTargetReached();
-    bool straight = maps.nextPointIsStraight();
-    if (!maps.nextPoint(false,stateX,stateY)){
-      // finish        
-      activeOp->onNoFurtherWaypoints();      
-    } else {      
-      // next waypoint          
-      //if (!straight) angleToTargetFits = false;      
+  //if (!maps.isTargetingLastDockPoint()){
+  if (stateLocalizationMode != LOC_REFLECTOR_TAG){
+    if (targetReached){
+      rotateLeft = false;
+      rotateRight = false;
+      activeOp->onTargetReached();
+      bool straight = maps.nextPointIsStraight();
+      if (!maps.nextPoint(false,stateX,stateY)){
+        // finish        
+        activeOp->onNoFurtherWaypoints();      
+      } else {      
+        // next waypoint          
+        //if (!straight) angleToTargetFits = false;      
+      }
     }
   }  
 }

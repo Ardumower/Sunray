@@ -19,12 +19,15 @@
 
 #include "Arduino.h"
 #include <pthread.h>
+#include <sched.h>
 #include <errno.h>
 
 static pthread_mutex_t thread_mutexes[10];
 
 void thread_yield(){
-    pthread_yield();
+    // https://man7.org/linux/man-pages/man3/pthread_yield.3.html
+    //pthread_yield();
+    sched_yield();
 }
 
 pthread_t thread_self(){

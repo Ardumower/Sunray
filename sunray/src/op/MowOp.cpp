@@ -10,6 +10,7 @@
 #include "../../LineTracker.h"
 #include "../../Stats.h"
 #include "../../map.h"
+#include "../../events.h"
 
 
 MowOp::MowOp(){
@@ -27,6 +28,7 @@ void MowOp::begin(){
 
     CONSOLE.println("OP_MOW");      
     motor.enableTractionMotors(true); // allow traction motors to operate         
+    motor.setReleaseBrakesWhenZero(false);
     motor.setLinearAngularSpeed(0,0);      
     if (((previousOp != &escapeReverseOp) && (previousOp != &escapeForwardOp)) || (DISABLE_MOW_MOTOR_AT_OBSTACLE))  motor.setMowState(false);              
     battery.setIsDocked(false);                
@@ -64,9 +66,11 @@ void MowOp::begin(){
         if (mapRoutingFailedCounter > 60){
             CONSOLE.println("error: too many map routing errors!");
             stateSensor = SENS_MAP_NO_ROUTE;
+            Logger.event(EVT_ERROR_NO_MAP_ROUTE_GIVEUP);
             changeOp(errorOp);      
         } else {    
-        changeOp(gpsRebootRecoveryOp, true);
+            Logger.event(EVT_ERROR_NO_MAP_ROUTE);
+            changeOp(gpsRebootRecoveryOp, true);
         }
     } else {
         lastMapRoutingFailed = false;
@@ -102,6 +106,7 @@ void MowOp::run(){
 void MowOp::onRainTriggered(){
     if (DOCKING_STATION){
         CONSOLE.println("RAIN TRIGGERED");
+        Logger.event(EVT_RAIN_DOCKING);
         stateSensor = SENS_RAIN;
         dockOp.dockReasonRainTriggered = true;
         #ifdef DRV_SIM_ROBOT
@@ -117,6 +122,7 @@ void MowOp::onRainTriggered(){
 void MowOp::onTempOutOfRangeTriggered(){
     if (DOCKING_STATION){
         CONSOLE.println("TEMP OUT-OF-RANGE TRIGGERED");
+        Logger.event(EVT_TEMPERATURE_OUT_OF_RANGE_DOCK);
         stateSensor = SENS_TEMP_OUT_OF_RANGE;
         dockOp.dockReasonRainTriggered = true;
         dockOp.dockReasonRainAutoStartTime = millis() + 60000 * 60; // try again after one hour      
@@ -127,6 +133,7 @@ void MowOp::onTempOutOfRangeTriggered(){
 
 void MowOp::onBatteryLowShouldDock(){    
     CONSOLE.println("BATTERY LOW TRIGGERED - DOCKING");
+    Logger.event(EVT_BATTERY_LOW_DOCK);
     dockOp.setInitiatedByOperator(false);
     changeOp(dockOp);
 }
@@ -138,6 +145,10 @@ void MowOp::onTimetableStartMowing(){
 }
 
 void MowOp::onObstacle(){
+    if ((!DOCK_DETECT_OBSTACLE_IN_DOCK) && (maps.isBetweenLastAndNextToLastDockPoint())) {
+      //CONSOLE.println("triggerObstacle: ignoring, because in dock");      
+      return;
+    }
     CONSOLE.println("triggerObstacle");      
     statMowObstacles++;      
     if (maps.isDocking()) {    
@@ -176,6 +187,7 @@ void MowOp::onOdometryError(){
     if (ENABLE_ODOMETRY_ERROR_DETECTION){
         CONSOLE.println("error: odometry error!");    
         stateSensor = SENS_ODOMETRY_ERROR;
+        Logger.event(EVT_ERROR_ODOMETRY);
         changeOp(errorOp);
     }
 }
@@ -185,6 +197,7 @@ void MowOp::onMotorOverload(){
     if (motor.motorOverloadDuration > 20000){
         CONSOLE.println("error: motor overload!");    
         stateSensor = SENS_OVERLOAD;
+        Logger.event(EVT_ERROR_MOTOR_OVERLOAD);
         changeOp(errorOp);
         return;
     }
@@ -200,8 +213,9 @@ void MowOp::onMotorError(){
             CONSOLE.print("MowOp::onMotorError motorErrorCounter=");       
             CONSOLE.println(motorErrorCounter);
             if (maps.wayMode != WAY_DOCK){
-                if (motorErrorCounter < 5){                     
+                if (motorErrorCounter < FAULT_MAX_SUCCESSIVE_ALLOWED_COUNT){                     
                     //stateSensor = SENS_MOTOR_ERROR;
+                    Logger.event(EVT_ERROR_MOTOR_ERROR);            
                     changeOp(escapeReverseOp, true);     // trigger obstacle avoidance 
                     return;
                 }
@@ -210,12 +224,14 @@ void MowOp::onMotorError(){
             CONSOLE.println("error: motor error - giving up!");
             motorErrorCounter = 0;
             stateSensor = SENS_MOTOR_ERROR;
+            Logger.event(EVT_ERROR_MOTOR_ERROR_GIVEUP);
             changeOp(errorOp);
             return;      
         }  
     } else {
         CONSOLE.println("no obstacle avoidance activated on motor errors, giving up");    
         stateSensor = SENS_MOTOR_ERROR;
+        Logger.event(EVT_ERROR_MOTOR_ERROR_GIVEUP);
         changeOp(errorOp);        
         return;
     }
@@ -238,7 +254,7 @@ void MowOp::onGpsFixTimeout(){
 #else
         if (!maps.isUndocking()){
 #endif
-            stateSensor = SENS_GPS_FIX_TIMEOUT;
+            stateSensor = SENS_GPS_FIX_TIMEOUT;            
             changeOp(gpsWaitFixOp, true);
         }
     }
@@ -251,7 +267,7 @@ void MowOp::onGpsNoSignal(){
 #else
         if (!maps.isUndocking()){
 #endif
-            stateSensor = SENS_GPS_INVALID;
+            stateSensor = SENS_GPS_INVALID;            
             changeOp(gpsWaitFloatOp, true);
         }
     }
@@ -261,16 +277,17 @@ void MowOp::onKidnapped(bool state){
     if (state){
         stateSensor = SENS_KIDNAPPED;      
         motor.setLinearAngularSpeed(0,0, false); 
-        motor.setMowState(false);    
+        motor.setMowState(false);            
         changeOp(kidnapWaitOp, true); 
     }
 }
 
 void MowOp::onNoFurtherWaypoints(){
     CONSOLE.println("mowing finished!");
+    Logger.event(EVT_MOWING_COMPLETED);
     timetable.setMowingCompletedInCurrentTimeFrame(true);
     if (!finishAndRestart){             
-        if (DOCKING_STATION){
+        if (DOCKING_STATION && dockAfterFinish){
             dockOp.setInitiatedByOperator(false);
             changeOp(dockOp);               
         } else {
@@ -282,11 +299,13 @@ void MowOp::onNoFurtherWaypoints(){
 
 void MowOp::onImuTilt(){
     stateSensor = SENS_IMU_TILT;
+    Logger.event(EVT_ROBOT_TILTED);
     changeOp(errorOp);
 }
 
 void MowOp::onImuError(){
     stateSensor = SENS_IMU_TIMEOUT;
+    Logger.event(EVT_ERROR_IMU_TIMEOUT);
     changeOp(errorOp);
 }
 

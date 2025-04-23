@@ -24,9 +24,15 @@ extern unsigned long statImuRecoveries ; // counter
 extern unsigned long statMowObstacles ; // counter
 extern unsigned long statGPSJumps ; // counter
 extern unsigned long statMowGPSMotionTimeoutCounter;
+extern unsigned long statMowGPSNoSpeedCounter;
+extern unsigned long statMowObstacleDetectionRotationCounter;
 extern unsigned long statMowBumperCounter; 
 extern unsigned long statMowSonarCounter;
 extern unsigned long statMowLiftCounter;
+extern unsigned long statMowImuNoRotationSpeedCounter;
+extern unsigned long statMowDiffIMUWheelYawSpeedCounter;
+extern unsigned long statMowToFCounter;
+extern unsigned long statMowRotationTimeoutCounter;
 extern float statMowMaxDgpsAge ; // seconds
 extern float statMowDistanceTraveled ; // meter
 extern float statTempMin;

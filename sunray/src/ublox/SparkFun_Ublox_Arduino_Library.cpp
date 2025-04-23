@@ -40,6 +40,8 @@
 */
 
 #include "SparkFun_Ublox_Arduino_Library.h"
+#include "../../config.h"
+
 
 SFE_UBLOX_GPS::SFE_UBLOX_GPS(void)
 {
@@ -1385,6 +1387,8 @@ sfe_ublox_status_e SFE_UBLOX_GPS::sendI2cCommand(ubxPacket *outgoingUBX, uint16_
 void SFE_UBLOX_GPS::sendSerialCommand(ubxPacket *outgoingUBX)
 {
 #if defined(__linux__)
+  CONSOLE.print("SFE_UBLOX_GPS::sendSerialCommand outgoingUBX->len=");
+  CONSOLE.println(outgoingUBX->len);
   byte data[768];
   //Write header bytes
   data[0]=UBX_SYNCH_1; //μ - oh ublox, you're funny. I will call you micro-blox from now on.

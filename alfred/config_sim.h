@@ -45,13 +45,18 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 */
 
 
-#define DRV_SERIAL_ROBOT  1     // Linux (Alfred)
+//#define DRV_SERIAL_ROBOT  1     // Linux (Alfred)
+//#define DRV_CAN_ROBOT  1     // Linux (owlRobotics platform)
 //#define DRV_ARDUMOWER     1   // keep this for Ardumower
-//#define DRV_SIM_ROBOT     1   // simulation
+#define DRV_SIM_ROBOT     1   // simulation
+
+// if compiling for ROS, specify robot launch file (.launch) for robot-specific ROS launch (if not running in ROS, this option will not be used )
+#define ROS_LAUNCH_FILE "sim"
 
 // ------- Bluetooth4.0/BLE module -----------------------------------
 // see Wiki on how to install the BLE module and configure the jumpers:
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Bluetooth_BLE_UART_module
+#define BLE_NAME      "Sim" // Bluetooth Low Energy (BLE) name to advertise
 #define ENABLE_PASS   1        // comment out to disable password authentication
 #define PASS          123456   // choose password for WiFi/BLE communication (NOTE: has to match the connection password in the App!)
 
@@ -67,14 +72,18 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define BNO055
 #define MPU_ADDR 0x69  // I2C address (0x68 if AD0=LOW, 0x69 if AD0=HIGH)
 
+// imu fifo rate (Hz)
+#define IMU_FIFO_RATE 5
+
 // should the mower turn off if IMU is tilt over? (yes: uncomment line, no: comment line)
 #define ENABLE_TILT_DETECTION  1
 
 // --------- lift sensor (only Alfred mower) ---------------------------------------------
 // should the lift sensor be enabled? (yes: uncomment line, no: comment line)
 #define ENABLE_LIFT_DETECTION  1
-// should the lift sensor be used for obstacle avoidance (if not, mower will simply go into error if lifted)
+// should the lift sensor be used for obstacle avoidance (if not, mower will simply turn off cutter motor if lifted)
 #define LIFT_OBSTACLE_AVOIDANCE 1  
+#define LIFT_INVERT  false       // invert lift sensor state? 
 
 // ------- SD card map load/resume and logging ---------------------------------
 // all serial console output can be logged to a (FAT32 formatted) SD card
@@ -125,6 +134,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define TICKS_PER_REVOLUTION  1300 / 2    // 1194/2  odometry ticks per wheel revolution
 
 #define TICKS_PER_REVOLUTION  320     // odometry ticks per wheel revolution (RM24)
+//#define TICKS_PER_REVOLUTION  975     // odometry ticks per wheel revolution (owlRobotics platform)
+//#define TICKS_PER_REVOLUTION  90     // odometry ticks per wheel revolution (hoverboard motor)
 
 
 // ----- gear motors --------------------------------------------------
@@ -139,14 +150,20 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define MOTOR_TOO_LOW_CURRENT 0.005   // gear motor too low current (amps), set to zero (0) to disable
 #define MOTOR_OVERLOAD_CURRENT 1.2    // gear motors overload current (amps)
 
+#define MOTOR_OVERLOAD_SPEED  0.1    // speed (m/s) to use at motor overload
+
 //#define USE_LINEAR_SPEED_RAMP  true      // use a speed ramp for the linear speed
 #define USE_LINEAR_SPEED_RAMP  false      // do not use a speed ramp 
 
 // motor speed control (PID coefficients) - these values are tuned for Ardumower motors
 // general information about PID controllers: https://wiki.ardumower.de/index.php?title=PID_control
-#define MOTOR_PID_KP     0.5    // do not change 2.0 (for non-Ardumower motors or if the motor speed control is too fast you may try: KP=1.0, KI=0, KD=0)
-#define MOTOR_PID_KI     0.01   // do not change 0.03
-#define MOTOR_PID_KD     0.01   // do not change 0.03
+#define MOTOR_PID_LP     0.0    // encoder low-pass filter (use for low encoder tickcount - use zero to disable)
+#define MOTOR_PID_KP     0.5    // 0.5 do not change 2.0 (for non-Ardumower motors or if the motor speed control is too fast you may try: KP=1.0, KI=0, KD=0)
+#define MOTOR_PID_KI     0.01   // 0.01 do not change 0.03
+#define MOTOR_PID_KD     0.01   // 0.01 do not change 0.03
+#define MOTOR_PID_LIMIT  255    // output limit - do not change 255
+#define MOTOR_PID_RAMP   0      // output derivative limit - do not change 0
+
 
 #define MOTOR_LEFT_SWAP_DIRECTION 1  // uncomment to swap left motor direction
 #define MOTOR_RIGHT_SWAP_DIRECTION 1  // uncomment to swap right motor direction
@@ -157,6 +174,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // certain time (normally a few seconds) and the mower will try again and set a virtual obstacle after too many tries
 // On the other hand, the overload detection will detect situations the fault signal cannot detect: slightly higher current for a longer time 
 
+#define MOW_MOTOR_COUNT    1       // number of mowing motors (1-5, >1 requires owlRobotics platform)
+#define MOW_ADJUST_HEIGHT  false   // can the mowing height be adjusted by an additional motor?
+
+//#define MAX_MOW_RPM  1900   // use this to set max RPM (note: requires mowing motor with rpm control!) 
 //#define MAX_MOW_PWM 200  // use this to permanently reduce mowing motor power (255=max)
 
 #define MOW_FAULT_CURRENT 8.0       // mowing motor fault current (amps)
@@ -180,6 +201,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // should the robot trigger obstacle avoidance on motor errors if motor recovery failed?
 #define ENABLE_FAULT_OBSTACLE_AVOIDANCE true  
+
+#define FAULT_MAX_SUCCESSIVE_ALLOWED_COUNT 5   // max. successive allowed motor errors
 
 // shall the mow motor be activated for normal operation? Deactivate this option for GPS tests and path tracking running tests
 #define ENABLE_MOW_MOTOR true // Default is true, set false for testing purpose to switch off mow motor permanently
@@ -214,12 +237,23 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define UDP_SERVER_PORT 4210
 
 // --------- NTRIP client (linux only, highly experimental) ---------------------------------
+// you can activate an NTRIP client to receive RTK RTCM data from an NTRIP caster/server and to send this data to the ublox receiver (via USB)
+// (Sunray will properly configure the ublox receiver for this, if 'GPS_CONFIG true')
 //#define ENABLE_NTRIP 1            // must be activated to use Linux NTRIP
-#define NTRIP_HOST "195.227.70.119"   // sapos nrw
+#define NTRIP_HOST "www.sapos-nw-ntrip.de"   // sapos nrw
 #define NTRIP_PORT 2101
 #define NTRIP_MOUNT "VRS_3_4G_NW"
 #define NTRIP_USER "user"
 #define NTRIP_PASS "pass"
+#define NTRIP_CLIENT_AGENT_NAME "NTRIPClient for Arduino v1.0"
+// choose ONE option only how to generate the GGA message for the NTRIP login (disable ALL to disable GGA sending):
+// 1) the GGA message will be generated based on the base coordinate in the Sunray App (you can either use relative or absolute position mode) 
+#define NTRIP_APP_GGA_MESSAGE 1
+// 2) the GGA message from the GPS receiver is used (you can only use absolute position mode)
+// #define NTRIP_GPS_GGA_MESSAGE 1
+// 3) the GGA message is a fixed text (you will need to generate the GGA message yourself) 
+// #define NTRIP_SIM_GGA_MESSAGE "$GNGGA,082947.40,5408.81295,N,01239.42452,E,1,12,0.67,34.2,M,41.1,M,,*77"
+
 
 // ------ MQTT (for ESP8266 only, highly experimental - ENABLE_SERVER must be set to false for this to work :-/ ) -----------------------------
 // you can access your robot using a MQTT broker - choose a topic prefix for your robot below - available MQTT topics:
@@ -264,10 +298,14 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // https://wiki.ardumower.de/index.php?title=Free_wheel_sensor
 #define BUMPER_ENABLE true
 //#define BUMPER_ENABLE false
+#define BUMPER_INVERT false       // invert bumper sensor state? 
 #define BUMPER_DEADTIME 1000  		// linear motion dead-time (ms) after bumper is allowed to trigger
 #define BUMPER_TRIGGER_DELAY  0		// bumper must be active for (ms) to trigger
 #define BUMPER_MAX_TRIGGER_TIME 30	// if bumpersensor stays permanent triggered mower will stop with bumper error (time in seconds; 0 = disabled)																																				  
 
+// ------ LiDAR bumper ------------------------------------------
+#define LIDAR_BUMPER_ENABLE false
+#define LIDAR_BUMPER_DEADTIME          1000   // linear motion dead-time (ms) after bumper is allowed to trigger
 
 // ----- battery charging current measurement (INA169) --------------
 // the Marotronics charger outputs max 1.5A 
@@ -283,7 +321,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define GO_HOME_VOLTAGE   25.5  // start going to dock below this voltage
 // The battery will charge if both battery voltage is below that value and charging current is above that value.
 #define BAT_FULL_VOLTAGE  30.0  // start mowing again at this voltage
+#define BAT_UNDERVOLTAGE  18.9  // battery switch off voltage
 #define BAT_FULL_CURRENT  -0.1   // start mowing again below this charging current (amps)
+#define BAT_FULL_SLOPE    0.002  // start mowing again below this voltage slope (V/min - choose 0.0 if you have charging issues)
 
 // https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Automatic_battery_switch_off
 #define BAT_SWITCH_OFF_IDLE  false         // switch off if idle (JP8 must be set to autom.)
@@ -303,6 +343,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 //#define GPS_USE_TCP 1                    // comment out for serial gps, activate for TCP client-based GPS
 //#define GPS_SKYTRAQ  1               // comment out for ublox gps, uncomment for skytraq gps/NMEA
+// #define GPS_LIDAR 1                    // decomment for LiDAR
 
 #define REQUIRE_VALID_GPS  true       // mower will pause if no float and no fix GPS solution during mowing (recommended)
 //#define REQUIRE_VALID_GPS  false    // mower will continue to mow if no float or no fix solution (not recommended)
@@ -321,14 +362,15 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define GPS_REBOOT_RECOVERY  true // allow GPS receiver rebooting (recommended - requires GPS wire fix above! otherwise firmware will stuck at boot!)
 //#define GPS_REBOOT_RECOVERY   false  // do not allow rebooting GPS receiver (no GPS wire fix required)
 
-#define GPS_CONFIG   true     // configure GPS receiver (recommended - requires GPS wire fix above! otherwise firmware will stuck at boot!)
-//#define GPS_CONFIG   false  // do not configure GPS receiver (no GPS wire fix required)
+//#define GPS_CONFIG   true     // configure GPS receiver (recommended - requires GPS wire fix above! otherwise firmware will stuck at boot!)
+#define GPS_CONFIG   false  // do not configure GPS receiver (no GPS wire fix required)
 
 #define GPS_CONFIG_FILTER   true     // use signal strength filter? (recommended to get rid of 'FIX jumps') - adjust filter settings below
 //#define GPS_CONFIG_FILTER   false     // use this if you have difficulties to get a FIX solution (uses ublox default filter settings)
 #define CPG_CONFIG_FILTER_MINELEV  10   // Min SV elevation degree: 14 (high elevation, less robust), 10 (low elevation, robust) 
 #define CPG_CONFIG_FILTER_NCNOTHRS 0   // C/N0 Threshold #SVs: 10 (robust), 6 (less robust)
 #define CPG_CONFIG_FILTER_CNOTHRS  0   // 30 dbHz (robust), 13 dbHz (less robust)
+#define GPS_CONFIG_DGNSS_TIMEOUT 60    // 60 sec DGNSS timeout
 
 
 // ------ obstacle detection and avoidance  -------------------------
@@ -351,8 +393,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define KIDNAP_DETECT true  // recommended
 //#define KIDNAP_DETECT false   
 #define KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE 1.0  // allowed path tolerance (m) 
-#define KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK 0.2  // allowed path tolerance (m)
-#define KIDNAP_DETECT_DISTANCE_DOCK_UNDOCK 2  // distance from dock in (m) to use KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK
+#define KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK 20.2  // allowed path tolerance (m)
+#define KIDNAP_DETECT_DISTANCE_DOCK_UNDOCK 5  // distance from dock in (m) to use KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK
 
 // ------ docking --------------------------------------
 // is a docking station available?
@@ -372,6 +414,17 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define UNDOCK_IGNORE_GPS_DISTANCE 2 // set distance (m) from dock to ignore gps while undocking
 
+#define DOCK_FRONT_SIDE true    // dock with mower front side (true) or back side (false)? 
+
+//#define DOCK_RELEASE_BRAKES true   // robot will release electrical brakes in dock
+#define DOCK_RELEASE_BRAKES false   // robot will not release electrical brakes in dock
+
+//#define DOCK_APRIL_TAG 1         // use visual (april-tag) docking?
+#define DOCK_LINEAR_SPEED 0.1   // linear speed for docking
+
+#define DOCK_DETECT_OBSTACLE_IN_DOCK true   // enable obstacle detection in dock?
+
+
 // ---- path tracking -----------------------------------
 
 // below this robot-to-target distance (m) a target is considered as reached
@@ -388,9 +441,11 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // ----- other options --------------------------------------------
 
 // button control (turns on additional features via the POWER-ON button)
+#define BUTTON_STOP    true      // use the stop/emergency button? (also required for additional button features)
 #define BUTTON_CONTROL true      // additional features activated (press-and-hold button for specific beep count: 
                                  //  1 beep=stop, 6 beeps=start, 5 beeps=dock, 3 beeps=R/C mode ON/OFF)
 //#define BUTTON_CONTROL false   // additional features deactivated
+#define BUTTON_INVERT false    // invert button sensor?
 
 #define USE_TEMP_SENSOR true  // only activate if temp sensor (htu21d) connected
 //#define USE_TEMP_SENSOR false  
@@ -407,6 +462,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define BUZZER_ENABLE 1 // comment to disable
 
+#define TTS_PATH "../../tts/de/"    // path for speakable events (.mp3 files) 
+
 
 // ------ experimental options  -------------------------
 
@@ -418,7 +475,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // which Arduino Due USB port do you want to your for serial monitor output (CONSOLE)?
 // Arduino Due native USB port  => choose SerialUSB
 // Arduino Due programming port => choose Serial
-#ifdef _SAM3XA_
+#if defined (__arm__) && defined (__SAM3X8E__) // Arduino Due compatible
   #define BOARD "Arduino Due"
   #define CONSOLE SerialUSB   // Arduino Due: do not change (used for Due native USB serial console)
 #elif __SAMD51__
@@ -437,7 +494,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define CONSOLE_BAUDRATE    115200    // baudrate used for console
 //#define CONSOLE_BAUDRATE    921600  // baudrate used for console
 #define BLE_BAUDRATE    115200        // baudrate used for BLE
-#define BLE_NAME      "Ardumower"     // name for BLE module
 #define GPS_BAUDRATE  115200          // baudrate for GPS RTK module
 #define WIFI_BAUDRATE 115200          // baudrate for WIFI module
 #define ROBOT_BAUDRATE 19200         // baudrate for Linux serial robot (non-Ardumower)
@@ -464,9 +520,15 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
   #define GPS_HOST "127.0.0.1"  
   #define GPS_PORT 2947
   #define ROBOT SerialROBOT
-  #define SERIAL_ROBOT_PATH "/dev/ttyS1"  
   #define NTRIP SerialNTRIP
-  #define SERIAL_NTRIP_PATH "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_00000000-if00-port0"    
+  #ifdef DRV_CAN_ROBOT
+    #define SERIAL_ROBOT_PATH "/dev/null"    
+  #else
+    #define SERIAL_ROBOT_PATH "/dev/ttyS1"  
+  #endif
+  #define NTRIP SerialNTRIP
+  #define SERIAL_NTRIP_PATH "/dev/null" // dummy serial device    
+  //#define SERIAL_NTRIP_PATH "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_00000000-if00-port0"    
 #endif
 
 
@@ -588,6 +650,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define SERIAL_BUFFER_SIZE 4096
 
 #ifdef BNO055
+  #define MPU9250   // just to make mpu driver happy to compile something
+#endif
+
+#ifdef ICM20948
   #define MPU9250   // just to make mpu driver happy to compile something
 #endif
 

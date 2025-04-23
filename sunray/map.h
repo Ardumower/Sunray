@@ -47,6 +47,7 @@ class Polygon
     void dealloc();
     void dump();
     long crc();
+    void getCenter(Point &pt);
     bool read(File &file);
     bool write(File &file);
 };
@@ -138,12 +139,12 @@ class Map
     int freePointsIdx;   // next free point in free point polygon
     int percentCompleted;
     
-    Polygon points;
-    Polygon perimeterPoints;
-    Polygon mowPoints;    
-    Polygon dockPoints;
+    Polygon points;      // all points in one list (mowPoints, perimeterPoints, dockPoints) transfered to robot
+    Polygon perimeterPoints;  // all perimeter points
+    Polygon mowPoints;        // all mowing points
+    Polygon dockPoints;       // all docking points
     Polygon freePoints;
-    PolygonList exclusions;     
+    PolygonList exclusions;   // list of exclusion points
     PolygonList obstacles;     
     PolygonList pathFinderObstacles;
     NodeList pathFinderNodes;
@@ -171,6 +172,7 @@ class Map
     bool load();
     bool save();
     void stressTest();
+    void stressTestMapTransfer();
     long calcMapCRC();
 
     // -------mowing operation--------------------------------------
@@ -197,7 +199,7 @@ class Map
     // next point is straight and not a sharp curve?   
     bool nextPointIsStraight();
     // get docking position and orientation
-    bool getDockingPos(float &x, float &y, float &delta);
+    bool getDockingPos(float &x, float &y, float &delta, int idx = -1);
     
     // ------docking------------------------------------------
     // if docked manually, call this to inform mapping that robot has been docked
@@ -206,6 +208,9 @@ class Map
     bool isUndocking();
     // is robot on docking points and docking?
     bool isDocking();
+    bool isBetweenLastAndNextToLastDockPoint();
+    bool isTargetingLastDockPoint();
+    bool isTargetingNextToLastDockPoint();    
     // call this to inform mapping to start docking
     bool startDocking(float stateX, float stateY);
     // retry docking (have robot drive back to first docking point)

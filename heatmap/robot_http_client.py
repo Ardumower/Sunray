@@ -3,11 +3,15 @@
 import socket
 import requests
 import time
+import os 
 
 
 ROBOT_CON_PASS = "123456" # robot connection password
-#ROBOT_HOST = "192.168.2.68" # some remote machine
-ROBOT_HOST = "127.0.0.1"  # local host
+if "ROBOT_HOST_IP" in os.environ:
+    ROBOT_HOST = os.environ["ROBOT_HOST_IP"]
+else:
+    #ROBOT_HOST = "192.168.2.56" # some remote machine
+    ROBOT_HOST = "127.0.0.1"  # local host
 ROBOT_PORT = 80  # The port used by the robot HTTP server
 URL = 'http://' + ROBOT_HOST + ':' + str(ROBOT_PORT)
 DEBUG = False
@@ -23,8 +27,23 @@ class RobotHttpClient():
         self.robotVoltage = 0
         self.robotX = 0
         self.robotY = 0
+        self.robotDelta = 0
         self.robotGpsSol = 0
         self.robotState = 0
+        self.robotMowPointsIdx = 0
+        self.gpsDgpsAge = 0
+        self.robotStateSensor = 0
+        self.robotTargetX = 0.0
+        self.robotTargetY = 0.0
+        self.gpsAccuracy = 0.0
+        self.gpsNumSV = 0
+        self.robotCurrent = 0.0
+        self.gpsNumSVdgps = 0
+        self.mapCRC = 0
+        self.robotLateralError = 0.0
+        self.autostartDayOfWeek = 0
+        self.autostartHour = 0                  
+
         self.robotObstacles = 0
         self.robotSonarCounter = 0
         self.robotBumperCounter = 0
@@ -91,12 +110,26 @@ class RobotHttpClient():
             if len(arr) < 7:
                 print('ERROR invalid answer from robot (requestSummary)')
                 return False            
-            #print(arr)
+            #print(arr)            
             self.robotVoltage = float(arr[1])
             self.robotX = float(arr[2])
             self.robotY = float(arr[3])
+            self.robotDelta = float(arr[4])
             self.robotGpsSol = int(arr[5])
-            self.robotState = int(arr[6])    
+            self.robotState = int(arr[6])  
+            self.robotMowPointsIdx = int(arr[7])
+            self.gpsDgpsAge = float(arr[8])
+            self.robotStateSensor = int(arr[9])
+            self.robotTargetX = float(arr[10])
+            self.robotTargetY = float(arr[11])
+            self.gpsAccuracy = float(arr[12])
+            self.gpsNumSV = int(arr[13])
+            self.robotCurrent = float(arr[14])
+            self.gpsNumSVdgps = int(arr[15])
+            self.mapCRC = int(arr[16])
+            self.robotLateralError = float(arr[17])
+            self.autostartDayOfWeek = int(arr[18])
+            self.autostartHour = int(arr[19])                  
             #print('volt', robotVoltage, 'x', robotX, 'y', robotY, 'gps', robotGpsSol, 'state', robotState)
             return True
         except Exception as e:
@@ -129,7 +162,8 @@ if __name__ == "__main__":
     resp = robot.requestVersion()    
     if resp:
         resp = robot.requestSummary()
-        print('volt', robot.robotVoltage, 'x', robot.robotX, 'y', robot.robotY, 'gps', robot.robotGpsSol, 'state', robot.robotState)
+        print('volt', robot.robotVoltage, 'x', robot.robotX, 'y', robot.robotY, 'gps', robot.robotGpsSol, 'state', robot.robotState, 
+              'robotLateralError', robot.robotLateralError, 'gpsNumSVdgps', robot.gpsNumSVdgps, 'gpsNumSV', robot.gpsNumSV)
         resp = robot.requestStatistics()
         print('obst', robot.robotObstacles, 'sonar', robot.robotSonarCounter, 'bump', robot.robotBumperCounter, 'gps', robot.robotGPSNoMotionCounter)
             

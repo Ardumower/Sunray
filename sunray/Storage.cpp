@@ -21,7 +21,7 @@ double calcStateCRC(){
  return (stateOp *10 + maps.mowPointsIdx + maps.dockPointsIdx + maps.freePointsIdx + ((byte)maps.wayMode) 
    + sonar.enabled + fixTimeout + setSpeed + ((byte)sonar.enabled)
    + ((byte)absolutePosSource) + absolutePosSourceLon + absolutePosSourceLat + motor.pwmMaxMow 
-   + ((byte)finishAndRestart) + ((byte)motor.motorMowForwardSet) + ((byte)battery.docked)
+   + ((byte)finishAndRestart) + ((byte)motor.motorMowForwardSet) + ((byte)battery.docked) + ((byte)dockAfterFinish)
    + timetable.crc() );
 }
 
@@ -63,7 +63,9 @@ void dumpState(){
   CONSOLE.print(" finishAndRestart=");
   CONSOLE.print(finishAndRestart);
   CONSOLE.print(" motorMowForwardSet=");
-  CONSOLE.println(motor.motorMowForwardSet);  
+  CONSOLE.print(motor.motorMowForwardSet);  
+  CONSOLE.print(" dockAfterFinish=");
+  CONSOLE.println(dockAfterFinish);
 }
 
 void updateStateOpText(){
@@ -158,6 +160,7 @@ bool loadState(){
   res &= (stateFile.read((uint8_t*)&motor.motorMowForwardSet, sizeof(motor.motorMowForwardSet)) != 0); 
   res &= (stateFile.read((uint8_t*)&timetable.timetable, sizeof(timetable.timetable)) != 0);
   res &= (stateFile.read((uint8_t*)&battery.docked, sizeof(battery.docked)) != 0);  
+  res &= (stateFile.read((uint8_t*)&dockAfterFinish, sizeof(dockAfterFinish)) != 0);
   stateFile.close();  
   CONSOLE.println("ok");
   stateCRC = calcStateCRC();
@@ -213,7 +216,8 @@ bool saveState(){
   res &= (stateFile.write((uint8_t*)&finishAndRestart, sizeof(finishAndRestart)) != 0);  
   res &= (stateFile.write((uint8_t*)&motor.motorMowForwardSet, sizeof(motor.motorMowForwardSet)) != 0);
   res &= (stateFile.write((uint8_t*)&timetable.timetable, sizeof(timetable.timetable)) != 0);  
-  res &= (stateFile.write((uint8_t*)&battery.docked, sizeof(battery.docked)) != 0);  
+  res &= (stateFile.write((uint8_t*)&battery.docked, sizeof(battery.docked)) != 0);
+  res &= (stateFile.write((uint8_t*)&dockAfterFinish, sizeof(dockAfterFinish)) != 0);  
   if (res){
     CONSOLE.println("ok");
   } else {

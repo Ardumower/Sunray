@@ -1,0 +1,13 @@
+# This is an OpenOCD script that connects Raspberry Pi to the STM32 and flashes the firmware.
+
+#debug_level 4
+
+init
+targets
+reset halt
+
+echo "----Flashing----"
+
+
+program /home/pi/sunray_install/firmware/ngp_rm24.bin 0x08000000 verify reset exit
+

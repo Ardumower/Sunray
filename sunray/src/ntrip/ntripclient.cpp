@@ -4,11 +4,64 @@
 #include "ntripclient.h"
 
 
-void NTRIPClient::begin(){
+#define NTRIP_RECONNECT_TIMEOUT 30000
+#define GGA_TIMEOUT 30000
+
+
+#define BUFFER_SIZE 1024  
+#define RTCM_HEADER 0xD3  // RTCM3-Header
+
+
+void NTRIPClient::processRTCMData(byte *inputBuffer, int bytesRead) {
+    static byte rtcmBuffer[BUFFER_SIZE];  
+    static int rtcmBufferLen = 0;           
+    int messageLength = 0;    
+    for (int i=0; i < bytesRead; i++){
+      byte val = inputBuffer[i];
+      if (val == RTCM_HEADER){
+        if (messageLength == 0){
+          // found potential header
+          rtcmBufferLen = 0;
+        };
+      }         
+      rtcmBuffer[rtcmBufferLen] = val;      
+      if (rtcmBufferLen < BUFFER_SIZE) rtcmBufferLen++;
+      if (messageLength != 0){
+        if (rtcmBufferLen == messageLength){
+          // message complete
+          //CONSOLE.print("RTCM packet: ");
+          //CONSOLE.println(rtcmBufferLen);          
+          //gpsDriver->sendRTCM(rtcmBuffer, rtcmBufferLen); 
+          bytesValid += rtcmBufferLen;
+          rtcmBufferLen = 0;
+          messageLength = 0;
+        }
+      }      
+      if (rtcmBufferLen == 3){ 
+        // parse length
+        int len = ((rtcmBuffer[1] & 0x03) << 8) | rtcmBuffer[2];  
+        if ((len > 0) && (len < BUFFER_SIZE - 6)){
+          messageLength = 3 + len + 3;  // header + message + crc
+        } else {
+          // invalid length => reset
+          rtcmBufferLen = 0;
+          messageLength = 0;
+        }
+      }
+    }
+}
+
+
+void NTRIPClient::begin(GpsDriver *aGpsDriver){
   CONSOLE.println("using NTRIPClient");  
   reconnectTimeout = 0;
   ggaTimeout = 0;
-  NTRIP.begin(115200);
+  nextGGASendTime = 0;
+  nextInfoTime = 0;
+  bytesReceived = 0;
+  bytesValid = 0;
+  gpsDriver = aGpsDriver;
+  //NTRIP.begin(115200);
 }
 
 void NTRIPClient::connectNTRIP(){
@@ -28,7 +81,7 @@ void NTRIPClient::connectNTRIP(){
   stop(); //Need to call "stop" function for next request.  
   */
   CONSOLE.println("Requesting MountPoint's Raw data");  
-  if(!reqRaw(NTRIP_HOST,NTRIP_PORT,NTRIP_MOUNT,NTRIP_USER,NTRIP_PASS)){
+  if(!reqRaw((char*)NTRIP_HOST,NTRIP_PORT,(char*)NTRIP_MOUNT,(char*)NTRIP_USER,(char*)NTRIP_PASS)){
     CONSOLE.println("Error requesting MointPoint");
   } else {
     CONSOLE.println("Requesting MountPoint is OK");
@@ -39,39 +92,60 @@ void NTRIPClient::connectNTRIP(){
 void NTRIPClient::run(){
   if (millis() > reconnectTimeout){
     if (connected()) stop();          
-    reconnectTimeout = millis() + 10000;
+    reconnectTimeout = millis() + NTRIP_RECONNECT_TIMEOUT;
     if (millis() < ggaTimeout){
       CONSOLE.println("NTRIP disconnected - reconnecting...");
       connectNTRIP();
     } else {
       CONSOLE.println("NTRIP disconnected - waiting for GPS GGA message...");
     }
-  }          
+  }     
+  if (millis() > nextInfoTime){
+    nextInfoTime = millis() + 10000;
+    if (bytesReceived != 0){ 
+      CONSOLE.print("NTRIP bytes:");
+      CONSOLE.print(bytesReceived);
+      CONSOLE.print(" valid:");
+      CONSOLE.println(bytesValid);
+      bytesReceived = 0;
+      bytesValid = 0;
+    }        
+  }     
   if (connected()) {
-    // transfer NTRIP client data to GPS...
-    int count = 0;    
-    while(available()) {
-      char ch = read();  
-      NTRIP.write(ch);  // send to GPS receiver (GPS receiver NTRIP serial port)
-      count++;            
-      //CONSOLE.print(ch);            
-    }
-    if (count > 0){
-      CONSOLE.print("NTRIP:");
-      CONSOLE.println(count);
-      reconnectTimeout = millis() + 10000;    
-    }
+    if (available() > 0){
+      // transfer NTRIP client data to GPS...
+      int count = 0;        
+      byte buffer[4095];
+      count = min(4095, available());     
+      count = read(buffer, count);        
+      if (count > 0){
+        bytesReceived += count;
+        reconnectTimeout = millis() + NTRIP_RECONNECT_TIMEOUT;      
+        gpsDriver->send(buffer, count);          
+        processRTCMData(buffer, count);
+      }
+    }    
   }
-  // transfer GPS NMEA data (GGA message) to NTRIP client... 
-  String nmea = "";
-  while (NTRIP.available()){
-    char ch = NTRIP.read();
-    if (connected()) write(ch);             // send to NTRIP client
-    nmea += ch;        
-  }
-  if (nmea != ""){    
-    CONSOLE.print(nmea);
-    ggaTimeout = millis() + 30000;            
+  // transfer GPS NMEA data (GGA message) to NTRIP caster/server... 
+  if (millis() > nextGGASendTime){
+    nextGGASendTime = millis() + 10000;  // every 10 secs  
+    if (nmeaGGAMessage.length() != 0){
+      String nmea = "";
+      //while (NTRIP.available()){
+      //   char ch = NTRIP.read();
+      //  if (connected()) write(ch);             // send to NTRIP caster/server
+      //  nmea += ch;        
+      //}
+      nmea += nmeaGGAMessage;
+      if (connected()) println(nmea);             // send to NTRIP caster/server          
+      if (nmea != ""){    
+        CONSOLE.print("GGA(");
+        CONSOLE.print(nmeaGGAMessageSource);
+        CONSOLE.print("):");
+        CONSOLE.println(nmea);                  
+      }
+    }
+    ggaTimeout = millis() + GGA_TIMEOUT;
   }  
 }
 
@@ -86,7 +160,7 @@ bool NTRIPClient::reqSrcTbl(char* host,int port)
   p = p + String("User-Agent: NTRIP Enbeded\r\n");*/
   print(
       "GET / HTTP/1.0\r\n"
-      "User-Agent: NTRIPClient for Arduino v1.0\r\n"
+      "User-Agent: " NTRIP_CLIENT_AGENT_NAME "\r\n"
       );
   unsigned long timeout = millis();
   while (available() == 0) {
@@ -115,7 +189,7 @@ bool NTRIPClient::reqRaw(char* host,int port,char* mntpnt,char* user,char* psw)
     CONSOLE.println("Request NTRIP");
     
     p = p + mntpnt + String(" HTTP/1.0\r\n"
-        "User-Agent: NTRIPClient for Arduino v1.0\r\n"
+        "User-Agent: " NTRIP_CLIENT_AGENT_NAME  "\r\n"
     );
     
     if (strlen(user)==0) {
@@ -158,7 +232,7 @@ bool NTRIPClient::reqRaw(char* host,int port,char* mntpnt,char* user,char* psw)
 }
 bool NTRIPClient::reqRaw(char* host,int port,char* mntpnt)
 {
-    return reqRaw(host,port,mntpnt,"","");
+    return reqRaw(host,port,mntpnt,(char*)"",(char*)"");
 }
 int NTRIPClient::readLine(char* _buffer,int size)
 {

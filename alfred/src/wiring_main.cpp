@@ -81,6 +81,8 @@ void request_sketch_terminate(){
     _keep_sketch_running = 0;
 }
 
+
+#ifndef NO_MAIN
 void *_loop_thread_task(void *arg __attribute__((unused))){
     _loop_is_running = 1;
     setup();
@@ -144,4 +146,5 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused))){
     uninit();
     return 0;
 }
+#endif  // NO_MAIN
 

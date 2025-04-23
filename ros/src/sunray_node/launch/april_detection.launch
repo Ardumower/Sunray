@@ -1,0 +1,65 @@
+<launch>
+
+  <!-- for calibration run:  
+       rosrun camera_calibration cameracalibrator.py - -approximate 0.1 - -size 8x6 - -square 0.108  image:=/usb_cam/image_raw  camera:=/usb_cam 
+
+      http://wiki.ros.org/camera_calibration
+
+  -->    
+
+
+  <!-- usb cam - find device path:  v4l2-ctl - -list-devices ,  v4l2-ctl - -device=/dev/video0 - -all  -->
+  <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen" >
+    <param name="video_device" value="/dev/video0" />
+    <param name="image_width" value="1024" />
+    <param name="image_height" value="768" />
+    <param name="pixel_format" value="mjpeg" />
+    <param name="camera_frame_id" value="usb_cam" />
+    <param name="io_method" value="mmap"/>
+    <param name="framerate" value="20"/>
+  </node>
+
+  <group ns="usb_cam/image_raw" >
+    <rosparam param="disable_pub_plugins">
+      - 'image_transport/compressedDepth'          
+      - 'image_transport/compressed'
+      - 'image_transport/theora'
+    </rosparam>
+  </group>        
+
+  <!-- ros2 run tf2_ros static_transform_publisher x y z yaw pitch roll parent_frame child_frame -->
+  <node pkg="tf" type="static_transform_publisher" name="camera_to_robot_tf" 
+        args="0.3 0 0 -1.5708 0 -1.5708 base_link usb_cam 100" />
+
+  <node pkg="tf" type="static_transform_publisher" name="docktag_to_dock_tf" 
+        args="0 0 0 -1.5708 -1.5708 0 docktag dock 100" />
+
+
+  <node name="image_proc" pkg="image_proc" type="image_proc" ns="usb_cam">
+    <param name="image_raw" value="/usb_cam/image_raw" />
+  </node>
+    
+  <!-- set to value="gdbserver localhost:10000" for remote debugging -->
+  <arg name="launch_prefix" default="" />
+
+  <!-- configure camera input -->
+  <arg name="camera_name" default="/usb_cam" />
+  <arg name="image_topic" default="image_rect" />
+  <arg name="queue_size" default="1" />
+
+  <!-- apriltag_ros continuous detection node -->
+  <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen" launch-prefix="$(arg launch_prefix)">
+    <!-- Remap topics from those used in code to those on the ROS network -->
+    <remap from="image_rect" to="$(arg camera_name)/$(arg image_topic)" />
+    <remap from="camera_info" to="$(arg camera_name)/camera_info" />
+
+    <param name="publish_tag_detections_image" type="bool" value="false" /><!-- default: false -->
+    <param name="queue_size" type="int" value="$(arg queue_size)" />
+
+    <!-- load parameters (incl. tag family, tags, etc.) -->
+    <rosparam command="load" file="$(find sunray_node)/config/apriltag/settings.yaml"/>
+    <rosparam command="load" file="$(find sunray_node)/config/apriltag/tags.yaml"/>
+  </node>
+
+
+</launch>

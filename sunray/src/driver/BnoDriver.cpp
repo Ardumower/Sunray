@@ -273,13 +273,17 @@ void BnoDriver::run(){
 
 bool BnoDriver::isDataAvail(){
     if (millis() < nextUpdateTime) return false;
-    nextUpdateTime = millis() + 200; // 5 Hz
+    nextUpdateTime = millis() + IMU_FIFO_RATE; // 5 Hz
     sensors_event_t event; 
     
     selectChip();
     bno.getEvent(&event);              
     //bno.getCalibration(&msgTele.calSystem, &msgTele.calGyro, &msgTele.calAccel, &msgTele.calMag);            
-    //imu::Quaternion quat = bno.getQuat();           // Request quaternion data from BNO055
+    imu::Quaternion quat = bno.getQuat();           // Request quaternion data from BNO055
+    quatW = quat.w();
+    quatX = quat.x();
+    quatY = quat.y();
+    quatZ = quat.z();
     roll = event.orientation.z / 180.0 * PI;
     pitch = event.orientation.y / 180.0 * PI;
     yaw = -event.orientation.x / 180.0 * PI;

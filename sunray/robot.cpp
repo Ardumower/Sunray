@@ -27,13 +27,16 @@
 #include "ble.h"
 #include "motor.h"
 #include "src/driver/AmRobotDriver.h"
+#include "src/driver/CanRobotDriver.h"
 #include "src/driver/SerialRobotDriver.h"
 #include "src/driver/MpuDriver.h"
 #include "src/driver/BnoDriver.h"
+#include "src/driver/IcmDriver.h"
 #include "battery.h"
 #include "gps.h"
 #include "src/ublox/ublox.h"
 #include "src/skytraq/skytraq.h"
+#include "src/lidar/lidar.h"
 #include "helper.h"
 #include "buzzer.h"
 #include "rcmodel.h"
@@ -45,6 +48,7 @@
 #include "src/test/test.h"
 #include "bumper.h"
 #include "mqtt.h"
+#include "events.h"
 
 // #define I2C_SPEED  10000
 #define _BV(x) (1 << (x))
@@ -57,8 +61,12 @@ const signed char orientationMatrix[9] = {
 
 #ifdef DRV_SIM_ROBOT
   SimImuDriver imuDriver(robotDriver);
-#elif BNO055
-  BnoDriver imuDriver;  
+#elif defined(GPS_LIDAR)
+  LidarImuDriver imuDriver;
+#elif defined(BNO055)
+  BnoDriver imuDriver;
+#elif defined(ICM20948)
+  IcmDriver imuDriver;
 #else
   MpuDriver imuDriver;
 #endif
@@ -71,7 +79,16 @@ const signed char orientationMatrix[9] = {
   SerialRainSensorDriver rainDriver(robotDriver);
   SerialLiftSensorDriver liftDriver(robotDriver);
   SerialBuzzerDriver buzzerDriver(robotDriver);
-#elif DRV_SIM_ROBOT
+#elif defined(DRV_CAN_ROBOT)
+  CanRobotDriver robotDriver;
+  CanMotorDriver motorDriver(robotDriver);
+  CanBatteryDriver batteryDriver(robotDriver);
+  CanBumperDriver bumperDriver(robotDriver);
+  CanStopButtonDriver stopButton(robotDriver);
+  CanRainSensorDriver rainDriver(robotDriver);
+  CanLiftSensorDriver liftDriver(robotDriver);
+  CanBuzzerDriver buzzerDriver(robotDriver);
+#elif defined(DRV_SIM_ROBOT)
   SimRobotDriver robotDriver;
   SimMotorDriver motorDriver(robotDriver);
   SimBatteryDriver batteryDriver(robotDriver);
@@ -95,6 +112,8 @@ Battery battery;
 PinManager pinMan;
 #ifdef DRV_SIM_ROBOT
   SimGpsDriver gps(robotDriver);
+#elif GPS_LIDAR
+  LidarGpsDriver gps;
 #elif GPS_SKYTRAQ
   SKYTRAQ gps;
 #else 
@@ -102,6 +121,7 @@ PinManager pinMan;
 #endif 
 BLEConfig bleConfig;
 Buzzer buzzer;
+LidarBumperDriver lidarBumper;
 Sonar sonar;
 Bumper bumper;
 VL53L0X tof(VL53L0X_ADDRESS_DEFAULT);
@@ -135,6 +155,7 @@ float lastGPSMotionY = 0;
 unsigned long nextGPSMotionCheckTime = 0;
 
 bool finishAndRestart = false;
+bool dockAfterFinish = true;
 
 unsigned long nextBadChargingContactCheck = 0;
 unsigned long nextToFTime = 0;
@@ -150,6 +171,7 @@ unsigned long nextTempTime = 0;
 unsigned long imuDataTimeout = 0;
 unsigned long nextSaveTime = 0;
 unsigned long nextTimetableTime = 0;
+unsigned long nextGenerateGGATime = 0;
 
 //##################################################################################
 unsigned long loopTime = millis();
@@ -158,6 +180,7 @@ int loopTimeMax = 0;
 float loopTimeMean = 0;
 int loopTimeMin = 99999;
 unsigned long loopTimeTimer = 0;
+String psOutput = "";
 unsigned long wdResetTimer = millis();
 //##################################################################################
 
@@ -209,8 +232,6 @@ void updateGPSMotionCheckTime(){
 
 
 
-
-
 void sensorTest(){
   CONSOLE.println("testing sensors for 60 seconds...");
   unsigned long stopTime = millis() + 60000;  
@@ -218,7 +239,9 @@ void sensorTest(){
   while (millis() < stopTime){
     sonar.run();
     bumper.run();
+    lidarBumper.run();
     liftDriver.run();
+    robotDriver.run();   
     if (millis() > nextMeasureTime){
       nextMeasureTime = millis() + 1000;      
       if (SONAR_ENABLE){
@@ -243,23 +266,36 @@ void sensorTest(){
         CONSOLE.print("\t");
       }    
       if (BUMPER_ENABLE){
-        CONSOLE.print("bumper (left,right,triggered): ");
+        CONSOLE.print("bumper (left,right,triggered,nearObstacle): ");
         CONSOLE.print(((int)bumper.testLeft()));
         CONSOLE.print("\t");
         CONSOLE.print(((int)bumper.testRight()));
         CONSOLE.print("\t");
         CONSOLE.print(((int)bumper.obstacle()));
+        CONSOLE.print("\t");
+        CONSOLE.print(((int)bumper.nearObstacle()));        
         CONSOLE.print("\t");       
+      }
+      if (LIDAR_BUMPER_ENABLE) {
+        CONSOLE.print("LiDAR bumper (triggered,nearObstacle): ");
+        CONSOLE.print(((int)lidarBumper.obstacle()));
+        CONSOLE.print("\t");
+        CONSOLE.print(((int)lidarBumper.nearObstacle()));        
+        CONSOLE.print("\t");
       }
 	    #ifdef ENABLE_LIFT_DETECTION 
         CONSOLE.print("lift sensor (triggered): ");		
-        CONSOLE.print(((int)liftDriver.triggered()));	
+        bool liftTriggered = liftDriver.triggered();
+        if (LIFT_INVERT) liftTriggered = !liftTriggered;           
+        CONSOLE.print( ((int)liftTriggered) );	
         CONSOLE.print("\t");							            
-      #endif  
-	
+      #endif 
+      if (RAIN_ENABLE){
+        CONSOLE.print("rain (triggered): ");
+        CONSOLE.print( ((int)rainDriver.triggered()) );                                                                                        
+      } 
       CONSOLE.println();  
       watchdogReset();
-      robotDriver.run();   
     }
   }
   CONSOLE.println("end of sensor test - please ignore any IMU/GPS errors");
@@ -465,13 +501,15 @@ void outputConfig(){
   CONSOLE.print("RAIN_ENABLE: ");
   CONSOLE.println(RAIN_ENABLE);
   CONSOLE.print("BUMPER_ENABLE: ");
-  CONSOLE.println(BUMPER_ENABLE);
+  CONSOLE.println(BUMPER_ENABLE);  
   CONSOLE.print("BUMPER_DEADTIME: ");
   CONSOLE.println(BUMPER_DEADTIME);
   CONSOLE.print("BUMPER_TRIGGER_DELAY: ");
   CONSOLE.println(BUMPER_TRIGGER_DELAY);
   CONSOLE.print("BUMPER_MAX_TRIGGER_TIME: ");
   CONSOLE.println(BUMPER_MAX_TRIGGER_TIME);  
+  CONSOLE.print("LIDAR_BUMPER_ENABLE: ");
+  CONSOLE.println(LIDAR_BUMPER_ENABLE);  
   CONSOLE.print("CURRENT_FACTOR: ");
   CONSOLE.println(CURRENT_FACTOR);
   CONSOLE.print("GO_HOME_VOLTAGE: ");
@@ -544,6 +582,7 @@ void outputConfig(){
 
 // robot start routine
 void start(){    
+  loopTime = millis();
   pinMan.begin();         
   // keep battery switched ON
   batteryDriver.begin();  
@@ -610,6 +649,7 @@ void start(){
   motor.begin();
   sonar.begin();
   bumper.begin();
+  lidarBumper.begin();
 
   outputConfig();
 
@@ -646,7 +686,7 @@ void start(){
   // initialize ESP module
   startWIFI();
   #ifdef ENABLE_NTRIP
-    ntrip.begin();  
+    ntrip.begin(&gps);  
   #endif
   
   watchdogEnable(15000L);   // 15 seconds  
@@ -661,6 +701,7 @@ void start(){
     robotDriver.setSimRobotPosState(stateX, stateY, stateDelta);
     tester.begin();
   #endif
+  //Logger.event(EVT_SYSTEM_STARTED);
 }
 
 
@@ -672,6 +713,7 @@ bool robotShouldMove(){
   CONSOLE.println(motor.angularSpeedSet / PI * 180.0);  */
   return ( fabs(motor.linearSpeedSet) > 0.001 );
 }
+
 
 bool robotShouldMoveForward(){
    return ( motor.linearSpeedSet > 0.001 );
@@ -732,7 +774,10 @@ void detectSensorMalfunction(){
 // returns true, if lift detected, otherwise false
 bool detectLift(){  
   #ifdef ENABLE_LIFT_DETECTION
-    if (liftDriver.triggered()) {
+    bool liftTriggered = liftDriver.triggered();  
+    if (LIFT_INVERT) liftTriggered = !liftTriggered;           
+    if (liftTriggered) {
+      CONSOLE.println("LIFT triggered");
       return true;            
     }  
   #endif 
@@ -754,6 +799,7 @@ bool detectObstacle(){
           //CONSOLE.println(avg);
           if (avg < TOF_OBSTACLE_CM * 10){
             CONSOLE.println("ToF obstacle!");    
+            statMowToFCounter++;
             triggerObstacle();                
             return true; 
           }
@@ -763,27 +809,42 @@ bool detectObstacle(){
   }   
   
   #ifdef ENABLE_LIFT_DETECTION
-    #ifdef LIFT_OBSTACLE_AVOIDANCE
-      if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (liftDriver.triggered()) ) {
-        CONSOLE.println("lift sensor obstacle!");    
-        statMowBumperCounter++;
-        triggerObstacle();    
-        return true;
+    #ifdef LIFT_OBSTACLE_AVOIDANCE    
+      if ( millis() > linearMotionStartTime + BUMPER_DEADTIME) { 
+        bool liftTriggered = liftDriver.triggered();  
+        if (LIFT_INVERT) liftTriggered = !liftTriggered; 
+        if (liftTriggered)  {
+          CONSOLE.println("lift sensor obstacle!");    
+          Logger.event(EVT_LIFTED_OBSTACLE);
+          //statMowBumperCounter++;
+          statMowLiftCounter++;
+          triggerObstacle();    
+          return true;
+        }
       }
     #endif
   #endif
 
   if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (bumper.obstacle()) ){  
     CONSOLE.println("bumper obstacle!");    
+    Logger.event(EVT_BUMPER_OBSTACLE);
+    statMowBumperCounter++;
+    triggerObstacle();    
+    return true;
+  }
+
+  if ( (millis() > linearMotionStartTime + LIDAR_BUMPER_DEADTIME) && (lidarBumper.obstacle()) ){  
+    CONSOLE.println("LiDAR bumper obstacle!");    
+    Logger.event(EVT_LIDAR_BUMPER_OBSTACLE);
     statMowBumperCounter++;
     triggerObstacle();    
     return true;
   }
   
   if (sonar.obstacle() && (maps.wayMode != WAY_DOCK)){
-    CONSOLE.println("sonar obstacle!");    
-    statMowSonarCounter++;
     if (SONAR_TRIGGER_OBSTACLES){
+      CONSOLE.println("sonar obstacle!");            
+      statMowSonarCounter++;
       triggerObstacle();
       return true;
     }        
@@ -798,10 +859,13 @@ bool detectObstacle(){
     float delta = sqrt( sq(dX) + sq(dY) );    
     if (delta < 0.05){
       if (GPS_MOTION_DETECTION){
-        CONSOLE.println("gps no motion => obstacle!");
-        statMowGPSMotionTimeoutCounter++;
-        triggerObstacle();
-        return true;
+        if (stateLocalizationMode == LOC_GPS) {
+          CONSOLE.println("gps no motion => obstacle!");
+          Logger.event(EVT_NO_ROBOT_MOTION_OBSTACLE);    
+          statMowGPSMotionTimeoutCounter++;
+          triggerObstacle();
+          return true;
+        }
       }
     }
     lastGPSMotionX = stateX;      
@@ -824,6 +888,8 @@ bool detectObstacleRotation(){
   if (!OBSTACLE_DETECTION_ROTATION) return false; 
   if (millis() > angularMotionStartTime + 15000) { // too long rotation time (timeout), e.g. due to obstacle
     CONSOLE.println("too long rotation time (timeout) for requested rotation => assuming obstacle");
+    Logger.event(EVT_ANGULAR_MOTION_TIMEOUT_OBSTACLE);
+    statMowRotationTimeoutCounter++;
     triggerObstacleRotation();
     return true;
   }
@@ -841,12 +907,16 @@ bool detectObstacleRotation(){
     if (millis() > angularMotionStartTime + 3000) {                  
       if (fabs(stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s yaw speed, e.g. due to obstacle
         CONSOLE.println("no IMU rotation speed detected for requested rotation => assuming obstacle");    
+        statMowImuNoRotationSpeedCounter++;
+        Logger.event(EVT_IMU_NO_ROTATION_OBSTACLE);    
         triggerObstacleRotation();
         return true;      
       }
     }
     if (diffIMUWheelYawSpeedLP > 10.0/180.0 * PI) {  // yaw speed difference between wheels and IMU more than 8 degree/s, e.g. due to obstacle
       CONSOLE.println("yaw difference between wheels and IMU for requested rotation => assuming obstacle");            
+      statMowDiffIMUWheelYawSpeedCounter++;
+      Logger.event(EVT_IMU_WHEEL_DIFFERENCE_OBSTACLE);            
       triggerObstacleRotation();
       return true;            
     }    
@@ -859,9 +929,30 @@ bool detectObstacleRotation(){
 
 // robot main loop
 void run(){  
+  
   #ifdef ENABLE_NTRIP
-    ntrip.run();
+    if (millis() > nextGenerateGGATime){
+      nextGenerateGGATime = millis() + 10000;
+      #ifdef NTRIP_SIM_GGA_MESSAGE
+        ntrip.nmeaGGAMessage = NTRIP_SIM_GGA_MESSAGE; 
+        ntrip.nmeaGGAMessageSource = "SIM";
+      #elif NTRIP_APP_GGA_MESSAGE    
+        if (gps.iTOW != 0){
+          // generate NMEA GGA messsage base on base coordinate entered in Sunray App      
+          gps.decodeTOW();
+          ntrip.nmeaGGAMessage = gps.generateGGA(gps.hour, gps.mins, gps.sec, absolutePosSourceLon, absolutePosSourceLat, gps.height); 
+          ntrip.nmeaGGAMessageSource = "SunrayApp";
+        }
+      #elif NTRIP_GPS_GGA_MESSAGE
+        if (gps.nmeaGGAMessage.length() != 0) {
+          ntrip.nmeaGGAMessage = gps.nmeaGGAMessage; // transfer NMEA GGA message to NTRIP client        
+          ntrip.nmeaGGAMessageSource = "GPS";      
+        }    
+      #endif
+    }
+    ntrip.run();      
   #endif
+
   #ifdef DRV_SIM_ROBOT
     tester.run();
   #endif
@@ -908,12 +999,17 @@ void run(){
   
   // IMU
   if (millis() > nextImuTime){
-    nextImuTime = millis() + 150;        
+    int ims = 750 / IMU_FIFO_RATE;
+    nextImuTime = millis() + ims;        
     //imu.resetFifo();    
     if (imuIsCalibrating) {
       activeOp->onImuCalibration();             
     } else {
       readIMU();    
+      // LiDAR relocalization
+      if (gps.isRelocalizing){
+        activeOp->onRelocalization();
+      }
     }
   }
 
@@ -922,7 +1018,7 @@ void run(){
     nextLedTime = millis() + 1000;
     robotDriver.ledStateGpsFloat = (gps.solution == SOL_FLOAT);
     robotDriver.ledStateGpsFix = (gps.solution == SOL_FIXED);
-    robotDriver.ledStateError = (stateOp == OP_ERROR);     
+    robotDriver.ledStateError = (stateOp == OP_ERROR);            
   }
 
   gps.run();
@@ -1059,44 +1155,71 @@ void run(){
     watchdogReset();
   }   
 
+  //CONSOLE.println(millis());
+  //CONSOLE.println(loopTime); 
   loopTimeNow = millis() - loopTime;
+  //CONSOLE.println(loopTimeNow);  
+  //delay(5000);  
   loopTimeMin = min(loopTimeNow, loopTimeMin); 
   loopTimeMax = max(loopTimeNow, loopTimeMax);
   loopTimeMean = 0.99 * loopTimeMean + 0.01 * loopTimeNow; 
   loopTime = millis();
 
+  #ifdef __linux__    
+    if (psOutput == ""){
+      if(loopTimeMax > 500){
+        Process p;
+        p.runShellCommand("ps -eo pcpu,pid,user,args | sort -k 1 -r | head -3");
+        psOutput = p.readString();    
+      }
+    }
+  #endif
+
   if(millis() > loopTimeTimer + 10000){
     if(loopTimeMax > 500){
       CONSOLE.print("WARNING - LoopTime: ");
     }else{
-      CONSOLE.print("Info - LoopTime: ");
+      CONSOLE.print("Info - LoopTime(ms) now=");
     }
     CONSOLE.print(loopTimeNow);
-    CONSOLE.print(" - ");
+    CONSOLE.print(" min=");
     CONSOLE.print(loopTimeMin);
-    CONSOLE.print(" - ");
+    CONSOLE.print(" mean=");
     CONSOLE.print(loopTimeMean);
-    CONSOLE.print(" - ");
+    CONSOLE.print(" max=");
     CONSOLE.print(loopTimeMax);
-    CONSOLE.println("ms");
+    CONSOLE.println();
+    if (psOutput != "") CONSOLE.println(psOutput);
+
     loopTimeMin = 99999; 
     loopTimeMax = 0;
+    psOutput = "";
     loopTimeTimer = millis();
   }   
   //##############################################################################
 
   // compute button state (stateButton)
-  if (BUTTON_CONTROL){
-    if (stopButton.triggered()){
-      if (millis() > stateButtonTimeout){
-        stateButtonTimeout = millis() + 1000;
-        stateButtonTemp++; // next state
-        buzzer.sound(SND_READY, true);
-        CONSOLE.print("BUTTON ");
-        CONSOLE.print(stateButtonTemp);
-        CONSOLE.println("s");                                     
-      }
-                          
+  if (BUTTON_STOP){  // should we use the stop/emergency button?
+    bool buttonTriggered = stopButton.triggered();
+    if (BUTTON_INVERT) buttonTriggered = !buttonTriggered; 
+    if (buttonTriggered){
+      if ((stateOp != OP_IDLE) && (stateOp != OP_CHARGE)) {   // if not in idle or charge state
+        // stop all pendings actions if button pressed 
+        CONSOLE.println("BUTTON triggered, going IDLE");
+        stateSensor = SENS_STOP_BUTTON;  
+        setOperation(OP_IDLE, false);  // go into idle-state
+      } 
+      if (BUTTON_CONTROL){     
+        // additional button features (start mowing, docking etc.)
+        if (millis() > stateButtonTimeout){
+          stateButtonTimeout = millis() + 1000;
+          stateButtonTemp++; // next state
+          buzzer.sound(SND_READY, true);
+          CONSOLE.print("BUTTON ");
+          CONSOLE.print(stateButtonTemp);
+          CONSOLE.println("s");                                     
+        }
+      }                          
     } else {
       if (stateButtonTemp > 0){
         // button released => set stateButton

@@ -12,7 +12,10 @@
 #include "Stats.h"
 #include "helper.h"
 #include "i2c.h"
+#include "events.h"
 
+
+LocalizationMode stateLocalizationMode = LOC_GPS;
 
 float stateX = 0;  // position-east (m)
 float stateY = 0;  // position-north (m)
@@ -22,6 +25,19 @@ float statePitch = 0;
 float stateDeltaGPS = 0;
 float stateDeltaIMU = 0;
 float stateGroundSpeed = 0; // m/s
+
+bool stateAprilTagFound = false;
+float stateXAprilTag = 0; // camera-position in april-tag frame
+float stateYAprilTag = 0;  
+float stateDeltaAprilTag = 0; 
+
+bool stateReflectorTagFound = false;
+bool stateReflectorTagOutsideFound = false;
+bool stateReflectorUndockCompleted = false;
+float stateXReflectorTag = 0; // camera-position in reflector-tag frame
+float stateYReflectorTag = 0;  
+float stateXReflectorTagLast = 0;
+float stateDeltaReflectorTag = 0; 
 
 unsigned long stateLeftTicks = 0;
 unsigned long stateRightTicks = 0;
@@ -79,7 +95,10 @@ bool startIMU(bool forceIMU){
      }
      watchdogReset();          
   }  
-  if (!imuDriver.imuFound) return false;  
+  if (!imuDriver.imuFound) {
+    Logger.event(EVT_ERROR_IMU_NOT_CONNECTED);
+    return false;
+  }  
   counter = 0;  
   while (true){    
     if (imuDriver.begin()) break;
@@ -91,11 +110,12 @@ bool startIMU(bool forceIMU){
     if (counter > 5){
       //stateSensor = SENS_IMU_TIMEOUT;
       activeOp->onImuError();
+      Logger.event(EVT_ERROR_IMU_NOT_CONNECTED);    
       //setOperation(OP_ERROR);      
       //buzzer.sound(SND_STUCK, true);            
       return false;
     }
-    watchdogReset();     
+    watchdogReset();       
   }              
   imuIsCalibrating = true;   
   nextImuCalibrationSecond = millis() + 1000;
@@ -203,16 +223,143 @@ void resetImuTimeout(){
 // with IMU: heading (stateDelta) is computed by gyro (stateDeltaIMU)
 // without IMU: heading (stateDelta) is computed by odometry (deltaOdometry)
 void computeRobotState(){  
+  stateLocalizationMode = LOC_GPS;
+  bool useGPSposition = true; // use GPS position?
+  bool useGPSdelta = true; // correct yaw with gps delta estimation?
+  bool useImuAbsoluteYaw = false; // use IMU yaw absolute value?
+
+  // ------- lidar localization --------------------------
+  #ifdef GPS_LIDAR
+    useGPSdelta = false;
+    useImuAbsoluteYaw = true;
+  #endif      
+  
+  // ------- sideways guidance sheets ---------------------
+  #ifdef DOCK_GUIDANCE_SHEET // use guidance sheet for docking/undocking?
+    if ( maps.isBetweenLastAndNextToLastDockPoint() ){
+      stateLocalizationMode = LOC_GUIDANCE_SHEET;
+      useGPSposition = false;
+      useGPSdelta = false;
+      useImuAbsoluteYaw = false;
+    }
+  #endif
+
+  // ------- vision (april-tag) --------------------------
+  #ifdef DOCK_APRIL_TAG  // use april-tag for docking/undocking?
+    if (maps.isBetweenLastAndNextToLastDockPoint() ){
+      stateLocalizationMode = LOC_APRIL_TAG;
+      useGPSposition = false;
+      useGPSdelta = false;
+      useImuAbsoluteYaw = false;
+      if (stateAprilTagFound){  
+        float robotX = stateXAprilTag; // robot-in-april-tag-frame (x towards outside tag, y left, z up)
+        float robotY = stateYAprilTag;
+        float robotDelta = scalePI(stateDeltaAprilTag);    
+        /*CONSOLE.print("APRIL TAG found: ");      
+        CONSOLE.print(robotX);
+        CONSOLE.print(",");
+        CONSOLE.print(robotY);
+        CONSOLE.print(",");    
+        CONSOLE.println(robotDelta/3.1415*180.0);*/        
+        float dockX;
+        float dockY;
+        float dockDelta;
+        if (maps.getDockingPos(dockX, dockY, dockDelta)){
+          // transform robot-in-april-tag-frame into world frame
+          float worldX = dockX + robotX * cos(dockDelta+3.1415) - robotY * sin(dockDelta+3.1415);
+          float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            
+          stateX = worldX;
+          stateY = worldY;
+          stateDelta = scalePI(robotDelta + dockDelta);
+          if (DOCK_FRONT_SIDE) stateDelta = scalePI(stateDelta + 3.1415);
+        }
+      }
+    }
+  #endif
+
+  // map dockpoints setup:                                  |===============================
+  //               GPS waypoint         GPS waypoint    outside tag     
+  //                 x----------------------x---------------------------------------------O (last dockpoint)
+  //                                      outside                inside tag visible      inside tag
+  //                                      tag visible       |===============================          
+  //                                                           
+  // localization:              GPS                     LiDAR          
+  
+  #ifdef DOCK_REFLECTOR_TAG  // use reflector-tag for docking/undocking?
+    if (maps.isBetweenLastAndNextToLastDockPoint()) {
+      if (maps.shouldDock) {
+        stateReflectorTagOutsideFound = false;        
+        stateReflectorUndockCompleted = false;
+      }
+      if ((stateReflectorTagOutsideFound) && (stateXReflectorTag > 0.5)) stateReflectorUndockCompleted = true;
+      if (!stateReflectorUndockCompleted) { 
+        stateLocalizationMode = LOC_REFLECTOR_TAG;
+        useGPSposition = false;
+        useGPSdelta = false;
+        useImuAbsoluteYaw = false;
+        if (stateReflectorTagFound){  
+          // don't use stateXReflectorTag as we don't know which tag was detected   
+          float robotX = stateXReflectorTag;  // robot-in-reflector-tag-frame (x towards outside tag, y left, z up)      
+          if ((stateXReflectorTag > 0) && (stateXReflectorTagLast < 0)){
+            if (!maps.shouldDock){
+              stateReflectorTagOutsideFound = true;
+            } 
+          }        
+          stateXReflectorTagLast = stateXReflectorTag;
+          float robotY = stateYReflectorTag;
+          float robotDelta = scalePI(stateDeltaReflectorTag);    
+          /*CONSOLE.print("REFLECTOR TAG found: ");      
+          CONSOLE.print(robotX);
+          CONSOLE.print(",");
+          CONSOLE.print(robotY);
+          CONSOLE.print(",");    
+          CONSOLE.println(robotDelta/3.1415*180.0);*/        
+          float dockX;
+          float dockY;
+          float dockDelta;
+          //int dockPointsIdx = maps.dockPoints.numPoints-1; 
+          int dockPointsIdx = maps.dockPointsIdx;
+          if (maps.getDockingPos(dockX, dockY, dockDelta, dockPointsIdx)){
+            // transform robot-in-reflector-tag-frame into world frame
+            robotX = 0.2;
+            if (!maps.shouldDock) robotX = -0.2;  
+            if (robotX < 0) {
+              // flip robot at marker
+              //robotX *= -1;
+              //robotY *= -1;
+            }
+            float worldX = dockX + robotX * cos(dockDelta+3.1415) - robotY * sin(dockDelta+3.1415);
+            float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            
+            stateX = worldX;
+            stateY = worldY;
+            stateDelta = scalePI(robotDelta + dockDelta);
+            if (DOCK_FRONT_SIDE) stateDelta = scalePI(stateDelta + 3.1415);
+          }
+        }
+      }
+    }
+  #endif
+
+  // ---------- odometry ticks ---------------------------
   long leftDelta = motor.motorLeftTicks-stateLeftTicks;
   long rightDelta = motor.motorRightTicks-stateRightTicks;  
   stateLeftTicks = motor.motorLeftTicks;
   stateRightTicks = motor.motorRightTicks;    
     
   float distLeft = ((float)leftDelta) / ((float)motor.ticksPerCm);
-  float distRight = ((float)rightDelta) / ((float)motor.ticksPerCm);  
-  float distOdometry = (distLeft + distRight) / 2.0;
+  float distRight = ((float)rightDelta) / ((float)motor.ticksPerCm);
+  if ( (abs(distLeft) > 10.0) ||  (abs(distRight) > 10.0) ) {
+    CONSOLE.print("computeRobotState WARN: distOdometry too large - distLeft=");
+    CONSOLE.print(distLeft);
+    CONSOLE.print(", distRight=");
+    CONSOLE.println(distRight);
+    distLeft = 0;
+    distRight = 0;
+  }  
+  float distOdometry = (distLeft + distRight) / 2.0;  
   float deltaOdometry = -(distLeft - distRight) / motor.wheelBaseCm;    
-  
+
+  // ---------- GPS relative/absolute position source -----------------
   float posN = 0;
   float posE = 0;
   if (absolutePosSource){
@@ -221,7 +368,7 @@ void computeRobotState(){
     posN = gps.relPosN;  
     posE = gps.relPosE;     
   }   
-  
+
   if (fabs(motor.linearSpeedSet) < 0.001){       
     resetLastPos = true;
   }
@@ -252,17 +399,19 @@ void computeRobotState(){
           if (motor.linearSpeedSet < 0) stateDeltaGPS = scalePI(stateDeltaGPS + PI); // consider if driving reverse
           //stateDeltaGPS = scalePI(2*PI-gps.heading+PI/2);
           float diffDelta = distancePI(stateDelta, stateDeltaGPS);                 
-          if (    ((gps.solution == SOL_FIXED) && (maps.useGPSfixForDeltaEstimation ))
-              || ((gps.solution == SOL_FLOAT) && (maps.useGPSfloatForDeltaEstimation)) )
-          {   // allows planner to use float solution?         
-            if (fabs(diffDelta/PI*180) > 45){ // IMU-based heading too far away => use GPS heading
-              stateDelta = stateDeltaGPS;
-              stateDeltaIMU = 0;
-            } else {
-              // delta fusion (complementary filter, see above comment)
-              stateDeltaGPS = scalePIangles(stateDeltaGPS, stateDelta);
-              stateDelta = scalePI(fusionPI(0.9, stateDelta, stateDeltaGPS));               
-            }            
+          if (useGPSdelta){
+            if (    ((gps.solution == SOL_FIXED) && (maps.useGPSfixForDeltaEstimation ))
+                || ((gps.solution == SOL_FLOAT) && (maps.useGPSfloatForDeltaEstimation)) )
+            {   // allows planner to use float solution?         
+              if (fabs(diffDelta/PI*180) > 45){ // IMU-based heading too far away => use GPS heading
+                stateDelta = stateDeltaGPS;
+                stateDeltaIMU = 0;
+              } else {
+                // delta fusion (complementary filter, see above comment)
+                stateDeltaGPS = scalePIangles(stateDeltaGPS, stateDelta);
+                stateDelta = scalePI(fusionPI(0.9, stateDelta, stateDeltaGPS));               
+              }            
+            }
           }
         }
       }
@@ -270,30 +419,55 @@ void computeRobotState(){
       lastPosE = posE;
       lastPosDelta = stateDelta;
     } 
-    if (gps.solution == SOL_FIXED) {
-      // fix
-      lastFixTime = millis();
-      if (maps.useGPSfixForPosEstimation) {
-        stateX = posE;
-        stateY = posN;
-      }        
-    } else {
-      // float
-      if (maps.useGPSfloatForPosEstimation){ // allows planner to use float solution?
-        stateX = posE;
-        stateY = posN;              
+    
+    if (useGPSposition){
+      if (gps.solution == SOL_FIXED) {
+        // fix
+        lastFixTime = millis();
+        if (maps.useGPSfixForPosEstimation) {
+          stateX = posE;
+          stateY = posN;
+        }        
+      } else {
+        // float
+        if (maps.useGPSfloatForPosEstimation){ // allows planner to use float solution?
+          stateX = posE;
+          stateY = posN;              
+        }
       }
     }
   } 
+
   
+  /*
+  // for testing lidar marker-based docking without GPS  
+  #ifdef DOCK_REFLECTOR_TAG
+    static bool initializedXYDelta = false;
+    if (useGPSposition){
+      if (!initializedXYDelta){
+        CONSOLE.println("initializedXYDelta");
+        stateX = 0;
+        stateY = 0;
+        stateDelta = 0;      
+        initializedXYDelta = true;
+      }
+    }
+  #endif
+  */
+  
+
   // odometry
   stateX += distOdometry/100.0 * cos(stateDelta);
   stateY += distOdometry/100.0 * sin(stateDelta);        
   if (stateOp == OP_MOW) statMowDistanceTraveled += distOdometry/100.0;
   
   if ((imuDriver.imuFound) && (maps.useIMU)) {
-    // IMU available and should be used by planner
-    stateDelta = scalePI(stateDelta + stateDeltaIMU );          
+    // IMU available and should be used by planner        
+    if (useImuAbsoluteYaw){
+      stateDelta = imuDriver.yaw; 
+    } else {
+      stateDelta = scalePI(stateDelta + stateDeltaIMU );          
+    }     
   } else {
     // odometry
     stateDelta = scalePI(stateDelta + deltaOdometry);  
@@ -319,6 +493,13 @@ void computeRobotState(){
     //CONSOLE.print(stateDeltaSpeedIMU/PI*180.0);
     //CONSOLE.print(",");
     //CONSOLE.println(stateDeltaSpeedWheels/PI*180.0);
+  }
+
+
+  // invalid position => reset to zero
+  if ( (abs(stateX) > 10000) || (abs(stateY) > 10000) ){
+    stateX = 0;
+    stateY = 0;
   }
 }
 

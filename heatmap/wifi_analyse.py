@@ -124,14 +124,14 @@ while (True):
         dt = datetime.datetime.now()
         ts = dt.strftime('%y-%m-%d %H:%M:%S')        
         line = ts + '  AP ' + ap 
-        line += '  state %d  volt %.1f  GPS(x=%.2f,y=%.2f,sol=%d)'  \
+        line += '  state %d  volt %.1f  GPS(x=%.2f,y=%.2f,sol=%d,sv=%d,dsv=%d)'  \
            '  sig dBm(avg=%.0f min=%.0f max=%.0f)  qty(avg=%.0f min=%.0f max=%.0f)  ping sec(err=%d avg=%.3f min=%.3f max=%.3f)'   \
-           % (robot.robotState, robot.robotVoltage, robot.robotX, robot.robotY, robot.robotGpsSol, nt.signalLevelAvg, nt.signalLevelMin, \
+           % (robot.robotState, robot.robotVoltage, robot.robotX, robot.robotY, robot.robotGpsSol, robot.gpsNumSV, robot.gpsNumSVdgps, nt.signalLevelAvg, nt.signalLevelMin, \
            nt.signalLevelMax, nt.linkQualityAvg, nt.linkQualityMin, nt.linkQualityMax, nt.pingErrors, nt.pingTimeAvg, nt.pingTimeMin, nt.pingTimeMax) 
         print(line)
         
-        line = '%s,%s,%d,%.1f,%.2f,%.2f,%d,%.0f,%.0f,%.0f,%.0f,%.0f,%.0f,%d,%.3f,%.3f,%.3f'  \
-           % (ts, ap, robot.robotState, robot.robotVoltage, robot.robotX, robot.robotY, robot.robotGpsSol, nt.signalLevelAvg, nt.signalLevelMin, \
+        line = '%s,%s,%d,%.1f,%.2f,%.2f,%d,%d,%d,%.0f,%.0f,%.0f,%.0f,%.0f,%.0f,%d,%.3f,%.3f,%.3f'  \
+           % (ts, ap, robot.robotState, robot.robotVoltage, robot.robotX, robot.robotY, robot.robotGpsSol, robot.gpsNumSV, robot.gpsNumSVdgps, nt.signalLevelAvg, nt.signalLevelMin, \
            nt.signalLevelMax, nt.linkQualityAvg, nt.linkQualityMin, nt.linkQualityMax, nt.pingErrors, nt.pingTimeAvg, nt.pingTimeMin, nt.pingTimeMax)
         addFile(line + '\n')
         

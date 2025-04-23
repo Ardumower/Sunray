@@ -6,6 +6,8 @@
 #include "robot.h"
 #include "config.h"
 #include "StateEstimator.h"
+#include "events.h"
+#include "helper.h"
 #include <Arduino.h>
 
 
@@ -191,6 +193,20 @@ bool Polygon::write(File &file){
     if (!points[i].write(file)) return false;
   }
   return true;  
+}
+
+void Polygon::getCenter(Point &pt){
+  float minX = 9999;
+  float maxX = -9999;
+  float minY = 9999;
+  float maxY = -9999;
+  for (int i=0; i < numPoints; i++){
+    minX = min(minX, points[i].x());
+    maxX = max(maxX, points[i].x());
+    minY = min(minY, points[i].y());
+    maxY = max(maxY, points[i].y());
+  }
+  pt.setXY( (maxX-minX)/2, (maxY-minY)/2 ); 
 }
 
 // -----------------------------------
@@ -458,6 +474,7 @@ float Map::distanceManhattan(Point &pos0, Point &pos1){
 
 
 void Map::begin(){
+  CONSOLE.println("Map::begin");
   memoryCorruptions = 0;
   wayMode = WAY_MOW;
   trackReverse = false;
@@ -478,6 +495,8 @@ void Map::begin(){
   CONSOLE.println(sizeof(Point));  
   load();
   dump();
+  //stressTestMapTransfer();
+  //float distToLine = distanceLineInfinite(12.43, 6.18, 12.42, 6.18, 12.43, 6.18);  
 }
 
 long Map::calcMapCRC(){   
@@ -626,13 +645,20 @@ void Map::finishedUploadingMap(){
     float y;
     float delta;
     if (getDockingPos(x, y, delta)){
-      CONSOLE.println("SIM: setting robot pos to docking pos");
+      CONSOLE.println("SIM: setting robot pos to docking pos");      
+      if (!DOCK_FRONT_SIDE) delta = scalePI(delta + 3.1415);
       robotDriver.setSimRobotPosState(x, y, delta);
     } else {
       CONSOLE.println("SIM: error getting docking pos");
+      if (perimeterPoints.numPoints > 0){
+        Point pt = perimeterPoints.points[0];
+        //perimeterPoints.getCenter(pt);
+        robotDriver.setSimRobotPosState(pt.x(), pt.y(), 0);
+      }
     }
   #endif
   mapCRC = calcMapCRC();
+  Logger.event(EVT_USER_UPLOAD_MAP);
   dump();
   save();
 }
@@ -676,6 +702,7 @@ bool Map::setPoint(int idx, float x, float y){
 
 
 // set number points for point type
+// transfers points from global point list to specific point list
 bool Map::setWayCount(WayType type, int count){
   if ((memoryCorruptions != 0) || (memoryAllocErrors != 0)){
     CONSOLE.println("ERROR setWayCount: memory errors");
@@ -683,9 +710,10 @@ bool Map::setWayCount(WayType type, int count){
   }  
   switch (type){
     case WAY_PERIMETER:            
-      if (perimeterPoints.alloc(count)){
+      if (perimeterPoints.alloc(count)) {
         for (int i=0; i < count; i++){
-          perimeterPoints.points[i].assign( points.points[i] );
+          int sidx = i;
+          if (sidx < points.numPoints) perimeterPoints.points[i].assign( points.points[sidx] );
         }
       }
       break;
@@ -695,17 +723,19 @@ bool Map::setWayCount(WayType type, int count){
     case WAY_DOCK:    
       if (dockPoints.alloc(count)){
         for (int i=0; i < count; i++){
-          dockPoints.points[i].assign( points.points[perimeterPoints.numPoints + exclusionPointsCount + i] );
+          int sidx = perimeterPoints.numPoints + exclusionPointsCount + i;
+          if (sidx < points.numPoints) dockPoints.points[i].assign( points.points[ sidx ] );
         }
       }
       break;
     case WAY_MOW:          
       if (mowPoints.alloc(count)){
         for (int i=0; i < count; i++){
-          mowPoints.points[i].assign( points.points[perimeterPoints.numPoints + exclusionPointsCount + dockPoints.numPoints + i] );
+          int sidx = perimeterPoints.numPoints + exclusionPointsCount + dockPoints.numPoints + i;
+          if (sidx < points.numPoints) mowPoints.points[i].assign( points.points[ sidx ] );
         }
         if (exclusionPointsCount == 0){
-          points.dealloc();
+          points.dealloc(); // free point list
           finishedUploadingMap();
         }
       }
@@ -742,7 +772,8 @@ bool Map::setExclusionLength(int idx, int len){
     ptIdx += exclusions.polygons[i].numPoints;    
   }    
   for (int j=0; j < len; j++){
-    exclusions.polygons[idx].points[j].assign( points.points[perimeterPoints.numPoints + ptIdx] );        
+    int sidx =  perimeterPoints.numPoints + ptIdx;
+    if (sidx < points.numPoints) exclusions.polygons[idx].points[j].assign( points.points[ sidx ] );        
     ptIdx ++;
   }
   CONSOLE.print("ptIdx=");
@@ -869,12 +900,14 @@ bool Map::nextPointIsStraight(){
 
 
 // get docking position and orientation (x,y,delta)
-bool Map::getDockingPos(float &x, float &y, float &delta){
-  if (dockPoints.numPoints < 2) return false;
+bool Map::getDockingPos(float &x, float &y, float &delta, int idx){
+  if (idx == -1) idx = dockPoints.numPoints-1; 
+  if ((idx < 0) || (idx >= dockPoints.numPoints) || (dockPoints.numPoints < 2)) return false;
   Point dockFinalPt;
   Point dockPrevPt;
-  dockFinalPt.assign(dockPoints.points[ dockPoints.numPoints-1]);  
-  dockPrevPt.assign(dockPoints.points[ dockPoints.numPoints-2]);
+  dockFinalPt.assign(dockPoints.points[ idx]);  
+  if (idx > 0) dockPrevPt.assign(dockPoints.points[ idx-1]);
+    else dockPrevPt.assign(dockPoints.points[ 1 ]);
   x = dockFinalPt.x();
   y = dockFinalPt.y();
   delta = pointsAngle(dockPrevPt.x(), dockPrevPt.y(), dockFinalPt.x(), dockFinalPt.y());  
@@ -890,7 +923,7 @@ void Map::setIsDocked(bool flag){
     wayMode = WAY_DOCK;
     dockPointsIdx = dockPoints.numPoints-2;
     //targetPointIdx = dockStartIdx + dockPointsIdx;                     
-    trackReverse = true;             
+    trackReverse = (DOCK_FRONT_SIDE);             
     trackSlow = true;
     useGPSfixForPosEstimation = !DOCK_IGNORE_GPS;
     useGPSfixForDeltaEstimation = !DOCK_IGNORE_GPS;    
@@ -918,6 +951,24 @@ bool Map::isDocking(){
   return ((maps.wayMode == WAY_DOCK) && (maps.shouldDock));
 }
 
+bool Map::isBetweenLastAndNextToLastDockPoint(){
+  //return true;
+  return (
+      ((isUndocking()) && ((isTargetingLastDockPoint()) || (isTargetingNextToLastDockPoint())))  || 
+      ((isDocking())   && (isTargetingLastDockPoint()))   
+  );
+}
+
+bool Map::isTargetingLastDockPoint(){
+  // is on the way to the last docking point
+  return (maps.dockPointsIdx == maps.dockPoints.numPoints-1);
+}
+
+bool Map::isTargetingNextToLastDockPoint(){
+  // is on the way to the next-to-last docking point
+  return (maps.dockPointsIdx == maps.dockPoints.numPoints-2);
+}
+
 bool Map::retryDocking(float stateX, float stateY){
   CONSOLE.println("Map::retryDocking");    
   if (!shouldDock) {
@@ -930,7 +981,7 @@ bool Map::retryDocking(float stateX, float stateY){
   } 
   if (dockPointsIdx > 0) dockPointsIdx--;    
   shouldRetryDock = true;
-  trackReverse = true;
+  trackReverse = (DOCK_FRONT_SIDE) || ((!DOCK_FRONT_SIDE) && (dockPointsIdx < dockPoints.numPoints-3));
   return true;
 }
 
@@ -965,6 +1016,7 @@ bool Map::startDocking(float stateX, float stateY){
     }
   } else {
     CONSOLE.println("ERROR: no points");
+    Logger.event(EVT_ERROR_NO_MAP_POINTS);
     return false; 
   }
 }
@@ -988,7 +1040,7 @@ bool Map::startMowing(float stateX, float stateY){
     Point src;
     Point dst;
     src.setXY(stateX, stateY);
-    if (wayMode == WAY_DOCK){
+    if ((wayMode == WAY_DOCK) && (dockPoints.numPoints > 0)) {
       src.assign(dockPoints.points[0]);
     } else {
       wayMode = WAY_FREE;      
@@ -1001,6 +1053,7 @@ bool Map::startMowing(float stateX, float stateY){
         return true;
       } else {
         CONSOLE.println("ERROR: no path");
+        Logger.event(EVT_ERROR_NO_MAP_ROUTE);
         return false;      
       }
     } else {
@@ -1008,6 +1061,7 @@ bool Map::startMowing(float stateX, float stateY){
       return false;
     }
   } else {
+    Logger.event(EVT_ERROR_NO_MAP_POINTS);
     CONSOLE.println("ERROR: no points");
     return false; 
   }
@@ -1127,26 +1181,25 @@ bool Map::mowingCompleted(){
   return (mowPointsIdx >= mowPoints.numPoints-1);
 } 
 
-// find start point for path finder on line from src to dst
-// that is insider perimeter and outside exclusions
+// check if point is inside perimeter and outside exclusions/obstacles
 bool Map::checkpoint(float x, float y){
   Point src;
   src.setXY(x, y);
   if (!maps.pointIsInsidePolygon( maps.perimeterPoints, src)){
-    return true;
+    return false;
   }
   for (int i=0; i < maps.exclusions.numPolygons; i++){
     if (maps.pointIsInsidePolygon( maps.exclusions.polygons[i], src)){
-       return true;
+       return false;
     }
   } 
   for (int i=0; i < obstacles.numPolygons; i++){
     if (maps.pointIsInsidePolygon( maps.obstacles.polygons[i], src)){
-       return true;
+       return false;
     }
   }  
 
-  return false;
+  return true;
 }
 
 // find start point for path finder on line from src to dst
@@ -1264,6 +1317,13 @@ bool Map::nextMowPoint(bool sim){
 
 // get next docking point  
 bool Map::nextDockPoint(bool sim){    
+  /*CONSOLE.print("nextDockPoint: shouldDock=");
+  CONSOLE.print(shouldDock);
+  CONSOLE.print("  dockPointsIdx=");
+  CONSOLE.print(dockPointsIdx);
+  CONSOLE.print("  dockPoints.numPoints=");
+  CONSOLE.print(dockPoints.numPoints);
+  CONSOLE.println();*/
   if (shouldDock){
     // should dock  
     if (dockPointsIdx+1 < dockPoints.numPoints){
@@ -1276,10 +1336,10 @@ bool Map::nextDockPoint(bool sim){
         if (shouldRetryDock) {
           CONSOLE.println("nextDockPoint: shouldRetryDock=true");
           dockPointsIdx--;
-          trackReverse = true;                    
+          trackReverse = (DOCK_FRONT_SIDE) || ((!DOCK_FRONT_SIDE) && (dockPointsIdx < dockPoints.numPoints-3));                    
         } else {
           dockPointsIdx++; 
-          trackReverse = false;                            
+          trackReverse = (!DOCK_FRONT_SIDE) && (dockPointsIdx >= dockPoints.numPoints-3) ; // dock reverse only near dock
         }
       }              
       if (!sim) trackSlow = true;
@@ -1299,7 +1359,7 @@ bool Map::nextDockPoint(bool sim){
       if (!sim) lastTargetPoint.assign(targetPoint);
       if (!sim) dockPointsIdx--;              
       if (!sim) {
-        trackReverse = (dockPointsIdx >= dockPoints.numPoints-2) ; // undock reverse only in dock
+        trackReverse = (DOCK_FRONT_SIDE) && (dockPointsIdx >= dockPoints.numPoints-3) ; // undock reverse only in dock
       }              
       if (!sim) trackSlow = true;      
       return true;
@@ -1341,7 +1401,8 @@ bool Map::nextFreePoint(bool sim){
       // start docking
       if (!sim) lastTargetPoint.assign(targetPoint);
       if (!sim) dockPointsIdx = 0;      
-      if (!sim) wayMode = WAY_DOCK;      
+      if (!sim) wayMode = WAY_DOCK;
+      if (!sim) trackReverse = (!DOCK_FRONT_SIDE) && (dockPointsIdx >= dockPoints.numPoints-3) ; // dock reverse only near dock    
       return true;
     } else return false;
   }  
@@ -1655,6 +1716,12 @@ float Map::calcHeuristic(Point &pos0, Point &pos1) {
   //return distance(pos0, pos1) ;  
 }
   
+
+// given a start node, we check potential next node with all obstacle nodes:
+// 1. if start node is outside perimeter, it must be within a certain distance to section point with perimeter (to next node), 
+//  and must have section count of one
+// 2. if start node is inside exclusion, it must be within a certain distance to section point with exclusion (to next node)  
+// 3. otherwise: line between start node and next node node must not intersect any obstacle  
   
 int Map::findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, int startIdx) {
   Point dbgSrcPt(4.2, 6.2);
@@ -1793,6 +1860,10 @@ bool Map::findPath(Point &src, Point &dst){
       CONSOLE.println("OUT OF MEMORY");
       return false;
     }
+
+    // For validating a potential route, we will use  'linePolygonIntersectPoint' and check for intersections between route start point 
+    // and end point. To have something to check intersection with, we offset the perimeter (make bigger) and exclusions
+    //  (maker schmaller) and use them as 'obstacles'.
     
     if (!polygonOffset(perimeterPoints, pathFinderObstacles.polygons[idx], 0.04)) return false;
     idx++;
@@ -2058,4 +2129,20 @@ void Map::testIntegerCalcs(){
   }   
 }
   
-  
+
+// map transfer stress test
+void Map::stressTestMapTransfer(){
+  CONSOLE.print("stressTestMapTransfer start");
+  for (int counter=0 ; counter < 5000; counter++){
+    int idx = counter;
+    maps.setPoint(idx, 0, 0);
+    setExclusionLength(idx, idx);
+    maps.setWayCount(WAY_PERIMETER, idx);                
+    maps.setWayCount(WAY_EXCLUSION, idx);                
+    maps.setWayCount(WAY_DOCK, idx);                
+    maps.setWayCount(WAY_MOW, idx);                
+    maps.setWayCount(WAY_FREE, idx);                
+  }
+  CONSOLE.print("stressTestMapTransfer end");
+}
+

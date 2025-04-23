@@ -7,7 +7,7 @@
 #define MOTOR_H
 
 #include "pid.h"
-
+#include "lowpass_filter.h"
 
 // selected motor
 enum MotorSelect {MOTOR_LEFT, MOTOR_RIGHT, MOTOR_MOW} ;
@@ -29,13 +29,15 @@ class Motor {
     bool motorLeftOverload; 
     bool motorRightOverload; 
     bool motorMowOverload; 
-    bool tractionMotorsEnabled;       
+    bool tractionMotorsEnabled; // allow traction motors to operate?
+    bool releaseBrakesWhenZero; // release eletrical brakes when zero speed?       
     bool enableMowMotor;
     bool motorMowForwardSet; 
     bool odometryError;    
     unsigned long motorOverloadDuration; // accumulated duration (ms)
     int  pwmMax;
-    int  pwmMaxMow;  
+    int  pwmMaxMow;
+    int mowHeightMillimeter;  
     float  pwmSpeedOffset;
     float mowMotorCurrentAverage;
     float currentFactor;
@@ -55,15 +57,22 @@ class Motor {
     float motorLeftSenseLPNorm; 
     float motorRightSenseLPNorm;
     unsigned long motorMowSpinUpTime;
+    unsigned long motorReleaseBrakesTime;
     bool motorRecoveryState;    
+    PID motorLeftPID;
+    PID motorRightPID;    
+    LowPassFilter motorLeftLpf;
+    LowPassFilter motorRightLpf;        
     void begin();
     void run();      
     void test();
     void plot();
     void enableTractionMotors(bool enable);
     void setLinearAngularSpeed(float linear, float angular, bool useLinearRamp = true);
+    void setReleaseBrakesWhenZero(bool release);
     void setMowState(bool switchOn);   
     void setMowMaxPwm( int val );
+    void setMowHeightMillimeter( int val );
     void stopImmediately(bool includeMowerMotor);
   protected: 
     float motorLeftRpmSet; // set speed
@@ -90,8 +99,6 @@ class Motor {
     unsigned long nextRecoverMotorFaultTime;
     int motorLeftTicksZero;    
     int motorRightTicksZero;    
-    PID motorLeftPID;
-    PID motorRightPID;        
     bool setLinearAngularSpeedTimeoutActive;
     unsigned long setLinearAngularSpeedTimeout;    
     void speedPWM ( int pwmLeft, int pwmRight, int pwmMow );

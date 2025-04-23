@@ -1,0 +1,78 @@
+
+<launch>
+
+  <arg name="use_bag_file" default="true" />
+	<arg name="bag_file" default="/root/PCD/tisch2.bag" />
+
+  <arg name="do_processing" default="true"/>
+  <arg name="use_usb_cam" default="false"/>
+  <arg name="rviz" default="true"/>
+	<arg name="upside_down" default="false" />	
+
+
+
+  
+  <group if="$(arg use_bag_file)">   
+    <param name="/use_sim_time" value="true" if="$(arg use_bag_file)" />
+    <node pkg="rosbag" type="play" name="playback" args="-s 0 --clock $(arg bag_file)" if="$(arg use_bag_file)" >
+    </node>
+  </group>
+
+
+  <group unless="$(arg use_bag_file)">   
+    <include file="$(find livox_ros_driver2)/launch_ROS1/msg_MID360.launch" />
+
+    <!-- usb cam - find device path:  v4l2-ctl - -list-devices ,  v4l2-ctl - -device=/dev/video0 - -all  -->
+    <group if="$(arg use_usb_cam)" ns="camera">
+      <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen" >
+        <param name="video_device" value="/dev/video0" />
+        <param name="image_width" value="640" />
+        <param name="image_height" value="480" />
+        <param name="pixel_format" value="mjpeg" />
+        <param name="camera_frame_id" value="usb_cam" />
+        <param name="io_method" value="mmap"/>
+        <param name="framerate" value="5"/>
+      </node>
+    
+      <group ns="usb_cam/image_raw" >
+        <rosparam param="disable_pub_plugins">
+          - 'image_transport/compressedDepth'          
+          - 'image_transport/compressed'
+          - 'image_transport/theora'
+        </rosparam>
+      </group>        
+    </group>
+
+  </group>
+
+
+  <!-- ros2 run tf2_ros static_transform_publisher x y z yaw pitch roll parent_frame child_frame -->
+  <node pkg="tf" type="static_transform_publisher" name="lidar_to_robot_tf" 
+    args="0.23 0 0.3  0.0 0.3 0.0 base_link livox_frame 100" />
+  
+  <!--  
+  args="0.62 0 0.2  0.03 0.3 -0.05 base_link livox_frame 100" />
+  -->
+
+  <node pkg="tf" type="static_transform_publisher" name="reflector_frame_to_dock_tf" 
+    args="0 0 0  0 -0.6 0 reflector_frame dock 100" />
+
+
+
+  <!-- Start node -->
+  <group if="$(arg do_processing)">   
+		<include file="$(find pointcloud_gravity_align)/launch/run.launch" pass_all_args="true" >
+			<arg name="align_gravity" value="false"/> 
+		</include>
+
+    <include file="$(find reflector_detect)/launch/run.launch" pass_all_args="true"  />    
+  </group>
+
+
+  <!-- RViz -->
+  <group if="$(arg rviz)">   
+    <node pkg="rviz" type="rviz" name="test_rviz" args="-d $(find reflector_detect)/launch/test.rviz"/>
+  </group>
+
+
+</launch>

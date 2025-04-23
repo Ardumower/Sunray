@@ -10,6 +10,7 @@
 #include "../../map.h"
 #include "../../StateEstimator.h"
 #include "../../helper.h"
+#include "../../events.h"
 
 ChargeOp chargeOp;
 ErrorOp errorOp;
@@ -23,6 +24,7 @@ GpsWaitFixOp gpsWaitFixOp;
 GpsWaitFloatOp gpsWaitFloatOp;
 GpsRebootRecoveryOp gpsRebootRecoveryOp;
 ImuCalibrationOp imuCalibrationOp;
+RelocalizationOp relocalizationOp;
 
 // active op
 Op *activeOp = &idleOp;
@@ -72,18 +74,22 @@ void Op::changeOperationTypeByOperator(OperationType op){
   }  
   switch (op){
     case OP_IDLE:      
+      Logger.event(EVT_USER_STOP);
       activeOp->changeOp(idleOp, false);
       idleOp.setInitiatedByOperator(true);
       break;
     case OP_DOCK:
+      Logger.event(EVT_USER_DOCK);
       activeOp->changeOp(dockOp, false);
       dockOp.setInitiatedByOperator(true);
       break;
     case OP_MOW:      
+      Logger.event(EVT_USER_START);
       activeOp->changeOp(mowOp, false);
       mowOp.setInitiatedByOperator(true);
       break;
     case OP_CHARGE:
+      Logger.event(EVT_CHARGER_CONNECTED);      
       activeOp->changeOp(chargeOp, false);
       chargeOp.setInitiatedByOperator(true);
       break;
@@ -236,6 +242,10 @@ void Op::onNoFurtherWaypoints(){
 
 void Op::onImuCalibration(){
     changeOp(imuCalibrationOp, true);
+}
+
+void Op::onRelocalization(){
+    changeOp(relocalizationOp, true);
 }
 
 void Op::onChargerConnected(){            

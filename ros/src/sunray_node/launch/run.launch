@@ -1,0 +1,15 @@
+<launch>
+
+    <!--
+    1. arg is just a variable in a xml/launch file that has no specific relation to ROS
+    2. param in a launch file will load a single parameter to the parameter server
+    3. rosparam in a launch file can load entire yaml files of parameters to the parameter server
+	-->
+
+	<arg name="sunray_ros_launch" default="owlmower" />
+
+	
+	<include file="$(find sunray_node)/launch/$(arg sunray_ros_launch).launch" pass_all_args="true"  />
+
+
+</launch>

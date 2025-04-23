@@ -39,6 +39,8 @@ heatPingAvg = heat_image_cv.HeatImageCV('ping_avg', 0, 3, 'sec pingTimeAvg', cv2
 heatPingMax = heat_image_cv.HeatImageCV('ping_max', 0, 5, 'sec pingTimeMax', cv2.COLORMAP_JET, False)  #  ping time (0 good ... 10 bad)
 heatAP = heat_image_cv.HeatImageCV('ap', 0, 20, 'access point', None, True)  #  access points (0..30) 
 heatGPS = heat_image_cv.HeatImageCV('gps', 0, 3, ['gps invalid', 'gps float', 'gps fix'], None, True)  #  GPS solution (0..30) 
+heatNumSV = heat_image_cv.HeatImageCV('gps_sv', 20, 50, '#SV', cv2.COLORMAP_JET, False)  #  number satellites (0 bad ... 50 good)
+heatNumDSV = heat_image_cv.HeatImageCV('gps_dsv', 20, 50, '#DSV', cv2.COLORMAP_JET, False)  #  number DGPS satellites (0 bad ... 50 good)
 
 
 data = None  
@@ -61,13 +63,13 @@ def readLog():
             continue
         lst = line.split(',')
         #print(len(arr))
-        ts, ap, robotState, robotVoltage, robotX, robotY, robotGpsSol, signalLevelAvg, signalLevelMin, signalLevelMax, linkQualityAvg, linkQualityMin, linkQualityMax, pingErrors, pingTimeAvg, pingTimeMin, pingTimeMax = lst                        
+        ts, ap, robotState, robotVoltage, robotX, robotY, robotGpsSol, gpsNumSV, gpsNumSVdgps, signalLevelAvg, signalLevelMin, signalLevelMax, linkQualityAvg, linkQualityMin, linkQualityMax, pingErrors, pingTimeAvg, pingTimeMin, pingTimeMax = lst                        
                         
         if not ap in apList: apList.append(ap)         
         apIdx = apList.index(ap)        
         dt = datetime.datetime.strptime(ts, '%y-%m-%d %H:%M:%S')
         timestamp = dt.timestamp()
-        lst = timestamp, apIdx, robotState, robotVoltage, robotX, robotY, robotGpsSol, signalLevelAvg, signalLevelMin, signalLevelMax, linkQualityAvg, linkQualityMin, linkQualityMax, pingErrors, pingTimeAvg, pingTimeMin, pingTimeMax                        
+        lst = timestamp, apIdx, robotState, robotVoltage, robotX, robotY, robotGpsSol, gpsNumSV, gpsNumSVdgps, signalLevelAvg, signalLevelMin, signalLevelMax, linkQualityAvg, linkQualityMin, linkQualityMax, pingErrors, pingTimeAvg, pingTimeMin, pingTimeMax                        
         
         if (int(robotGpsSol) < 1) or (int(robotGpsSol) > 2): continue         
         lstlst.append(lst)
@@ -94,18 +96,23 @@ def analyseLog():
     heatPingMax.resizeMinMax(minX, maxX, minY, maxY)
     heatAP.resizeMinMax(minX, maxX, minY, maxY)
     heatGPS.resizeMinMax(minX, maxX, minY, maxY)
+    heatNumSV.resizeMinMax(minX, maxX, minY, maxY)
+    heatNumDSV.resizeMinMax(minX, maxX, minY, maxY)
+    
 
     lineCounter = 0
     lastPrintTime = time.time()
 
     for row in data:                
-        ts, apIdx, robotState, robotVoltage, robotX, robotY, robotGpsSol, signalLevelAvg, signalLevelMin, signalLevelMax, linkQualityAvg, linkQualityMin, linkQualityMax, pingErrors, pingTimeAvg, pingTimeMin, pingTimeMax = row                        
+        ts, apIdx, robotState, robotVoltage, robotX, robotY, robotGpsSol, gpsNumSV, gpsNumSVdgps, signalLevelAvg, signalLevelMin, signalLevelMax, linkQualityAvg, linkQualityMin, linkQualityMax, pingErrors, pingTimeAvg, pingTimeMin, pingTimeMax = row                        
         
         robotState = int(robotState)        
         robotVoltage = float(robotVoltage)
         robotX = float(robotX)
         robotY = float(robotY)
         robotGpsSol = int(robotGpsSol)
+        gpsNumSV = int(gpsNumSV)
+        gpsNumSVdgps = int(gpsNumSVdgps)        
         signalLevelAvg = float(signalLevelAvg)
         signalLevelMin = float(signalLevelMin)
         signalLevelMax = float(signalLevelMax)
@@ -118,9 +125,9 @@ def analyseLog():
         pingTimeMax = float(pingTimeMax)
         apIdx = int(apIdx)
 
-        line  = '%s  AP# %s  state %d  volt %.1f  GPS(x=%.2f,y=%.2f,sol=%d)'  \
+        line  = '%s  AP# %s  state %d  volt %.1f  GPS(x=%.2f,y=%.2f,sol=%d,numsv=%d,numdsv=%d)'  \
            '  sig dBm(avg=%.0f min=%.0f max=%.0f)  qty(avg=%.0f min=%.0f max=%.0f)  ping sec(err=%d avg=%.3f min=%.3f max=%.3f)'   \
-           % (ts, apIdx, robotState, robotVoltage, robotX, robotY, robotGpsSol, signalLevelAvg, signalLevelMin, signalLevelMax, linkQualityAvg, linkQualityMin, linkQualityMax, pingErrors, pingTimeAvg, pingTimeMin, pingTimeMax) 
+           % (ts, apIdx, robotState, robotVoltage, robotX, robotY, robotGpsSol, gpsNumSV, gpsNumSVdgps, signalLevelAvg, signalLevelMin, signalLevelMax, linkQualityAvg, linkQualityMin, linkQualityMax, pingErrors, pingTimeAvg, pingTimeMin, pingTimeMax) 
         #print(line)        
         if time.time() > lastPrintTime + 10:
             lastPrintTime = time.time()
@@ -138,6 +145,9 @@ def analyseLog():
         heatAP.drawSignal(imgX, imgY, apIdx)
         # draw GPS solution        
         heatGPS.drawSignal(imgX, imgY, robotGpsSol)                
+        # draw number satellites        
+        heatNumSV.drawSignal(imgX, imgY, gpsNumSV)                
+        heatNumDSV.drawSignal(imgX, imgY, gpsNumSVdgps)                
 
         lineCounter += 1
        
@@ -145,7 +155,10 @@ def analyseLog():
     heatPingAvg.saveImage()    
     heatPingMax.saveImage()
     heatAP.saveImage()    
-    heatGPS.saveImage()    
+    heatGPS.saveImage()
+    heatNumSV.saveImage()
+    heatNumDSV.saveImage()
+        
     print('analysing log done!')    
 
 

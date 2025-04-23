@@ -60,7 +60,7 @@ bool MpuDriver::begin(){
     mpu.dmpBegin(DMP_FEATURE_6X_LP_QUAT  // Enable 6-axis quat
                |  DMP_FEATURE_GYRO_CAL // Use gyro calibration
              //  | DMP_FEATURE_SEND_RAW_ACCEL
-              , 5); // Set DMP FIFO rate to 5 Hz
+              , IMU_FIFO_RATE); // Set DMP FIFO rate
     // DMP_FEATURE_LP_QUAT can also be used. It uses the 
     // accelerometer in low-power mode to estimate quat's.
     // DMP_FEATURE_LP_QUAT and 6X_LP_QUAT are mutually exclusive    
@@ -83,6 +83,10 @@ bool MpuDriver::isDataAvail(){
     // computeEulerAngles can be used -- after updating the
     // quaternion values -- to estimate roll, pitch, and yaw
     //  toEulerianAngle(imu.calcQuat(imu.qw), imu.calcQuat(imu.qx), imu.calcQuat(imu.qy), imu.calcQuat(imu.qz), imu.roll, imu.pitch, imu.yaw);
+    quatW = mpu.qw;
+    quatX = mpu.qx;
+    quatY = mpu.qy;
+    quatZ = mpu.qz;
     mpu.computeEulerAngles(false);      
     //CONSOLE.print(imu.ax);
     //CONSOLE.print(",");

@@ -21,7 +21,7 @@
 #endif
 
 
-#define SUPER_SPIKE_ELIMINATOR 1  // advanced spike elimination  (experimental, comment out to disable)
+//#define SUPER_SPIKE_ELIMINATOR 1  // advanced spike elimination  (experimental, comment out to disable)
 
 
 volatile int odomTicksLeft  = 0;
@@ -261,7 +261,7 @@ AmMotorDriver::AmMotorDriver(){
   OWL.usePwmRamp = false;       // use a ramp to get to PWM value?    
   OWL.faultActive = LOW;        // fault active level (LOW or HIGH)
   OWL.resetFaultByToggleEnable = false; // reset a fault by toggling enable? 
-  OWL.enableActive = HIGH;       // enable active level (LOW or HIGH)
+  OWL.enableActive = LOW;       // enable active level (LOW or HIGH)
   OWL.disableAtPwmZeroSpeed=false;  // disable driver at PWM zero speed? (brake function)
   OWL.keepPwmZeroSpeed = false;  // keep PWM zero value (disregard minPwmSpeed at zero speed)?
   OWL.minPwmSpeed = 0;          // minimum PWM speed your driver can operate
@@ -390,6 +390,10 @@ void AmMotorDriver::run(){
 }
 
 
+void AmMotorDriver::setMowHeight(int mowHeightMillimeter){
+}
+
+
 // brushed/brushless motor driver
 //(8-bit PWM=255, 10-bit PWM=1023)
 // example logic:
@@ -440,7 +444,7 @@ void AmMotorDriver::setMotorDriver(int pinDir, int pinPWM, int speed, DriverChip
   }  
 }
     
-void AmMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  
+void AmMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm, bool releaseBrakesWhenZero){  
   // remember speed sign during zero-transition
   if (leftPwm < 0) leftSpeedSign = -1;
   if (leftPwm > 0) leftSpeedSign = 1;
@@ -657,6 +661,10 @@ void AmBumperDriver::begin(){
 void AmBumperDriver::getTriggeredBumper(bool &leftBumper, bool &rightBumper){
   leftBumper = leftPressed;
   rightBumper = rightPressed;
+}
+
+bool AmBumperDriver::nearObstacle(){
+  return false;
 }
 
 bool AmBumperDriver::obstacle(){

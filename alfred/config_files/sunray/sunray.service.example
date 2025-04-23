@@ -1,0 +1,22 @@
+[Unit]
+Description=Sunray Service
+
+[Service]
+User=root
+Group=root
+
+WorkingDirectory=/home/pi/Sunray/alfred
+ExecStart=/home/pi/Sunray/alfred/start_sunray.sh
+
+StandardInput=tty
+StandardOutput=journal
+#StandardOutput=tty
+#StandardError=null
+TTYPath=/dev/tty12 
+
+# we do not want any child process (e.g. updater) to kill if parent is killed (e.g. by updater) which otherwise would in turn kill the updater 
+# https://stackoverflow.com/questions/32208782/cant-detach-child-process-when-main-process-is-started-from-systemd
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- 
+    mcl_3dl params
+  -->
+  <arg name="without_odom" default="false" />
+  <arg name="without_imu" default="false" />
+  <arg name="use_neonavigation" default="false" />
+  <arg name="use_pointcloud_map" default="true" />
+  <arg name="use_cad_map" default="false" if="$(arg use_pointcloud_map)" />
+  <arg name="use_cad_map" default="true" unless="$(arg use_pointcloud_map)" />
+  <arg name="map_objs" unless="$(arg use_pointcloud_map)" />
+  <arg name="map_pcd" if="$(arg use_pointcloud_map)" />
+  <arg name="map_scale" default="1.0" />
+  <arg name="map_offset_x" default="0.0" />
+  <arg name="map_offset_y" default="0.0" />
+  <arg name="generate_test_bag" default="false" />
+  <arg name="align_gravity" default="false" />
+  <arg name="upside_down" default="false" />
+  
+  
+
+
+  <arg name="config_file" default="$(find mcl_3dl)/config/test_mid360.yaml"
+      unless="$(eval arg('without_odom') or arg('without_imu'))" />
+  <arg name="config_file" default="$(find mcl_3dl)/config/test_localization_noodom.yaml"
+      if="$(arg without_odom)" />
+  <arg name="config_file" default="$(find mcl_3dl)/config/test_localization_noimu.yaml"
+      if="$(arg without_imu)" />
+  <rosparam command="load" file="$(arg config_file)"/>
+
+  <!--
+  Required topics
+    /imu/data (IMU data with estimated pose)
+    /cloud    (Measured pointcloud)
+    /odom     (Wheel odometry)
+  -->
+
+  
+  <!-- 
+    mcl_3dl package related stuff
+  -->
+  <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen" unless="$(arg generate_test_bag)">
+    <param name="compatible" value="1" />
+
+    <!--
+    <remap from="odom" to="fastlio_odom" />
+    <remap from="imu/data" to="livox/imu_aligned" />
+    <remap from="cloud" to="fastlio_pc" />  
+    -->
+
+    <remap from="odom" to="robot/dlio/odom_node/odom" />
+    <remap from="imu/data" to="livox/imu_aligned" />
+    <remap from="cloud" to="livox/lidar_aligned" />      
+  </node>
+
+  <node pkg="obj_to_pointcloud" type="obj_to_pointcloud" name="obj_to_pointcloud"
+      if="$(arg use_cad_map)">
+    <param name="objs" value="$(arg map_objs)" />
+    <param name="offset_x" value="$(arg map_offset_x)" />
+    <param name="offset_y" value="$(arg map_offset_y)" />
+    <param name="scale" value="$(arg map_scale)" />
+    <remap from="~/cloud" to="mapcloud" />
+  </node>
+  <node pkg="pcl_ros" type="pcd_to_pointcloud" name="pcd_to_pointcloud"
+      args="$(arg map_pcd)" if="$(arg use_pointcloud_map)">
+    <remap from="cloud_pcd" to="mapcloud" />
+  </node>
+
+  <node pkg="trajectory_tracker" type="trajectory_recorder" name="path_recorder"
+      if="$(arg use_neonavigation)">
+    <param name="dist_interval" value="0.1" />
+    <param name="ang_interval" value="0.2" />
+  </node>
+  <node pkg="trajectory_tracker" type="trajectory_recorder" name="poses_ref"
+      if="$(arg use_neonavigation)">
+    <param name="dist_interval" value="0.5" />
+    <param name="ang_interval" value="100.0" />
+  </node>
+
+
+
+</launch>

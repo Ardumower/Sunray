@@ -79,6 +79,8 @@ void SimMotorDriver::begin(){
 void SimMotorDriver::run(){
 }
 
+void SimMotorDriver::setMowHeight(int mowHeightMillimeter){
+}
 
 // linear: m/s
 // angular: rad/s
@@ -90,7 +92,7 @@ void SimMotorDriver::run(){
 //      V     = (VR + VL) / 2       =>  VR = V + omega * L/2
 //      omega = (VR - VL) / L       =>  VL = V - omega * L/2
 
-void SimMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm){  
+void SimMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm, bool releaseBrakesWhenZero){  
 
   float deltaT = 0;
   if (lastSampleTime != 0){
@@ -321,6 +323,11 @@ void SimBumperDriver::run(){
 
 }
 
+bool SimBumperDriver::nearObstacle(){
+  return false;
+}
+
+
 bool SimBumperDriver::obstacle(){
   return (simTriggered || simRobot.robotIsBumpingIntoObstacle);
 }
@@ -487,16 +494,20 @@ void SimImuDriver::setSimTilt(bool flag){
 
 SimGpsDriver::SimGpsDriver(SimRobotDriver &sr): simRobot(sr){
   nextSolutionTime = 0;
+  floatX = 0;
+  floatY = 0;
   solutionAvail = false;
   simGpsJump = false;
-  setSimSolution(SOL_FIXED);
+  setSimSolution(SOL_INVALID);
 }
 
 void SimGpsDriver::begin(Client &client, char *host, uint16_t port){
+  resetTime = millis();
 }
     
     
 void SimGpsDriver::begin(HardwareSerial& bus,uint32_t baud){
+  resetTime = millis();
 }
 
     
@@ -509,16 +520,48 @@ void SimGpsDriver::run(){
       relPosN = simRobot.simY;
       relPosD = 100;
       if (simGpsJump){
-        relPosE = simRobot.simX + 3.0;
-        relPosN = simRobot.simY + 3.0; 
+        relPosE += 3.0;
+        relPosN += 3.0; 
+      }
+      if (solution == SOL_INVALID){
+        //CONSOLE.print(resetTime);
+        //CONSOLE.print(",");
+        //CONSOLE.println(millis());
+        if (millis() > resetTime + 2000){
+          solution = SOL_FIXED;
+        } 
+      }
+      /*
+      // switch to RTK FLOAT from time to time
+      if (random(1000) < 5){
+        if (solution == SOL_FLOAT) solution = SOL_FIXED;
+          else solution = SOL_FLOAT;
       }      
-      //solution = SOL_FIXED;
+      // simulate RTK FLOAT      
+      if (solution == SOL_FLOAT){
+        relPosE += floatX;
+        relPosN += floatY; 
+      }      
+      
+      if (random(100) < 50) floatX = min(1.5, floatX+0.01);
+        else floatX = max(-1.5, floatX-0.01);
+      if (random(100) < 50) floatY = min(1.5, floatY+0.01);
+        else floatY = max(-1.5, floatY-0.01);
+      */
+
+      if (solution == SOL_FIXED){
+        accuracy = 0.01;
+        hAccuracy = accuracy;
+        vAccuracy = accuracy;
+      } else {
+        accuracy = max(floatX, floatY);
+        hAccuracy = floatX;
+        vAccuracy = floatY;
+      }
+
       lon = relPosE;
       lat =relPosN;
       height = relPosD;
-      accuracy = 0.01;
-      hAccuracy = accuracy;
-      vAccuracy = accuracy;
       dgpsAge = millis();              
       groundSpeed = simRobot.linearSpeed;
       solutionAvail = true;
@@ -533,6 +576,8 @@ bool SimGpsDriver::configure(){
     
 void SimGpsDriver::reboot(){
   CONSOLE.println("SimGpsDriver::reboot");
+  resetTime = millis();
+  solution = SOL_INVALID;
 }
 
 
@@ -543,6 +588,12 @@ void SimGpsDriver::setSimSolution(SolType sol){
 
 void SimGpsDriver::setSimGpsJump(bool flag){
   simGpsJump = flag;
+}
+
+void SimGpsDriver::send(const uint8_t *buffer, size_t size) {  
+}  
+
+void SimGpsDriver::sendRTCM(const uint8_t *buffer, size_t size){
 }
 
 

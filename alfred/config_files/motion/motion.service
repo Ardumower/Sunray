@@ -1,0 +1,12 @@
+[Unit]
+Description=Motion Service
+
+[Service]
+User=root
+Group=root
+
+WorkingDirectory=/home/pi/Sunray/alfred
+ExecStart=/usr/bin/motion
+
+[Install]
+WantedBy=multi-user.target
