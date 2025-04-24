@@ -237,7 +237,7 @@ bool UBLOX::configure(){
         setValueSuccess &= configGPS.addCfgValset8(0x10760002, 1); // CFG-UART2OUTPROT-NMEA      (on) 
         setValueSuccess &= configGPS.addCfgValset8(0x10760004, 0); // CFG-UART2OUTPROT-RTCM3X    (off)
         // uart2 baudrate  (Xbee/NTRIP)
-        setValueSuccess &= configGPS.addCfgValset32(0x40530001, 115200); // CFG-UART2-BAUDRATE        
+        setValueSuccess &= configGPS.sendCfgValset8(0x40530001, 115200, timeout); // CFG-UART2-BAUDRATE        
       }
       else if (idx == 5){        
         // ----- uart1 protocols (Ardumower) --------------- 
