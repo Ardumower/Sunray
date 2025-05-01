@@ -1,0 +1,29 @@
+on:
+   push:
+   pull_request:
+
+name: Build Alfred Variants
+
+jobs:
+   alfred:
+      name: Alfred Config
+      runs-on: ubuntu-latest
+      strategy:
+         matrix:
+            config: [config_alfred.h, config_sim.h, config_owlmower.h, config_owl_fuxtec_ros.h]
+      steps:
+        - name: Checkout Project
+          uses: actions/checkout@master
+
+        - name: Install dependencies
+          run: |
+             sudo apt update
+             sudo apt install -y libbluetooth-dev
+
+        - name: Build Project
+          uses: threeal/cmake-action@v2.1.0
+          with:
+             source-dir: alfred
+             build-dir: alfred/build
+             options: |
+               CONFIG_FILE=${{github.workspace}}/alfred/${{matrix.config}}
