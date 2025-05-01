@@ -196,10 +196,10 @@ bool Polygon::write(File &file){
 }
 
 void Polygon::getCenter(Point &pt){
-  float minX = 9999;
-  float maxX = -9999;
-  float minY = 9999;
-  float maxY = -9999;
+  float minX = 99999;
+  float maxX = -99999;
+  float minY = 99999;
+  float maxY = -99999;
   for (int i=0; i < numPoints; i++){
     minX = min(minX, points[i].x());
     maxX = max(maxX, points[i].x());
@@ -645,7 +645,10 @@ void Map::finishedUploadingMap(){
     float y;
     float delta;
     if (getDockingPos(x, y, delta)){
-      CONSOLE.println("SIM: setting robot pos to docking pos");      
+      CONSOLE.print("SIM: setting robot pos to docking pos: ");      
+      CONSOLE.print(x, 2);
+      CONSOLE.print(",");
+      CONSOLE.println(y, 2);    
       if (!DOCK_FRONT_SIDE) delta = scalePI(delta + 3.1415);
       robotDriver.setSimRobotPosState(x, y, delta);
     } else {
@@ -680,6 +683,10 @@ void Map::clearMap(){
  
 // set point
 bool Map::setPoint(int idx, float x, float y){  
+  //CONSOLE.print("Map::setPoint ");
+  //CONSOLE.print(x, 2);
+  //CONSOLE.print(",");
+  //CONSOLE.println(y, 2);
   if ((memoryCorruptions != 0) || (memoryAllocErrors != 0)){
     CONSOLE.println("ERROR setPoint: memory errors");
     return false; 

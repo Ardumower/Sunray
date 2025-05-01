@@ -20,8 +20,8 @@ class Point
 {
   public:
     #ifdef __linux__
-      short int px; // cm    // Linux: 4 bytes (max +- 21474836 meter)
-      short int py; // cm  
+      float px; // cm    // Linux: float
+      float py; // cm  
     #else
       short px; // cm   // Arduino: 2 bytes (max +- 327 meter)
       short py; // cm 
