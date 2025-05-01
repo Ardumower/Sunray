@@ -19,8 +19,13 @@ typedef enum WayType WayType;
 class Point
 {
   public:
-    short px; // cm
-    short py; // cm       
+    #ifdef __linux__
+      short int px; // cm    // Linux: 4 bytes (max +- 21474836 meter)
+      short int py; // cm  
+    #else
+      short px; // cm   // Arduino: 2 bytes (max +- 327 meter)
+      short py; // cm 
+    #endif
     Point();
     Point(float ax, float ay); // meter
     float x();  // meter
