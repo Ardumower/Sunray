@@ -68,6 +68,42 @@ function install_sunray_alfred() {
   sudo systemctl start sunray
 }
 
+# start RecoverCAN service 
+function start_recovercan_service() {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
+  if [[ `pidof recovercan` != "" ]]; then
+        echo "recovercan service already running! Exiting..."
+        exit
+  fi
+  echo "starting recovercan service..."
+  #cp config_files/motion/motion.conf /etc/motion
+
+  REPLACEPATH="/home/pi/Sunray/alfred"
+  sed "s+$REPLACEPATH+$PWD+g" <$PWD/config_files/recovercan/recovercan.service.example >$PWD/config_files/recovercan/recovercan.service
+
+  cp $PWD/config_files/recovercan/recovercan.service /etc/systemd/system/recovercan.service
+  chmod 644 /etc/systemd/system/recovercan.service
+  systemctl daemon-reload
+  systemctl enable recovercan
+  systemctl start recovercan
+  systemctl --no-pager status recovercan
+  echo "recovercan service started! (see log with: 'journalctl -f -u recovercan')"
+}
+
+function stop_recovercan_service() {
+  if [ "$EUID" -ne 0 ]
+    then echo "Please run as root (sudo)"
+    exit
+  fi
+  echo "stopping recovercan service..."
+  systemctl stop recovercan
+  systemctl disable recovercan
+  echo "recovercan service stopped!"
+}
+
 
 # start USB camera streaming web server 
 function start_cam_service() {
@@ -304,6 +340,8 @@ linux_services_menu () {
         "Install sunray executable on existing Alfred file system (Alfred-only)" 
         "Start sunray service (as Linux autostart)"
         "Stop sunray service"
+        "Start RecoverCAN service (as Linux autostart)"
+        "Stop RecoverCAN service"
         "Start camera service (as Linux autostart)"
         "Stop camera service"
         "Start Linux logging service"
@@ -328,34 +366,42 @@ linux_services_menu () {
                 break
             ;;
             ${options[3]})
-                start_cam_service
+                start_recovercan_service
                 break
             ;;
             ${options[4]})
-                stop_cam_service
+                stop_recovercan_service
                 break
             ;;
             ${options[5]})
-                start_log_service
+                start_cam_service
                 break
             ;;
             ${options[6]})
-                stop_log_service
+                stop_cam_service
                 break
             ;;
             ${options[7]})
-                start_dm
+                start_log_service
                 break
             ;;
             ${options[8]})
-                stop_dm
+                stop_log_service
                 break
             ;;
             ${options[9]})
-                list_services
+                start_dm
                 break
             ;;
             ${options[10]})
+                stop_dm
+                break
+            ;;
+            ${options[11]})
+                list_services
+                break
+            ;;
+            ${options[12]})
                 return
              ;;
             *) 
