@@ -142,6 +142,10 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
   if (motorLeftSwapDir) pwmLeft *= -1;
   if (motorRightSwapDir) pwmRight *= -1;
 
+  #ifdef MOTOR_MOW_SWAP_DIRECTION
+    pwmMow *= -1;
+  #endif
+
   // ensure pwm is lower than Max
   pwmLeft = min(pwmMax, max(-pwmMax, pwmLeft));
   pwmRight = min(pwmMax, max(-pwmMax, pwmRight));  
@@ -154,7 +158,7 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
     } else {
       motorReleaseBrakesTime = millis() + 2000;
     }
-  }  
+  }    
   motorDriver.setMotorPwm(pwmLeft, pwmRight, pwmMow, releaseBrakes);
 }
 
