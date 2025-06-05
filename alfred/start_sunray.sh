@@ -78,7 +78,7 @@ btmgmt -i hci0 power on
 if ! command -v play &> /dev/null
 then 
   echo "installing audio player..."
-  apt install -y libsox-fmt-mp3 sox mplayer alsa-utils pulseaudio
+  apt install -y libsox-fmt-mp3 sox mplayer alsa-utils pulseaudio candump
 fi
 # show audio devices
 #aplay -l
