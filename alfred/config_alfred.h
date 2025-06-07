@@ -523,7 +523,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
   #ifdef DRV_CAN_ROBOT
     #define SERIAL_ROBOT_PATH "/dev/null"    
   #else
-    #define SERIAL_ROBOT_PATH "/dev/ttyS1"  
+    #define SERIAL_ROBOT_PATH "/dev/ttyS0"  
   #endif
   #define NTRIP SerialNTRIP
   #define SERIAL_NTRIP_PATH "/dev/null" // dummy serial device    
