@@ -135,6 +135,10 @@ public:
         pcl::PointCloud<pcl::PointXYZI>::Ptr cloudFiltered(new pcl::PointCloud<pcl::PointXYZI>());
         pcl::fromROSMsg(*cloudMsg, *cloud);
 
+        if (cloud->points.size() < 500){
+            ROS_WARN("ground_lidar_processor: sparse LiDAR data (pts: %d)", cloud->points.size());
+        }
+
         // -------- filter-out points above above Z = 1m -------------------------------------------------
         for (int i=0; i < cloud->points.size(); i++)
         {
