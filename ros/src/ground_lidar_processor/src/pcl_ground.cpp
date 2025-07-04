@@ -136,7 +136,7 @@ public:
         pcl::fromROSMsg(*cloudMsg, *cloud);
 
         if (cloud->points.size() < 500){
-            ROS_WARN("ground_lidar_processor: sparse LiDAR data (pts: %d)", cloud->points.size());
+            ROS_WARN("ground_lidar_processor: sparse LiDAR data (pts: %d)", (int)cloud->points.size());
         }
 
         // -------- filter-out points above above Z = 1m -------------------------------------------------
@@ -150,8 +150,8 @@ public:
             cloudFiltered->points.push_back(pt);
         }
         
-        if (cloudFiltered->size() == 0) {
-            ROS_WARN("empty cloudFiltered");     
+        if (cloudFiltered->size() < 500) {
+            ROS_WARN("ground_lidar_processor: sparse cloudFiltered (pts: %d)", (int)cloudFiltered->size() );     
             return;
         }        
 
@@ -184,7 +184,7 @@ public:
 
         if (inliers->indices.empty())
         {
-            ROS_WARN("Could not estimate a planar model for the given dataset.");
+            ROS_WARN("ground_lidar_processor: Could not estimate a planar model for the given dataset.");
             return;
         }
 
