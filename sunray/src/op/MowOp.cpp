@@ -139,6 +139,7 @@ void MowOp::onBatteryLowShouldDock(){
         changeOp(dockOp);    
     } else {
         idleOp.setInitiatedByOperator(false);
+        stateSensor = SENS_BAT_UNDERVOLTAGE;
         changeOp(idleOp);    
     }            
 }
