@@ -7,6 +7,7 @@ Group=root
 
 WorkingDirectory=/home/pi/Sunray/alfred
 ExecStart=/home/pi/Sunray/ros/start_sunray_ros.sh
+Restart=always
 
 StandardInput=tty
 StandardOutput=journal
