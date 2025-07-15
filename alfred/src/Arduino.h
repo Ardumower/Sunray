@@ -75,6 +75,25 @@ void yield(void);
 //#undef abs
 //#endif
 
+// NOTE: global macros min/max etc. are defined below - if you still want to use STL vector, algorithm etc. in your code:
+//
+//   1. #include "stl_safe_includes.h"
+//      std::vector<int>myList;
+//
+//   2. -----create a new file: stl_safe_includes.h with this contents--------------------
+//       //step 1: save temporary global marcos
+//       #pragma push_macro("min")
+//       #undef min
+//       #pragma push_macro("max")
+//       #undef max
+//       //step 2: include STL header
+//       #include <vector>
+//       #include <algorithm>  
+//       step 3: restore global macros
+//       #pragma pop_macro("min")
+//       #pragma pop_macro("max")
+
+
 #define min(a,b) ((a)<(b)?(a):(b))
 #define max(a,b) ((a)>(b)?(a):(b))
 //#define abs(x) ((x)>0?(x):-(x))
