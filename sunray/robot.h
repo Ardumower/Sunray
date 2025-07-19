@@ -39,7 +39,7 @@
 #include "timetable.h"
 
 
-#define VER "Sunray,1.0.326"
+#define VER "Sunray,1.0.327"
 
 // operation types
 enum OperationType {
