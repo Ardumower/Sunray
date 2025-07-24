@@ -87,7 +87,7 @@ void trackLine(bool runControl){
     if (SMOOTH_CURVES)
       angleToTargetFits = (fabs(trackerDiffDelta)/PI*180.0 < 120);
     else     
-      angleToTargetFits = (fabs(trackerDiffDelta)/PI*180.0 < 20);
+      angleToTargetFits = (fabs(trackerDiffDelta)/PI*180.0 < TARGET_ANGLE_TOLERANCE);
   } else {
     // while tracking the mowing line do allow rotations if angle to target increases (e.g. due to gps jumps)
     angleToTargetFits = (fabs(trackerDiffDelta)/PI*180.0 < 45);       
