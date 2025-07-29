@@ -16,6 +16,7 @@
 //#define DEBUG_CAN_ROBOT 1
 
 int MOW_MOTOR_NODE_IDS[] = { MOW1_MOTOR_NODE_ID, MOW2_MOTOR_NODE_ID, MOW3_MOTOR_NODE_ID, MOW4_MOTOR_NODE_ID, MOW5_MOTOR_NODE_ID  };
+int OWL_MSG_IDS[] = { OWL_RECEIVER_MSG_ID, OWL_CONTROL_MSG_ID, OWL_DRIVE_MSG_ID, OWL_RELAIS_MSG_ID };
 
 
 void CanRobotDriver::begin(){
@@ -158,6 +159,31 @@ void CanRobotDriver::updateWifiConnectionState(){
   #endif
 }
 
+
+void CanRobotDriver::sendIpAddress(){
+    ipAddressToStringProcess.runShellCommand("ip addr show wlan0 | grep 'inet ' | awk '{print $2}' | cut -d'/' -f1");
+    String ipStr = ipAddressToStringProcess.readString();
+    ipStr.trim(); // remove any whitespace or newline
+
+    canDataType_t data;
+    int part = 0;
+    int lastPos = 0;
+    int dotPos = ipStr.indexOf('.');
+
+    while (dotPos != -1 && part < 3) {
+      String segment = ipStr.substring(lastPos, dotPos);
+      data.byteVal[part] = segment.toInt();
+      lastPos = dotPos + 1;
+      dotPos = ipStr.indexOf('.', lastPos);
+      part++;
+    }
+    // last part
+    if (part < 4 && lastPos < ipStr.length()) {
+      String segment = ipStr.substring(lastPos);
+      data.byteVal[part] = segment.toInt();
+    }
+    sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_set, owlctl::can_val_ip_address, data);
+}
 
 // send CAN request 
 void CanRobotDriver::sendCanData(int msgId, int destNodeId, canCmdType_t cmd, int val, canDataType_t data){        
@@ -517,8 +543,8 @@ void CanRobotDriver::processResponse(){
             }
             break;
 
-        } 
-    }
+              }
+            }
   }
 }
 
@@ -946,5 +972,42 @@ void CanBuzzerDriver::tone(int freq){
   canRobot.sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_set, owlctl::can_val_buzzer_state, data );
 }
 
+// ------------------------------------------------------------------------------------
 
+CanRelaisDriver::CanRelaisDriver(CanRobotDriver &sr): canRobot(sr){
+}
+
+void CanRelaisDriver::begin(){
+}
+
+void CanRelaisDriver::run(){
+}
+
+void CanRelaisDriver::setRelaisState(int relais_node_id, bool state){
+  canDataType_t data;
+  if (state) data.byteVal[0] = 1;
+  else data.byteVal[0] = 0;
+
+  canRobot.sendCanData(OWL_RELAIS_MSG_ID, relais_node_id, can_cmd_set, owlrls::can_val_relais_state, data);
+}
+
+
+bool CanRelaisDriver::getRelaisState(int relais_node_id){
+  canDataType_t data;
+  bool state = false;
+
+  canRobot.sendCanData(OWL_RELAIS_MSG_ID, relais_node_id, can_cmd_request, owlrls::can_val_relais_state, data);
+
+  if (data.byteVal[0] == 1) state = true;
+  else state = false;
+
+  return state;
+}
+
+void CanRelaisDriver::setRelaisStateCountdown(int relais_node_id, bool state, unsigned long countdown){
+  canDataType_t data;
+  data.intValue = countdown;
+
+  canRobot.sendCanData(OWL_RELAIS_MSG_ID, relais_node_id, can_cmd_set, owlrls::can_val_relais_countdown, data);
+}
 

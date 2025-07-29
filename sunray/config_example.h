@@ -216,6 +216,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // shall the mow motor be activated for normal operation? Deactivate this option for GPS tests and path tracking running tests
 #define ENABLE_MOW_MOTOR true // Default is true, set false for testing purpose to switch off mow motor permanently
 
+//#define MOTOR_MOW_SWAP_DIRECTION 1  // uncomment to swap mow motor direction
+
+
 // ------ WIFI module (ESP8266 ESP-01 with ESP firmware 2.2.1) --------------------------------
 // NOTE: all settings (maps, absolute position source etc.) are stored in your phone - when using another
 // device for the WIFI connection (PC etc.), you will have to transfer those settings (share maps via app, 

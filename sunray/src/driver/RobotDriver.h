@@ -228,6 +228,25 @@ class GpsDriver {
     }
 };
 
+class RelaisDriver {
+  public:
+
+    virtual void begin() = 0;
+    virtual void run() = 0;
+    // get number of relais
+
+    // set relais state
+    virtual void setRelaisState(int relais_node_id, bool state) = 0;
+    // get relais state
+    virtual bool getRelaisState(int relais_node_id) = 0;
+    // set relais state countdown
+    virtual void setRelaisStateCountdown(int relais_node_id, bool state, unsigned long countdown) = 0;
+    // get relais state countdown
+    //virtual unsigned long getRelaisStateCountdown(int relais_node_id) = 0;
+    // get relais state countdown remaining time
+    //virtual unsigned long getRelaisStateCountdownRemaining(int relais_node_id) = 0;
+
+};
 
 
 #endif

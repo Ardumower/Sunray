@@ -117,6 +117,7 @@ extern int motorErrorCounter;
   extern SerialRainSensorDriver rainDriver;
   extern SerialLiftSensorDriver liftDriver;  
   extern SerialBuzzerDriver buzzerDriver;
+  //extern SerialRelaisDriver relaisDriver;
 #elif DRV_CAN_ROBOT
   extern CanRobotDriver robotDriver;
   extern CanMotorDriver motorDriver;
@@ -126,6 +127,7 @@ extern int motorErrorCounter;
   extern CanRainSensorDriver rainDriver;
   extern CanLiftSensorDriver liftDriver;  
   extern CanBuzzerDriver buzzerDriver;
+  extern CanRelaisDriver relaisDriver;
 #elif DRV_SIM_ROBOT
   extern SimRobotDriver robotDriver;
   extern SimMotorDriver motorDriver;
@@ -135,6 +137,7 @@ extern int motorErrorCounter;
   extern SimRainSensorDriver rainDriver;
   extern SimLiftSensorDriver liftDriver;
   extern SimBuzzerDriver buzzerDriver;
+  //extern SimRelaisDriver relaisDriver;
 #else
   extern AmRobotDriver robotDriver;
   extern AmMotorDriver motorDriver;
@@ -144,6 +147,7 @@ extern int motorErrorCounter;
   extern AmRainSensorDriver rainDriver;
   extern AmLiftSensorDriver liftDriver;
   extern AmBuzzerDriver buzzerDriver;
+  //extern AmRelaisDriver relaisDriver;
 #endif
 
 #ifdef DRV_SIM_ROBOT

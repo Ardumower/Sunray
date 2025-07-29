@@ -23,6 +23,7 @@
 
 // -----CAN frame data types----------------
 
+#define OWL_RELAIS_MSG_ID    128  // owlRelais PCB
 #define OWL_DRIVE_MSG_ID     300  // owlDrive PCB 
 #define OWL_CONTROL_MSG_ID   200  // owlControl PCB 
 #define OWL_RECEIVER_MSG_ID  100  // owlReceiver PCB 
@@ -44,7 +45,10 @@
 #define MOW_HEIGHT_MOTOR_NODE_ID     8
 
 
-#define CONTROL_NODE_ID       1 // owlControl PCB 
+#define CONTROL_NODE_ID        1// owlControl PCB
+
+#define RELAIS_1_NODE_ID   1 // owlRelais PCB
+#define RELAIS_2_NODE_ID   2
 
 #define RECEIVER_PUSHBOX_NODE_ID    3 // owlReceiver PCB 
 
@@ -103,6 +107,7 @@ namespace owldrv {
       can_val_misc_sensor1    = 31,  // miscellaneous sensor1 state
       can_val_misc_sensor2    = 32,  // miscellaneous sensor2 state  
       can_val_total_current   = 33,  // total current of all motor phases (low-pass filtered) 
+      can_val_device_id       = 34,  // device ID (0..63)
   };
 }
 
@@ -117,7 +122,9 @@ namespace owlctl {
       can_val_rain_state        = 6, // rain state
       can_val_charger_voltage   = 7, // charger voltage      
       can_val_lift_state        = 8, // lift sensor state      
-      can_val_slow_down_state   = 9, // slow-down state      
+      can_val_slow_down_state   = 9, // slow-down state
+      can_val_ip_address        = 10, // IP address
+      can_val_device_id         = 11,
   };
 }
 
@@ -133,10 +140,21 @@ namespace owlrecv {
       can_val_axis_y2          = 6, // y2-axis state
       can_val_axis_z2          = 7, // z2-axis state
       can_val_battery_voltage  = 8, // battery voltage 
+      can_val_device_id        = 9,
   };
 
 }  // namespace
 
+namespace owlrls {
+
+  // which variable to use for the action...
+  enum canValueType_t: uint8_t {
+    can_val_device_id         = 0, // info value
+    can_val_error             = 1, // error status
+    can_val_relais_state      = 2, // relais state
+    can_val_relais_countdown  = 3, // set time or get time left
+  };
+} // namespace owlrls
 
 // motor driver error values
 enum errType_t: uint8_t {
@@ -214,13 +232,15 @@ class CanRobotDriver: public RobotDriver {
     void requestVersion();
     void updateCpuTemperature();
     void updateWifiConnectionState();
+    void sendIpAddress();
     void sendCanData(int msgId, int destNodeId, canCmdType_t cmd, int val, canDataType_t data);
   protected:    
     bool ledPanelInstalled;
     #ifdef __linux__
       LinuxCAN can;
       Process cpuTempProcess;
-      Process wifiStatusProcess;          
+      Process wifiStatusProcess;
+      Process ipAddressToStringProcess;
     #else  
       CAN can; // dummy, so compiler doesn't complain on other platforms
     #endif    
@@ -338,5 +358,20 @@ class CanBuzzerDriver: public BuzzerDriver {
     void tone(int freq) override;  
 };
 
+class CanRelaisDriver: public RelaisDriver {
+  public:
+    CanRobotDriver &canRobot;
+    CanRelaisDriver(CanRobotDriver &sr);
+    //std::vector<int> deviceIds;
+    bool relaisState;
+    void begin() override;
+    void run() override;
+    void setRelaisState(int relais_node_id, bool state) override;
+    bool getRelaisState(int relais_node_id);
+    void setRelaisStateCountdown(int relais_node_id, bool state, unsigned long countdown) override;
+    //unsigned long getRelaisStateCountdown(int relais_node_id) override;
+    //unsigned long getRelaisStateCountdownRemaining(int relais_node_id) override;
+
+};
 
 #endif

@@ -79,6 +79,7 @@ const signed char orientationMatrix[9] = {
   SerialRainSensorDriver rainDriver(robotDriver);
   SerialLiftSensorDriver liftDriver(robotDriver);
   SerialBuzzerDriver buzzerDriver(robotDriver);
+  //SerialRelaisDriver relaisDriver(robotDriver);
 #elif defined(DRV_CAN_ROBOT)
   CanRobotDriver robotDriver;
   CanMotorDriver motorDriver(robotDriver);
@@ -88,6 +89,7 @@ const signed char orientationMatrix[9] = {
   CanRainSensorDriver rainDriver(robotDriver);
   CanLiftSensorDriver liftDriver(robotDriver);
   CanBuzzerDriver buzzerDriver(robotDriver);
+  CanRelaisDriver relaisDriver(robotDriver);
 #elif defined(DRV_SIM_ROBOT)
   SimRobotDriver robotDriver;
   SimMotorDriver motorDriver(robotDriver);
@@ -97,6 +99,7 @@ const signed char orientationMatrix[9] = {
   SimRainSensorDriver rainDriver(robotDriver);
   SimLiftSensorDriver liftDriver(robotDriver);
   SimBuzzerDriver buzzerDriver(robotDriver);
+  //SimRelaisDriver relaisDriver(robotDriver);
 #else
   AmRobotDriver robotDriver;
   AmMotorDriver motorDriver;
@@ -106,6 +109,7 @@ const signed char orientationMatrix[9] = {
   AmRainSensorDriver rainDriver;
   AmLiftSensorDriver liftDriver;
   AmBuzzerDriver buzzerDriver;
+  AmRelaisDriver relaisDriver;
 #endif
 Motor motor;
 Battery battery;
@@ -636,6 +640,7 @@ void start(){
   String rid = "";
   robotDriver.getRobotID(rid);
   CONSOLE.println(rid);
+  relaisDriver.begin();
   motorDriver.begin();
   rainDriver.begin();
   liftDriver.begin();  
@@ -962,6 +967,7 @@ void run(){
   stopButton.run();
   battery.run();
   batteryDriver.run();
+  relaisDriver.run();
   motorDriver.run();
   rainDriver.run();
   liftDriver.run();
@@ -970,7 +976,7 @@ void run(){
   maps.run();  
   rcmodel.run();
   bumper.run();
-  
+
   // state saving
   if (millis() >= nextSaveTime){  
     nextSaveTime = millis() + 5000;
@@ -1173,6 +1179,7 @@ void run(){
         psOutput = p.readString();    
       }
     }
+    robotDriver.sendIpAddress();
   #endif
 
   if(millis() > loopTimeTimer + 10000){
@@ -1230,7 +1237,21 @@ void run(){
         CONSOLE.println(stateButton);
       }
     }
-  }    
+  }
+  /*
+   // Relais 1 Test activation
+  relaisDriver.setRelaisState(RELAIS_1_NODE_ID, true);
+  delay(2000);
+  // Relais 2 Test activation
+  relaisDriver.setRelaisState(RELAIS_2_NODE_ID, true);
+  delay(2000);
+  // Relais 1 Test deactivation
+  relaisDriver.setRelaisState(RELAIS_1_NODE_ID, false);
+  delay(2000);
+  // Relais 2 Test deactivation
+  relaisDriver.setRelaisState(RELAIS_2_NODE_ID, false);
+  delay(2000);
+  */
 }        
 
 
