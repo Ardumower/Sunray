@@ -7,6 +7,8 @@ Group=root
 
 WorkingDirectory=/home/pi/Sunray/alfred
 ExecStart=/home/pi/Sunray/alfred/start_sunray.sh
+Restart=always
+LimitCORE=infinity
 
 StandardInput=tty
 StandardOutput=journal

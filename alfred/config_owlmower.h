@@ -208,6 +208,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // shall the mow motor be activated for normal operation? Deactivate this option for GPS tests and path tracking running tests
 #define ENABLE_MOW_MOTOR true // Default is true, set false for testing purpose to switch off mow motor permanently
 
+//#define MOTOR_MOW_SWAP_DIRECTION 1  // uncomment to swap mow motor direction
+
 
 // ------ WIFI module (ESP8266 ESP-01 with ESP firmware 2.2.1) --------------------------------
 // NOTE: all settings (maps, absolute position source etc.) are stored in your phone - when using another
@@ -321,7 +323,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define GO_HOME_VOLTAGE   23.0  // start going to dock below this voltage
 // The battery will charge if both battery voltage is below that value and charging current is above that value.
-#define BAT_FULL_VOLTAGE  30.0  // start mowing again at this voltage
+#define BAT_FULL_VOLTAGE  29.0  // start mowing again at this voltage
 #define BAT_UNDERVOLTAGE  18.9  // battery switch off voltage
 #define BAT_FULL_CURRENT  -0.1   // start mowing again below this charging current (amps)
 #define BAT_FULL_SLOPE    0.002  // start mowing again below this voltage slope (V/min - choose 0.0 if you have charging issues)
@@ -433,6 +435,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // below this robot-to-target distance (m) a target is considered as reached
 #define TARGET_REACHED_TOLERANCE 0.1
+#define TARGET_ANGLE_TOLERANCE 20
 
 // stanley control for path tracking - determines gain how fast to correct for lateral path errors
 #define STANLEY_CONTROL_P_NORMAL  2.0   // 3.0 for path tracking control (angular gain) when mowing

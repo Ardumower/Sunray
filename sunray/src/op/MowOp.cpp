@@ -134,9 +134,15 @@ void MowOp::onTempOutOfRangeTriggered(){
 
 void MowOp::onBatteryLowShouldDock(){    
     CONSOLE.println("BATTERY LOW TRIGGERED - DOCKING");
-    Logger.event(EVT_BATTERY_LOW_DOCK);
-    dockOp.setInitiatedByOperator(false);
-    changeOp(dockOp);
+    Logger.event(EVT_BATTERY_LOW_DOCK);    
+    if (DOCKING_STATION){
+        dockOp.setInitiatedByOperator(false);
+        changeOp(dockOp);    
+    } else {
+        idleOp.setInitiatedByOperator(false);
+        stateSensor = SENS_BAT_UNDERVOLTAGE;
+        changeOp(idleOp);    
+    }            
 }
 
 void MowOp::onTimetableStopMowing(){        

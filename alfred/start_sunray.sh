@@ -78,7 +78,7 @@ btmgmt -i hci0 power on
 if ! command -v play &> /dev/null
 then 
   echo "installing audio player..."
-  apt install -y libsox-fmt-mp3 sox mplayer alsa-utils pulseaudio
+  apt install -y libsox-fmt-mp3 sox mplayer alsa-utils pulseaudio candump libavcodec58
 fi
 # show audio devices
 #aplay -l
@@ -91,6 +91,7 @@ cat /proc/asound/cards
 # set default volume 
 #adduser root dialout audio pulse-access pulse
 echo "we will test host audio now... (you should hear a voice)"
+echo "(to change default audio card: sudo nano /etc/mplayer/mplayer.conf  and add device idx: ao=alsa:device=hw=3.0)"
 ../ros/scripts/dbus_send.sh -m Play -p ../tts/de/system_starting.mp3
 
 

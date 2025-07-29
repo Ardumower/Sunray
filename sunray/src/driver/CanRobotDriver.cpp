@@ -10,6 +10,11 @@
 #include "../../config.h"
 #include "../../robot.h"
 #include "../../events.h"
+#ifdef __linux__
+  #include <fcntl.h>
+  #include <sys/mman.h>
+  #include <signal.h>
+#endif
 
 //#define COMM  ROBOT
 
@@ -89,7 +94,26 @@ void CanRobotDriver::begin(){
     p2.runShellCommand("ip link show eth0 | grep link/ether | awk '{print $2}'");
 	  robotID = p2.readString();    
     robotID.trim();
+
     
+    if (false){
+      // trigger linux bus error - steps to examine:
+      // 1. (optional) set core pattern:  sudo sysctl -w 'kernel.core_pattern=|/usr/lib/systemd/systemd-coredump %P %u %g %s %t 9223372036854775808 %h'      
+      // 2. activate coredumps:     ulimit -c unlimited
+      // 3. start sunray until crash
+      // 4. list coredumps:         coredumpctl list   (and look for PID, e.g 144840) 
+      // 5. extract coredump:       sudo coredumpctl dump 144840 --output 144840.core
+      // 6. find reason for crash:  gdb build/sunray -c 144840.core   (and press ENTER, ENTER)
+      CONSOLE.println("WARN: simulating a bus error!");
+      const char* filename = "testfile.bin";
+      int fd = open(filename, O_RDWR | O_CREAT | O_TRUNC, 0666);
+      ftruncate(fd, 4096);  
+      char* data = (char*)mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      close(fd);  
+      truncate(filename, 0);
+      data[0] = 'X';
+      munmap(data, 4096);
+    }  
   #endif
   CONSOLE.print("testing unsigned overflow substraction: ");  
   //unsigned short lastV = 65534;
@@ -99,6 +123,7 @@ void CanRobotDriver::begin(){
   unsigned long currV = 1;
   unsigned long diffV = (unsigned short) (currV - lastV);  
   CONSOLE.println(diffV);
+
   //exit(0);
 }
 

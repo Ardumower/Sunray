@@ -404,7 +404,7 @@ void UBLOX::parse(int b)
   if ( (this->state == GOT_NONE) || (this->state == GOT_SYNC1) ) {
     char ch = char(b);
     if (ch == '$') unparsedMessage = "";    
-    unparsedMessage += ch;
+    if (unparsedMessage.length() < 1000) unparsedMessage += ch;    
     if ((ch == '\r') || (ch == '\n')) {
       //CONSOLE.println(unparsedMessage);
       if (unparsedMessage.startsWith("$GNGGA")) {

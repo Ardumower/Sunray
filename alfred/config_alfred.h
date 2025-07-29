@@ -429,6 +429,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // below this robot-to-target distance (m) a target is considered as reached
 #define TARGET_REACHED_TOLERANCE 0.1
+#define TARGET_ANGLE_TOLERANCE 20
 
 // stanley control for path tracking - determines gain how fast to correct for lateral path errors
 #define STANLEY_CONTROL_P_NORMAL  1.1   // 3.0 for path tracking control (angular gain) when mowing
@@ -523,7 +524,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
   #ifdef DRV_CAN_ROBOT
     #define SERIAL_ROBOT_PATH "/dev/null"    
   #else
-    #define SERIAL_ROBOT_PATH "/dev/ttyS1"  
+    #define SERIAL_ROBOT_PATH "/dev/ttyS0"  
   #endif
   #define NTRIP SerialNTRIP
   #define SERIAL_NTRIP_PATH "/dev/null" // dummy serial device    

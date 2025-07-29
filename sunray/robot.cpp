@@ -1102,9 +1102,7 @@ void run(){
         }                           
       }    
       if (battery.shouldGoHome()){
-        if (DOCKING_STATION){
-           activeOp->onBatteryLowShouldDock();
-        }
+        activeOp->onBatteryLowShouldDock();        
       }   
        
       if (battery.chargerConnected()){

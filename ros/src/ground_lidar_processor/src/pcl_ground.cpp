@@ -59,7 +59,10 @@ public:
         obstacleNear = false;
         cloudReceived = false;
         pkg_loc = ros::package::getPath( ros::this_node::getName().substr(1) );
+        double tim = ros::Time::now().toSec();        
+        cloudCallbackTimeout = tim + 2.0;
         //ROS_WARN("pkg_loc: %s\n", pkg_loc.c_str());                
+        ROS_WARN("ground_lidar_processor started");
     }
 
 
@@ -132,6 +135,10 @@ public:
         pcl::PointCloud<pcl::PointXYZI>::Ptr cloudFiltered(new pcl::PointCloud<pcl::PointXYZI>());
         pcl::fromROSMsg(*cloudMsg, *cloud);
 
+        if (cloud->points.size() < 500){
+            ROS_WARN("ground_lidar_processor: sparse LiDAR data (pts: %d)", (int)cloud->points.size());
+        }
+
         // -------- filter-out points above above Z = 1m -------------------------------------------------
         for (int i=0; i < cloud->points.size(); i++)
         {
@@ -143,8 +150,8 @@ public:
             cloudFiltered->points.push_back(pt);
         }
         
-        if (cloudFiltered->size() == 0) {
-            ROS_WARN("empty cloudFiltered");     
+        if (cloudFiltered->size() < 500) {
+            ROS_WARN("ground_lidar_processor: sparse cloudFiltered (pts: %d)", (int)cloudFiltered->size() );     
             return;
         }        
 
@@ -177,7 +184,7 @@ public:
 
         if (inliers->indices.empty())
         {
-            ROS_WARN("Could not estimate a planar model for the given dataset.");
+            ROS_WARN("ground_lidar_processor: Could not estimate a planar model for the given dataset.");
             return;
         }
 
@@ -377,6 +384,7 @@ public:
     
 
     bool cloudReceived;
+    double cloudCallbackTimeout;
 
 private:
     void imuCallback(sensor_msgs::Imu msg) {        
@@ -414,6 +422,8 @@ private:
     void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr &msg)
     {
         //printf("pointCloudCallback\n");
+        double tim = ros::Time::now().toSec();        
+        cloudCallbackTimeout = tim + 2.0;
         if (cloudReceived) return;
         cloudMsg = msg;
         //ROS_INFO("pointCloudCallback begin");
@@ -479,10 +489,15 @@ int main(int argc, char **argv)
         //ros::spin();
         ros::spinOnce();
         rate->sleep();
+        double tim = ros::Time::now().toSec();        
         if (processor.cloudReceived) {
             //processor.processCloudOld();
             processor.processCloudNew();            
             processor.cloudReceived = false;            
+        }
+        if (tim > processor.cloudCallbackTimeout){
+            ROS_WARN("ground_lidar_processor: LiDAR data timeout");
+            processor.cloudCallbackTimeout = tim + 10.0;
         }
         //printf("loop\n");
     }
