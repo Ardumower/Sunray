@@ -177,6 +177,7 @@ unsigned long nextSaveTime = 0;
 unsigned long nextTimetableTime = 0;
 unsigned long nextGenerateGGATime = 0;
 
+unsigned long ipTimer = 0;
 //##################################################################################
 unsigned long loopTime = millis();
 int loopTimeNow = 0;
@@ -1177,7 +1178,11 @@ void run(){
         psOutput = p.readString();    
       }
     }
-    robotDriver.sendIpAddress();
+    if (millis() > ipTimer){
+      ipTimer = millis() + 30000; // every 30 seconds
+      robotDriver.sendIpAddress();
+    }
+    
   #endif
 
   if(millis() > loopTimeTimer + 10000){
