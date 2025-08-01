@@ -33,6 +33,7 @@ void MowOp::begin(){
     if (((previousOp != &escapeReverseOp) && (previousOp != &escapeForwardOp)) || (DISABLE_MOW_MOTOR_AT_OBSTACLE))  motor.setMowState(false);              
     battery.setIsDocked(false);                
     timetable.setMowingCompletedInCurrentTimeFrame(false); 
+    CONSOLE.println(" Relais will be set to true (on)");
     relaisDriver.setRelaisState(RELAIS_1_NODE_ID, true); // enable relais 1 (Lidar) when not charging               
 
     // plan route to next target point 
