@@ -167,8 +167,8 @@ void DockOp::onObstacle(){
 }
 
 void DockOp::onChargerConnected(){            
-  battery.setIsDocked(true);    
-  changeOp(chargeOp);
+  //battery.setIsDocked(true); // Test me   
+  //changeOp(chargeOp);
 }
 
 
