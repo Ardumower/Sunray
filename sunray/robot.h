@@ -39,7 +39,7 @@
 #include "timetable.h"
 
 
-#define VER "Sunray,1.0.328"
+#define VER "Sunray,1.0.329"
 
 // operation types
 enum OperationType {
@@ -117,7 +117,7 @@ extern int motorErrorCounter;
   extern SerialRainSensorDriver rainDriver;
   extern SerialLiftSensorDriver liftDriver;  
   extern SerialBuzzerDriver buzzerDriver;
-  //extern SerialRelaisDriver relaisDriver;
+  extern RelaisDriver relaisDriver;
 #elif DRV_CAN_ROBOT
   extern CanRobotDriver robotDriver;
   extern CanMotorDriver motorDriver;
@@ -137,7 +137,7 @@ extern int motorErrorCounter;
   extern SimRainSensorDriver rainDriver;
   extern SimLiftSensorDriver liftDriver;
   extern SimBuzzerDriver buzzerDriver;
-  //extern SimRelaisDriver relaisDriver;
+  extern RelaisDriver relaisDriver;
 #else
   extern AmRobotDriver robotDriver;
   extern AmMotorDriver motorDriver;
@@ -147,7 +147,7 @@ extern int motorErrorCounter;
   extern AmRainSensorDriver rainDriver;
   extern AmLiftSensorDriver liftDriver;
   extern AmBuzzerDriver buzzerDriver;
-  //extern AmRelaisDriver relaisDriver;
+  extern RelaisDriver relaisDriver;
 #endif
 
 #ifdef DRV_SIM_ROBOT

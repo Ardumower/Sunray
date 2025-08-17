@@ -79,7 +79,7 @@ const signed char orientationMatrix[9] = {
   SerialRainSensorDriver rainDriver(robotDriver);
   SerialLiftSensorDriver liftDriver(robotDriver);
   SerialBuzzerDriver buzzerDriver(robotDriver);
-  //SerialRelaisDriver relaisDriver(robotDriver);
+  RelaisDriver relaisDriver(robotDriver);
 #elif defined(DRV_CAN_ROBOT)
   CanRobotDriver robotDriver;
   CanMotorDriver motorDriver(robotDriver);
@@ -99,7 +99,7 @@ const signed char orientationMatrix[9] = {
   SimRainSensorDriver rainDriver(robotDriver);
   SimLiftSensorDriver liftDriver(robotDriver);
   SimBuzzerDriver buzzerDriver(robotDriver);
-  //SimRelaisDriver relaisDriver(robotDriver);
+  RelaisDriver relaisDriver(robotDriver);
 #else
   AmRobotDriver robotDriver;
   AmMotorDriver motorDriver;
@@ -109,7 +109,7 @@ const signed char orientationMatrix[9] = {
   AmRainSensorDriver rainDriver;
   AmLiftSensorDriver liftDriver;
   AmBuzzerDriver buzzerDriver;
-  AmRelaisDriver relaisDriver;
+  RelaisDriver relaisDriver;
 #endif
 Motor motor;
 Battery battery;

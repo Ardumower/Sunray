@@ -232,7 +232,7 @@ class CanRobotDriver: public RobotDriver {
     void requestVersion();
     void updateCpuTemperature();
     void updateWifiConnectionState();
-    void sendIpAddress();
+    virtual void sendIpAddress() override;
     void sendCanData(int msgId, int destNodeId, canCmdType_t cmd, int val, canDataType_t data);
   protected:    
     bool ledPanelInstalled;

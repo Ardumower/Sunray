@@ -186,6 +186,7 @@ void CanRobotDriver::updateWifiConnectionState(){
 
 
 void CanRobotDriver::sendIpAddress(){
+  #ifdef __linux__  
     ipAddressToStringProcess.runShellCommand("ip addr show wlan0 | grep 'inet ' | awk '{print $2}' | cut -d'/' -f1");
     String ipStr = ipAddressToStringProcess.readString();
     ipStr.trim(); // remove any whitespace or newline
@@ -208,6 +209,7 @@ void CanRobotDriver::sendIpAddress(){
       data.byteVal[part] = segment.toInt();
     }
     sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_set, owlctl::can_val_ip_address, data);
+  #endif
 }
 
 // send CAN request 
