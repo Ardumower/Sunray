@@ -248,7 +248,9 @@ void Op::onRelocalization(){
     changeOp(relocalizationOp, true);
 }
 
-void Op::onChargerConnected(){            
+void Op::onChargerConnected(){    
+  battery.setIsDocked(true);    
+  changeOp(chargeOp);        
 }
 
 void Op::onBatteryUndervoltage(){
