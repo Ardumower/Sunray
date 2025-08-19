@@ -200,7 +200,7 @@ function ros_compile {
   CMD=". /ros_entrypoint.sh ;"
   CMD+="cd /root/Sunray/ros/ ;"
   CMD+="rm -Rf build ; rm -Rf devel ;"
-  CMD+="catkin_make -DCONFIG_FILE=$CONFIG_PATHNAME -DROS_EDITION=ROS1 -DCMAKE_BUILD_TYPE=Release"
+  CMD+="catkin_make -j1 -DCONFIG_FILE=$CONFIG_PATHNAME -DROS_EDITION=ROS1 -DCMAKE_BUILD_TYPE=Release"
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c "$CMD"
 }
@@ -216,7 +216,7 @@ function ros_recompile {
   prepare_for_ros    
   CMD=". /ros_entrypoint.sh ;"
   CMD+="cd /root/Sunray/ros/ ;"
-  CMD+="catkin_make"
+  CMD+="catkin_make -j1"
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c "$CMD"
 }
