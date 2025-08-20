@@ -166,10 +166,10 @@ void DockOp::onObstacle(){
     }
 }
 
-void DockOp::onChargerConnected(){            
-  //battery.setIsDocked(true); // Test me   
-  //changeOp(chargeOp);
-}
+/*void DockOp::onChargerConnected(){            
+  battery.setIsDocked(true); // Test me   
+  changeOp(chargeOp);
+}*/
 
 
 void DockOp::onNoFurtherWaypoints(){
