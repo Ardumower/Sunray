@@ -1017,7 +1017,7 @@ void CanRelaisDriver::setRelaisState(int relais_node_id, bool state){
 
   canRobot.sendCanData(OWL_RELAIS_MSG_ID, relais_node_id, can_cmd_set, owlrls::can_val_relais_state, data);
   CONSOLE.print(" Relais is now set to");
-  CONSOLE.print(state);
+  CONSOLE.println(state);
 }
 
 
