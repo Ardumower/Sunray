@@ -186,6 +186,8 @@ void CanRobotDriver::updateWifiConnectionState(){
 
 
 void CanRobotDriver::sendIpAddress(){
+  return;
+
   #ifdef __linux__  
     ipAddressToStringProcess.runShellCommand("ip addr show wlan0 | grep 'inet ' | awk '{print $2}' | cut -d'/' -f1");
     String ipStr = ipAddressToStringProcess.readString();
@@ -196,6 +198,7 @@ void CanRobotDriver::sendIpAddress(){
     int lastPos = 0;
     int dotPos = ipStr.indexOf('.');
 
+    // FIXME: this loop seems to block Sunray for 1-2 seconds
     while (dotPos != -1 && part < 3) {
       String segment = ipStr.substring(lastPos, dotPos);
       data.byteVal[part] = segment.toInt();
