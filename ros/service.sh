@@ -391,8 +391,9 @@ function start_sunray_ros_service {
   echo "starting sunray ROS service..."
   #ln -s /home/pi/sunray_install/config_files/sunray.service /etc/systemd/system/sunray.service
   
-  REPLACEPATH="/home/pi/Sunray/alfred"
-  sed "s+$REPLACEPATH+$PWD+g" <$PWD/sunray_ros.service.example >$PWD/sunray_ros.service
+  REPLACEPATH="/home/pi/"
+  HOMEPATH=`realpath $PWD/../..`/  
+  sed "s+$REPLACEPATH+$HOMEPATH+g" <$PWD/sunray_ros.service.example >$PWD/sunray_ros.service
 
   cp $PWD/sunray_ros.service /etc/systemd/system/sunray_ros.service
   chmod 644 /etc/systemd/system/sunray_ros.service
