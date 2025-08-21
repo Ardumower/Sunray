@@ -117,6 +117,13 @@ void ChargeOp::run(){
                 CONSOLE.println("DOCK_AUTO_START: will automatically continue mowing now");
                 changeOp(mowOp); // continue mowing                                                    
             }
+
+            #ifdef __linux__    
+                if (millis() > robotDriver.nextIpTime){
+                    robotDriver.nextIpTime = millis() + 30000; // every 30 seconds
+                    robotDriver.sendIpAddress();
+                }                
+            #endif
         }
     }        
 }

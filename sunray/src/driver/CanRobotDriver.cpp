@@ -60,6 +60,7 @@ void CanRobotDriver::begin(){
   nextTempTime = 0;
   nextWifiTime = 0;
   nextLedTime = 0;
+  nextIpTime = 0;
   ledPanelInstalled = true;
   cmdMotorResponseCounter = 0;
   cmdSummaryResponseCounter = 0;
@@ -193,25 +194,73 @@ void CanRobotDriver::sendIpAddress(){
     String ipStr = ipAddressToStringProcess.readString();
     ipStr.trim(); // remove any whitespace or newline
 
-    canDataType_t data;
-    int part = 0;
-    int lastPos = 0;
-    int dotPos = ipStr.indexOf('.');
+    // Validate IP address format
+    if (ipStr.length() == 0) {
+        Serial.println("Error: Empty IP address");
+        return; // or handle error appropriately
+    }
 
-    // FIXME: this loop seems to block Sunray for 1-2 seconds
-    while (dotPos != -1 && part < 3) {
-      String segment = ipStr.substring(lastPos, dotPos);
-      data.byteVal[part] = segment.toInt();
-      lastPos = dotPos + 1;
-      dotPos = ipStr.indexOf('.', lastPos);
-      part++;
+    // Count dots - should be exactly 3
+    int dotCount = 0;
+    for (int i = 0; i < ipStr.length(); i++) {
+        if (ipStr.charAt(i) == '.') {
+            dotCount++;
+        }
     }
-    // last part
-    if (part < 4 && lastPos < ipStr.length()) {
-      String segment = ipStr.substring(lastPos);
-      data.byteVal[part] = segment.toInt();
+
+    if (dotCount != 3) {
+        Serial.println("Error: Invalid IP format - expected 3 dots, found " + String(dotCount));
+        return; // or handle error appropriately
     }
-    sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_set, owlctl::can_val_ip_address, data);
+
+    canDataType_t data;
+    int lastPos = 0;
+    bool validIP = true;
+
+    // Parse exactly 4 parts of the IP address
+    for (int part = 0; part < 4 && validIP; part++) {
+        int dotPos;
+        
+        if (part < 3) {
+            // For the first 3 parts, find the next dot
+            dotPos = ipStr.indexOf('.', lastPos);
+            if (dotPos == -1 || dotPos == lastPos) {
+                // Invalid IP format - missing dot or empty segment
+                Serial.println("Error: Invalid IP segment at part " + String(part));
+                validIP = false;
+                break;
+            }
+        } else {
+            // For the last part, use the end of the string
+            dotPos = ipStr.length();
+            if (dotPos == lastPos) {
+                // Empty last segment
+                Serial.println("Error: Empty last IP segment");
+                validIP = false;
+                break;
+            }
+        }
+        
+        String segment = ipStr.substring(lastPos, dotPos);
+        
+        // Validate segment is numeric and in valid range (0-255)
+        int value = segment.toInt();
+        if (value < 0 || value > 255 || (value == 0 && segment != "0")) {
+            Serial.println("Error: Invalid IP segment value: " + segment);
+            validIP = false;
+            break;
+        }
+        
+        data.byteVal[part] = value;
+        lastPos = dotPos + 1;
+    }
+
+    // Only send data if IP validation passed
+    if (validIP) {
+        sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_set, owlctl::can_val_ip_address, data);
+    } else {
+        Serial.println("Error: IP address validation failed for: " + ipStr);
+    }
   #endif
 }
 

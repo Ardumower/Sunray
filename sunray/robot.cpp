@@ -160,6 +160,7 @@ unsigned long nextGPSMotionCheckTime = 0;
 
 bool finishAndRestart = false;
 bool dockAfterFinish = true;
+bool testRelais = false;
 
 unsigned long nextBadChargingContactCheck = 0;
 unsigned long nextToFTime = 0;
@@ -177,7 +178,6 @@ unsigned long nextSaveTime = 0;
 unsigned long nextTimetableTime = 0;
 unsigned long nextGenerateGGATime = 0;
 
-unsigned long ipTimer = 0;
 //##################################################################################
 unsigned long loopTime = millis();
 int loopTimeNow = 0;
@@ -1177,12 +1177,7 @@ void run(){
         p.runShellCommand("ps -eo pcpu,pid,user,args | sort -k 1 -r | head -3");
         psOutput = p.readString();    
       }
-    }
-    if (millis() > ipTimer){
-      ipTimer = millis() + 30000; // every 30 seconds
-      robotDriver.sendIpAddress();
-    }
-    
+    }    
   #endif
 
   if(millis() > loopTimeTimer + 10000){
@@ -1241,20 +1236,21 @@ void run(){
       }
     }
   }
-  /*
-   // Relais 1 Test activation
-  relaisDriver.setRelaisState(RELAIS_1_NODE_ID, true);
-  delay(2000);
-  // Relais 2 Test activation
-  relaisDriver.setRelaisState(RELAIS_2_NODE_ID, true);
-  delay(2000);
-  // Relais 1 Test deactivation
-  relaisDriver.setRelaisState(RELAIS_1_NODE_ID, false);
-  delay(2000);
-  // Relais 2 Test deactivation
-  relaisDriver.setRelaisState(RELAIS_2_NODE_ID, false);
-  delay(2000);
-  */
+
+  if(testRelais){
+    // Relais 1 Test activation
+    relaisDriver.setRelaisState(RELAIS_1_NODE_ID, true);
+    delay(500);
+    // Relais 2 Test activation
+    relaisDriver.setRelaisState(RELAIS_2_NODE_ID, true);
+    delay(500);
+    // Relais 1 Test deactivation
+    relaisDriver.setRelaisState(RELAIS_1_NODE_ID, false);
+    delay(500);
+    // Relais 2 Test deactivation
+    relaisDriver.setRelaisState(RELAIS_2_NODE_ID, false);
+    delay(500);
+ }
 }        
 
 

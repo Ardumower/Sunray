@@ -217,6 +217,7 @@ class CanRobotDriver: public RobotDriver {
     bool triggeredStopButton;
     bool triggeredSlowDown;
     bool triggeredPushboxStopButton;
+    unsigned long nextIpTime;
     void begin() override;
     void run() override;
     bool getRobotID(String &id) override;
@@ -254,7 +255,7 @@ class CanRobotDriver: public RobotDriver {
     unsigned long nextMowTime;    
     unsigned long nextTempTime;
     unsigned long nextWifiTime;
-    unsigned long nextLedTime;
+    unsigned long nextLedTime;    
     int consoleCounter;
     int cmdMotorCounter;
     int cmdSummaryCounter;

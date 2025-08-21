@@ -35,6 +35,14 @@ void IdleOp::run(){
         }        
         if (initiatedByOperator) dockOp.setInitiatedByOperator(true); // manual stop => manual dock
         changeOp(chargeOp);
-    }    
+    }
+
+    #ifdef __linux__    
+        if (millis() > robotDriver.nextIpTime){
+            robotDriver.nextIpTime = millis() + 30000; // every 30 seconds
+            robotDriver.sendIpAddress();
+        }                
+    #endif
+       
 }
 
