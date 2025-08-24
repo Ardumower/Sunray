@@ -340,12 +340,33 @@ void Motor::run() {
   float deltaControlTimeSec =  ((float)(currTime - lastControlTime)) / 1000.0;
   lastControlTime = currTime;
 
+#if RESPONSIVE_RPM
+  unsigned long timeLeft;
+  unsigned long timeRight;
+  unsigned long timeMow;
+  motorDriver.getMotorTickTime(timeLeft, timeRight, timeMow);  
+
+  float fTimeLeft = timeLeft / 1000000.0;
+  float fTimeRight = timeRight / 1000000.0;
+  float fTimeMow = timeMow /1000000.0;
+
+  if (motorLeftPWMCurr < 0) fTimeLeft *= -1;
+  if (motorRightPWMCurr < 0) fTimeRight *= -1;
+  if (motorMowPWMCurr < 0) fTimeMow *= -1;
+
+  // calculat speed via tick time
+  motorLeftRpmCurr = (1.0 / (fTimeLeft * (float)ticksPerRevolution)) * 60.0 * (float)(motorLeftPWMCurr != 0);
+  motorRightRpmCurr = (1.0 / (fTimeRight * (float)ticksPerRevolution)) * 60.0 * (float)(motorRightPWMCurr != 0);
+  motorMowRpmCurr = (1.0 / (fTimeMow * 6.0)) * 60.0 * (float)(motorMowPWMCurr != 0);
+#else
   // calculate speed via tick count
   // 2000 ticksPerRevolution: @ 30 rpm  => 0.5 rps => 1000 ticksPerSec
   // 20 ticksPerRevolution: @ 30 rpm => 0.5 rps => 10 ticksPerSec
   motorLeftRpmCurr = 60.0 * ( ((float)ticksLeft) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
   motorRightRpmCurr = 60.0 * ( ((float)ticksRight) / ((float)ticksPerRevolution) ) / deltaControlTimeSec;
   motorMowRpmCurr = 60.0 * ( ((float)ticksMow) / ((float)6.0) ) / deltaControlTimeSec; // assuming 6 ticks per revolution
+#endif
+	
   float lp = 0.9; // 0.995
   motorLeftRpmCurrLP = lp * motorLeftRpmCurrLP + (1.0-lp) * motorLeftRpmCurr;
   motorRightRpmCurrLP = lp * motorRightRpmCurrLP + (1.0-lp) * motorRightRpmCurr;
