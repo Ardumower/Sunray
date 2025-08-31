@@ -26,6 +26,7 @@ void Bumper::begin(){
 
   leftPressedOnDelay  = millis();
   rightPressedOnDelay = millis();
+  enableNearObstacle = true;
 }
 
 void Bumper::run() {
@@ -93,6 +94,7 @@ bool Bumper::obstacle(){
 }
 
 bool Bumper::nearObstacle(){
+  if (!enableNearObstacle) return false;
   return bumperDriver.nearObstacle();
 }
 

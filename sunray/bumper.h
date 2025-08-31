@@ -9,6 +9,7 @@
 
 class Bumper {
 	public:
+	bool enableNearObstacle;
 	void begin();
 	void run();
 	bool obstacle();
