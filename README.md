@@ -4,9 +4,11 @@
 1. [Description](#description)
 2. [Sunray for Ardumower](#sunray_ardumower)
 3. [Sunray for Alfred / owlPlatform](#sunray_alfred)
-4. [Sunray Simulator](#sunray_sim)
-5. [Further topics](#further_topics)
-6. [Sunray ROS](#sunray_ros)
+5. [Sunray Simulator](#sunray_sim)
+6. [Further topics](#further_topics)
+7. [Sunray ROS](#sunray_ros)
+8. [Sunray App](#sunray_app)
+9. [Sunray Husqvarna](#sunray_husqvarna)
    
 
 ## Description <a name="description"></a>
@@ -38,7 +40,7 @@ Simulator | The complete Sunray firmware and simulated hardware is compiled for 
 All software and hardware, software and motor components are designed and optimized as a whole, if you try to replace or exclude some component not as designed, you risk to damage your hardware with the software
 
 ## Ardumower Wiki
-http://wiki.ardumower.de/index.php?title=Ardumower_Sunray
+Construction manual for the original Ardumower-based DIY robot mower:  http://wiki.ardumower.de/index.php?title=Ardumower_Sunray
 
 ## Adumower Demo video
 https://www.youtube.com/watch?v=yDcmS5zdj90
@@ -330,6 +332,14 @@ Here you can see how the localization pipeline works.
 - Localization: First the LiDAR points are (optionally) flipped upside-down (if your LiDAR is mounted upside-down). Then the corrected LiDAR data is used to localize against the PCD file. The result of the localization is two components: the LiDAR position (x, y, z) within the PCD file and the LiDAR orientation (yaw, pitch, roll). 
 ![image](https://github.com/user-attachments/assets/a02f9ff2-a7d8-430e-bf2d-c90ae4e4bf0c)
    
+
+# Sunray App <a name="sunray_app"></a>
+There exists an App to control and monitor the Sunray firmware. More Details can be found in the Sunray manual: https://drive.google.com/file/d/1NNrUEm2_amfMAjGY7ShcYtixtUgWGnyJ/view?usp=sharing
+
+# Husqvarna ACX 260 <a name="sunray_husqvarna"></a>
+There exists an construction manual how to convert your Husqvarna ACX 260 to an DIY robot mower: https://docs.google.com/document/d/1rZi848AFimIRHJkMun1muZ-2nvr8JjXCmmPBuZ1BfJA/edit?usp=sharing
+
+
 
 
 
