@@ -333,11 +333,11 @@ Here you can see how the localization pipeline works.
 ![image](https://github.com/user-attachments/assets/a02f9ff2-a7d8-430e-bf2d-c90ae4e4bf0c)
    
 
-# Sunray App <a name="sunray_app"></a>
-There exists an App to control and monitor the Sunray firmware. More Details can be found in the Sunray manual: https://drive.google.com/file/d/1NNrUEm2_amfMAjGY7ShcYtixtUgWGnyJ/view?usp=sharing
+# Sunray App Manual <a name="sunray_app"></a>
+There exists an App to to control and monitor the Sunray firmware. More Details can be found in the Sunray App manual: https://drive.google.com/file/d/1NNrUEm2_amfMAjGY7ShcYtixtUgWGnyJ/view?usp=sharing
 
 # Husqvarna ACX 260 <a name="sunray_husqvarna"></a>
-There exists an construction manual how to convert your Husqvarna ACX 260 to an DIY robot mower: https://docs.google.com/document/d/1rZi848AFimIRHJkMun1muZ-2nvr8JjXCmmPBuZ1BfJA/edit?usp=sharing
+There exists an owlPlatform DIY conversion manual how to convert your Husqvarna ACX 260 to an DIY robot mower: https://docs.google.com/document/d/1rZi848AFimIRHJkMun1muZ-2nvr8JjXCmmPBuZ1BfJA/edit?usp=sharing
 
 
 
