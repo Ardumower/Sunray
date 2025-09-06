@@ -17,10 +17,10 @@ function build_sunray() {
     sudo apt-get -y install cmake
     sudo apt-get -y install libbluetooth-dev
   fi
-  if [ "$EUID" -eq 0 ]
-    then echo "Please run as non-root (not sudo)"
-    exit
-  fi
+  #if [ "$EUID" -eq 0 ]
+  #  then echo "Please run as non-root (not sudo)"
+  #  exit
+  #fi
 
   PS3='Please choose config: '
   list=$(ls config*.h)
@@ -45,20 +45,20 @@ function build_sunray() {
 
 
 function rebuild_sunray() {
-  if [ "$EUID" -eq 0 ]
-    then echo "Please run as non-root (not sudo)"
-    exit
-  fi
+  #if [ "$EUID" -eq 0 ]
+  #  then echo "Please run as non-root (not sudo)"
+  #  exit
+  #fi
   cd build
   make
 }
 
 
 function install_sunray_alfred() {
-  if [ "$EUID" -eq 0 ]
-    then echo "Please run as non-root (not sudo)"
-    exit
-  fi
+  #if [ "$EUID" -eq 0 ]
+  #  then echo "Please run as non-root (not sudo)"
+  #  exit
+  #fi
   echo "NOTE: enter user password if being asked (see Sunray PDF manual for password)"
   echo "stopping sunray service..."
   sudo systemctl stop sunray
@@ -70,10 +70,10 @@ function install_sunray_alfred() {
 
 # start RecoverCAN service 
 function start_recovercan_service() {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
+  #if [ "$EUID" -ne 0 ]
+  #  then echo "Please run as root (sudo)"
+  #  exit
+  #fi
   if [[ `pidof recovercan` != "" ]]; then
         echo "recovercan service already running! Exiting..."
         exit
@@ -84,64 +84,64 @@ function start_recovercan_service() {
   REPLACEPATH="/home/pi/Sunray/alfred"
   sed "s+$REPLACEPATH+$PWD+g" <$PWD/config_files/recovercan/recovercan.service.example >$PWD/config_files/recovercan/recovercan.service
 
-  cp $PWD/config_files/recovercan/recovercan.service /etc/systemd/system/recovercan.service
-  chmod 644 /etc/systemd/system/recovercan.service
-  systemctl daemon-reload
-  systemctl enable recovercan
-  systemctl start recovercan
-  systemctl --no-pager status recovercan
+  sudo cp $PWD/config_files/recovercan/recovercan.service /etc/systemd/system/recovercan.service
+  sudo chmod 644 /etc/systemd/system/recovercan.service
+  sudo systemctl daemon-reload
+  sudo systemctl enable recovercan
+  sudo systemctl start recovercan
+  sudo systemctl --no-pager status recovercan
   echo "recovercan service started! (see log with: 'journalctl -f -u recovercan')"
 }
 
 function stop_recovercan_service() {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
+  #if [ "$EUID" -ne 0 ]
+  #  then echo "Please run as root (sudo)"
+  #  exit
+  #fi
   echo "stopping recovercan service..."
-  systemctl stop recovercan
-  systemctl disable recovercan
+  sudo systemctl stop recovercan
+  sudo systemctl disable recovercan
   echo "recovercan service stopped!"
 }
 
 
 # start USB camera streaming web server 
 function start_cam_service() {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
+  #if [ "$EUID" -ne 0 ]
+  #  then echo "Please run as root (sudo)"
+  #  exit
+  #fi
   if [[ `pidof motion` != "" ]]; then
         echo "motion app already running! Exiting..."
         exit
   fi
   echo "starting motion service..."
   cp config_files/motion/motion.conf /etc/motion
-  cp $PWD/config_files/motion/motion.service /etc/systemd/system/motion.service
-  chmod 644 /etc/systemd/system/motion.service
-  systemctl daemon-reload
-  systemctl enable motion
-  systemctl start motion
-  systemctl --no-pager status motion
+  sudo cp $PWD/config_files/motion/motion.service /etc/systemd/system/motion.service
+  sudo chmod 644 /etc/systemd/system/motion.service
+  sudo systemctl daemon-reload
+  sudo systemctl enable motion
+  sudo systemctl start motion
+  sudo systemctl --no-pager status motion
   echo "motion service started!"
 }
 
 function stop_cam_service() {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
+  #if [ "$EUID" -ne 0 ]
+  #  then echo "Please run as root (sudo)"
+  #  exit
+  #fi
   echo "stopping motion service..."
-  systemctl stop motion
-  systemctl disable motion
+  sudo systemctl stop motion
+  sudo systemctl disable motion
   echo "motion service stopped!"
 }
 
 function start_sunray_service() {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi  
+  #if [ "$EUID" -ne 0 ]
+  #  then echo "Please run as root (sudo)"
+  #  exit
+  #fi  
   if [[ `pidof sunray` != "" ]]; then
         echo "Sunray linux app already running! Exiting..."
         exit
@@ -152,102 +152,102 @@ function start_sunray_service() {
   REPLACEPATH="/home/pi/Sunray/alfred"
   sed "s+$REPLACEPATH+$PWD+g" <$PWD/config_files/sunray/sunray.service.example >$PWD/config_files/sunray/sunray.service
 
-  cp $PWD/config_files/sunray/sunray.service /etc/systemd/system/sunray.service
-  chmod 644 /etc/systemd/system/sunray.service
-  mkdir -p /boot/sunray
-  chmod 644 /boot/sunray
-  systemctl daemon-reload
-  systemctl enable sunray
-  systemctl start sunray
-  systemctl --no-pager status sunray
+  sudo cp $PWD/config_files/sunray/sunray.service /etc/systemd/system/sunray.service
+  sudo chmod 644 /etc/systemd/system/sunray.service
+  sudo mkdir -p /boot/sunray
+  sudo chmod 644 /boot/sunray
+  sudo systemctl daemon-reload
+  sudo systemctl enable sunray
+  sudo systemctl start sunray
+  sudo systemctl --no-pager status sunray
   echo "sunray service started!"
 }
 
 function stop_sunray_service() {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
+  #if [ "$EUID" -ne 0 ]
+  #  then echo "Please run as root (sudo)"
+  #  exit
+  #fi
   # disable sunray service
   echo "stopping sunray service..."
-  systemctl stop sunray
-  systemctl disable sunray
+  sudo systemctl stop sunray
+  sudo systemctl disable sunray
   echo "sunray service stopped!"
 }
 
 
 function start_sunray() {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
+  #if [ "$EUID" -ne 0 ]
+  #  then echo "Please run as root (sudo)"
+  #  exit
+  #fi
   echo "starting sunray... (press CTRL+C to stop)"
-  ./start_sunray.sh
+  sudo ./start_sunray.sh
 }
 
 function start_sunray_motor_test() {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
+  #if [ "$EUID" -ne 0 ]
+  #  then echo "Please run as root (sudo)"
+  #  exit
+  #fi
   echo "starting sunray... (press CTRL+C to stop)"
-  ./start_sunray.sh <<< "AT+E"
+  sudo ./start_sunray.sh <<< "AT+E"
 }
 
 function start_sunray_sensor_test() {
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
+  #if [ "$EUID" -ne 0 ]
+  #  then echo "Please run as root (sudo)"
+  #  exit
+  #fi
   echo "starting sunray... (press CTRL+C to stop)"  
-  ./start_sunray.sh <<< "AT+F"
+  sudo ./start_sunray.sh <<< "AT+F"
 }
 
 
 
 function start_log_service(){
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi  
+  #if [ "$EUID" -ne 0 ]
+  #  then echo "Please run as root (sudo)"
+  #  exit
+  #fi  
   echo "starting logging service..."
-  service rsyslog start
+  sudo service rsyslog start
 }
 
 function stop_log_service(){
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
+  #if [ "$EUID" -ne 0 ]
+  #  then echo "Please run as root (sudo)"
+  #  exit
+  #fi
   echo "stopping logging service..."
-  service rsyslog stop
+  sudo service rsyslog stop
 }
 
 function start_dm(){
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
+  #if [ "$EUID" -ne 0 ]
+  #  then echo "Please run as root (sudo)"
+  #  exit
+  #fi
   echo "starting display manager..."
-  service lightdm start
+  sudo service lightdm start
 }
 
 function stop_dm(){
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
+  #if [ "$EUID" -ne 0 ]
+  #  then echo "Please run as root (sudo)"
+  #  exit
+  #fi
   echo "stopping display manager..."
-  service lightdm stop
+  sudo service lightdm stop
 }
 
 function list_services(){
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
+  #if [ "$EUID" -ne 0 ]
+  #  then echo "Please run as root (sudo)"
+  #  exit
+  #fi
   echo "listing services..."
-  service --status-all
+  sudo service --status-all
 }
 
 function show_log(){
@@ -261,12 +261,12 @@ function save_log(){
 }
 
 function clear_log(){
-  if [ "$EUID" -ne 0 ]
-    then echo "Please run as root (sudo)"
-    exit
-  fi
+  #if [ "$EUID" -ne 0 ]
+  #  then echo "Please run as root (sudo)"
+  #  exit
+  #fi
   echo "clearing log..."
-  journalctl --rotate --vacuum-time=1s -u sunray
+  sudo journalctl --rotate --vacuum-time=1s -u sunray
 }
 
 function kernel_log(){
