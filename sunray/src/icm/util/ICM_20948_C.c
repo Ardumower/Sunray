@@ -1,6 +1,7 @@
 #include "ICM_20948_C.h"
 #include "ICM_20948_REGISTERS.h"
 #include "AK09916_REGISTERS.h"
+#include <string.h>
 
 /*
  * Icm20948 device require a DMP image to be loaded on init
@@ -1976,7 +1977,7 @@ ICM_20948_Status_e inv_icm20948_enable_dmp_sensor_int(ICM_20948_Device_t *pdev, 
   data_intr_ctl[0] = (unsigned char)(delta >> 8);
   data_intr_ctl[1] = (unsigned char)(delta & 0xff);
   pdev->_dataIntrCtl = delta; // Diagnostics
-  
+
   // Write the interrupt control bits into memory address DATA_INTR_CTL
   result = inv_icm20948_write_mems(pdev, DATA_INTR_CTL, 2, (const unsigned char *)&data_intr_ctl);
 

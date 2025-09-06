@@ -1,4 +1,4 @@
-// Ardumower Sunray 
+// Ardumower Sunray
 // Copyright (c) 2013-2020 by Alexander Grau, Grau GmbH
 // Licensed GPLv3 for open source use
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
@@ -37,16 +37,16 @@ LidarGpsDriver::LidarGpsDriver()
   hour = 0;
   mins = 0;
   sec = 0;
-  dayOfWeek = 0; 
+  dayOfWeek = 0;
 }
 
 void LidarGpsDriver::begin(){
-  CONSOLE.println("using gps driver: LiDAR");    
-  
+  CONSOLE.println("using gps driver: LiDAR");
+
 }
 
 void LidarGpsDriver::begin(HardwareSerial& bus,uint32_t baud)
-{	
+{
   CONSOLE.println("LiDAR::begin serial");
   begin();
 }
@@ -58,32 +58,36 @@ void LidarGpsDriver::begin(Client &client, char *host, uint16_t port)
   begin();
 }
 
-bool LidarGpsDriver::configure(){  
-  CONSOLE.println("using LiDAR..."); 
+bool LidarGpsDriver::configure(){
+  CONSOLE.println("using LiDAR...");
   return true;
 }
 
 void LidarGpsDriver::reboot(){
-  CONSOLE.println("reboot LiDAR..."); 
+  CONSOLE.println("reboot LiDAR...");
 }
 
 void LidarGpsDriver::run(){
 
 }
+void LidarGpsDriver::send(const uint8_t *buffer, size_t size) {
+}
+void LidarGpsDriver::sendRTCM(const uint8_t *buffer, size_t size) {
+}
 
 // ---------------------------------------------------------
 
 
-LidarImuDriver::LidarImuDriver(){    
+LidarImuDriver::LidarImuDriver(){
   dataAvail = false;
   imuFound = false;
 }
 
-void LidarImuDriver::detect(){  
+void LidarImuDriver::detect(){
 }
 
 
-bool LidarImuDriver::begin(){ 
+bool LidarImuDriver::begin(){
   return true;
 }
 
@@ -93,29 +97,29 @@ void LidarImuDriver::run(){
 
 
 bool LidarImuDriver::isDataAvail(){
- 
+
     bool res = dataAvail;
-    dataAvail = false; 
+    dataAvail = false;
     return res;
 
-}         
-    
+}
+
 void LidarImuDriver::resetData(){
-    
+
 }
 
 
 // ---------------------------------------------------------
 
 
-LidarBumperDriver::LidarBumperDriver(){ 
+LidarBumperDriver::LidarBumperDriver(){
   triggerBumper = false;
   triggerNearObstacle = false;
 }
 
 
 void LidarBumperDriver::begin(){
-  CONSOLE.println("using bumper driver: LiDAR");    
+  CONSOLE.println("using bumper driver: LiDAR");
 }
 
 void LidarBumperDriver::run(){
@@ -136,11 +140,11 @@ bool LidarBumperDriver::getLeftBumper(){
 
 bool LidarBumperDriver::getRightBumper(){
   return triggerBumper;
-}	
+}
 
 void LidarBumperDriver::getTriggeredBumper(bool &leftBumper, bool &rightBumper){
   leftBumper = triggerBumper;
   rightBumper = triggerBumper;
-}  	  		    
+}
 
 

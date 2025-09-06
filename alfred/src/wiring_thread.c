@@ -44,7 +44,7 @@ pthread_t thread_create(thread_fn fn, void * arg){
 }
 
 int thread_set_name(pthread_t t, const char *name){
-    return pthread_setname_np(t, name);
+    return thread_set_name(t, name);
 }
 
 int thread_set_priority(const int pri){
@@ -67,7 +67,7 @@ int thread_terminate(pthread_t t){
 }
 
 uint8_t thread_running(pthread_t t){
-    int r = pthread_tryjoin_np(t, NULL);
+    int r = pthread_join(t, NULL);
     return (r==0 || r==EBUSY);
 }
 

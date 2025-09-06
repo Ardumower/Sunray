@@ -18,6 +18,8 @@
  */
 
 #include "Arduino.h"
+#include <time.h>
+#include <pthread.h>
 
 #define _BV(a) (1 << (a))
 
@@ -39,6 +41,9 @@ void *isr_executor_task(void *isr_num){
 }
 
 void *_isr_check_task(void *arg __attribute__((unused))){
+    struct timespec ts;
+    ts.tv_sec = 0;
+    ts.tv_nsec = 100 * 1000;
     while(_pin_isr_reg != 0){
         uint64_t state = 0; //GPLEV0;
         if(_pin_isr_reg >> 32) {
@@ -63,7 +68,7 @@ void *_isr_check_task(void *arg __attribute__((unused))){
             }
         }
         if(_pin_isr_reg > 0)
-            usleep(100);
+            nanosleep(&ts, NULL);
     }
     pthread_exit(NULL);
 }
@@ -78,7 +83,7 @@ void attachInterrupt(uint8_t pin, void (*userFunc)(void), int mode) {
         _pin_isr_last |= (digitalRead(pin) << pin);
         _pin_isr_reg |= _BV(pin);
         if(start && pthread_create(&_pin_isr_thread, NULL, _isr_check_task, NULL) == 0){
-            pthread_setname_np(_pin_isr_thread, "arduino-isr");
+            thread_set_name(_pin_isr_thread, "arduino-isr");
             pthread_detach(_pin_isr_thread);
         }
     }
