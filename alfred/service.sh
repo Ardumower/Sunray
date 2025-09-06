@@ -41,6 +41,7 @@ function build_sunray() {
   #exit
   cmake -D CONFIG_FILE=$CONFIG_PATHNAME ..
   make 
+  cd ..
 }
 
 
@@ -51,6 +52,7 @@ function rebuild_sunray() {
   #fi
   cd build
   make
+  cd ..
 }
 
 
