@@ -23,6 +23,13 @@
 
 //#define SUPER_SPIKE_ELIMINATOR 1  // advanced spike elimination  (experimental, comment out to disable)
 
+volatile unsigned long motorLeftTickTime = 0;
+volatile unsigned long motorRightTickTime = 0;
+volatile unsigned long motorMowTickTime = 0;
+
+volatile unsigned long motorLeftThen = 0;
+volatile unsigned long motorRightThen = 0;
+volatile unsigned long motorMowThen = 0;
 
 volatile int odomTicksLeft  = 0;
 volatile int odomTicksRight = 0;
@@ -31,10 +38,6 @@ volatile int odomTicksMow = 0;
 volatile unsigned long motorLeftTicksTimeout = 0;
 volatile unsigned long motorRightTicksTimeout = 0;
 volatile unsigned long motorMowTicksTimeout = 0;
-
-volatile unsigned long motorLeftTransitionTime = 0;
-volatile unsigned long motorRightTransitionTime = 0;
-volatile unsigned long motorMowTransitionTime = 0;
 
 volatile float motorLeftDurationMax = 0;
 volatile float motorRightDurationMax = 0;
@@ -101,47 +104,50 @@ float AmRobotDriver::getCpuTemperature(){
 // odometry signal change interrupt
 
 void OdometryMowISR(){			  
+  unsigned long now = micros();
   if (digitalRead(pinMotorMowRpm) == LOW) return;
-  if (millis() < motorMowTicksTimeout) return; // eliminate spikes  
+  if (now - motorMowThen < motorMowTicksTimeout) return; // eliminate spikes 
+  motorMowTickTime = now - motorMowThen;
+  motorMowThen = now; 
   #ifdef SUPER_SPIKE_ELIMINATOR
-    unsigned long duration = millis() - motorMowTransitionTime;
-    if (duration > 5) duration = 0;
-    motorMowTransitionTime = millis();
-    motorMowDurationMax = 0.7 * max(motorMowDurationMax, ((float)duration));
-    motorMowTicksTimeout = millis() + motorMowDurationMax;
+    unsigned long duration = motorMowTickTime;
+    if (duration > 5000) duration = 0;
+    motorMowTicksTimeout = 0.7 * max(motorMowTicksTimeout, ((float)duration));
   #else
-    motorMowTicksTimeout = millis() + 1;
+    motorMowTicksTimeout = 1000;
   #endif
-  odomTicksMow++;    
+  odomTicksMow++;
 }
 
 
 void OdometryLeftISR(){			  
+  unsigned long now = micros();
   if (digitalRead(pinOdometryLeft) == LOW) return;
-  if (millis() < motorLeftTicksTimeout) return; // eliminate spikes  
+  if (now - motorLeftThen < motorLeftTicksTimeout) return; // eliminate spikes 
+  motorLeftTickTime = now - motorLeftThen;
+  motorLeftThen = now; 
   #ifdef SUPER_SPIKE_ELIMINATOR
-    unsigned long duration = millis() - motorLeftTransitionTime;
-    if (duration > 5) duration = 0;
-    motorLeftTransitionTime = millis();
-    motorLeftDurationMax = 0.7 * max(motorLeftDurationMax, ((float)duration));
-    motorLeftTicksTimeout = millis() + motorLeftDurationMax;
+    unsigned long duration = motorLeftTickTime;
+    if (duration > 5000) duration = 0;
+    motorLeftTicksTimeout = 0.7 * max(motorLeftTicksTimeout, ((float)duration));
   #else
-    motorLeftTicksTimeout = millis() + 1;
+    motorLeftTicksTimeout = 1000;
   #endif
   odomTicksLeft++;    
 }
 
 void OdometryRightISR(){			
+  unsigned long now = micros();
   if (digitalRead(pinOdometryRight) == LOW) return;  
-  if (millis() < motorRightTicksTimeout) return; // eliminate spikes
+  if (now - motorRightThen < motorRightTicksTimeout) return; // eliminate spikes
+  motorRightTickTime = now - motorRightThen;
+  motorRightThen = now;
   #ifdef SUPER_SPIKE_ELIMINATOR
-    unsigned long duration = millis() - motorRightTransitionTime;
-    if (duration > 5) duration = 0;  
-    motorRightTransitionTime = millis();
-    motorRightDurationMax = 0.7 * max(motorRightDurationMax, ((float)duration));  
-    motorRightTicksTimeout = millis() + motorRightDurationMax;
+    unsigned long duration = motorRightTickTime;
+    if (duration > 5000) duration = 0;  
+    motorRightTicksTimeout = 0.7 * max(motorRightTicksTimeout, ((float)duration));  
   #else
-    motorRightTicksTimeout = millis() + 1;
+    motorRightTicksTimeout = 1000;
   #endif
   odomTicksRight++;        
   
@@ -557,6 +563,13 @@ void AmMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &m
   // reset counters
   odomTicksLeft = odomTicksRight = odomTicksMow = 0;
 }    
+
+void AmMotorDriver::getMotorTickTime(unsigned long &leftTime, unsigned long &rightTime, unsigned long &mowTime){
+  unsigned long now = micros();
+  leftTime = max(motorLeftTickTime, now - motorLeftThen);
+  rightTime = max(motorRightTickTime, now - motorRightThen);
+  mowTime = max(motorMowTickTime, now - motorMowThen);
+}     
 
 
 
