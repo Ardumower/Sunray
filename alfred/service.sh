@@ -277,11 +277,18 @@ function kernel_log(){
 }
 
 
+function update_local_repository(){
+  git pull
+}
+
+
 if [ ! -d "/etc/motion" ]; then
   echo installing motion...
   sudo apt-get -y install motion
   stop_cam_service
 fi
+
+
 
 
 # if [ ! -d "/home/pi/Sunray" ]; then
@@ -455,12 +462,33 @@ linux_logging_menu () {
 
 
 
+
+update_menu () {
+    echo "Update menu (NOTE: press CTRL+C to stop any pending actions)"
+    options=(
+        "Update local Sunray repository from remote repository" 
+        "Back"
+    )
+    select option in "${options[@]}"; do
+        case $option in
+            ${options[0]})
+                update_local_repository
+                break
+            ;;
+            *) 
+                echo invalid option
+            ;;
+        esac
+    done
+}
+
 main_menu () {
     echo "Main menu (NOTE: press CTRL+C to stop any pending actions)"
     options=(
         "Compile and test menu"
         "Linux services menu"
         "Linux logging menu"
+        "Update menu"
         "Quit"
     )
     select option in "${options[@]}"; do
@@ -476,8 +504,12 @@ main_menu () {
             ${options[2]})
                 linux_logging_menu
                 break
-             ;;
+            ;;
             ${options[3]})
+                update_menu
+                break
+            ;;
+            ${options[4]})
                 exit
              ;;
             *) 
