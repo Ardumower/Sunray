@@ -466,7 +466,7 @@ linux_logging_menu () {
 update_menu () {
     echo "Update menu (NOTE: press CTRL+C to stop any pending actions)"
     options=(
-        "Update local Sunray repository from remote repository" 
+        "Update local Sunray repository from remote Github repository" 
         "Back"
     )
     select option in "${options[@]}"; do
