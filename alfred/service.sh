@@ -277,7 +277,7 @@ function kernel_log(){
 
 if [ ! -d "/etc/motion" ]; then
   echo installing motion...
-  sudo apt install motion
+  sudo apt-get -y install motion
 fi
 
 
