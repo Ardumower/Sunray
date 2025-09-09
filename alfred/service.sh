@@ -316,6 +316,14 @@ function gpio_status(){
 }
 
 
+function linux_info(){
+  if ! command -v screenfetch &> /dev/null
+  then
+    sudo apt-get -y install screenfetch
+  fi
+  screenfetch
+}
+
 
 if [ ! -d "/etc/motion" ]; then
   echo installing motion...
@@ -499,6 +507,7 @@ linux_logging_menu () {
 linux_diag_menu () {
     echo "Linux diagnostics menu (NOTE: press CTRL+C to stop any pending actions)"
     options=(        
+        "Linux info"
         "I2C scanner"
         "Show network/CAN interfaces"
         "GPIO status"
@@ -507,18 +516,22 @@ linux_diag_menu () {
     select option in "${options[@]}"; do
         case $option in
             ${options[0]})
-                i2c_scanner
+                linux_info
                 break
             ;;
             ${options[1]})
-                show_network_interfaces
+                i2c_scanner
                 break
             ;;
             ${options[2]})
+                show_network_interfaces
+                break
+            ;;
+            ${options[3]})
                 gpio_status
                 break
              ;;
-            ${options[3]})
+            ${options[4]})
                 return
              ;;
             *) 
