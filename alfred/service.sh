@@ -314,6 +314,7 @@ function gpio_status(){
   then
     sudo apt-get -y install wiringpi
   fi
+  echo "------Note: for owlPCB, physical pin12 should be V=0 (mode down)------"
   gpio readall
 }
 
