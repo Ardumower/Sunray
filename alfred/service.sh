@@ -283,6 +283,8 @@ function update_local_repository(){
     sudo apt-get -y install git
   fi
   git pull
+  echo "restarting script file..."
+  exec "$0" "$@"
 }
 
 
@@ -541,6 +543,9 @@ update_menu () {
                 update_local_repository
                 break
             ;;
+            ${options[1]})
+                return
+             ;;
             *) 
                 echo invalid option
             ;;
