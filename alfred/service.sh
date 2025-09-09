@@ -351,7 +351,7 @@ function install_anydesk(){
   fi
   CURDIR=$(pwd)
   cd /tmp
-  wget https://download.anydesk.com/linux/anydesk_7.0.2-1_arm64.deb
+  wget https://download.anydesk.com/rpi/anydesk_7.0.2-1_arm64.deb
   sudo apt install -y ./anydesk_7.0.2-1_arm64.deb
   cd "$CURDIR"
 }
