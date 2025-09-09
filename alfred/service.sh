@@ -300,6 +300,7 @@ function show_network_interfaces(){
   then
     sudo apt-get -y install net-tools
   fi
+  sudo ip link set can0 up type can bitrate 1000000
   ifconfig
 }
 
