@@ -344,6 +344,18 @@ function network_manager(){
 }
 
 
+function install_anydesk(){
+  if ! command -v wget &> /dev/null
+  then
+    sudo apt-get -y install wget
+  fi
+  CURDIR=$(pwd)
+  cd /tmp
+  wget https://download.anydesk.com/linux/anydesk_7.0.2-1_arm64.deb
+  sudo apt install -y ./anydesk_7.0.2-1_arm64.deb
+  cd "$CURDIR"
+}
+
 
 if [ ! -d "/etc/motion" ]; then
   echo installing motion...
@@ -574,6 +586,7 @@ update_menu () {
     options=(
         "Update local Sunray repository from remote Github repository" 
         "Upgrade all Linux system packages"
+        "Install AnyDesk"
         "Back"
     )
     select option in "${options[@]}"; do
@@ -587,6 +600,10 @@ update_menu () {
                 break
             ;;
             ${options[2]})
+                install_anydesk
+                break
+            ;;
+            ${options[3]})
                 return
              ;;
             *) 
