@@ -335,6 +335,11 @@ function upgrade_linux_system(){
 }
 
 
+function network_manager(){
+  nmtui 
+}
+
+
 
 if [ ! -d "/etc/motion" ]; then
   echo installing motion...
@@ -522,6 +527,7 @@ linux_diag_menu () {
         "I2C scanner"
         "Show network/CAN interfaces"
         "GPIO status"
+        "Network manager (WiFi etc.)"
         "Back"
     )
     select option in "${options[@]}"; do
@@ -543,6 +549,10 @@ linux_diag_menu () {
                 break
              ;;
             ${options[4]})
+                network_manager
+                break
+             ;;
+            ${options[5]})              
                 return
              ;;
             *) 
