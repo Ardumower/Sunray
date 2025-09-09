@@ -327,6 +327,15 @@ function linux_info(){
 }
 
 
+function upgrade_linux_system(){
+  read -p "Upgrade all linux system packages? (y/n): " answer
+  if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
+    sudo apt-get update -y && sudo apt-get upgrade -y
+  fi
+}
+
+
+
 if [ ! -d "/etc/motion" ]; then
   echo installing motion...
   sudo apt-get -y install motion
@@ -550,6 +559,7 @@ update_menu () {
     echo "Update menu (NOTE: press CTRL+C to stop any pending actions)"
     options=(
         "Update local Sunray repository from remote Github repository" 
+        "Upgrade all Linux system packages"
         "Back"
     )
     select option in "${options[@]}"; do
@@ -559,6 +569,10 @@ update_menu () {
                 break
             ;;
             ${options[1]})
+                upgrade_linux_system
+                break
+            ;;
+            ${options[2]})
                 return
              ;;
             *) 
