@@ -278,8 +278,40 @@ function kernel_log(){
 
 
 function update_local_repository(){
+  if ! command -v git &> /dev/null
+  then
+    sudo apt-get -y install git
+  fi
   git pull
 }
+
+
+function i2c_scanner(){
+  if ! command -v i2cdetect &> /dev/null
+  then
+    sudo apt-get -y install i2c-tools
+  fi
+  echo "Note: there should be detected at least one I2C device (IMU)" 
+  sudo i2cdetect -y 1
+}
+
+function show_network_interfaces(){
+  if ! command -v ifconfig &> /dev/null
+  then
+    sudo apt-get -y install net-tools
+  fi
+  ifconfig
+}
+
+
+function gpio_status(){
+  if ! command -v gpio &> /dev/null
+  then
+    sudo apt-get -y install wiringpi
+  fi
+  gpio readall
+}
+
 
 
 if [ ! -d "/etc/motion" ]; then
@@ -461,6 +493,38 @@ linux_logging_menu () {
 }
 
 
+linux_diag_menu () {
+    echo "Linux diagnostics menu (NOTE: press CTRL+C to stop any pending actions)"
+    options=(        
+        "I2C scanner"
+        "Show network/CAN interfaces"
+        "GPIO status"
+        "Back"
+    )
+    select option in "${options[@]}"; do
+        case $option in
+            ${options[0]})
+                i2c_scanner
+                break
+            ;;
+            ${options[1]})
+                show_network_interfaces
+                break
+            ;;
+            ${options[2]})
+                gpio_status
+             ;;
+            ${options[3]})
+                return
+             ;;
+            *) 
+                echo invalid option
+            ;;
+        esac
+    done
+}
+
+
 
 
 update_menu () {
@@ -482,12 +546,14 @@ update_menu () {
     done
 }
 
+
 main_menu () {
     echo "Main menu (NOTE: press CTRL+C to stop any pending actions)"
     options=(
         "Compile and test menu"
         "Linux services menu"
         "Linux logging menu"
+        "Linux diagnostics menu"
         "Update menu"
         "Quit"
     )
@@ -506,10 +572,14 @@ main_menu () {
                 break
             ;;
             ${options[3]})
-                update_menu
+                linux_diag_menu
                 break
             ;;
             ${options[4]})
+                update_menu
+                break
+            ;;
+            ${options[5]})
                 exit
              ;;
             *) 
