@@ -303,7 +303,9 @@ function show_network_interfaces(){
     sudo apt-get -y install net-tools
   fi
   sudo ip link set can0 up type can bitrate 1000000
-  ifconfig
+  echo "------Note: there should be listed a CAN interface (e.g. can0)------"
+  ifconfig -s
+  echo "------------"
 }
 
 
