@@ -336,6 +336,10 @@ function upgrade_linux_system(){
 
 
 function network_manager(){
+  if ! command -v nmtui &> /dev/null
+  then
+    sudo apt-get -y install network-manager
+  fi
   nmtui 
 }
 
