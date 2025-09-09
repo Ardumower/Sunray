@@ -291,7 +291,7 @@ function i2c_scanner(){
   then
     sudo apt-get -y install i2c-tools
   fi
-  echo "Note: there should be detected at least one I2C device (IMU)" 
+  echo "Note: there should be detected at least one I2C device (e.g. IMU at address 0x69)" 
   sudo i2cdetect -y 1
 }
 
@@ -514,6 +514,7 @@ linux_diag_menu () {
             ;;
             ${options[2]})
                 gpio_status
+                break
              ;;
             ${options[3]})
                 return
