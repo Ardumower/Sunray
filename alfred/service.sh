@@ -10,6 +10,12 @@ echo "PWD=$PWD"
 CMD=""
 
 
+if [ "$EUID" -eq 0 ]
+  then echo "Please run as non-root (not sudo)"
+  exit
+fi
+
+
 function build_sunray() {
   if ! command -v cmake &> /dev/null
   then
