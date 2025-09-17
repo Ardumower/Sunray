@@ -1,7 +1,7 @@
 /*
   Alfred MCU firmware (for RM24A/18 robot mower)
   provides Sunray-compatible robot driver (serial robot driver)
-  NOTE: For compiling this file on the Alfred, see README (https://github.com/Ardumower/Sunray/blob/master/alfred/README.md)
+  NOTE: For compiling this file on the Alfred, see README (https://github.com/Ardumower/Sunray/blob/master/linux/README.md)
   
   * MCU1 (main): STM32F103VET 512K flash/64K SRAM
         flash size       0x80000 

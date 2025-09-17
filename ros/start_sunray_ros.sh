@@ -15,7 +15,7 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
-# if [ ! -d "/home/pi/Sunray/alfred/build" ]; then
+# if [ ! -d "/home/pi/Sunray/linux/build" ]; then
 #  echo "install Sunray first!"
 #  exit
 # fi
@@ -187,7 +187,7 @@ CMD="export DISPLAY=$DISPLAY"
 if [[ $ROS_IP != "" ]]; then
   CMD+="; export ROS_IP=$ROS_IP"
 fi 
-CMD+="; export ROS_HOME=/root/Sunray/alfred"
+CMD+="; export ROS_HOME=/root/Sunray/linux"
 CMD+="; . /ros_entrypoint.sh"
 CMD+="; rosclean purge -y"
 CMD+="; export ROSCONSOLE_CONFIG_FILE=/root/Sunray/ros/rosconsole.config"
@@ -195,8 +195,8 @@ CMD+="; export ROS_PYTHON_LOG_CONFIG_FILE=/root/Sunray/ros/python_logging.config
 CMD+="  ; cd /root/Sunray/ros"
 CMD+="  ; . devel/setup.bash"
 CMD+="; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node"
-CMD+="; cp -n -r src/sunray_node/config/camera_info /root/Sunray/alfred"
-CMD+="; cd /root/Sunray/alfred"
+CMD+="; cp -n -r src/sunray_node/config/camera_info /root/Sunray/linux"
+CMD+="; cd /root/Sunray/linux"
 CMD+="; pwd"
 CMD+="; chmod o+x+r+w /root"
 #CMD+="; groupadd -g 1000 pi || true"

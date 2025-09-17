@@ -1,12 +1,14 @@
 [Unit]
-Description=RecoverCAN Service
+Description=Sunray Service
 
 [Service]
 User=root
 Group=root
 
-WorkingDirectory=/home/pi/Sunray/alfred
-ExecStart=/home/pi/Sunray/alfred/config_files/recovercan/recovercan.sh
+WorkingDirectory=/home/pi/Sunray/linux
+ExecStart=/home/pi/Sunray/linux/start_sunray.sh
+Restart=always
+LimitCORE=infinity
 
 StandardInput=tty
 StandardOutput=journal
@@ -16,7 +18,7 @@ TTYPath=/dev/tty12
 
 # we do not want any child process (e.g. updater) to kill if parent is killed (e.g. by updater) which otherwise would in turn kill the updater 
 # https://stackoverflow.com/questions/32208782/cant-detach-child-process-when-main-process-is-started-from-systemd
-# KillMode=process
+KillMode=process
 
 [Install]
 WantedBy=multi-user.target

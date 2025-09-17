@@ -91,7 +91,7 @@ endforeach()
 
 
 message("---pi_sources---")
-file(GLOB_RECURSE pi_sources ../alfred/src/**.cpp ../alfred/src/**.c ../python/pysunray.cpp)
+file(GLOB_RECURSE pi_sources ../linux/src/**.cpp ../linux/src/**.c ../python/pysunray.cpp)
 ##list(FILTER pi_sources EXCLUDE REGEX "wiring_main.cpp")
 foreach (filename ${pi_sources})
     message(${filename})
@@ -101,7 +101,7 @@ endforeach()
 ADD_LIBRARY( pysunray SHARED ${pi_sources} ${sunray_cpp} ${sunray_c} )
 ## add_executable(pysunray ${pi_sources} src/wiring_main.cpp)
 
-target_include_directories(pysunray PRIVATE ../alfred/src ../alfred/src ../sunray)
+target_include_directories(pysunray PRIVATE ../linux/src ../linux/src ../sunray)
 target_link_libraries(pysunray ${PYTHON_LIBRARIES})
 
 set_target_properties(pysunray PROPERTIES PREFIX "")

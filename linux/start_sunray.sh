@@ -16,7 +16,7 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
-# if [ ! -d "/home/pi/Sunray/alfred/build" ]; then
+# if [ ! -d "/home/pi/Sunray/linux/build" ]; then
 #  echo "install Sunray first!"
 #  exit
 # fi
@@ -129,10 +129,10 @@ echo "CMD=$CMD"
 
 echo "working dir:$PWD"    
 
-if [ ! -f /home/pi/Sunray/alfred/build/sunray ]; then
+if [ ! -f /home/pi/Sunray/linux/build/sunray ]; then
   /usr/bin/stdbuf -oL -eL $PWD/build/sunray
 else
-  /usr/bin/stdbuf -oL -eL /home/pi/Sunray/alfred/build/sunray
+  /usr/bin/stdbuf -oL -eL /home/pi/Sunray/linux/build/sunray
 fi
 
 

@@ -89,7 +89,7 @@ function start_recovercan_service() {
   echo "starting recovercan service..."
   #cp config_files/motion/motion.conf /etc/motion
 
-  REPLACEPATH="/home/pi/Sunray/alfred"
+  REPLACEPATH="/home/pi/Sunray/linux"
   sed "s+$REPLACEPATH+$PWD+g" <$PWD/config_files/recovercan/recovercan.service.example >$PWD/config_files/recovercan/recovercan.service
 
   sudo cp $PWD/config_files/recovercan/recovercan.service /etc/systemd/system/recovercan.service
@@ -157,7 +157,7 @@ function start_sunray_service() {
   # enable sunray service
   echo "starting sunray service..."
   #ln -s /home/pi/sunray_install/config_files/sunray.service /etc/systemd/system/sunray.service
-  REPLACEPATH="/home/pi/Sunray/alfred"
+  REPLACEPATH="/home/pi/Sunray/linux"
   sed "s+$REPLACEPATH+$PWD+g" <$PWD/config_files/sunray/sunray.service.example >$PWD/config_files/sunray/sunray.service
 
   sudo cp $PWD/config_files/sunray/sunray.service /etc/systemd/system/sunray.service

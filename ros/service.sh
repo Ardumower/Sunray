@@ -17,8 +17,8 @@ CONTAINER_NAME="ros1"
 HOST_SUNRAY_PATH=`realpath $PWD/..`
 HOST_PCD_PATH=`realpath $PWD/../../PCD`
 
-#CONFIG_FILE="/root/Sunray/alfred/config_owlmower.h"
-#CONFIG_FILE="/root/Sunray/alfred/config_fuxtec_ros.h"
+#CONFIG_FILE="/root/Sunray/linux/config_owlmower.h"
+#CONFIG_FILE="/root/Sunray/linux/config_fuxtec_ros.h"
 USER_UID=$(id -u)
 BAG_FILE=/root/PCD/playback.bag
 
@@ -172,7 +172,7 @@ function docker_terminal {
     CMD+="; export ROS_IP=$WIP"
   fi
   CMD+="; export DISPLAY=$DISPLAY"
-  CMD+="; export ROS_HOME=/root/Sunray/alfred ; cd /root/Sunray/ros ; . devel/setup.bash ; /bin/bash"
+  CMD+="; export ROS_HOME=/root/Sunray/linux ; cd /root/Sunray/ros ; . devel/setup.bash ; /bin/bash"
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c "$CMD"
 }
@@ -196,14 +196,14 @@ function ros_compile {
   fi 
 
   PS3='Please choose config: '
-  list=$(ls ../alfred/config*.h)
+  list=$(ls ../linux/config*.h)
   IFS=$'\n'
   select CONFIG_FILE in $list 
     do test -n "$CONFIG_FILE" && break; 
   exit; 
   done
   echo "selected: $CONFIG_FILE"
-  CONFIG_PATHNAME=/root/Sunray/alfred/$CONFIG_FILE
+  CONFIG_PATHNAME=/root/Sunray/linux/$CONFIG_FILE
 
   # build single package:    catkin_make -DCATKIN_WHITELIST_PACKAGES="ground_lidar_processor"
   # build Sunray ROS node
@@ -294,12 +294,12 @@ function ros_stop_mapping {
     if [[ $WIP != "" ]]; then
       CMD+="export ROS_IP=$WIP"
     fi
-    CMD+="; export ROS_HOME=/root/Sunray/alfred"
+    CMD+="; export ROS_HOME=/root/Sunray/linux"
     CMD+="; . /ros_entrypoint.sh"
     CMD+="; cd /root/Sunray/ros"
     CMD+="; . devel/setup.bash"
     CMD+="; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node"
-    CMD+="; cd /root/Sunray/alfred"
+    CMD+="; cd /root/Sunray/linux"
     CMD+="; pwd"
     CMD+="; rosservice call /robot/dlio_map/save_pcd $MAP_RES /root/PCD"
     CMD+="; ls -la /root/PCD"
@@ -337,10 +337,10 @@ function ros_trigger_relocalization {
   if [[ $WIP != "" ]]; then
     CMD+="export ROS_IP=$WIP"
   fi
-  CMD+="; export ROS_HOME=/root/Sunray/alfred"
+  CMD+="; export ROS_HOME=/root/Sunray/linux"
   CMD+="; . /ros_entrypoint.sh ; cd /root/Sunray/ros ; . devel/setup.bash"
   CMD+="; setcap 'cap_net_bind_service=+ep' devel/lib/sunray_node/sunray_node"
-  CMD+="; cd /root/Sunray/alfred ; pwd ; rosservice call /global_localization ; rostopic echo /mcl_3dl/status"
+  CMD+="; cd /root/Sunray/linux ; pwd ; rosservice call /global_localization ; rostopic echo /mcl_3dl/status"
   docker start $CONTAINER_NAME && docker exec -t -it $CONTAINER_NAME \
     bash -c "$CMD"
 }

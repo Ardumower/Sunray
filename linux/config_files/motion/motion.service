@@ -5,7 +5,7 @@ Description=Motion Service
 User=root
 Group=root
 
-WorkingDirectory=/home/pi/Sunray/alfred
+WorkingDirectory=/home/pi/Sunray/linux
 ExecStart=/usr/bin/motion
 
 [Install]

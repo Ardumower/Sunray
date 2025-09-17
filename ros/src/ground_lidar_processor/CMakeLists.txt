@@ -156,7 +156,7 @@ include_directories(
 # add_executable(${PROJECT_NAME}_node src/pcl_ground.cpp)
 add_executable(ground_lidar_processor src/pcl_ground.cpp)
 target_link_libraries(ground_lidar_processor ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-## target_include_directories(ground_lidar_processor PRIVATE ${FIRMWARE_PATH} ${FIRMWARE_PATH}/../alfred/src)
+## target_include_directories(ground_lidar_processor PRIVATE ${FIRMWARE_PATH} ${FIRMWARE_PATH}/../linux/src)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

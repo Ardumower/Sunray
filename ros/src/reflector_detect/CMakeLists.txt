@@ -156,7 +156,7 @@ include_directories(
 # add_executable(${PROJECT_NAME}_node src/pcl_reflector.cpp)
 add_executable(reflector_detect src/pcl_reflector.cpp)
 target_link_libraries(reflector_detect ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-## target_include_directories(reflector_detect PRIVATE ${FIRMWARE_PATH} ${FIRMWARE_PATH}/../alfred/src)
+## target_include_directories(reflector_detect PRIVATE ${FIRMWARE_PATH} ${FIRMWARE_PATH}/../linux/src)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

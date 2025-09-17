@@ -63,9 +63,9 @@ cd ~
 git clone https://github.com/Ardumower/Sunray.git
 
 ## make a customized copy of the Alfred config file (or olwPlatform config file)
-cd ~/Sunray/alfred
-cp config_alfred.h config.h    (for Alfred)
+cd ~/Sunray/linux
 cp config_owlmower.h config.h   (for owlPlatform)
+cp config_alfred.h config.h    (for Alfred)
 
 ## adjust your new 'config.h', then run service script and choose point 'Build sunray executable',
 ## when being asked, choose 'config.h' as config file 
@@ -87,7 +87,7 @@ git pull
 
 ## run service script and choose point 'Rebuild sunray executable', when being asked,
 ## choose 'config.h' as config file 
-cd ~/Sunray/alfred
+cd ~/Sunray/linux
 ./service.sh
 
 ## For Alfred: run service script and choose point 'Install sunray executable on Alfred',
@@ -116,7 +116,7 @@ Before running above commands, install required libs:
 sudo apt-get -y install cmake
 sudo apt-get -y install libbluetooth-dev
 ```
-For Raspberry Pi5/OrangePi5Pro, you may have to adjust the serial path for the Alfred MCU UART connection in 'alfred/config.h': 
+For Raspberry Pi5/OrangePi5Pro, you may have to adjust the serial path for the Alfred MCU UART connection in 'linux/config.h': 
 ```
 #define SERIAL_ROBOT_PATH "/dev/ttyS0" 
 ```
@@ -200,7 +200,7 @@ cd ~
 git clone https://github.com/Ardumower/Sunray.git
 ```
 
-Now edit the file alfred/config.h and uncomment only the simulation driver:
+Now edit the file linux/config.h and uncomment only the simulation driver:
 ```
 //#define DRV_SERIAL_ROBOT  1   // for Alfred
 //#define DRV_ARDUMOWER     1   // keep this for Ardumower
@@ -209,7 +209,7 @@ Now edit the file alfred/config.h and uncomment only the simulation driver:
 
 Finally, compile and run the simulator:
 ```
-cd ~/Sunray/alfred/build
+cd ~/Sunray/linux/build
 rm -Rf *
 cmake ..
 make
@@ -280,7 +280,7 @@ Because ROS is highly dependend on OS (e.g. you have to choose specific Ubuntu v
 
 Steps to run Sunray as ROS node:
 
-1. Make a copy of your existing config.h with another name (e.g. Sunray/alfred/config_myrobot.h), and activate these entries:
+1. Make a copy of your existing config.h with another name (e.g. Sunray/linux/config_myrobot.h), and activate these entries:
 ```
 #define ROS_LAUNCH_FILE     "myrobot"  // the ROS robot launch file (you will choose in point 2 below)  
 #define LIDAR_BUMPER_ENABLE true  // to use the LiDAR-based bumper (ground obstacle detection via LiDAR)
