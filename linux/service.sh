@@ -351,6 +351,13 @@ function network_manager(){
 }
 
 
+function fix_local_repository_file_permissions(){
+  USER=$(whoami)
+  echo "changing all files' owner to: $USER..."
+  sudo chown -R $USER:$USER ../*  
+}
+
+
 function install_anydesk(){
   if ! command -v wget &> /dev/null
   then
@@ -592,6 +599,7 @@ update_menu () {
     echo "Update menu (NOTE: press CTRL+C to stop any pending actions)"
     options=(
         "Update local Sunray repository from remote Github repository" 
+        "Fix local Sunray repository file permissions"
         "Upgrade all Linux system packages"
         "Install AnyDesk"
         "Back"
@@ -603,14 +611,18 @@ update_menu () {
                 break
             ;;
             ${options[1]})
-                upgrade_linux_system
+                fix_local_repository_file_permissions
                 break
             ;;
             ${options[2]})
-                install_anydesk
+                upgrade_linux_system
                 break
             ;;
             ${options[3]})
+                install_anydesk
+                break
+            ;;
+            ${options[4]})
                 return
              ;;
             *) 
