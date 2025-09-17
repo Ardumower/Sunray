@@ -354,7 +354,7 @@ function network_manager(){
 function fix_local_repository_file_permissions(){
   USER=$(whoami)
   echo "changing all files' owner to: $USER..."
-  sudo chown -R $USER:$USER ../*  
+  sudo chown -R $USER:$USER ../  
 }
 
 
