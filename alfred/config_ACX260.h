@@ -139,6 +139,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define TICKS_PER_REVOLUTION  1100     // odometry ticks per wheel revolution (owlMower/owlRobotics platform)
 #define TICKS_PER_REVOLUTION 1080 	// odometry ticks per wheel revoltuion (Husqvarna ACX260)
 
+#define ODO_TEST_PWM_SPEED 100         // pwm speed for odometry test (20-200)
+
+
 // ----- gear motors --------------------------------------------------
 // for brushless motors, study the sections (drivers, adapter, protection etc.) in the Wiki (https://wiki.ardumower.de/index.php?title=DIY_Brushless_Driver_Board)
 //#define MOTOR_DRIVER_BRUSHLESS   1     // uncomment this for new brushless motor drivers

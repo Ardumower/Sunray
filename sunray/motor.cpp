@@ -652,8 +652,8 @@ void Motor::test(){
   motorRightTicks = 0;  
   unsigned long nextInfoTime = 0;
   int seconds = 0;
-  int pwmLeft = 200;
-  int pwmRight = 200; 
+  int pwmLeft = ODO_TEST_PWM_SPEED;
+  int pwmRight = ODO_TEST_PWM_SPEED; 
   bool slowdown = true;
   unsigned long stopTicks = ticksPerRevolution * 10;
   unsigned long nextControlTime = 0;
