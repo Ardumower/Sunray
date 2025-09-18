@@ -8,7 +8,7 @@
 6. [Further topics](#further_topics)
 7. [Sunray ROS](#sunray_ros)
 8. [Sunray App](#sunray_app)
-9. [Sunray Husqvarna](#sunray_husqvarna)
+9. [Sunray Husqvarna, STIHL, etc. conversion](#sunray_husqvarna)
    
 
 ## Description <a name="description"></a>
@@ -336,8 +336,8 @@ Here you can see how the localization pipeline works.
 # Sunray App Manual <a name="sunray_app"></a>
 There exists an App to to control and monitor the Sunray firmware. More Details can be found in the Sunray App manual: https://drive.google.com/file/d/1NNrUEm2_amfMAjGY7ShcYtixtUgWGnyJ/view?usp=sharing
 
-# Husqvarna ACX 260 <a name="sunray_husqvarna"></a>
-There exists an owlPlatform DIY conversion manual how to convert your Husqvarna ACX 260 to an DIY robot mower: https://docs.google.com/document/d/1rZi848AFimIRHJkMun1muZ-2nvr8JjXCmmPBuZ1BfJA/edit?usp=sharing
+# Husqvarna, STIHL etc. conversion <a name="sunray_husqvarna"></a>
+There exists an owlPlatform DIY conversion manual how to convert your Husqvarna, STIHL etc. to an DIY robot mower: https://docs.google.com/document/d/1rZi848AFimIRHJkMun1muZ-2nvr8JjXCmmPBuZ1BfJA/edit?usp=sharing
 
 
 
