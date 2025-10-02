@@ -5,6 +5,7 @@
 
 void processWifiRelayClient();
 void processWifiAppServer();
+void processWifiWSClient();
 
 
 #endif

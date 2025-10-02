@@ -1014,6 +1014,7 @@ void processComm(){
   if (!bleConnected){
     processWifiAppServer();
     processWifiRelayClient();
+    processWifiWSClient();
     processWifiMqttClient();
   }
   if (triggerWatchdog) {

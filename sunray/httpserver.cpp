@@ -18,6 +18,7 @@
 #endif
 #include "RingBuffer.h"
 #include "timetable.h"
+#include "src/net/WebSocketClient.h"
 
 
 // wifi client
@@ -31,6 +32,18 @@ unsigned long stopClientTime = 0;
 unsigned long wifiVerboseStopTime = 0;
 unsigned long wifiLastClientAvailableWait = 0;
 int wifiLastClientAvailable = 0;
+
+// --- WebSocket-based gateway client (AT protocol) ---
+
+static WiFiEspClient wsTcp;
+static WebSocketClient wsClient(
+  wsTcp,
+  WS_HOST,
+  WS_PORT,
+  String("/ws/robot?robot_id=") + String(WS_ROBOT_ID) + String("&secret=") + String(WS_ROBOT_SECRET) + String("&proto=at")
+);
+static unsigned long wsNextConnectTime = 0;
+static unsigned long wsLastRxTime = 0;
 
 
 // process WIFI input (relay client)
@@ -200,4 +213,52 @@ void processWifiAppServer()
   }                  
 }
 
+// process WIFI input (WebSocket robot gateway client)
+// robot (this) ---> WebSocket server (cloud backend)
+void processWifiWSClient() {
+  if (!wifiFound) return;
+  if (!ENABLE_WS_CLIENT) return;
 
+  // Maintain connection
+  if (!wsClient.connected()) {
+    if (millis() < wsNextConnectTime) return;
+    CONSOLE.print("WS: connecting ws://");
+    CONSOLE.print(WS_HOST);
+    CONSOLE.print(":");
+    CONSOLE.print(WS_PORT);
+    CONSOLE.println(" ...");
+    if (!wsClient.connect()) {
+      CONSOLE.println("WS: connect failed");
+      wsNextConnectTime = millis() + 10000;
+      return;
+    }
+    CONSOLE.println("WS: connected");
+    wsLastRxTime = millis();
+  }
+
+  // No periodic telemetry push; robot answers requests from gateway
+
+  // Poll for incoming frames and process AT commands (may be encrypted ASCII)
+  String msg;
+  while (wsClient.connected() && wsClient.pollText(msg)) {
+    wsLastRxTime = millis();
+    if (msg.length() == 0) break;
+    // Trim CRLF if present
+    while (msg.endsWith("\r") || msg.endsWith("\n")) msg.remove(msg.length()-1);
+    // Pass through to existing command handler with decrypt=true
+    cmd = msg;
+    processCmd("WS", true, true, false);
+    if (cmdResponse.length() > 0) {
+      wsClient.sendText(cmdResponse);
+    }
+  }
+
+  // If no inbound frames received for 15s, force reconnect
+  if (wsClient.connected()) {
+    if (millis() - wsLastRxTime > 15000) {
+      CONSOLE.println("WS: no RX for 15s, reconnecting");
+      wsClient.close();
+      wsNextConnectTime = millis() + 2000;
+    }
+  }
+}

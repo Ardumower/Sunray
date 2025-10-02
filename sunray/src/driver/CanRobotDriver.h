@@ -217,7 +217,6 @@ class CanRobotDriver: public RobotDriver {
     bool triggeredStopButton;
     bool triggeredSlowDown;
     bool triggeredPushboxStopButton;
-    unsigned long nextIpTime;
     void begin() override;
     void run() override;
     bool getRobotID(String &id) override;
