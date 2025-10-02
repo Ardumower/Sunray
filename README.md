@@ -3,7 +3,7 @@
 # Table of contents
 1. [Description](#description)
 2. [Sunray for Ardumower](#sunray_ardumower)
-3. [Sunray for SmartMow / owlPlatform / Alfred ](#sunray_alfred)
+3. [Sunray for SMARTMOW-DIY / owlPlatform / Alfred ](#sunray_alfred)
 5. [Sunray Simulator](#sunray_sim)
 6. [Further topics](#further_topics)
 7. [Sunray ROS](#sunray_ros)
@@ -20,7 +20,7 @@ Platform | Hardware required
 --- | ---
 Ardumower | Ardumower kit mowing and gear motors, PCB 1.3, Adafruit Grand Central M4 (or Arduino Due) and ArduSimple RTK kit
 Alfred | Alfred robot with Alfred RTK conversion kit (tiny Linux computer, IO-board, ArduSimple RTK kit, base antenna etc.)
-SmartMow/owlRobotPlatform | Universal Do-It-Yourself robot mower with SmartMow/owlRobotPlatform hardware/PCB (More details: https://github.com/owlRobotics-GmbH/owlRobotPlatform)
+SmartMow/owlRobotPlatform | Universal Do-It-Yourself robot mower with SMARTMOW-DIY/owlRobotPlatform hardware/PCB (More details: https://github.com/owlRobotics-GmbH/owlRobotPlatform)
 
 
 The robot mower uses RTK to localize itself (without a perimeter wire)
@@ -50,11 +50,11 @@ __WARNING__: Do not use the master version (via download button), that is 'code 
 
 https://github.com/Ardumower/Sunray/releases
 
-# Sunray for SmartMow / owlPlatform / Alfred  <a name="sunray_alfred"></a>
+# Sunray for SMARTMOW-DIY / owlPlatform / Alfred  <a name="sunray_alfred"></a>
 
-NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' (or SmartMow/owlPlatform) firmware. The code for all steps will require a Linux system (either the Alfred, a Raspberry Pi5/OrangePi5Pro or some PC). For SmartMow/owlPlatform, it is assumed that you have installed SmartMow/owlPlatform drivers already as described here: https://github.com/owlRobotics-GmbH/owlRobotPlatform.
+NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' (or SMARTMOW-DIY/owlPlatform) firmware. The code for all steps will require a Linux system (either the Alfred, a Raspberry Pi5/OrangePi5Pro or some PC). For SMARTMOW-DIY/owlPlatform, it is assumed that you have installed SMARTMOW-DIY/owlPlatform drivers already as described here: https://github.com/owlRobotics-GmbH/owlRobotPlatform.
 
-## How to install code and compile 'Sunray for SmartMow / owlPlatform  Alfred' (required only once)
+## How to install code and compile 'Sunray for SMARTMOW-DIY / owlPlatform  Alfred' (required only once)
 Run this on your Linux terminal (in your Linux home folder):
 
 ```
@@ -79,7 +79,7 @@ cp config_alfred.h config.h    (for Alfred)
 ./service.sh
 ```
 
-## How to update installed code and re-compile 'Sunray for SmartMow / owlPlatform / Alfred'
+## How to update installed code and re-compile 'Sunray for SMARTMOW-DIY / owlPlatform / Alfred'
 ```
 ## update repository ##
 cd ~/Sunray
