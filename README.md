@@ -20,7 +20,7 @@ Platform | Hardware required
 --- | ---
 Ardumower | Ardumower kit mowing and gear motors, PCB 1.3, Adafruit Grand Central M4 (or Arduino Due) and ArduSimple RTK kit
 Alfred | Alfred robot with Alfred RTK conversion kit (tiny Linux computer, IO-board, ArduSimple RTK kit, base antenna etc.)
-owlRobotPlatform | Universal Do-It-Yourself robot mower with owlRobotPlatform hardware/PCB (More details: https://github.com/owlRobotics-GmbH/owlRobotPlatform)
+SmartMow/owlRobotPlatform | Universal Do-It-Yourself robot mower with SmartMow/owlRobotPlatform hardware/PCB (More details: https://github.com/owlRobotics-GmbH/owlRobotPlatform)
 
 
 The robot mower uses RTK to localize itself (without a perimeter wire)
@@ -52,10 +52,10 @@ https://github.com/Ardumower/Sunray/releases
 
 # Sunray for SmartMow / owlPlatform / Alfred  <a name="sunray_alfred"></a>
 
-NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' (or owlPlatform) firmware. The code for all steps will require a Linux system (either the Alfred, a Raspberry Pi5/OrangePi5Pro or some PC). For owlPlatform, it is assumed that you have installed owlPlatform drivers already as described here: https://github.com/owlRobotics-GmbH/owlRobotPlatform.
+NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' (or SmartMow/owlPlatform) firmware. The code for all steps will require a Linux system (either the Alfred, a Raspberry Pi5/OrangePi5Pro or some PC). For SmartMow/owlPlatform, it is assumed that you have installed SmartMow/owlPlatform drivers already as described here: https://github.com/owlRobotics-GmbH/owlRobotPlatform.
 
-## How to install code and compile 'Sunray for Alfred / owlPlatform' (required only once)
-Run this on your Alfred Linux terminal (in your Alfred home folder):
+## How to install code and compile 'Sunray for SmartMow / owlPlatform  Alfred' (required only once)
+Run this on your Linux terminal (in your Linux home folder):
 
 ```
 ## clone repository ##
