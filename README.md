@@ -3,7 +3,7 @@
 # Table of contents
 1. [Description](#description)
 2. [Sunray for Ardumower](#sunray_ardumower)
-3. [Sunray for Alfred / owlPlatform](#sunray_alfred)
+3. [Sunray for SmartMow / owlPlatform / Alfred ](#sunray_alfred)
 5. [Sunray Simulator](#sunray_sim)
 6. [Further topics](#further_topics)
 7. [Sunray ROS](#sunray_ros)
@@ -50,7 +50,7 @@ __WARNING__: Do not use the master version (via download button), that is 'code 
 
 https://github.com/Ardumower/Sunray/releases
 
-# Sunray for Alfred / owlPlatform <a name="sunray_alfred"></a>
+# Sunray for SmartMow / owlPlatform / Alfred  <a name="sunray_alfred"></a>
 
 NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' (or owlPlatform) firmware. The code for all steps will require a Linux system (either the Alfred, a Raspberry Pi5/OrangePi5Pro or some PC). For owlPlatform, it is assumed that you have installed owlPlatform drivers already as described here: https://github.com/owlRobotics-GmbH/owlRobotPlatform.
 
