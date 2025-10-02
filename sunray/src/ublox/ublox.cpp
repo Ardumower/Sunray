@@ -70,29 +70,44 @@ void UBLOX::begin(){
   CONSOLE.println(sizeof(int64_t));
               
   // ---- UBX-NAV-RELPOSNED decode test (will detect compiler conversion issues) -----------
-  payload[12] = 0x10;
+  payload[8] = 0x55;
+  payload[9] = 0x02;
+  payload[10] = 0x0;
+  payload[11] = 0x0;
+  payload[12] = 0x21;
   payload[13] = 0xFD;
   payload[14] = 0xFF;
   payload[15] = 0xFF;   
-  relPosE = ((float)(int)this->unpack_int32(12))/100.0;
+  float relPosN = ((float)(int32_t)this->unpack_int32(8))/100.0;              
+  float relPosE = ((float)(int32_t)this->unpack_int32(12))/100.0;
   CONSOLE.print("ublox UBX-NAV-RELPOSNED decode test: relPosE=");
   CONSOLE.print(relPosE,2);
-  if (abs(relPosE- -7.52) < 0.01) {
+  CONSOLE.print(" relPosN=");
+  CONSOLE.print(relPosN,2);
+  if ( (abs(relPosE- -7.35) < 0.01) && (abs(relPosN- 5.97) < 0.01) ) {
     CONSOLE.println(" TEST SUCCEEDED");
   } else {
     CONSOLE.println(" TEST FAILED");
   }
 
   // ---- UBX-NAV-HPPOSLLH decode test (will detect compiler conversion issues) -----------
-  payload[12] = 0xA1;
+  payload[8] = 0x51;
+  payload[9] = 0xA5;
+  payload[10] = 0x21;
+  payload[11] = 0x5;
+  payload[24] = 0x1B;
+  payload[12] = 0x8F;
   payload[13] = 0x62;
   payload[14] = 0x27;
   payload[15] = 0x1F;
-  payload[25] = 0xE2;
+  payload[25] = 0xE1;
+  double lon = 1e-7  * (    ((float)((int32_t)this->unpack_int32(8)))   +  ((float)((int8_t)this->unpack_int8(24))) * 1e-2    );
   double lat = 1e-7  *  (   ((float)((int32_t)this->unpack_int32(12)))   +  ((float)((int8_t)this->unpack_int8(25))) * 1e-2   );
   CONSOLE.print("ublox UBX-NAV-HPPOSLLH decode test: lat=");
   CONSOLE.print(lat,8);
-  if (abs(lat- 52.26748477) < 0.00000001) {
+  CONSOLE.print(" lon=");
+  CONSOLE.print(lon,8);
+  if ( (abs(lat- 52.26748157) < 0.00000001) && (abs(lon- 8.60910883) < 0.00000001) ) {
     CONSOLE.println(" TEST SUCCEEDED");
   } else {
     CONSOLE.println(" TEST FAILED");

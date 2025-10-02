@@ -67,12 +67,35 @@ unsigned long nextImuCalibrationSecond = 0;
 unsigned long nextDumpTime = 0;
 
 
+void testRelativeLL(){
+  // ---- relativeLL calc test (will detect compiler calculation issues) -------- 
+  double absolutePosSourceLat = 52.26742967;
+  double absolutePosSourceLon = 8.60921633;
+  double gpsLon=8.60910883;
+  double gpsLat=52.26748157;
+  float posN = 0;
+  float posE = 0;
+  relativeLL(absolutePosSourceLat, absolutePosSourceLon, gpsLat, gpsLon, posN, posE);    
+  CONSOLE.print("relativeLL calc test: posN=");
+  CONSOLE.print(posN,2);
+  CONSOLE.print(" posE=");
+  CONSOLE.print(posE,2);
+  if ( (abs(posN- 5.97) < 0.01) && (abs(posE- 7.35) < 0.01) ) {
+    CONSOLE.println(" TEST SUCCEEDED");
+  } else {
+    CONSOLE.println(" TEST FAILED");
+  }
+}
+
+
+
 // https://learn.sparkfun.com/tutorials/9dof-razor-imu-m0-hookup-guide#using-the-mpu-9250-dmp-arduino-library
 // start IMU sensor and calibrate
 bool startIMU(bool forceIMU){    
   // detect IMU
   uint8_t data = 0;
   int counter = 0;  
+  testRelativeLL();
   while ((forceIMU) || (counter < 1)){          
      imuDriver.detect();
      if (imuDriver.imuFound){

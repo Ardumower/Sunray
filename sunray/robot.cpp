@@ -939,6 +939,10 @@ void run(){
   #ifdef ENABLE_NTRIP
     if (millis() > nextGenerateGGATime){
       nextGenerateGGATime = millis() + 10000;
+      CONSOLE.print("absolutePosSourceLon=");
+      CONSOLE.print(absolutePosSourceLon,8);
+      CONSOLE.print(" absolutePosSourceLat=");
+      CONSOLE.println(absolutePosSourceLat,8);    
       #ifdef NTRIP_SIM_GGA_MESSAGE
         ntrip.nmeaGGAMessage = NTRIP_SIM_GGA_MESSAGE; 
         ntrip.nmeaGGAMessageSource = "SIM";
