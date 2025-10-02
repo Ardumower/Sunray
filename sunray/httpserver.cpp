@@ -34,6 +34,13 @@ unsigned long wifiLastClientAvailableWait = 0;
 int wifiLastClientAvailable = 0;
 
 // --- WebSocket-based gateway client (AT protocol) ---
+#ifndef ENABLE_WS_CLIENT
+#define ENABLE_WS_CLIENT false
+#define WS_HOST ""
+#define WS_PORT 8080
+#define WS_ROBOT_ID 1
+#define WS_ROBOT_SECRET 123456
+#endif
 
 static WiFiEspClient wsTcp;
 static WebSocketClient wsClient(
