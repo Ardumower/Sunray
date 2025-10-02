@@ -3,12 +3,12 @@
 # Table of contents
 1. [Description](#description)
 2. [Sunray for Ardumower](#sunray_ardumower)
-3. [Sunray for Alfred / owlPlatform](#sunray_alfred)
+3. [Sunray for SMARTMOW-DIY / owlPlatform / Alfred ](#sunray_alfred)
 5. [Sunray Simulator](#sunray_sim)
 6. [Further topics](#further_topics)
 7. [Sunray ROS](#sunray_ros)
 8. [Sunray App](#sunray_app)
-9. [Sunray Husqvarna](#sunray_husqvarna)
+9. [Sunray Husqvarna, STIHL, etc. conversion](#sunray_husqvarna)
    
 
 ## Description <a name="description"></a>
@@ -20,7 +20,7 @@ Platform | Hardware required
 --- | ---
 Ardumower | Ardumower kit mowing and gear motors, PCB 1.3, Adafruit Grand Central M4 (or Arduino Due) and ArduSimple RTK kit
 Alfred | Alfred robot with Alfred RTK conversion kit (tiny Linux computer, IO-board, ArduSimple RTK kit, base antenna etc.)
-owlRobotPlatform | Universal Do-It-Yourself robot mower with owlRobotPlatform hardware/PCB (More details: https://github.com/owlRobotics-GmbH/owlRobotPlatform)
+SMARTMOW-DIY/owlRobotPlatform | Universal Do-It-Yourself robot mower with SMARTMOW-DIY/owlRobotPlatform hardware/PCB (More details: https://github.com/owlRobotics-GmbH/owlRobotPlatform)
 
 
 The robot mower uses RTK to localize itself (without a perimeter wire)
@@ -50,12 +50,12 @@ __WARNING__: Do not use the master version (via download button), that is 'code 
 
 https://github.com/Ardumower/Sunray/releases
 
-# Sunray for Alfred / owlPlatform <a name="sunray_alfred"></a>
+# Sunray for SMARTMOW-DIY / owlPlatform / Alfred  <a name="sunray_alfred"></a>
 
-NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' (or owlPlatform) firmware. The code for all steps will require a Linux system (either the Alfred, a Raspberry Pi5/OrangePi5Pro or some PC). For owlPlatform, it is assumed that you have installed owlPlatform drivers already as described here: https://github.com/owlRobotics-GmbH/owlRobotPlatform.
+NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' (or SMARTMOW-DIY/owlPlatform) firmware. The code for all steps will require a Linux system (either the Alfred, a Raspberry Pi5/OrangePi5Pro or some PC). For SMARTMOW-DIY/owlPlatform, it is assumed that you have installed SMARTMOW-DIY/owlPlatform drivers already as described here: https://github.com/owlRobotics-GmbH/owlRobotPlatform.
 
-## How to install code and compile 'Sunray for Alfred / owlPlatform' (required only once)
-Run this on your Alfred Linux terminal (in your Alfred home folder):
+## How to install code and compile 'Sunray for SMARTMOW-DIY / owlPlatform  Alfred' (required only once)
+Run this on your Linux terminal (in your Linux home folder):
 
 ```
 ## clone repository ##
@@ -79,7 +79,7 @@ cp config_alfred.h config.h    (for Alfred)
 ./service.sh
 ```
 
-## How to update installed code and re-compile 'Sunray for Alfred / owlPlatform'
+## How to update installed code and re-compile 'Sunray for SMARTMOW-DIY / owlPlatform / Alfred'
 ```
 ## update repository ##
 cd ~/Sunray
@@ -336,8 +336,8 @@ Here you can see how the localization pipeline works.
 # Sunray App Manual <a name="sunray_app"></a>
 There exists an App to to control and monitor the Sunray firmware. More Details can be found in the Sunray App manual: https://drive.google.com/file/d/1NNrUEm2_amfMAjGY7ShcYtixtUgWGnyJ/view?usp=sharing
 
-# Husqvarna ACX 260 <a name="sunray_husqvarna"></a>
-There exists an owlPlatform DIY conversion manual how to convert your Husqvarna ACX 260 to an DIY robot mower: https://docs.google.com/document/d/1rZi848AFimIRHJkMun1muZ-2nvr8JjXCmmPBuZ1BfJA/edit?usp=sharing
+# Husqvarna, STIHL etc. conversion <a name="sunray_husqvarna"></a>
+There exists an owlPlatform DIY conversion manual how to convert your Husqvarna, STIHL etc. to an DIY robot mower: https://docs.google.com/document/d/1rZi848AFimIRHJkMun1muZ-2nvr8JjXCmmPBuZ1BfJA/edit?usp=sharing
 
 
 
