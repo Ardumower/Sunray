@@ -79,7 +79,7 @@ cp config_alfred.h config.h    (for Alfred)
 ./service.sh
 ```
 
-## How to update installed code and re-compile 'Sunray for Alfred / owlPlatform'
+## How to update installed code and re-compile 'Sunray for SmartMow / owlPlatform / Alfred'
 ```
 ## update repository ##
 cd ~/Sunray
