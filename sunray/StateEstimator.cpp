@@ -71,8 +71,8 @@ void testRelativeLL(){
   // ---- relativeLL calc test (will detect compiler calculation issues) -------- 
   double absolutePosSourceLat = 52.26742967;
   double absolutePosSourceLon = 8.60921633;
-  double gpsLon=8.60910883;
-  double gpsLat=52.26748157;
+  double gpsLon=8.6091091; 
+  double gpsLat=52.2674830; 
   float posN = 0;
   float posE = 0;
   relativeLL(absolutePosSourceLat, absolutePosSourceLon, gpsLat, gpsLon, posN, posE);    
@@ -80,7 +80,7 @@ void testRelativeLL(){
   CONSOLE.print(posN,2);
   CONSOLE.print(" posE=");
   CONSOLE.print(posE,2);
-  if ( (abs(posN- 5.97) < 0.01) && (abs(posE- 7.35) < 0.01) ) {
+  if ( (abs(posN- 5.93) < 0.01) && (abs(posE- -7.30) < 0.01) ) {
     CONSOLE.println(" TEST SUCCEEDED");
   } else {
     CONSOLE.println(" TEST FAILED");

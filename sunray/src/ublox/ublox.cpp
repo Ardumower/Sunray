@@ -101,13 +101,13 @@ void UBLOX::begin(){
   payload[14] = 0x27;
   payload[15] = 0x1F;
   payload[25] = 0xE1;
-  double lon = 1e-7  * (    ((float)((int32_t)this->unpack_int32(8)))   +  ((float)((int8_t)this->unpack_int8(24))) * 1e-2    );
-  double lat = 1e-7  *  (   ((float)((int32_t)this->unpack_int32(12)))   +  ((float)((int8_t)this->unpack_int8(25))) * 1e-2   );
+  double lon = 1e-7  * (    ((double)((int32_t)this->unpack_int32(8)))   +  ((double)((int8_t)this->unpack_int8(24))) * 1e-2    );
+  double lat = 1e-7  *  (   ((double)((int32_t)this->unpack_int32(12)))   +  ((double)((int8_t)this->unpack_int8(25))) * 1e-2   );
   CONSOLE.print("ublox UBX-NAV-HPPOSLLH decode test: lat=");
   CONSOLE.print(lat,8);
   CONSOLE.print(" lon=");
   CONSOLE.print(lon,8);
-  if ( (abs(lat- 52.26748157) < 0.00000001) && (abs(lon- 8.60910883) < 0.00000001) ) {
+  if ( (abs(lat- 52.26748307) < 0.00000001) && (abs(lon- 8.60910893) < 0.00000001) ) {
     CONSOLE.println(" TEST SUCCEEDED");
   } else {
     CONSOLE.println(" TEST FAILED");
@@ -600,9 +600,9 @@ void UBLOX::dispatchMessage() {
           case 0x14: 
             { // UBX-NAV-HPPOSLLH
               iTOW = (unsigned long)this->unpack_int32(4);
-              lon = 1e-7  * (    ((float)((int32_t)this->unpack_int32(8)))   +  ((float)((int8_t)this->unpack_int8(24))) * 1e-2    );
-              lat = 1e-7  *  (   ((float)((int32_t)this->unpack_int32(12)))   +  ((float)((int8_t)this->unpack_int8(25))) * 1e-2   );
-              height = 1e-3 * (  ((float)((int32_t)this->unpack_int32(16))) +  ((float)((int8_t)this->unpack_int8(26))) * 1e-2    ) ; // HAE (WGS84 height)
+              lon = 1e-7  * (    ((double)((int32_t)this->unpack_int32(8)))   +  ((double)((int8_t)this->unpack_int8(24))) * 1e-2    );
+              lat = 1e-7  *  (   ((double)((int32_t)this->unpack_int32(12)))   +  ((double)((int8_t)this->unpack_int8(25))) * 1e-2   );
+              height = 1e-3 * (  ((double)((int32_t)this->unpack_int32(16))) +  ((double)((int8_t)this->unpack_int8(26))) * 1e-2    ) ; // HAE (WGS84 height)
               //height = (1e-3 * (this->unpack_int32(20) +  (this->unpack_int8(27) * 1e-2))); // MSL height
               hAccuracy = ((double)((unsigned long)this->unpack_int32(28))) * 0.1 / 1000.0;
               vAccuracy = ((double)((unsigned long)this->unpack_int32(32))) * 0.1 / 1000.0;
