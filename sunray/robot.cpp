@@ -136,6 +136,7 @@ HttpServer httpServer;
 StateEstimator stateEstimator;
 LineTracker lineTracker;
 Stats stats;
+Storage storage;
 RCModel rcmodel;
 TimeTable timetable;
 
@@ -711,7 +712,7 @@ void start(){
   
   buzzer.sound(SND_READY);  
   battery.resetIdle();        
-  loadState();
+  storage.loadState();
 
   #ifdef DRV_SIM_ROBOT
     robotDriver.setSimRobotPosState(stateEstimator.stateX, stateEstimator.stateY, stateEstimator.stateDelta);
@@ -995,7 +996,7 @@ void run(){
   // state saving
   if (millis() >= nextSaveTime){  
     nextSaveTime = millis() + 5000;
-    saveState();
+    storage.saveState();
   }
   
   // temp
@@ -1276,5 +1277,5 @@ void setOperation(OperationType op, bool allowRepeat){
   CONSOLE.println(op);
   stateOp = op;  
   activeOp->changeOperationTypeByOperator(stateOp);
-  saveState();
+  storage.saveState();
 }

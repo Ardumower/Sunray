@@ -31,6 +31,7 @@
 #include "StateEstimator.h"
 #include "Stats.h"
 #include "LineTracker.h"
+#include "Storage.h"
 #include "src/ublox/ublox.h"
 #include "src/skytraq/skytraq.h"
 #include "src/lidar/lidar.h"
@@ -183,6 +184,7 @@ extern HttpServer httpServer;
 extern StateEstimator stateEstimator;
 extern Stats stats;
 extern LineTracker lineTracker;
+extern Storage storage;
 extern TimeTable timetable;
 #ifdef DRV_SIM_ROBOT
   extern SimGpsDriver gps;

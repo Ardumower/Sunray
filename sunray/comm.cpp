@@ -268,7 +268,7 @@ void Comm::cmdTimetable(){
     setOperation(OP_ERROR);
   } else {
     Logger.event(EVT_USER_UPLOAD_TIME_TABLE);
-    saveState();
+    storage.saveState();
   }
 }
 

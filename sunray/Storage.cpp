@@ -13,11 +13,7 @@
 #include <Arduino.h>
 
 
-File stateFile;
-double stateCRC = 0;
-
-
-double calcStateCRC(){
+double Storage::calcStateCRC(){
  return (stateOp *10 + maps.mowPointsIdx + maps.dockPointsIdx + maps.freePointsIdx + ((byte)maps.wayMode) 
    + sonar.enabled + fixTimeout + setSpeed + ((byte)sonar.enabled)
    + ((byte)absolutePosSource) + absolutePosSourceLon + absolutePosSourceLat + motor.pwmMaxMow 
@@ -25,8 +21,7 @@ double calcStateCRC(){
    + timetable.crc() );
 }
 
-
-void dumpState(){
+void Storage::dumpState(){
   CONSOLE.print("dumpState: ");
   CONSOLE.print(" X=");
   CONSOLE.print(stateEstimator.stateX);
@@ -109,7 +104,7 @@ void updateStateOpText(){
 }
 
 
-bool loadState(){
+bool Storage::loadState(){
 #if defined(ENABLE_SD_RESUME)
   CONSOLE.println("resuming is activated");
   CONSOLE.print("state load... ");
@@ -176,7 +171,7 @@ bool loadState(){
 }
 
 
-bool saveState(){   
+bool Storage::saveState(){   
   bool res = true;
 #if defined(ENABLE_SD_RESUME)
   double crc = calcStateCRC();
@@ -228,5 +223,4 @@ bool saveState(){
 #endif
   return res; 
 }
-
 

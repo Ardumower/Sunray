@@ -9,12 +9,21 @@
 
 
 #include <Arduino.h>
+#include <SD.h>
 
+class Storage {
+public:
+  bool loadState();
+  bool saveState();
 
+private:
+  double calcStateCRC();
+  void dumpState();
+  File stateFile;
+  double stateCRC = 0;
+};
 
-bool loadState();
-bool saveState();
+extern Storage storage;
 
 
 #endif
-
