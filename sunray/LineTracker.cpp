@@ -211,7 +211,7 @@ void trackLine(bool runControl){
           //if ( (GPS_SPEED_DETECTION) && (!maps.isUndocking()) ) { 
           if (GPS_SPEED_DETECTION) {         
             CONSOLE.println("gps no speed => obstacle!");
-            statMowGPSNoSpeedCounter++;
+            stats.statMowGPSNoSpeedCounter++;
             Logger.event(EVT_NO_GPS_SPEED_OBSTACLE);
             triggerObstacle();
             return;

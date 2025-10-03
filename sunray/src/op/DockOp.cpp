@@ -135,7 +135,7 @@ void DockOp::onKidnapped(bool state){
 
 void DockOp::onObstacleRotation(){
     CONSOLE.println("error: rotation error due to obstacle!");    
-    statMowObstacles++;   
+    stats.statMowObstacles++;   
     stateSensor = SENS_OBSTACLE;
     changeOp(errorOp);    
 }
@@ -150,7 +150,7 @@ void DockOp::onObstacle(){
       return;
     }
     CONSOLE.println("triggerObstacle");      
-    statMowObstacles++;      
+    stats.statMowObstacles++;      
     if (maps.isDocking()) {    
         if (maps.retryDocking(stateEstimator.stateX, stateEstimator.stateY)) {
             changeOp(escapeReverseOp, true);                      

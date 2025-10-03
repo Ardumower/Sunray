@@ -158,7 +158,7 @@ void MowOp::onObstacle(){
       return;
     }
     CONSOLE.println("triggerObstacle");      
-    statMowObstacles++;      
+    stats.statMowObstacles++;      
     if (maps.isDocking()) {    
         if (maps.retryDocking(stateEstimator.stateX, stateEstimator.stateY)) {
             changeOp(escapeReverseOp, true);                      
@@ -176,7 +176,7 @@ void MowOp::onObstacle(){
     
 void MowOp::onObstacleRotation(){
     CONSOLE.println("triggerObstacleRotation");    
-    statMowObstacles++;   
+    stats.statMowObstacles++;   
     if ((OBSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){    
         if (FREEWHEEL_IS_AT_BACKSIDE){    
             changeOp(escapeForwardOp, true);      

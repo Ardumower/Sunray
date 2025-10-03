@@ -134,6 +134,7 @@ Map maps;
 Comm comm;
 HttpServer httpServer;
 StateEstimator stateEstimator;
+Stats stats;
 RCModel rcmodel;
 TimeTable timetable;
 
@@ -812,7 +813,7 @@ bool detectObstacle(){
           //CONSOLE.println(avg);
           if (avg < TOF_OBSTACLE_CM * 10){
             CONSOLE.println("ToF obstacle!");    
-            statMowToFCounter++;
+            stats.statMowToFCounter++;
             triggerObstacle();                
             return true; 
           }
@@ -830,7 +831,7 @@ bool detectObstacle(){
           CONSOLE.println("lift sensor obstacle!");    
           Logger.event(EVT_LIFTED_OBSTACLE);
           //statMowBumperCounter++;
-          statMowLiftCounter++;
+          stats.statMowLiftCounter++;
           triggerObstacle();    
           return true;
         }
@@ -841,7 +842,7 @@ bool detectObstacle(){
   if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (bumper.obstacle()) ){  
     CONSOLE.println("bumper obstacle!");    
     Logger.event(EVT_BUMPER_OBSTACLE);
-    statMowBumperCounter++;
+    stats.statMowBumperCounter++;
     triggerObstacle();    
     return true;
   }
@@ -849,7 +850,7 @@ bool detectObstacle(){
   if ( (millis() > linearMotionStartTime + LIDAR_BUMPER_DEADTIME) && (lidarBumper.obstacle()) ){  
     CONSOLE.println("LiDAR bumper obstacle!");    
     Logger.event(EVT_LIDAR_BUMPER_OBSTACLE);
-    statMowBumperCounter++;
+    stats.statMowBumperCounter++;
     triggerObstacle();    
     return true;
   }
@@ -857,7 +858,7 @@ bool detectObstacle(){
   if (sonar.obstacle() && (maps.wayMode != WAY_DOCK)){
     if (SONAR_TRIGGER_OBSTACLES){
       CONSOLE.println("sonar obstacle!");            
-      statMowSonarCounter++;
+      stats.statMowSonarCounter++;
       triggerObstacle();
       return true;
     }        
@@ -875,7 +876,7 @@ bool detectObstacle(){
         if (stateEstimator.stateLocalizationMode == LOC_GPS) {
           CONSOLE.println("gps no motion => obstacle!");
           Logger.event(EVT_NO_ROBOT_MOTION_OBSTACLE);    
-          statMowGPSMotionTimeoutCounter++;
+        stats.statMowGPSMotionTimeoutCounter++;
           triggerObstacle();
           return true;
         }
@@ -902,7 +903,7 @@ bool detectObstacleRotation(){
   if (millis() > angularMotionStartTime + 15000) { // too long rotation time (timeout), e.g. due to obstacle
     CONSOLE.println("too long rotation time (timeout) for requested rotation => assuming obstacle");
     Logger.event(EVT_ANGULAR_MOTION_TIMEOUT_OBSTACLE);
-    statMowRotationTimeoutCounter++;
+    stats.statMowRotationTimeoutCounter++;
     triggerObstacleRotation();
     return true;
   }
@@ -910,7 +911,7 @@ bool detectObstacleRotation(){
     if (millis() > angularMotionStartTime + 500) { // FIXME: do we actually need a deadtime here for the freewheel sensor?        
       if (bumper.obstacle()){  
         CONSOLE.println("bumper obstacle!");    
-        statMowBumperCounter++;
+        stats.statMowBumperCounter++;
         triggerObstacleRotation();    
         return true;
       }
@@ -920,7 +921,7 @@ bool detectObstacleRotation(){
     if (millis() > angularMotionStartTime + 3000) {                  
       if (fabs(stateEstimator.stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s yaw speed, e.g. due to obstacle
         CONSOLE.println("no IMU rotation speed detected for requested rotation => assuming obstacle");    
-        statMowImuNoRotationSpeedCounter++;
+        stats.statMowImuNoRotationSpeedCounter++;
         Logger.event(EVT_IMU_NO_ROTATION_OBSTACLE);    
         triggerObstacleRotation();
         return true;      
@@ -928,7 +929,7 @@ bool detectObstacleRotation(){
     }
     if (stateEstimator.diffIMUWheelYawSpeedLP > 10.0/180.0 * PI) {  // yaw speed difference between wheels and IMU more than 8 degree/s, e.g. due to obstacle
       CONSOLE.println("yaw difference between wheels and IMU for requested rotation => assuming obstacle");            
-      statMowDiffIMUWheelYawSpeedCounter++;
+      stats.statMowDiffIMUWheelYawSpeedCounter++;
       Logger.event(EVT_IMU_WHEEL_DIFFERENCE_OBSTACLE);            
       triggerObstacleRotation();
       return true;            
@@ -1011,8 +1012,8 @@ void run(){
     } else {
       stateTemp = batTemp;    
     }
-    statTempMin = min(statTempMin, stateTemp);
-    statTempMax = max(statTempMax, stateTemp);    
+    stats.statTempMin = min(stats.statTempMin, stateTemp);
+    stats.statTempMax = max(stats.statTempMax, stateTemp);    
   }
   
   // IMU
@@ -1048,7 +1049,7 @@ void run(){
     timetable.run();
   }
 
-  calcStats();  
+  stats.calc();  
   
   
   if (millis() >= nextControlTime){        

@@ -10,41 +10,9 @@
 #include <Arduino.h>
 
 
-unsigned long statIdleDuration = 0; // seconds
-unsigned long statChargeDuration = 0; // seconds
-unsigned long statMowDurationMotorRecovery = 0; // seconds
-unsigned long statMowDurationInvalid = 0; // seconds
-unsigned long statMowDuration = 0; // seconds
-unsigned long statMowDurationFloat = 0; // seconds
-unsigned long statMowDurationFix = 0; // seconds
-unsigned long statMowFloatToFixRecoveries = 0; // counter
-unsigned long statMowInvalidRecoveries = 0; // counter
-unsigned long statImuRecoveries = 0; // counter
-unsigned long statMowObstacles = 0 ; // counter
-unsigned long statMowBumperCounter = 0; 
-unsigned long statMowSonarCounter = 0;
-unsigned long statMowLiftCounter = 0;
-unsigned long statMowGPSMotionTimeoutCounter = 0;
-unsigned long statMowGPSNoSpeedCounter = 0;
-unsigned long statMowRotationTimeoutCounter = 0;
-unsigned long statMowImuNoRotationSpeedCounter = 0;
-unsigned long statMowDiffIMUWheelYawSpeedCounter = 0;
-unsigned long statGPSJumps = 0; // counter
-unsigned long statMowToFCounter = 0;
-
-float statTempMin = 9999; 
-float statTempMax = -9999; 
-float statMowMaxDgpsAge = 0; // seconds
-float statMowDistanceTraveled = 0; // meter
-
-
-unsigned long nextStatTime = 0;
-SolType lastSolution = SOL_INVALID;    
-
-
 
 // calculate statistics
-void calcStats(){
+void Stats::calc(){
   if (millis() >= nextStatTime){
     nextStatTime = millis() + 1000;
     switch (stateOp){
@@ -70,5 +38,4 @@ void calcStats(){
     }     
   }   
 }
-
 

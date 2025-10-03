@@ -9,37 +9,45 @@
 
 
 #include <Arduino.h>
+#include "gps.h"
 
 
-extern unsigned long statIdleDuration; // seconds
-extern unsigned long statChargeDuration; // seconds
-extern unsigned long statMowDuration ; // seconds
-extern unsigned long statMowDurationInvalid ; // seconds
-extern unsigned long statMowDurationFloat ; // seconds
-extern unsigned long statMowDurationFix ; // seconds
-extern unsigned long statMowDurationMotorRecovery ; // seconds
-extern unsigned long statMowFloatToFixRecoveries ; // counter
-extern unsigned long statMowInvalidRecoveries ; // counter
-extern unsigned long statImuRecoveries ; // counter
-extern unsigned long statMowObstacles ; // counter
-extern unsigned long statGPSJumps ; // counter
-extern unsigned long statMowGPSMotionTimeoutCounter;
-extern unsigned long statMowGPSNoSpeedCounter;
-extern unsigned long statMowObstacleDetectionRotationCounter;
-extern unsigned long statMowBumperCounter; 
-extern unsigned long statMowSonarCounter;
-extern unsigned long statMowLiftCounter;
-extern unsigned long statMowImuNoRotationSpeedCounter;
-extern unsigned long statMowDiffIMUWheelYawSpeedCounter;
-extern unsigned long statMowToFCounter;
-extern unsigned long statMowRotationTimeoutCounter;
-extern float statMowMaxDgpsAge ; // seconds
-extern float statMowDistanceTraveled ; // meter
-extern float statTempMin;
-extern float statTempMax;
+class Stats {
+public:
+  // counters/timers
+  unsigned long statIdleDuration = 0; // seconds
+  unsigned long statChargeDuration = 0; // seconds
+  unsigned long statMowDuration = 0; // seconds
+  unsigned long statMowDurationInvalid = 0; // seconds
+  unsigned long statMowDurationFloat = 0; // seconds
+  unsigned long statMowDurationFix = 0; // seconds
+  unsigned long statMowDurationMotorRecovery = 0; // seconds
+  unsigned long statMowFloatToFixRecoveries = 0; // counter
+  unsigned long statMowInvalidRecoveries = 0; // counter
+  unsigned long statImuRecoveries = 0; // counter
+  unsigned long statMowObstacles = 0; // counter
+  unsigned long statGPSJumps = 0; // counter
+  unsigned long statMowGPSMotionTimeoutCounter = 0;
+  unsigned long statMowGPSNoSpeedCounter = 0;
+  unsigned long statMowObstacleDetectionRotationCounter = 0;
+  unsigned long statMowBumperCounter = 0; 
+  unsigned long statMowSonarCounter = 0;
+  unsigned long statMowLiftCounter = 0;
+  unsigned long statMowImuNoRotationSpeedCounter = 0;
+  unsigned long statMowDiffIMUWheelYawSpeedCounter = 0;
+  unsigned long statMowToFCounter = 0;
+  unsigned long statMowRotationTimeoutCounter = 0;
+  float statMowMaxDgpsAge = 0; // seconds
+  float statMowDistanceTraveled = 0; // meter
+  float statTempMin = 9999;
+  float statTempMax = -9999;
 
-void calcStats();
+  void calc();
+
+private:
+  unsigned long nextStatTime = 0;
+  SolType lastSolution = SOL_INVALID;
+};
+
 
 #endif
-
-

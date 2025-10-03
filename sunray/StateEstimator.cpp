@@ -146,7 +146,7 @@ void StateEstimator::readIMU(){
     }
     stateSensor = SENS_IMU_TIMEOUT;
     motor.stopImmediately(true);    
-    statImuRecoveries++;            
+    stats.statImuRecoveries++;            
     if (!this->startIMU(true)){ // restart I2C bus
       return;
     }    
@@ -361,7 +361,7 @@ void StateEstimator::computeRobotState(){
     if ((distGPS > 0.3) || (resetLastPos)){
       if (distGPS > 0.3) {
         gpsJump = true;
-        statGPSJumps++;
+        stats.statGPSJumps++;
         CONSOLE.print("GPS jump: ");
         CONSOLE.println(distGPS);
       }
@@ -437,7 +437,7 @@ void StateEstimator::computeRobotState(){
   // odometry
   stateX += distOdometry/100.0 * cos(stateDelta);
   stateY += distOdometry/100.0 * sin(stateDelta);        
-  if (stateOp == OP_MOW) statMowDistanceTraveled += distOdometry/100.0;
+  if (stateOp == OP_MOW) stats.statMowDistanceTraveled += distOdometry/100.0;
   
   if ((imuDriver.imuFound) && (maps.useIMU)) {
     // IMU available and should be used by planner        

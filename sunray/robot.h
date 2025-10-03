@@ -29,6 +29,7 @@
 #include "comm.h"
 #include "httpserver.h"
 #include "StateEstimator.h"
+#include "Stats.h"
 #include "src/ublox/ublox.h"
 #include "src/skytraq/skytraq.h"
 #include "src/lidar/lidar.h"
@@ -179,6 +180,7 @@ extern Map maps;
 extern Comm comm;
 extern HttpServer httpServer;
 extern StateEstimator stateEstimator;
+extern Stats stats;
 extern TimeTable timetable;
 #ifdef DRV_SIM_ROBOT
   extern SimGpsDriver gps;
