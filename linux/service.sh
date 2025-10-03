@@ -6,6 +6,13 @@
 echo "EUID=$EUID"
 echo "PWD=$PWD"
 
+KERNEL="$(uname -sr)"
+CPU="$(uname -m)"
+DISTRI="$(source /etc/os-release && echo "$PRETTY_NAME")"
+
+
+echo "KERNEL=$KERNEL  CPU=$CPU   DISTRI=$DISTRI"
+
 
 CMD=""
 
