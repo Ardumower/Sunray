@@ -55,8 +55,8 @@ void RCModel::run(){
   if (t < nextControlTime) return;
   nextControlTime = t + 100;                                       // save CPU resources by running at 10 Hz
   
-  if (stateButton == 3){                                           // 3 button beeps
-      stateButton = 0;                                             // reset button state
+  if (stateEstimator.stateButton == 3){                                           // 3 button beeps
+      stateEstimator.stateButton = 0;                                             // reset button state
       RC_Mode = !RC_Mode;                                                   // R/C-Mode toggle
       if (RC_Mode)  {                                                       // R/C-Mode ist aktiv
         CONSOLE.println("button mode 3 - RC Mode ON");
@@ -104,5 +104,4 @@ void RCModel::run(){
   }
 #endif
 }
-
 

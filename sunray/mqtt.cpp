@@ -76,13 +76,13 @@ void processWifiMqttClient()
       updateStateOpText();
       // operational state
       //CONSOLE.println("MQTT: publishing " MQTT_TOPIC_PREFIX "/status");      
-      MQTT_PUBLISH(stateOpText.c_str(), "%s", "/op")
+      MQTT_PUBLISH(stateEstimator.stateOpText.c_str(), "%s", "/op")
       MQTT_PUBLISH(maps.percentCompleted, "%d", "/progress")
 
       // GPS related information
       snprintf (mqttMsg, MSG_BUFFER_SIZE, "%.2f, %.2f", gps.relPosN, gps.relPosE);          
       mqttClient.publish(MQTT_TOPIC_PREFIX "/gps/pos", mqttMsg);
-      MQTT_PUBLISH(gpsSolText.c_str(), "%s", "/gps/sol")
+      MQTT_PUBLISH(stateEstimator.gpsSolText.c_str(), "%s", "/gps/sol")
       MQTT_PUBLISH(gps.iTOW, "%lu", "/gps/tow")
       
       MQTT_PUBLISH(gps.lon, "%.8f", "/gps/lon")
@@ -128,7 +128,7 @@ void processWifiMqttClient()
       MQTT_PUBLISH((int)stats.statGPSJumps, "%d", "/stats/gpsJumps")      
       MQTT_PUBLISH(stats.statTempMin, "%.1f", "/stats/tempMin")
       MQTT_PUBLISH(stats.statTempMax, "%.1f", "/stats/tempMax")
-      MQTT_PUBLISH(stateTemp, "%.1f", "/stats/curTemp")
+      MQTT_PUBLISH(stateEstimator.stateTemp, "%.1f", "/stats/curTemp")
 
     } else {
       mqttReconnect();  

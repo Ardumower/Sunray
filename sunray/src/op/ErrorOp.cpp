@@ -16,9 +16,9 @@ String ErrorOp::name(){
 
 void ErrorOp::begin(){
     CONSOLE.println("OP_ERROR"); 
-    //if (stateOp == OP_CHARGE){
+    //if (stateEstimator.stateOp == OP_CHARGE){
     //  CONSOLE.println(" - ignoring because we are charging");
-    //  op = stateOp;
+    //  op = stateEstimator.stateOp;
     //} else {        
     motor.stopImmediately(true); // do not use PID to get to stop
     //motor.setLinearAngularSpeed(0,0);
@@ -36,5 +36,4 @@ void ErrorOp::run(){
         changeOp(chargeOp);
     }    
 }
-
 

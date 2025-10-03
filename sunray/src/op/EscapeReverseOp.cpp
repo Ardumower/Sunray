@@ -36,7 +36,7 @@ void EscapeReverseOp::run(){
         driveReverseStopTime = 0;
         if (detectLift()) {
             CONSOLE.println("error: lift sensor!");
-            stateSensor = SENS_LIFT;
+            stateEstimator.stateSensor = SENS_LIFT;
             changeOp(errorOp);
             return;
         }
@@ -59,12 +59,11 @@ void EscapeReverseOp::run(){
 
 
 void EscapeReverseOp::onImuTilt(){
-    stateSensor = SENS_IMU_TILT;
+    stateEstimator.stateSensor = SENS_IMU_TILT;
     changeOp(errorOp);
 }
 
 void EscapeReverseOp::onImuError(){
-    stateSensor = SENS_IMU_TIMEOUT;
+    stateEstimator.stateSensor = SENS_IMU_TIMEOUT;
     changeOp(errorOp);
 }
-

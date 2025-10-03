@@ -254,7 +254,7 @@ void Op::onChargerConnected(){
 }
 
 void Op::onBatteryUndervoltage(){
-    stateSensor = SENS_BAT_UNDERVOLTAGE;
+    stateEstimator.stateSensor = SENS_BAT_UNDERVOLTAGE;
     changeOp(idleOp);
     //buzzer.sound(SND_OVERCURRENT, true);        
 }

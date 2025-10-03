@@ -140,40 +140,28 @@ Storage storage;
 RCModel rcmodel;
 TimeTable timetable;
 
-int stateButton = 0;  
+int& stateButton = stateEstimator.stateButton;  
 int stateButtonTemp = 0;
 unsigned long stateButtonTimeout = 0;
 
-OperationType stateOp = OP_IDLE; // operation-mode
-Sensor stateSensor = SENS_NONE; // last triggered sensor
-
-unsigned long controlLoops = 0;
-String stateOpText = "";  // current operation as text
-String gpsSolText = ""; // current gps solution as text
-float stateTemp = 20; // degreeC
+// controlLoops is tracked in StateEstimator
 //float stateHumidity = 0; // percent
 unsigned long stateInMotionLastTime = 0;
 bool stateChargerConnected = false;
-bool stateInMotionLP = false; // robot is in angular or linear motion? (with motion low-pass filtering)
-
-unsigned long lastFixTime = 0;
-int fixTimeout = 0;
-bool absolutePosSource = false;
-double absolutePosSourceLon = 0;
-double absolutePosSourceLat = 0;
+bool& stateInMotionLP = stateEstimator.stateInMotionLP; // robot is in angular or linear motion? (with motion low-pass filtering)
 float lastGPSMotionX = 0;
 float lastGPSMotionY = 0;
 unsigned long nextGPSMotionCheckTime = 0;
 
-bool finishAndRestart = false;
-bool dockAfterFinish = true;
+bool& finishAndRestart = stateEstimator.finishAndRestart;
+bool& dockAfterFinish = stateEstimator.dockAfterFinish;
 bool testRelais = false;
-float setSpeed = 0.1; // default linear speed (m/s)
+float& setSpeed = stateEstimator.setSpeed; // default linear speed (m/s)
 
 unsigned long nextBadChargingContactCheck = 0;
 unsigned long nextToFTime = 0;
-unsigned long linearMotionStartTime = 0;
-unsigned long angularMotionStartTime = 0;
+unsigned long& linearMotionStartTime = stateEstimator.linearMotionStartTime;
+unsigned long& angularMotionStartTime = stateEstimator.angularMotionStartTime;
 unsigned long overallMotionTimeout = 0;
 unsigned long nextControlTime = 0;
 unsigned long lastComputeTime = 0;
@@ -197,7 +185,7 @@ String psOutput = "";
 unsigned long wdResetTimer = millis();
 //##################################################################################
 
-bool wifiFound = false;
+bool & wifiFound = stateEstimator.wifiFound;
 char ssid[] = WIFI_SSID;      // your network SSID (name)
 char pass[] = WIFI_PASS;        // your network password
 WiFiEspServer server(80);
@@ -213,7 +201,7 @@ PubSubClient mqttClient(espClient);
   WiFiClient gpsClient; // GPS tcp client (optional)  
 #endif
 
-int motorErrorCounter = 0;
+int & motorErrorCounter = stateEstimator.motorErrorCounter;
 
 
 RunningMedian<unsigned int,3> tofMeasurements;
@@ -951,9 +939,9 @@ void run(){
     if (millis() > nextGenerateGGATime){
       nextGenerateGGATime = millis() + 10000;
       CONSOLE.print("absolutePosSourceLon=");
-      CONSOLE.print(absolutePosSourceLon,8);
+      CONSOLE.print(stateEstimator.absolutePosSourceLon,8);
       CONSOLE.print(" absolutePosSourceLat=");
-      CONSOLE.println(absolutePosSourceLat,8);    
+      CONSOLE.println(stateEstimator.absolutePosSourceLat,8);    
       #ifdef NTRIP_SIM_GGA_MESSAGE
         ntrip.nmeaGGAMessage = NTRIP_SIM_GGA_MESSAGE; 
         ntrip.nmeaGGAMessageSource = "SIM";
@@ -961,7 +949,7 @@ void run(){
         if (gps.iTOW != 0){
           // generate NMEA GGA messsage base on base coordinate entered in Sunray App      
           gps.decodeTOW();
-          ntrip.nmeaGGAMessage = gps.generateGGA(gps.hour, gps.mins, gps.sec, absolutePosSourceLon, absolutePosSourceLat, gps.height); 
+          ntrip.nmeaGGAMessage = gps.generateGGA(gps.hour, gps.mins, gps.sec, stateEstimator.absolutePosSourceLon, stateEstimator.absolutePosSourceLat, gps.height); 
           ntrip.nmeaGGAMessageSource = "SunrayApp";
         }
       #elif NTRIP_GPS_GGA_MESSAGE
@@ -1011,12 +999,12 @@ void run(){
     //logCPUHealth();
     CONSOLE.println();    
     if (batTemp < -999){
-      stateTemp = cpuTemp;
+      stateEstimator.stateTemp = cpuTemp;
     } else {
-      stateTemp = batTemp;    
+      stateEstimator.stateTemp = batTemp;    
     }
-    stats.statTempMin = min(stats.statTempMin, stateTemp);
-    stats.statTempMax = max(stats.statTempMax, stateTemp);    
+    stats.statTempMin = min(stats.statTempMin, stateEstimator.stateTemp);
+    stats.statTempMax = max(stats.statTempMax, stateEstimator.stateTemp);    
   }
   
   // IMU
@@ -1040,7 +1028,7 @@ void run(){
     nextLedTime = millis() + 1000;
     robotDriver.ledStateGpsFloat = (gps.solution == SOL_FLOAT);
     robotDriver.ledStateGpsFix = (gps.solution == SOL_FIXED);
-    robotDriver.ledStateError = (stateOp == OP_ERROR);            
+    robotDriver.ledStateError = (stateEstimator.stateOp == OP_ERROR);            
   }
 
   gps.run();
@@ -1057,7 +1045,7 @@ void run(){
   
   if (millis() >= nextControlTime){        
     nextControlTime = millis() + 20; 
-    controlLoops++;    
+    stateEstimator.controlLoops++;    
     
     stateEstimator.computeRobotState();
     if (!robotShouldMove()){
@@ -1078,7 +1066,7 @@ void run(){
       CONSOLE.println("restarting operation (gps jump)");
       gpsJump = false;
       motor.stopImmediately(true);
-      setOperation(stateOp, true);    // restart current operation
+      setOperation(stateEstimator.stateOp, true);    // restart current operation
     }*/
     
     if (battery.chargerConnected() != stateChargerConnected) {    
@@ -1102,10 +1090,10 @@ void run(){
     } 
     else {      
       if (USE_TEMP_SENSOR){
-        if (stateTemp > DOCK_OVERHEAT_TEMP){
+        if (stateEstimator.stateTemp > DOCK_OVERHEAT_TEMP){
           activeOp->onTempOutOfRangeTriggered();
         } 
-        else if (stateTemp < DOCK_TOO_COLD_TEMP){
+        else if (stateEstimator.stateTemp < DOCK_TOO_COLD_TEMP){
           activeOp->onTempOutOfRangeTriggered();
         }
       }
@@ -1134,34 +1122,34 @@ void run(){
     activeOp->run();     
       
     // process button state
-    if (stateButton == 5){
-      stateButton = 0; // reset button state
-      stateSensor = SENS_STOP_BUTTON;
+    if (stateEstimator.stateButton == 5){
+      stateEstimator.stateButton = 0; // reset button state
+      stateEstimator.stateSensor = SENS_STOP_BUTTON;
       setOperation(OP_DOCK, false);
-    } else if (stateButton == 6){ 
-      stateButton = 0; // reset button state        
-      stateSensor = SENS_STOP_BUTTON;
+    } else if (stateEstimator.stateButton == 6){ 
+      stateEstimator.stateButton = 0; // reset button state        
+      stateEstimator.stateSensor = SENS_STOP_BUTTON;
       setOperation(OP_MOW, false);
     } 
     //else if (stateButton > 0){  // stateButton 1 (or unknown button state)        
-    else if (stateButton == 1){  // stateButton 1                   
-      stateButton = 0;  // reset button state
-      stateSensor = SENS_STOP_BUTTON;
+    else if (stateEstimator.stateButton == 1){  // stateButton 1                   
+      stateEstimator.stateButton = 0;  // reset button state
+      stateEstimator.stateSensor = SENS_STOP_BUTTON;
       setOperation(OP_IDLE, false);                             
-    } else if (stateButton == 9){
-      stateButton = 0;  // reset button state
-      stateSensor = SENS_STOP_BUTTON;
+    } else if (stateEstimator.stateButton == 9){
+      stateEstimator.stateButton = 0;  // reset button state
+      stateEstimator.stateSensor = SENS_STOP_BUTTON;
       comm.cmdSwitchOffRobot();
-    } else if (stateButton == 12){
-      stateButton = 0; // reset button state
-      stateSensor = SENS_STOP_BUTTON;
+    } else if (stateEstimator.stateButton == 12){
+      stateEstimator.stateButton = 0; // reset button state
+      stateEstimator.stateSensor = SENS_STOP_BUTTON;
       #ifdef __linux__
         WiFi.startWifiProtectedSetup();
       #endif
     }
 
     // update operation type      
-    stateOp = activeOp->getGoalOperationType();  
+    stateEstimator.stateOp = activeOp->getGoalOperationType();  
             
   }   // if (millis() >= nextControlTime)
     
@@ -1223,10 +1211,10 @@ void run(){
     bool buttonTriggered = stopButton.triggered();
     if (BUTTON_INVERT) buttonTriggered = !buttonTriggered; 
     if (buttonTriggered){
-      if ((stateOp != OP_IDLE) && (stateOp != OP_CHARGE)) {   // if not in idle or charge state
+      if ((stateEstimator.stateOp != OP_IDLE) && (stateEstimator.stateOp != OP_CHARGE)) {   // if not in idle or charge state
         // stop all pendings actions if button pressed 
         CONSOLE.println("BUTTON triggered, going IDLE");
-        stateSensor = SENS_STOP_BUTTON;  
+        stateEstimator.stateSensor = SENS_STOP_BUTTON;  
         setOperation(OP_IDLE, false);  // go into idle-state
       } 
       if (BUTTON_CONTROL){     
@@ -1244,10 +1232,10 @@ void run(){
       if (stateButtonTemp > 0){
         // button released => set stateButton
         stateButtonTimeout = 0;
-        stateButton = stateButtonTemp;
+        stateEstimator.stateButton = stateButtonTemp;
         stateButtonTemp = 0;
         CONSOLE.print("stateButton ");
-        CONSOLE.println(stateButton);
+        CONSOLE.println(stateEstimator.stateButton);
       }
     }
   }
@@ -1272,10 +1260,10 @@ void run(){
 
 // set new robot operation
 void setOperation(OperationType op, bool allowRepeat){  
-  if ((stateOp == op) && (!allowRepeat)) return;  
+  if ((stateEstimator.stateOp == op) && (!allowRepeat)) return;  
   CONSOLE.print("setOperation op=");
   CONSOLE.println(op);
-  stateOp = op;  
-  activeOp->changeOperationTypeByOperator(stateOp);
+  stateEstimator.stateOp = op;  
+  activeOp->changeOperationTypeByOperator(stateEstimator.stateOp);
   storage.saveState();
 }

@@ -131,11 +131,11 @@ void Comm::cmdControl(){
       } else if (counter == 2){                                      
           if (intValue >= 0) op = intValue; 
       } else if (counter == 3){                                      
-          if (floatValue >= 0) setSpeed = floatValue; 
+          if (floatValue >= 0) stateEstimator.setSpeed = floatValue; 
       } else if (counter == 4){                                      
-          if (intValue >= 0) fixTimeout = intValue; 
+          if (intValue >= 0) stateEstimator.fixTimeout = intValue; 
       } else if (counter == 5){
-          if (intValue >= 0) finishAndRestart = (intValue == 1);
+          if (intValue >= 0) stateEstimator.finishAndRestart = (intValue == 1);
       } else if (counter == 6){
           if (floatValue >= 0) {
             maps.setMowingPointPercent(floatValue);
@@ -156,7 +156,7 @@ void Comm::cmdControl(){
       } else if (counter == 10){
           if (intValue >= 0) motor.setMowHeightMillimeter(intValue);
       } else if (counter == 11){
-          if (intValue >= 0) dockAfterFinish = (intValue == 1);
+          if (intValue >= 0) stateEstimator.dockAfterFinish = (intValue == 1);
       }
       counter++;
       lastCommaIdx = idx;
@@ -166,7 +166,7 @@ void Comm::cmdControl(){
   CONSOLE.print(linear);
   CONSOLE.print(" angular=");
   CONSOLE.println(angular);*/    
-  OperationType oldStateOp = stateOp;
+  OperationType oldStateOp = stateEstimator.stateOp;
   if (restartRobot){
     // certain operations may require a start from IDLE state (https://github.com/Ardumower/Sunray/issues/66)
     setOperation(OP_IDLE);    
@@ -264,7 +264,7 @@ void Comm::cmdTimetable(){
   cmdAnswer(s);       
   
   if (!success){   
-    stateSensor = SENS_MEM_OVERFLOW;
+    stateEstimator.stateSensor = SENS_MEM_OVERFLOW;
     setOperation(OP_ERROR);
   } else {
     Logger.event(EVT_USER_UPLOAD_TIME_TABLE);
@@ -320,7 +320,7 @@ void Comm::cmdWaypoint(){
   cmdAnswer(s);       
   
   if (!success){   
-    stateSensor = SENS_MEM_OVERFLOW;
+    stateEstimator.stateSensor = SENS_MEM_OVERFLOW;
     setOperation(OP_ERROR);
   } 
 }
@@ -404,22 +404,22 @@ void Comm::cmdPosMode(){
       int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
       double doubleValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toDouble();
       if (counter == 1){                            
-          absolutePosSource = bool(intValue);
+          stateEstimator.absolutePosSource = bool(intValue);
       } else if (counter == 2){                                      
-          absolutePosSourceLon = doubleValue; 
+          stateEstimator.absolutePosSourceLon = doubleValue; 
       } else if (counter == 3){                                      
-          absolutePosSourceLat = doubleValue; 
+          stateEstimator.absolutePosSourceLat = doubleValue; 
       } 
       counter++;
       lastCommaIdx = idx;
     }    
   }        
   CONSOLE.print("absolutePosSource=");
-  CONSOLE.print(absolutePosSource);
+  CONSOLE.print(stateEstimator.absolutePosSource);
   CONSOLE.print(" lon=");
-  CONSOLE.print(absolutePosSourceLon, 8);
+  CONSOLE.print(stateEstimator.absolutePosSourceLon, 8);
   CONSOLE.print(" lat=");
-  CONSOLE.println(absolutePosSourceLat, 8);
+  CONSOLE.println(stateEstimator.absolutePosSourceLat, 8);
   String s = F("P");
   cmdAnswer(s);
 }
@@ -565,7 +565,7 @@ void Comm::cmdToggleGPSSolution(){
       gps.solution = SOL_FLOAT;
       gps.relPosN = stateEstimator.stateY - 2.0;  // simulate pos. solution jump
       gps.relPosE = stateEstimator.stateX - 2.0;
-      lastFixTime = millis();
+      stateEstimator.lastFixTime = millis();
       stateEstimator.stateGroundSpeed = 0.1;
       break;
     case SOL_FLOAT:  
@@ -614,13 +614,13 @@ void Comm::cmdSummary(){
   s += ",";
   s += gps.solution;
   s += ",";
-  s += stateOp;
+  s += stateEstimator.stateOp;
   s += ",";
   s += maps.mowPointsIdx;
   s += ",";
   s += (millis() - gps.dgpsAge)/1000.0;
   s += ",";
-  s += stateSensor;
+  s += stateEstimator.stateSensor;
   s += ",";
   s += maps.targetPoint.x();
   s += ",";
@@ -630,7 +630,7 @@ void Comm::cmdSummary(){
   s += ",";
   s += gps.numSV;  
   s += ",";
-  if (stateOp == OP_CHARGE) {
+  if (stateEstimator.stateOp == OP_CHARGE) {
     s += "-";
     s += battery.chargingCurrent;
   } else {
@@ -643,11 +643,11 @@ void Comm::cmdSummary(){
   s += ",";
   s += stateEstimator.lateralError;
   s += ",";
-  if (stateOp == OP_MOW){
+  if (stateEstimator.stateOp == OP_MOW){
     s += timetable.autostopTime.dayOfWeek;
     s += ",";  
     s += timetable.autostopTime.hour;
-  } else if (stateOp == OP_CHARGE) {
+  } else if (stateEstimator.stateOp == OP_CHARGE) {
     s += timetable.autostartTime.dayOfWeek;
     s += ",";  
     s += timetable.autostartTime.hour;
@@ -1032,12 +1032,12 @@ void Comm::outputConsole(){
     CONSOLE.print (" ctlDur=");        
     //if (!imuIsCalibrating){
     if (!started){
-      if (controlLoops > 0){
-        statControlCycleTime = 1.0 / (((float)controlLoops)/5.0);
+      if (stateEstimator.controlLoops > 0){
+        statControlCycleTime = 1.0 / (((float)stateEstimator.controlLoops)/5.0);
       } else statControlCycleTime = 5;
       statMaxControlCycleTime = max(statMaxControlCycleTime, statControlCycleTime);    
     }
-    controlLoops=0;    
+    stateEstimator.controlLoops=0;    
     CONSOLE.print (statControlCycleTime);        
     CONSOLE.print (" op=");    
     CONSOLE.print(activeOp->OpChain);

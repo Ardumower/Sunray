@@ -14,11 +14,11 @@
 
 
 double Storage::calcStateCRC(){
- return (stateOp *10 + maps.mowPointsIdx + maps.dockPointsIdx + maps.freePointsIdx + ((byte)maps.wayMode) 
-   + sonar.enabled + fixTimeout + setSpeed + ((byte)sonar.enabled)
-   + ((byte)absolutePosSource) + absolutePosSourceLon + absolutePosSourceLat + motor.pwmMaxMow 
-   + ((byte)finishAndRestart) + ((byte)motor.motorMowForwardSet) + ((byte)battery.docked) + ((byte)dockAfterFinish)
-   + timetable.crc() );
+  return (stateEstimator.stateOp *10 + maps.mowPointsIdx + maps.dockPointsIdx + maps.freePointsIdx + ((byte)maps.wayMode) 
+    + sonar.enabled + stateEstimator.fixTimeout + stateEstimator.setSpeed + ((byte)sonar.enabled)
+    + ((byte)stateEstimator.absolutePosSource) + stateEstimator.absolutePosSourceLon + stateEstimator.absolutePosSourceLat + motor.pwmMaxMow 
+    + ((byte)stateEstimator.finishAndRestart) + ((byte)motor.motorMowForwardSet) + ((byte)battery.docked) + ((byte)stateEstimator.dockAfterFinish)
+    + timetable.crc() );
 }
 
 void Storage::dumpState(){
@@ -40,66 +40,66 @@ void Storage::dumpState(){
   CONSOLE.print(" wayMode=");
   CONSOLE.print(maps.wayMode);
   CONSOLE.print(" op=");
-  CONSOLE.print(stateOp);
+  CONSOLE.print(stateEstimator.stateOp);
   CONSOLE.print(" sensor=");
-  CONSOLE.print(stateSensor);
+  CONSOLE.print(stateEstimator.stateSensor);
   CONSOLE.print(" sonar.enabled=");
   CONSOLE.print(sonar.enabled);
   CONSOLE.print(" fixTimeout=");
-  CONSOLE.print(fixTimeout);
+  CONSOLE.print(stateEstimator.fixTimeout);
   CONSOLE.print(" absolutePosSource=");
-  CONSOLE.print(absolutePosSource);
+  CONSOLE.print(stateEstimator.absolutePosSource);
   CONSOLE.print(" lon=");
-  CONSOLE.print(absolutePosSourceLon);
+  CONSOLE.print(stateEstimator.absolutePosSourceLon);
   CONSOLE.print(" lat=");
-  CONSOLE.print(absolutePosSourceLat);
+  CONSOLE.print(stateEstimator.absolutePosSourceLat);
   CONSOLE.print(" pwmMaxMow=");
   CONSOLE.print(motor.pwmMaxMow);
   CONSOLE.print(" finishAndRestart=");
-  CONSOLE.print(finishAndRestart);
+  CONSOLE.print(stateEstimator.finishAndRestart);
   CONSOLE.print(" motorMowForwardSet=");
   CONSOLE.print(motor.motorMowForwardSet);  
   CONSOLE.print(" dockAfterFinish=");
-  CONSOLE.println(dockAfterFinish);
+  CONSOLE.println(stateEstimator.dockAfterFinish);
 }
 
 void updateStateOpText(){
-  switch (stateOp){
-    case OP_IDLE: stateOpText = "idle"; break;
-    case OP_MOW: stateOpText = "mow"; break;
-    case OP_CHARGE: stateOpText = "charge"; break;
+  switch (stateEstimator.stateOp){
+    case OP_IDLE: stateEstimator.stateOpText = "idle"; break;
+    case OP_MOW: stateEstimator.stateOpText = "mow"; break;
+    case OP_CHARGE: stateEstimator.stateOpText = "charge"; break;
     case OP_ERROR: 
-      stateOpText = "error (";
-      switch (stateSensor){
-        case SENS_NONE: stateOpText += "none)"; break;
-        case SENS_BAT_UNDERVOLTAGE: stateOpText += "unvervoltage)"; break;            
-        case SENS_OBSTACLE: stateOpText += "obstacle)"; break;      
-        case SENS_GPS_FIX_TIMEOUT: stateOpText += "fix timeout)"; break;
-        case SENS_IMU_TIMEOUT: stateOpText += "imu timeout)"; break;
-        case SENS_IMU_TILT: stateOpText += "imu tilt)"; break;
-        case SENS_KIDNAPPED: stateOpText += "kidnapped)"; break;
-        case SENS_OVERLOAD: stateOpText += "overload)"; break;
-        case SENS_MOTOR_ERROR: stateOpText += "motor error)"; break;
-        case SENS_GPS_INVALID: stateOpText += "gps invalid)"; break;
-        case SENS_ODOMETRY_ERROR: stateOpText += "odo error)"; break;
-        case SENS_MAP_NO_ROUTE: stateOpText += "no map route)"; break;
-        case SENS_MEM_OVERFLOW: stateOpText += "mem overflow)"; break;
-        case SENS_BUMPER: stateOpText += "bumper)"; break;
-        case SENS_SONAR: stateOpText += "sonar)"; break;
-        case SENS_LIFT: stateOpText += "lift)"; break;
-        case SENS_RAIN: stateOpText += "rain)"; break;
-        case SENS_STOP_BUTTON: stateOpText += "stop button)"; break;
-        default: stateOpText += "unknown)"; break;
+      stateEstimator.stateOpText = "error (";
+      switch (stateEstimator.stateSensor){
+        case SENS_NONE: stateEstimator.stateOpText += "none)"; break;
+        case SENS_BAT_UNDERVOLTAGE: stateEstimator.stateOpText += "unvervoltage)"; break;            
+        case SENS_OBSTACLE: stateEstimator.stateOpText += "obstacle)"; break;      
+        case SENS_GPS_FIX_TIMEOUT: stateEstimator.stateOpText += "fix timeout)"; break;
+        case SENS_IMU_TIMEOUT: stateEstimator.stateOpText += "imu timeout)"; break;
+        case SENS_IMU_TILT: stateEstimator.stateOpText += "imu tilt)"; break;
+        case SENS_KIDNAPPED: stateEstimator.stateOpText += "kidnapped)"; break;
+        case SENS_OVERLOAD: stateEstimator.stateOpText += "overload)"; break;
+        case SENS_MOTOR_ERROR: stateEstimator.stateOpText += "motor error)"; break;
+        case SENS_GPS_INVALID: stateEstimator.stateOpText += "gps invalid)"; break;
+        case SENS_ODOMETRY_ERROR: stateEstimator.stateOpText += "odo error)"; break;
+        case SENS_MAP_NO_ROUTE: stateEstimator.stateOpText += "no map route)"; break;
+        case SENS_MEM_OVERFLOW: stateEstimator.stateOpText += "mem overflow)"; break;
+        case SENS_BUMPER: stateEstimator.stateOpText += "bumper)"; break;
+        case SENS_SONAR: stateEstimator.stateOpText += "sonar)"; break;
+        case SENS_LIFT: stateEstimator.stateOpText += "lift)"; break;
+        case SENS_RAIN: stateEstimator.stateOpText += "rain)"; break;
+        case SENS_STOP_BUTTON: stateEstimator.stateOpText += "stop button)"; break;
+        default: stateEstimator.stateOpText += "unknown)"; break;
       }
       break;
-    case OP_DOCK: stateOpText = "dock"; break;
-    default: stateOpText = "unknown"; break;
+    case OP_DOCK: stateEstimator.stateOpText = "dock"; break;
+    default: stateEstimator.stateOpText = "unknown"; break;
   }
   switch (gps.solution){
-    case SOL_INVALID: gpsSolText = "invalid"; break;
-    case SOL_FLOAT: gpsSolText = "float"; break;
-    case SOL_FIXED: gpsSolText ="fixed"; break;
-    default: gpsSolText = "unknown";      
+    case SOL_INVALID: stateEstimator.gpsSolText = "invalid"; break;
+    case SOL_FLOAT: stateEstimator.gpsSolText = "float"; break;
+    case SOL_FIXED: stateEstimator.gpsSolText ="fixed"; break;
+    default: stateEstimator.gpsSolText = "unknown";      
   }
 }
 
@@ -143,19 +143,19 @@ bool Storage::loadState(){
   res &= (stateFile.read((uint8_t*)&maps.freePointsIdx, sizeof(maps.freePointsIdx)) != 0);
   res &= (stateFile.read((uint8_t*)&maps.wayMode, sizeof(maps.wayMode)) != 0);
   res &= (stateFile.read((uint8_t*)&savedOp, sizeof(savedOp)) != 0);
-  res &= (stateFile.read((uint8_t*)&stateSensor, sizeof(stateSensor)) != 0);
+  res &= (stateFile.read((uint8_t*)&stateEstimator.stateSensor, sizeof(stateEstimator.stateSensor)) != 0);
   res &= (stateFile.read((uint8_t*)&sonar.enabled, sizeof(sonar.enabled)) != 0);
-  res &= (stateFile.read((uint8_t*)&fixTimeout, sizeof(fixTimeout)) != 0);
-  res &= (stateFile.read((uint8_t*)&setSpeed, sizeof(setSpeed)) != 0);
-  res &= (stateFile.read((uint8_t*)&absolutePosSource, sizeof(absolutePosSource)) != 0);
-  res &= (stateFile.read((uint8_t*)&absolutePosSourceLon, sizeof(absolutePosSourceLon)) != 0);
-  res &= (stateFile.read((uint8_t*)&absolutePosSourceLat, sizeof(absolutePosSourceLat)) != 0);
+  res &= (stateFile.read((uint8_t*)&stateEstimator.fixTimeout, sizeof(stateEstimator.fixTimeout)) != 0);
+  res &= (stateFile.read((uint8_t*)&stateEstimator.setSpeed, sizeof(stateEstimator.setSpeed)) != 0);
+  res &= (stateFile.read((uint8_t*)&stateEstimator.absolutePosSource, sizeof(stateEstimator.absolutePosSource)) != 0);
+  res &= (stateFile.read((uint8_t*)&stateEstimator.absolutePosSourceLon, sizeof(stateEstimator.absolutePosSourceLon)) != 0);
+  res &= (stateFile.read((uint8_t*)&stateEstimator.absolutePosSourceLat, sizeof(stateEstimator.absolutePosSourceLat)) != 0);
   res &= (stateFile.read((uint8_t*)&motor.pwmMaxMow, sizeof(motor.pwmMaxMow)) != 0);
-  res &= (stateFile.read((uint8_t*)&finishAndRestart, sizeof(finishAndRestart)) != 0); 
+  res &= (stateFile.read((uint8_t*)&stateEstimator.finishAndRestart, sizeof(stateEstimator.finishAndRestart)) != 0); 
   res &= (stateFile.read((uint8_t*)&motor.motorMowForwardSet, sizeof(motor.motorMowForwardSet)) != 0); 
   res &= (stateFile.read((uint8_t*)&timetable.timetable, sizeof(timetable.timetable)) != 0);
   res &= (stateFile.read((uint8_t*)&battery.docked, sizeof(battery.docked)) != 0);  
-  res &= (stateFile.read((uint8_t*)&dockAfterFinish, sizeof(dockAfterFinish)) != 0);
+  res &= (stateFile.read((uint8_t*)&stateEstimator.dockAfterFinish, sizeof(stateEstimator.dockAfterFinish)) != 0);
   stateFile.close();  
   CONSOLE.println("ok");
   stateCRC = calcStateCRC();
@@ -163,8 +163,8 @@ bool Storage::loadState(){
   timetable.dump();
   if (getResetCause() == RST_WATCHDOG){
     CONSOLE.println("resuming operation due to watchdog trigger");
-    stateOp = savedOp;
-    setOperation(stateOp, true);
+    stateEstimator.stateOp = savedOp;
+    setOperation(stateEstimator.stateOp, true);
   }
 #endif
   return true;
@@ -199,20 +199,20 @@ bool Storage::saveState(){
   res &= (stateFile.write((uint8_t*)&maps.dockPointsIdx, sizeof(maps.dockPointsIdx)) != 0);
   res &= (stateFile.write((uint8_t*)&maps.freePointsIdx, sizeof(maps.freePointsIdx)) != 0);
   res &= (stateFile.write((uint8_t*)&maps.wayMode, sizeof(maps.wayMode)) != 0);
-  res &= (stateFile.write((uint8_t*)&stateOp, sizeof(stateOp)) != 0);
-  res &= (stateFile.write((uint8_t*)&stateSensor, sizeof(stateSensor)) != 0);
+  res &= (stateFile.write((uint8_t*)&stateEstimator.stateOp, sizeof(stateEstimator.stateOp)) != 0);
+  res &= (stateFile.write((uint8_t*)&stateEstimator.stateSensor, sizeof(stateEstimator.stateSensor)) != 0);
   res &= (stateFile.write((uint8_t*)&sonar.enabled, sizeof(sonar.enabled)) != 0);
-  res &= (stateFile.write((uint8_t*)&fixTimeout, sizeof(fixTimeout)) != 0);
-  res &= (stateFile.write((uint8_t*)&setSpeed, sizeof(setSpeed)) != 0);
-  res &= (stateFile.write((uint8_t*)&absolutePosSource, sizeof(absolutePosSource)) != 0);
-  res &= (stateFile.write((uint8_t*)&absolutePosSourceLon, sizeof(absolutePosSourceLon)) != 0);
-  res &= (stateFile.write((uint8_t*)&absolutePosSourceLat, sizeof(absolutePosSourceLat)) != 0);
+  res &= (stateFile.write((uint8_t*)&stateEstimator.fixTimeout, sizeof(stateEstimator.fixTimeout)) != 0);
+  res &= (stateFile.write((uint8_t*)&stateEstimator.setSpeed, sizeof(stateEstimator.setSpeed)) != 0);
+  res &= (stateFile.write((uint8_t*)&stateEstimator.absolutePosSource, sizeof(stateEstimator.absolutePosSource)) != 0);
+  res &= (stateFile.write((uint8_t*)&stateEstimator.absolutePosSourceLon, sizeof(stateEstimator.absolutePosSourceLon)) != 0);
+  res &= (stateFile.write((uint8_t*)&stateEstimator.absolutePosSourceLat, sizeof(stateEstimator.absolutePosSourceLat)) != 0);
   res &= (stateFile.write((uint8_t*)&motor.pwmMaxMow, sizeof(motor.pwmMaxMow)) != 0);  
-  res &= (stateFile.write((uint8_t*)&finishAndRestart, sizeof(finishAndRestart)) != 0);  
+  res &= (stateFile.write((uint8_t*)&stateEstimator.finishAndRestart, sizeof(stateEstimator.finishAndRestart)) != 0);  
   res &= (stateFile.write((uint8_t*)&motor.motorMowForwardSet, sizeof(motor.motorMowForwardSet)) != 0);
   res &= (stateFile.write((uint8_t*)&timetable.timetable, sizeof(timetable.timetable)) != 0);  
   res &= (stateFile.write((uint8_t*)&battery.docked, sizeof(battery.docked)) != 0);
-  res &= (stateFile.write((uint8_t*)&dockAfterFinish, sizeof(dockAfterFinish)) != 0);  
+  res &= (stateFile.write((uint8_t*)&stateEstimator.dockAfterFinish, sizeof(stateEstimator.dockAfterFinish)) != 0);  
   if (res){
     CONSOLE.println("ok");
   } else {
@@ -223,4 +223,3 @@ bool Storage::saveState(){
 #endif
   return res; 
 }
-

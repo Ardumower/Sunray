@@ -107,10 +107,10 @@ void ChargeOp::run(){
                 CONSOLE.print(timetable.mowingCompletedInCurrentTimeFrame);
                 CONSOLE.print(", timetable.mowingAllowed=");                
                 CONSOLE.print(timetable.mowingAllowed());
-                CONSOLE.print(", finishAndRestart=");                
-                CONSOLE.print(finishAndRestart);                
+                CONSOLE.print(", finishAndRestart=");
+                CONSOLE.print(stateEstimator.finishAndRestart);                
                 CONSOLE.print(", dockAfterFinish=");
-                CONSOLE.print(dockAfterFinish);
+                CONSOLE.print(stateEstimator.dockAfterFinish);
                 CONSOLE.println(")");
             }
             if (timetable.shouldAutostartNow()){
@@ -167,7 +167,7 @@ void ChargeOp::onChargerConnected(){
 }
 
 void ChargeOp::onBatteryUndervoltage(){    
-    stateSensor = SENS_BAT_UNDERVOLTAGE;
+    stateEstimator.stateSensor = SENS_BAT_UNDERVOLTAGE;
 }
 
 void ChargeOp::onRainTriggered(){

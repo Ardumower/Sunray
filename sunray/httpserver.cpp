@@ -32,7 +32,7 @@ HttpServer::HttpServer()
 // a relay server allows to access the robot via the Internet by transferring data from app to robot and vice versa
 // client (app) --->  relay server  <--- client (robot)
 void HttpServer::processWifiRelayClient(){
-  if (!wifiFound) return;
+  if (!stateEstimator.wifiFound) return;
   if (!ENABLE_RELAY) return;
   if (!wifiClient.connected() || (wifiClient.available() == 0)){
     if (millis() > nextWifiClientCheckTime){   
@@ -102,7 +102,7 @@ void HttpServer::processWifiRelayClient(){
 // client (app) --->  server (robot)
 void HttpServer::processWifiAppServer()
 {
-  if (!wifiFound) return;
+  if (!stateEstimator.wifiFound) return;
   if (!ENABLE_SERVER) return;
   if (wifiLastClientAvailableWait != 0){
     if (millis() < wifiLastClientAvailableWait) return;
@@ -200,7 +200,7 @@ void HttpServer::processWifiAppServer()
 // process WIFI input (WebSocket robot gateway client)
 // robot (this) ---> WebSocket server (cloud backend)
 void HttpServer::processWifiWSClient() {
-  if (!wifiFound) return;
+  if (!stateEstimator.wifiFound) return;
   if (!ENABLE_WS_CLIENT) return;
 
   // Maintain connection

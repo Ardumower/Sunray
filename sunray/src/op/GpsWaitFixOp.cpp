@@ -16,7 +16,7 @@ String GpsWaitFixOp::name(){
 void GpsWaitFixOp::begin(){
     CONSOLE.println("WARN: no gps solution!");
     Logger.event(EVT_GPS_BAD);
-    stateSensor = SENS_GPS_INVALID;
+    stateEstimator.stateSensor = SENS_GPS_INVALID;
     //setOperation(OP_ERROR);
     //buzzer.sound(SND_STUCK, true);          
     
@@ -37,5 +37,4 @@ void GpsWaitFixOp::run(){
         changeOp(*nextOp);
     }     
 }
-
 

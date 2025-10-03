@@ -26,7 +26,7 @@ void LineTracker::trackLine(bool runControl){
   Point lastTarget = maps.lastTargetPoint;
   float linear = 1.0;  
   bool mow = true;
-  if (stateOp == OP_DOCK) mow = false;
+  if (stateEstimator.stateOp == OP_DOCK) mow = false;
   float angular = 0;      
   float targetDelta = pointsAngle(stateEstimator.stateX, stateEstimator.stateY, target.x(), target.y());      
   if (maps.trackReverse) targetDelta = scalePI(targetDelta + PI);  
@@ -118,8 +118,8 @@ void LineTracker::trackLine(bool runControl){
     if (maps.trackSlow && trackslow_allowed) {
       // planner forces slow tracking (e.g. docking etc)
       linear = DOCK_LINEAR_SPEED; // 0.1           
-    } else if (     ((setSpeed > 0.2) && (maps.distanceToTargetPoint(stateEstimator.stateX, stateEstimator.stateY) < 0.5) && (!straight))   // approaching
-          || ((linearMotionStartTime != 0) && (millis() < linearMotionStartTime + 3000))                      // leaving  
+    } else if (     ((stateEstimator.setSpeed > 0.2) && (maps.distanceToTargetPoint(stateEstimator.stateX, stateEstimator.stateY) < 0.5) && (!straight))   // approaching
+          || ((stateEstimator.linearMotionStartTime != 0) && (millis() < stateEstimator.linearMotionStartTime + 3000))                      // leaving  
        ) 
     {
       linear = 0.1; // reduce speed when approaching/leaving waypoints          
@@ -127,10 +127,10 @@ void LineTracker::trackLine(bool runControl){
     } 
     else {
       if ((stateEstimator.stateLocalizationMode == LOC_GPS) && (gps.solution == SOL_FLOAT)){        
-        linear = min(setSpeed, 0.1); // reduce speed for float solution
+        linear = min(stateEstimator.setSpeed, 0.1); // reduce speed for float solution
         //CONSOLE.println("SLOW: float");
       } else
-        linear = setSpeed;         // desired speed
+        linear = stateEstimator.setSpeed;         // desired speed
       if (bumperDriver.nearObstacle()){
         linear = 0.1;  // slow down near obstacles 
         //CONSOLE.println("SLOW: BUMPER");      
@@ -180,8 +180,8 @@ void LineTracker::trackLine(bool runControl){
     //if (!SMOOTH_CURVES) angular = max(-PI/16, min(PI/16, angular)); 
   }
   // check some pre-conditions that can make linear+angular speed zero
-  if ((stateEstimator.stateLocalizationMode == LOC_GPS) && (fixTimeout != 0)){
-    if (millis() > lastFixTime + fixTimeout * 1000.0){
+  if ((stateEstimator.stateLocalizationMode == LOC_GPS) && (stateEstimator.fixTimeout != 0)){
+    if (millis() > stateEstimator.lastFixTime + stateEstimator.fixTimeout * 1000.0){
       activeOp->onGpsFixTimeout();        
     }           
   }     
@@ -189,7 +189,7 @@ void LineTracker::trackLine(bool runControl){
   if (stateEstimator.stateLocalizationMode == LOC_GPS){
     if  ((gps.solution == SOL_FIXED) || (gps.solution == SOL_FLOAT)){        
       if (abs(linear) > 0.06) {
-        if ((millis() > linearMotionStartTime + 5000) && (stateEstimator.stateGroundSpeed < 0.03)){
+        if ((millis() > stateEstimator.linearMotionStartTime + 5000) && (stateEstimator.stateGroundSpeed < 0.03)){
           // if in linear motion and not enough ground speed => obstacle
           //if ( (GPS_SPEED_DETECTION) && (!maps.isUndocking()) ) { 
           if (GPS_SPEED_DETECTION) {         

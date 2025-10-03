@@ -16,7 +16,7 @@ String KidnapWaitOp::name(){
 
 void KidnapWaitOp::begin(){    
   Logger.event(EVT_GPS_JUMP);
-  stateSensor = SENS_KIDNAPPED;
+  stateEstimator.stateSensor = SENS_KIDNAPPED;
   recoverGpsTime = millis() + 30000;
   recoverGpsCounter = 0;
 }
@@ -33,7 +33,7 @@ void KidnapWaitOp::onKidnapped(bool state){
 
 void KidnapWaitOp::onGpsNoSignal(){
     if (!maps.isUndocking()){
-        stateSensor = SENS_GPS_INVALID;
+        stateEstimator.stateSensor = SENS_GPS_INVALID;
         changeOp(gpsWaitFloatOp, true);
     }
 }
@@ -49,7 +49,7 @@ void KidnapWaitOp::run(){
     recoverGpsCounter++;
     if (recoverGpsCounter == 3){          
       CONSOLE.println("error: kidnapped!");
-      stateSensor = SENS_KIDNAPPED;
+      stateEstimator.stateSensor = SENS_KIDNAPPED;
       changeOp(errorOp);
       return;
     }   
@@ -58,4 +58,3 @@ void KidnapWaitOp::run(){
     }
   }
 }
-

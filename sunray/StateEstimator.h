@@ -9,6 +9,7 @@
 
 
 #include <Arduino.h>
+#include "types.h"
 
 // localization modes
 enum LocalizationMode {
@@ -59,6 +60,28 @@ public:
 
   bool imuIsCalibrating = false;
   float lastIMUYaw = 0;
+  bool absolutePosSource = false;
+  double absolutePosSourceLon = 0;
+  double absolutePosSourceLat = 0;
+  // moved from robot.h
+  OperationType stateOp = OP_IDLE; // operation
+  Sensor stateSensor = SENS_NONE;  // last triggered sensor
+  String stateOpText = "";  // current operation as text
+  String gpsSolText = "";   // current gps solution as text
+  int stateButton = 0;       // button state
+  float stateTemp = 20;      // current temperature
+  float setSpeed = 0.1f;     // linear speed (m/s)
+  int fixTimeout = 0;
+  bool finishAndRestart = false; // auto-restart when mowing finished?
+  bool dockAfterFinish = true;   // dock after mowing finished?
+  unsigned long linearMotionStartTime = 0;
+  unsigned long angularMotionStartTime = 0;
+  bool stateInMotionLP = false; // motion LP filter flag
+  unsigned long lastFixTime = 0;
+  // system-level status moved from robot.h
+  unsigned long controlLoops = 0;
+  bool wifiFound = false;
+  int motorErrorCounter = 0;
   unsigned long imuDataTimeout = 0;
 
   // API
@@ -88,8 +111,6 @@ private:
   void dumpImuTilt();
 };
 
-// Instance declared in robot.h
-extern StateEstimator stateEstimator;
 
 
 #endif

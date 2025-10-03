@@ -15,7 +15,7 @@
 void Stats::calc(){
   if (millis() >= nextStatTime){
     nextStatTime = millis() + 1000;
-    switch (stateOp){
+    switch (stateEstimator.stateOp){
       case OP_IDLE:
         statIdleDuration++;
         break;
@@ -38,4 +38,3 @@ void Stats::calc(){
     }     
   }   
 }
-
