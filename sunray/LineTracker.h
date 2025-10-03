@@ -35,7 +35,6 @@ private:
   float lastLineDist = 0;
 };
 
-extern LineTracker lineTracker;
 
 
 #endif
