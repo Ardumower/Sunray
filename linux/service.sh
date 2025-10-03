@@ -8,11 +8,31 @@ echo "PWD=$PWD"
 
 KERNEL="$(uname -sr)"
 CPU="$(uname -m)"
-DISTRI="$(source /etc/os-release && echo "$PRETTY_NAME")"
+DISTRI="$(source /etc/os-release && echo "$ID")"
 
+echo "CPU=$CPU  DISTRI=$DISTRI  KERNEL=$KERNEL"
+ 
+cpu_ok=false
+case "$CPU" in
+  x86_64|amd64)          cpu_ok=true ;;   # Intel/AMD 64-bit
+  aarch64|arm64)         cpu_ok=true ;;   # ARM 64-bit
+esac
+if ! $cpu_ok; then
+  echo "WARNING: probably unsupported CPU: $CPU (expected: x86_64/amd64, aarch64/arm64)"
+fi
 
-echo "KERNEL=$KERNEL  CPU=$CPU   DISTRI=$DISTRI"
+distri_ok=false
+case "$DISTRI" in
+  ubuntu)            distri_ok=true ;;   
+  debian)            distri_ok=true ;;   
+  raspbian)          distri_ok=true ;;   
+esac
+if ! $distri_ok; then
+  echo "WARNING: probably unsupported distribution: $DISTRI (expected: ubuntu, debian, raspbian)"
+fi
+
 echo
+
 
 CMD=""
 
