@@ -16,12 +16,6 @@
 #include "LineTracker.h"
 #include "comm.h"
 #include "src/op/op.h"
-#ifdef __linux__
-  #include <BridgeClient.h>
-#else
-  #include "src/esp/WiFiEsp.h"
-#endif
-#include "PubSubClient.h"
 #include "RunningMedian.h"
 #include "pinman.h"
 #include "ble.h"
@@ -132,6 +126,7 @@ Bumper bumper;
 VL53L0X tof(VL53L0X_ADDRESS_DEFAULT);
 Map maps;
 Comm comm;
+MqttService mqttService;
 HttpServer httpServer;
 StateEstimator stateEstimator;
 LineTracker lineTracker;
@@ -140,7 +135,6 @@ Storage storage;
 RCModel rcmodel;
 TimeTable timetable;
 
-int& stateButton = stateEstimator.stateButton;  
 int stateButtonTemp = 0;
 unsigned long stateButtonTimeout = 0;
 
@@ -148,20 +142,14 @@ unsigned long stateButtonTimeout = 0;
 //float stateHumidity = 0; // percent
 unsigned long stateInMotionLastTime = 0;
 bool stateChargerConnected = false;
-bool& stateInMotionLP = stateEstimator.stateInMotionLP; // robot is in angular or linear motion? (with motion low-pass filtering)
 float lastGPSMotionX = 0;
 float lastGPSMotionY = 0;
 unsigned long nextGPSMotionCheckTime = 0;
 
-bool& finishAndRestart = stateEstimator.finishAndRestart;
-bool& dockAfterFinish = stateEstimator.dockAfterFinish;
 bool testRelais = false;
-float& setSpeed = stateEstimator.setSpeed; // default linear speed (m/s)
 
 unsigned long nextBadChargingContactCheck = 0;
 unsigned long nextToFTime = 0;
-unsigned long& linearMotionStartTime = stateEstimator.linearMotionStartTime;
-unsigned long& angularMotionStartTime = stateEstimator.angularMotionStartTime;
 unsigned long overallMotionTimeout = 0;
 unsigned long nextControlTime = 0;
 unsigned long lastComputeTime = 0;
@@ -185,14 +173,9 @@ String psOutput = "";
 unsigned long wdResetTimer = millis();
 //##################################################################################
 
-bool & wifiFound = stateEstimator.wifiFound;
 char ssid[] = WIFI_SSID;      // your network SSID (name)
 char pass[] = WIFI_PASS;        // your network password
-WiFiEspServer server(80);
 bool hasClient = false;
-WiFiEspClient client;
-WiFiEspClient espClient;
-PubSubClient mqttClient(espClient);
 //int status = WL_IDLE_STATUS;     // the Wifi radio's status
 #ifdef ENABLE_NTRIP
   NTRIPClient ntrip;  // NTRIP tcp client (optional)
@@ -200,8 +183,6 @@ PubSubClient mqttClient(espClient);
 #ifdef GPS_USE_TCP
   WiFiClient gpsClient; // GPS tcp client (optional)  
 #endif
-
-int & motorErrorCounter = stateEstimator.motorErrorCounter;
 
 
 RunningMedian<unsigned int,3> tofMeasurements;
@@ -213,13 +194,13 @@ void watchdogSetup (void){}
 
 // reset linear motion measurement
 void resetLinearMotionMeasurement(){
-  linearMotionStartTime = millis();  
+  stateEstimator.linearMotionStartTime = millis();  
   //stateEstimator.stateGroundSpeed = 1.0;
 }
 
 // reset angular motion measurement
 void resetAngularMotionMeasurement(){
-  angularMotionStartTime = millis();
+  stateEstimator.angularMotionStartTime = millis();
 }
 
 // reset overall motion timeout
@@ -306,7 +287,7 @@ void sensorTest(){
 void startWIFI(){
 #ifdef __linux__
   WiFi.begin();
-  wifiFound = true;
+  stateEstimator.wifiFound = true;
 #else  
   CONSOLE.println("probing for ESP8266 (NOTE: will fail for ESP32)...");
   int status = WL_IDLE_STATUS;     // the Wifi radio's status
@@ -327,7 +308,7 @@ void startWIFI(){
     CONSOLE.println("ERROR: WiFi not present");       
     return;
   }   
-  wifiFound = true;
+  stateEstimator.wifiFound = true;
   CONSOLE.print("WiFi found! ESP8266 firmware: ");
   CONSOLE.println(WiFi.firmwareVersion());       
   if (START_AP){
@@ -361,13 +342,11 @@ void startWIFI(){
     udpSerial.beginUDP();  
   #endif    
   if (ENABLE_SERVER){
-    //server.listenOnLocalhost();
-    server.begin();
+    httpServer.begin();
   }
   if (ENABLE_MQTT){
     CONSOLE.println("MQTT: enabled");
-    mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
-    mqttClient.setCallback(mqttCallback);
+    mqttService.begin();
   }  
 }
 
@@ -733,12 +712,12 @@ bool robotShouldRotate(){
 bool robotShouldBeInMotion(){  
   if (robotShouldMove() || (robotShouldRotate())) {
     stateInMotionLastTime = millis();
-    stateInMotionLP = true;    
+    stateEstimator.stateInMotionLP = true;    
   }
   if (millis() > stateInMotionLastTime + 2000) {
-    stateInMotionLP = false;
+    stateEstimator.stateInMotionLP = false;
   }
-  return stateInMotionLP;
+  return stateEstimator.stateInMotionLP;
 }
 
 
@@ -815,7 +794,7 @@ bool detectObstacle(){
   
   #ifdef ENABLE_LIFT_DETECTION
     #ifdef LIFT_OBSTACLE_AVOIDANCE    
-      if ( millis() > linearMotionStartTime + BUMPER_DEADTIME) { 
+      if ( millis() > stateEstimator.linearMotionStartTime + BUMPER_DEADTIME) { 
         bool liftTriggered = liftDriver.triggered();  
         if (LIFT_INVERT) liftTriggered = !liftTriggered; 
         if (liftTriggered)  {
@@ -830,7 +809,7 @@ bool detectObstacle(){
     #endif
   #endif
 
-  if ( (millis() > linearMotionStartTime + BUMPER_DEADTIME) && (bumper.obstacle()) ){  
+  if ( (millis() > stateEstimator.linearMotionStartTime + BUMPER_DEADTIME) && (bumper.obstacle()) ){  
     CONSOLE.println("bumper obstacle!");    
     Logger.event(EVT_BUMPER_OBSTACLE);
     stats.statMowBumperCounter++;
@@ -838,7 +817,7 @@ bool detectObstacle(){
     return true;
   }
 
-  if ( (millis() > linearMotionStartTime + LIDAR_BUMPER_DEADTIME) && (lidarBumper.obstacle()) ){  
+  if ( (millis() > stateEstimator.linearMotionStartTime + LIDAR_BUMPER_DEADTIME) && (lidarBumper.obstacle()) ){  
     CONSOLE.println("LiDAR bumper obstacle!");    
     Logger.event(EVT_LIDAR_BUMPER_OBSTACLE);
     stats.statMowBumperCounter++;
@@ -891,7 +870,7 @@ bool detectObstacleRotation(){
     return false;
   }  
   if (!OBSTACLE_DETECTION_ROTATION) return false; 
-  if (millis() > angularMotionStartTime + 15000) { // too long rotation time (timeout), e.g. due to obstacle
+  if (millis() > stateEstimator.angularMotionStartTime + 15000) { // too long rotation time (timeout), e.g. due to obstacle
     CONSOLE.println("too long rotation time (timeout) for requested rotation => assuming obstacle");
     Logger.event(EVT_ANGULAR_MOTION_TIMEOUT_OBSTACLE);
     stats.statMowRotationTimeoutCounter++;
@@ -899,7 +878,7 @@ bool detectObstacleRotation(){
     return true;
   }
   /*if (BUMPER_ENABLE){
-    if (millis() > angularMotionStartTime + 500) { // FIXME: do we actually need a deadtime here for the freewheel sensor?        
+    if (millis() > stateEstimator.angularMotionStartTime + 500) { // FIXME: do we actually need a deadtime here for the freewheel sensor?        
       if (bumper.obstacle()){  
         CONSOLE.println("bumper obstacle!");    
         stats.statMowBumperCounter++;
@@ -909,7 +888,7 @@ bool detectObstacleRotation(){
     }
   }*/
   if (imuDriver.imuFound){
-    if (millis() > angularMotionStartTime + 3000) {                  
+    if (millis() > stateEstimator.angularMotionStartTime + 3000) {                  
       if (fabs(stateEstimator.stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s yaw speed, e.g. due to obstacle
         CONSOLE.println("no IMU rotation speed detected for requested rotation => assuming obstacle");    
         stats.statMowImuNoRotationSpeedCounter++;

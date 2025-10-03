@@ -21,11 +21,17 @@
 
 HttpServer::HttpServer()
   : buf(8),
+    server(80),
     wsClient(wsTcp,
              WS_HOST,
              WS_PORT,
              String("/ws/robot?robot_id=") + String(WS_ROBOT_ID) + String("&secret=") + String(WS_ROBOT_SECRET) + String("&proto=at"))
 {}
+
+void HttpServer::begin(){
+  //server.listenOnLocalhost(); // optional
+  server.begin();
+}
 
 
 // process WIFI input (relay client)

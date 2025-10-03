@@ -8,15 +8,21 @@
 #include "reset.h"
 #include "timetable.h"
 
-// mqtt
-#define MSG_BUFFER_SIZE	(50)
-char mqttMsg[MSG_BUFFER_SIZE];
-unsigned long nextMQTTPublishTime = 0;
-unsigned long nextMQTTLoopTime = 0;
+WiFiEspClient espClient;
+PubSubClient mqttClient(espClient);
 
 
+void mqttCallback(char* topic, byte* payload, unsigned int length){ 
+  mqttService.callback(topic, payload, length); 
+}
 
-void mqttReconnect() {
+
+void MqttService::begin() {
+  mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+  mqttClient.setCallback(mqttCallback);
+}
+
+void MqttService::reconnect() {
   // Loop until we're reconnected
   if (!mqttClient.connected()) {
     CONSOLE.println("MQTT: Attempting connection...");
@@ -42,7 +48,7 @@ void mqttReconnect() {
 }
 
 
-void mqttCallback(char* topic, byte* payload, unsigned int length) {
+void MqttService::callback(char* topic, uint8_t* payload, unsigned int length) {
   CONSOLE.print("MQTT: Message arrived [");
   CONSOLE.print(topic);
   CONSOLE.print("] ");
@@ -67,7 +73,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
 
 // process MQTT input/output (subcriber/publisher)
-void processWifiMqttClient()
+void MqttService::process()
 {
   if (!ENABLE_MQTT) return; 
   if (millis() >= nextMQTTPublishTime){
@@ -131,7 +137,7 @@ void processWifiMqttClient()
       MQTT_PUBLISH(stateEstimator.stateTemp, "%.1f", "/stats/curTemp")
 
     } else {
-      mqttReconnect();  
+      reconnect();  
     }
   }
   if (millis() > nextMQTTLoopTime){
@@ -139,3 +145,6 @@ void processWifiMqttClient()
     mqttClient.loop();
   }
 }
+
+
+

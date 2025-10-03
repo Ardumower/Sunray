@@ -9,18 +9,22 @@
 #define HTTPSERVER_H
 
 #include <Arduino.h>
+#include "config.h"
+
 #ifdef __linux__
   #include <BridgeClient.h>
-  #include <WiFi.h>
 #else
   #include "src/esp/WiFiEsp.h"
 #endif
+
 #include "RingBuffer.h"
 #include "src/net/WebSocketClient.h"
+
 
 class HttpServer {
 public:
   HttpServer();
+  void begin();
   void processWifiRelayClient();
   void processWifiAppServer();
   void processWifiWSClient();
@@ -28,6 +32,8 @@ public:
 private:
   // wifi client
   WiFiEspClient wifiClient;
+  WiFiEspClient client;
+  WiFiEspServer server;
   unsigned long nextWifiClientCheckTime = 0;
 
   // ring buffer to increase speed and reduce memory allocation

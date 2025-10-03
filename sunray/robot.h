@@ -27,6 +27,7 @@
 #include "VL53L0X.h"
 #include "map.h"   
 #include "comm.h"
+#include "mqtt.h"
 #include "httpserver.h"
 #include "StateEstimator.h"
 #include "Stats.h"
@@ -57,11 +58,8 @@
 // moved into StateEstimator
 
 extern WiFiEspClient client;
-extern WiFiEspServer server;
 extern PubSubClient mqttClient;
 extern bool hasClient;
-
-// moved into StateEstimator
 
 
 #ifdef DRV_SERIAL_ROBOT
@@ -130,6 +128,7 @@ extern VL53L0X tof;
 extern PinManager pinMan;
 extern Map maps;
 extern Comm comm;
+extern MqttService mqttService;
 extern HttpServer httpServer;
 extern StateEstimator stateEstimator;
 extern Stats stats;

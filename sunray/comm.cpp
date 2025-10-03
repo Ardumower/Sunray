@@ -1002,7 +1002,7 @@ void Comm::processComm(){
     httpServer.processWifiAppServer();
     httpServer.processWifiRelayClient();
     httpServer.processWifiWSClient();
-    processWifiMqttClient();
+    mqttService.process();
   }
   if (triggerWatchdog) {
     CONSOLE.println("hang test - watchdog should trigger and perform a reset");
