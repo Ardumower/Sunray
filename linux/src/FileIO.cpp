@@ -57,7 +57,8 @@ File::File(const char *_filename, const char * _mode){
   //if(S_ISREG(_st.st_mode)){
     //::printf("regular file...\n");
   _file = fopen(_filename, _mode);
-  ::printf("_fopen=%d\n", _file);
+  int fd = (_file != NULL) ? fileno(_file) : -1;
+  ::printf("_fopen fd=%d\n", fd);
   //} else {
   //  ::printf("folder...\n");
   //  _dir = opendir(_filename);

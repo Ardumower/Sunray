@@ -1,6 +1,7 @@
 #include "ICM_20948_C.h"
 #include "ICM_20948_REGISTERS.h"
 #include "AK09916_REGISTERS.h"
+#include <string.h>
 
 /*
  * Icm20948 device require a DMP image to be loaded on init
@@ -1406,9 +1407,9 @@ ICM_20948_Status_e inv_icm20948_firmware_load(ICM_20948_Device_t *pdev, const un
       flag++;                               // Error, DMP not written correctly
 #ifdef ICM_20948_USE_PROGMEM_FOR_DMP
     memcpy_P(data_not_pg, data, write_size);  // Suggested by @HyperKokichi in Issue #63
-    if (memcmp(data_cmp, data_not_pg, write_size))
+    if (memcmp(data_cmp, data_not_pg, (size_t)write_size))
 #else
-    if (memcmp(data_cmp, data, write_size)) // Compare the data
+    if (memcmp(data_cmp, data, (size_t)write_size)) // Compare the data
 #endif
       return ICM_20948_Stat_DMPVerifyFail;
     data += write_size;
@@ -2628,5 +2629,4 @@ ICM_20948_Status_e inv_icm20948_set_gyro_sf(ICM_20948_Device_t *pdev, unsigned c
 
   return result;
 }
-
 

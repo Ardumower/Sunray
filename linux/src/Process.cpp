@@ -204,7 +204,7 @@ void Process::runAsynchronously(){
     exec_result = -5;
     return;
   }
-  pthread_setname_np(thread, "arduino-shell");
+  thread_set_name(thread, "arduino-shell");
   pthread_detach(thread);
 }
 

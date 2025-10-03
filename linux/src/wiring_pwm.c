@@ -119,8 +119,15 @@ void analogWrite(uint8_t pwm, uint16_t val){
       perror("error opening period");
       return;  
   }
-  snprintf(buf, 8, "%d", period);
-  ret = write(pwmfd, buf, 8);
+  {
+    int len = snprintf(buf, sizeof(buf), "%d", period);
+    if (len < 0 || len >= (int)sizeof(buf)) {
+      perror("failed to format period");
+      close(pwmfd);
+      return;
+    }
+    ret = write(pwmfd, buf, len);
+  }
   if (ret < 0){  
     perror("failed to set period");
     close(pwmfd);
@@ -134,8 +141,15 @@ void analogWrite(uint8_t pwm, uint16_t val){
     perror("error opening duty_cycle");
     return;
   }
-  snprintf(buf, 8, "%d", duty);
-  ret = write(pwmfd, buf, 8);
+  {
+    int len = snprintf(buf, sizeof(buf), "%d", duty);
+    if (len < 0 || len >= (int)sizeof(buf)) {
+      perror("failed to format duty_cycle");
+      close(pwmfd);
+      return;
+    }
+    ret = write(pwmfd, buf, len);
+  }
   if(ret < 0) {
       perror("failed to set duty_cylce");
       close(pwmfd);
@@ -149,8 +163,15 @@ void analogWrite(uint8_t pwm, uint16_t val){
     perror("error opening enable");
     return;
   }
-  snprintf(buf, 2, "%d", 1);
-  ret = write(pwmfd, buf, 1);
+  {
+    int len = snprintf(buf, sizeof(buf), "%d", 1);
+    if (len < 0 || len >= (int)sizeof(buf)) {
+      perror("failed to format enable");
+      close(pwmfd);
+      return;
+    }
+    ret = write(pwmfd, buf, len);
+  }
   if(ret < 0) {
       perror("failed to set enable");
       close(pwmfd);
@@ -159,7 +180,6 @@ void analogWrite(uint8_t pwm, uint16_t val){
   close(pwmfd);  	  
 
 }
-
 
 
 

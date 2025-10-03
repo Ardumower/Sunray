@@ -17,8 +17,12 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "Arduino.h"
+// Ensure GNU extensions (pthread_*_np) are declared
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #include <pthread.h>
+#include "Arduino.h"
 #include <sched.h>
 #include <errno.h>
 

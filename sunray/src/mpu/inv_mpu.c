@@ -24,6 +24,7 @@
 #include <math.h>
 #include "inv_mpu.h"
 #include "../../config.h"
+#include "arduino_mpu9250_log.h"
 
 /* The following functions must be defined for this platform:
  * i2c_write(unsigned char slave_addr, unsigned char reg_addr,
@@ -45,8 +46,8 @@
 #define i2c_read(a, b, c, d)  arduino_i2c_read(a, b, c, d)
 #define delay_ms  arduino_delay_ms
 #define get_ms    arduino_get_clock_ms
-#define log_i     _MLPrintLog
-#define log_e     _MLPrintLog 
+#define log_i(...) _MLPrintLog(MPL_LOG_INFO,  "INV", __VA_ARGS__)
+#define log_e(...) _MLPrintLog(MPL_LOG_ERROR, "INV", __VA_ARGS__)
 static inline int reg_int_cb(struct int_param_s *int_param)
 {
   return 0;
@@ -3220,4 +3221,3 @@ lp_int_restore:
 /**
  *  @}
  */
-

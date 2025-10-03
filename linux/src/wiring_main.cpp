@@ -133,7 +133,7 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused))){
     }
     if(pthread_create(&_loop_thread, attrp, _loop_thread_task, NULL) == 0){
         if (attrp != NULL) pthread_attr_destroy(attrp);
-        pthread_setname_np(_loop_thread, "arduino-loop");
+        thread_set_name(_loop_thread, "arduino-loop");
         pthread_detach(_loop_thread);
     }
     usleep(1000);
@@ -147,4 +147,3 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused))){
     return 0;
 }
 #endif  // NO_MAIN
-
