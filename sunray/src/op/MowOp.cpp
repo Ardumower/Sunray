@@ -89,7 +89,7 @@ void MowOp::run(){
         detectObstacleRotation();                              
     }        
     // line tracking
-    trackLine(true); 
+    lineTracker.trackLine(true); 
     detectSensorMalfunction();    
     battery.resetIdle();
     

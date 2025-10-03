@@ -134,6 +134,7 @@ Map maps;
 Comm comm;
 HttpServer httpServer;
 StateEstimator stateEstimator;
+LineTracker lineTracker;
 Stats stats;
 RCModel rcmodel;
 TimeTable timetable;
@@ -166,6 +167,7 @@ unsigned long nextGPSMotionCheckTime = 0;
 bool finishAndRestart = false;
 bool dockAfterFinish = true;
 bool testRelais = false;
+float setSpeed = 0.1; // default linear speed (m/s)
 
 unsigned long nextBadChargingContactCheck = 0;
 unsigned long nextToFTime = 0;

@@ -63,16 +63,16 @@ void Comm::cmdTuneParam(){
           CONSOLE.println(floatValue);    
           switch (paramIdx){
             case 0: 
-              stanleyTrackingNormalP = floatValue;
+              lineTracker.stanleyTrackingNormalP = floatValue;
               break;
             case 1:
-              stanleyTrackingNormalK = floatValue;
+              lineTracker.stanleyTrackingNormalK = floatValue;
               break;
             case 2:
-              stanleyTrackingSlowP = floatValue;
+              lineTracker.stanleyTrackingSlowP = floatValue;
               break;
             case 3: 
-              stanleyTrackingSlowK = floatValue;
+              lineTracker.stanleyTrackingSlowK = floatValue;
               break;
             case 4:
               motor.motorLeftPID.Kp = floatValue;

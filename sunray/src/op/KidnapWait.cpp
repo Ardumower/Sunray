@@ -40,7 +40,7 @@ void KidnapWaitOp::onGpsNoSignal(){
 
 
 void KidnapWaitOp::run(){  
-  trackLine(false);       
+  lineTracker.trackLine(false);       
   battery.resetIdle();
 
   if (millis() > recoverGpsTime){
@@ -58,5 +58,4 @@ void KidnapWaitOp::run(){
     }
   }
 }
-
 

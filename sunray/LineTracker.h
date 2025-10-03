@@ -9,16 +9,33 @@
 
 
 #include <Arduino.h>
+#include "config.h"
 
 
-extern float stanleyTrackingNormalK;
-extern float stanleyTrackingNormalP;
-extern float stanleyTrackingSlowK;
-extern float stanleyTrackingSlowP;
+class LineTracker {
+public:
+  // Stanley controller gains (exposed for tuning)
+  float stanleyTrackingNormalK = STANLEY_CONTROL_K_NORMAL;
+  float stanleyTrackingNormalP = STANLEY_CONTROL_P_NORMAL;
+  float stanleyTrackingSlowK = STANLEY_CONTROL_K_SLOW;
+  float stanleyTrackingSlowP = STANLEY_CONTROL_P_SLOW;
 
+  void trackLine(bool runControl);
 
-void trackLine(bool runControl);  
+private:
+  bool rotateLeft = false;
+  bool rotateRight = false;
+  bool angleToTargetFits = false;
+  bool langleToTargetFits = false;
+  bool targetReached = false;
+  float trackerDiffDelta = 0;
+  bool stateKidnapped = false;
+  bool printmotoroverload = false;
+  bool trackerDiffDelta_positive = false;
+  float lastLineDist = 0;
+};
+
+extern LineTracker lineTracker;
 
 
 #endif
-

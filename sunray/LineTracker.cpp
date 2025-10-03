@@ -16,29 +16,12 @@
 
 //PID pidLine(0.2, 0.01, 0); // not used
 //PID pidAngle(2, 0.1, 0);  // not used
-Polygon circle(8);
-
-float stanleyTrackingNormalK = STANLEY_CONTROL_K_NORMAL;
-float stanleyTrackingNormalP = STANLEY_CONTROL_P_NORMAL;    
-float stanleyTrackingSlowK = STANLEY_CONTROL_K_SLOW;
-float stanleyTrackingSlowP = STANLEY_CONTROL_P_SLOW;    
-
-float setSpeed = 0.1; // linear speed (m/s)
-bool rotateLeft = false;
-bool rotateRight = false;
-bool angleToTargetFits = false;
-bool langleToTargetFits = false;
-bool targetReached = false;
-float trackerDiffDelta = 0;
-bool stateKidnapped = false;
-bool printmotoroverload = false;
-bool trackerDiffDelta_positive = false;
-float lastLineDist = 0;
+static Polygon circle(8);
 
 // control robot velocity (linear,angular) to track line to next waypoint (target)
 // uses a stanley controller for line tracking
 // https://medium.com/@dingyan7361/three-methods-of-vehicle-lateral-control-pure-pursuit-stanley-and-mpc-db8cc1d32081
-void trackLine(bool runControl){  
+void LineTracker::trackLine(bool runControl){  
   Point target = maps.targetPoint;
   Point lastTarget = maps.lastTargetPoint;
   float linear = 1.0;  
