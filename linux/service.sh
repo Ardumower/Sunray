@@ -12,7 +12,7 @@ DISTRI="$(source /etc/os-release && echo "$PRETTY_NAME")"
 
 
 echo "KERNEL=$KERNEL  CPU=$CPU   DISTRI=$DISTRI"
-
+echo
 
 CMD=""
 
