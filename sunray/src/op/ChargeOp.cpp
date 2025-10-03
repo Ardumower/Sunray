@@ -79,8 +79,8 @@ void ChargeOp::run(){
         // sensing charging contacts means we are in docking station - we use docking point coordinates to get rid of false fix positions in
         // docking station        
         if (true){
-            maps.getDockingPos(stateX, stateY, stateDelta);
-            if (!DOCK_FRONT_SIDE) stateDelta = scalePI(stateDelta + 3.1415);
+            maps.getDockingPos(stateEstimator.stateX, stateEstimator.stateY, stateEstimator.stateDelta);
+            if (!DOCK_FRONT_SIDE) stateEstimator.stateDelta = scalePI(stateEstimator.stateDelta + 3.1415);
         }
         // get robot yaw orientation from map 
         //float tempX;

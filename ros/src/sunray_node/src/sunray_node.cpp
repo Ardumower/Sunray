@@ -148,8 +148,8 @@ void aprilTagLocalization(){
   #ifdef DOCK_APRIL_TAG
     
     double tim = ros::Time::now().toSec();
-    if ((stateAprilTagFound) && (tim > aprilTagTimeout)) {
-      stateAprilTagFound = false;
+    if ((stateEstimator.stateAprilTagFound) && (tim > aprilTagTimeout)) {
+      stateEstimator.stateAprilTagFound = false;
     }     
 
     float x = 0;
@@ -198,10 +198,10 @@ void aprilTagLocalization(){
 
           if ((deltaX < 0.2) && (deltaY < 0.2) && (deltaZ < 0.2) && (deltaYaw < 0.6)){
             //ROS_WARN("APRIL_TAG: x=%.2f  y=%.2f  z=%.2f yaw=%.2f deltaT=%.2f", x, y, z, yaw/3.1415*180.0, deltaTime);        
-            stateXAprilTag = x;
-            stateYAprilTag = y;
-            stateDeltaAprilTag = yaw;
-            stateAprilTagFound = true;
+            stateEstimator.stateXAprilTag = x;
+            stateEstimator.stateYAprilTag = y;
+            stateEstimator.stateDeltaAprilTag = yaw;
+            stateEstimator.stateAprilTagFound = true;
             aprilTagTimeout = tim + 0.2;
           }
         }      
@@ -223,8 +223,8 @@ void reflectorTagLocalization(){
   #ifdef DOCK_REFLECTOR_TAG
     
     double tim = ros::Time::now().toSec();
-    if ((stateReflectorTagFound) && (tim > reflectorTagTimeout)) {
-      stateReflectorTagFound = false;
+    if ((stateEstimator.stateReflectorTagFound) && (tim > reflectorTagTimeout)) {
+      stateEstimator.stateReflectorTagFound = false;
     }     
 
     float x = 0;
@@ -274,10 +274,10 @@ void reflectorTagLocalization(){
 
           if ((deltaX < 0.2) && (deltaY < 0.2) && (deltaZ < 0.2) && (deltaYaw < 0.6)){
             //ROS_WARN("REFLECTOR_TAG: x=%.2f  y=%.2f  z=%.2f yaw=%.2f deltaT=%.2f", x, y, z, yaw/3.1415*180.0, deltaTime);        
-            stateXReflectorTag = x;
-            stateYReflectorTag = y;
-            stateDeltaReflectorTag = yaw;
-            stateReflectorTagFound = true;
+            stateEstimator.stateXReflectorTag = x;
+            stateEstimator.stateYReflectorTag = y;
+            stateEstimator.stateDeltaReflectorTag = yaw;
+            stateEstimator.stateReflectorTagFound = true;
             reflectorTagTimeout = tim + 0.2;
           }
         }      
@@ -416,7 +416,5 @@ void loop(){
     exit(0);
   }
 }
-
-
 
 

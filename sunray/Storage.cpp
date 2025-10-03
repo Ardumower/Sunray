@@ -29,11 +29,11 @@ double calcStateCRC(){
 void dumpState(){
   CONSOLE.print("dumpState: ");
   CONSOLE.print(" X=");
-  CONSOLE.print(stateX);
+  CONSOLE.print(stateEstimator.stateX);
   CONSOLE.print(" Y=");
-  CONSOLE.print(stateY);
+  CONSOLE.print(stateEstimator.stateY);
   CONSOLE.print(" delta=");
-  CONSOLE.print(stateDelta);
+  CONSOLE.print(stateEstimator.stateDelta);
   CONSOLE.print(" mapCRC=");
   CONSOLE.print(maps.mapCRC);
   CONSOLE.print(" mowPointsIdx=");
@@ -140,9 +140,9 @@ bool loadState(){
   }
   bool res = true;
   OperationType savedOp;
-  res &= (stateFile.read((uint8_t*)&stateX, sizeof(stateX)) != 0);
-  res &= (stateFile.read((uint8_t*)&stateY, sizeof(stateY)) != 0);
-  res &= (stateFile.read((uint8_t*)&stateDelta, sizeof(stateDelta)) != 0);
+  res &= (stateFile.read((uint8_t*)&stateEstimator.stateX, sizeof(stateEstimator.stateX)) != 0);
+  res &= (stateFile.read((uint8_t*)&stateEstimator.stateY, sizeof(stateEstimator.stateY)) != 0);
+  res &= (stateFile.read((uint8_t*)&stateEstimator.stateDelta, sizeof(stateEstimator.stateDelta)) != 0);
   res &= (stateFile.read((uint8_t*)&maps.mowPointsIdx, sizeof(maps.mowPointsIdx)) != 0);
   res &= (stateFile.read((uint8_t*)&maps.dockPointsIdx, sizeof(maps.dockPointsIdx)) != 0);
   res &= (stateFile.read((uint8_t*)&maps.freePointsIdx, sizeof(maps.freePointsIdx)) != 0);
@@ -197,9 +197,9 @@ bool saveState(){
   res &= (stateFile.write((uint8_t*)&marker, sizeof(marker)) != 0); 
   res &= (stateFile.write((uint8_t*)&maps.mapCRC, sizeof(maps.mapCRC)) != 0); 
 
-  res &= (stateFile.write((uint8_t*)&stateX, sizeof(stateX)) != 0);
-  res &= (stateFile.write((uint8_t*)&stateY, sizeof(stateY)) != 0);
-  res &= (stateFile.write((uint8_t*)&stateDelta, sizeof(stateDelta)) != 0);
+  res &= (stateFile.write((uint8_t*)&stateEstimator.stateX, sizeof(stateEstimator.stateX)) != 0);
+  res &= (stateFile.write((uint8_t*)&stateEstimator.stateY, sizeof(stateEstimator.stateY)) != 0);
+  res &= (stateFile.write((uint8_t*)&stateEstimator.stateDelta, sizeof(stateEstimator.stateDelta)) != 0);
   res &= (stateFile.write((uint8_t*)&maps.mowPointsIdx, sizeof(maps.mowPointsIdx)) != 0);
   res &= (stateFile.write((uint8_t*)&maps.dockPointsIdx, sizeof(maps.dockPointsIdx)) != 0);
   res &= (stateFile.write((uint8_t*)&maps.freePointsIdx, sizeof(maps.freePointsIdx)) != 0);
@@ -228,6 +228,5 @@ bool saveState(){
 #endif
   return res; 
 }
-
 
 

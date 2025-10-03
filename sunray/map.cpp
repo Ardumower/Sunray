@@ -2051,7 +2051,7 @@ bool Map::findPath(Point &src, Point &dst){
 
     //delay(8000); // simulate a busy path finder
 
-    resetImuTimeout();
+    stateEstimator.resetImuTimeout();
 
     if ((currentNode != NULL) && (distance(*currentNode->point, *end->point) < 0.02)) {
       Node *curr = currentNode;
@@ -2088,7 +2088,7 @@ bool Map::findPath(Point &src, Point &dst){
   freePointsIdx=0;  
   
   checkMemoryErrors();  
-  resetImuTimeout();
+  stateEstimator.resetImuTimeout();
   return true;  
 }
 
@@ -2152,4 +2152,3 @@ void Map::stressTestMapTransfer(){
   }
   CONSOLE.print("stressTestMapTransfer end");
 }
-

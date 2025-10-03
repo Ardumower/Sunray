@@ -26,6 +26,7 @@
 #include "sonar.h"
 #include "VL53L0X.h"
 #include "map.h"   
+#include "StateEstimator.h"
 #include "src/ublox/ublox.h"
 #include "src/skytraq/skytraq.h"
 #include "src/lidar/lidar.h"
@@ -39,7 +40,7 @@
 #include "timetable.h"
 
 
-#define VER "Sunray,1.0.330"
+#define VER "Sunray,1.0.331"
 
 // operation types
 enum OperationType {
@@ -172,6 +173,7 @@ extern Sonar sonar;
 extern VL53L0X tof;
 extern PinManager pinMan;
 extern Map maps;
+extern StateEstimator stateEstimator;
 extern TimeTable timetable;
 #ifdef DRV_SIM_ROBOT
   extern SimGpsDriver gps;

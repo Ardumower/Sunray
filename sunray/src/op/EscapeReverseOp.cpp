@@ -46,7 +46,7 @@ void EscapeReverseOp::run(){
             changeOp(*nextOp, false);    // continue current operation
         } else {
             CONSOLE.println("continue operation with virtual obstacle");
-            maps.addObstacle(stateX, stateY);              
+            maps.addObstacle(stateEstimator.stateX, stateEstimator.stateY);              
             //Point pt;
             //if (!maps.findObstacleSafeMowPoint(pt)){
             //    changeOp(dockOp); // dock if no more (valid) mowing points
@@ -67,5 +67,4 @@ void EscapeReverseOp::onImuError(){
     stateSensor = SENS_IMU_TIMEOUT;
     changeOp(errorOp);
 }
-
 

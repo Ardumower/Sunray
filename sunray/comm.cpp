@@ -563,8 +563,8 @@ void cmdKidnap(){
   String s = F("K");
   cmdAnswer(s);  
   CONSOLE.println("kidnapping robot - kidnap detection should trigger");
-  stateX = 0;  
-  stateY = 0;
+  stateEstimator.stateX = 0;  
+  stateEstimator.stateY = 0;
 }
 
 // toggle GPS solution (invalid,float,fix) for testing
@@ -576,17 +576,17 @@ void cmdToggleGPSSolution(){
     case SOL_INVALID:  
       gps.solutionAvail = true;
       gps.solution = SOL_FLOAT;
-      gps.relPosN = stateY - 2.0;  // simulate pos. solution jump
-      gps.relPosE = stateX - 2.0;
+      gps.relPosN = stateEstimator.stateY - 2.0;  // simulate pos. solution jump
+      gps.relPosE = stateEstimator.stateX - 2.0;
       lastFixTime = millis();
-      stateGroundSpeed = 0.1;
+      stateEstimator.stateGroundSpeed = 0.1;
       break;
     case SOL_FLOAT:  
       gps.solutionAvail = true;
       gps.solution = SOL_FIXED;
-      stateGroundSpeed = 0.1;
-      gps.relPosN = stateY + 2.0;  // simulate undo pos. solution jump
-      gps.relPosE = stateX + 2.0;
+      stateEstimator.stateGroundSpeed = 0.1;
+      gps.relPosN = stateEstimator.stateY + 2.0;  // simulate undo pos. solution jump
+      gps.relPosE = stateEstimator.stateX + 2.0;
       break;
     case SOL_FIXED:  
       gps.solutionAvail = true;
@@ -619,11 +619,11 @@ void cmdSummary(){
   String s = F("S,");
   s += battery.batteryVoltage;  
   s += ",";
-  s += stateX;
+  s += stateEstimator.stateX;
   s += ",";
-  s += stateY;
+  s += stateEstimator.stateY;
   s += ",";
-  s += stateDelta;
+  s += stateEstimator.stateDelta;
   s += ",";
   s += gps.solution;
   s += ",";
@@ -654,7 +654,7 @@ void cmdSummary(){
   s += ",";
   s += maps.mapCRC;
   s += ",";
-  s += lateralError;
+  s += stateEstimator.lateralError;
   s += ",";
   if (stateOp == OP_MOW){
     s += timetable.autostopTime.dayOfWeek;
@@ -1092,11 +1092,11 @@ void outputConsole(){
     CONSOLE.print(",");
     CONSOLE.print(maps.targetPoint.y());
     CONSOLE.print(" x=");
-    CONSOLE.print(stateX);
+    CONSOLE.print(stateEstimator.stateX);
     CONSOLE.print(" y=");
-    CONSOLE.print(stateY);
+    CONSOLE.print(stateEstimator.stateY);
     CONSOLE.print(" delta=");
-    CONSOLE.print(stateDelta);    
+    CONSOLE.print(stateEstimator.stateDelta);    
     CONSOLE.print(" tow=");
     CONSOLE.print(gps.iTOW);
     CONSOLE.print(" lon=");

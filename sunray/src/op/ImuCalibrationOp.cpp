@@ -47,13 +47,11 @@ void ImuCalibrationOp::run(){
         // TODO/FIXME: let's try more than 9 seconds: it seems in Alfred (Linux), MPU6050 sometimes takes more than 9 secs to work stable?                 
         if (imuCalibrationSeconds >= 15){        
         //if (imuCalibrationSeconds >= 9){
-            imuIsCalibrating = false;
-            lastIMUYaw = 0;          
+            stateEstimator.imuIsCalibrating = false;
+            stateEstimator.lastIMUYaw = 0;          
             imuDriver.resetData();
-            imuDataTimeout = millis() + 10000;
+            stateEstimator.resetImuTimeout();
             Op::changeOp(*nextOp);
         }
     }           
 }
-
-

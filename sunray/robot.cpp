@@ -130,6 +130,7 @@ Sonar sonar;
 Bumper bumper;
 VL53L0X tof(VL53L0X_ADDRESS_DEFAULT);
 Map maps;
+StateEstimator stateEstimator;
 RCModel rcmodel;
 TimeTable timetable;
 
@@ -173,7 +174,7 @@ unsigned long lastComputeTime = 0;
 unsigned long nextLedTime = 0;
 unsigned long nextImuTime = 0;
 unsigned long nextTempTime = 0;
-unsigned long imuDataTimeout = 0;
+// imuDataTimeout is now managed inside StateEstimator
 unsigned long nextSaveTime = 0;
 unsigned long nextTimetableTime = 0;
 unsigned long nextGenerateGGATime = 0;
@@ -218,7 +219,7 @@ void watchdogSetup (void){}
 // reset linear motion measurement
 void resetLinearMotionMeasurement(){
   linearMotionStartTime = millis();  
-  //stateGroundSpeed = 1.0;
+  //stateEstimator.stateGroundSpeed = 1.0;
 }
 
 // reset angular motion measurement
@@ -686,6 +687,9 @@ void start(){
     gps.begin(GPS, GPS_BAUDRATE);   
   #endif
 
+  // perform estimator early checks now that GPS is up
+  stateEstimator.begin();
+
   maps.begin();      
   //maps.clipperTest();
     
@@ -697,14 +701,14 @@ void start(){
   
   watchdogEnable(15000L);   // 15 seconds  
   
-  startIMU(false);        
+  stateEstimator.startIMU(false);        
   
   buzzer.sound(SND_READY);  
   battery.resetIdle();        
   loadState();
 
   #ifdef DRV_SIM_ROBOT
-    robotDriver.setSimRobotPosState(stateX, stateY, stateDelta);
+    robotDriver.setSimRobotPosState(stateEstimator.stateX, stateEstimator.stateY, stateEstimator.stateDelta);
     tester.begin();
   #endif
   //Logger.event(EVT_SYSTEM_STARTED);
@@ -860,12 +864,12 @@ bool detectObstacle(){
     updateGPSMotionCheckTime();
     resetOverallMotionTimeout(); // this resets overall motion timeout (overall motion timeout happens if e.g. 
     // motion between anuglar-only and linar-only toggles quickly, and their specific timeouts cannot apply due to the quick toggling)
-    float dX = lastGPSMotionX - stateX;
-    float dY = lastGPSMotionY - stateY;
+    float dX = lastGPSMotionX - stateEstimator.stateX;
+    float dY = lastGPSMotionY - stateEstimator.stateY;
     float delta = sqrt( sq(dX) + sq(dY) );    
     if (delta < 0.05){
       if (GPS_MOTION_DETECTION){
-        if (stateLocalizationMode == LOC_GPS) {
+        if (stateEstimator.stateLocalizationMode == LOC_GPS) {
           CONSOLE.println("gps no motion => obstacle!");
           Logger.event(EVT_NO_ROBOT_MOTION_OBSTACLE);    
           statMowGPSMotionTimeoutCounter++;
@@ -874,8 +878,8 @@ bool detectObstacle(){
         }
       }
     }
-    lastGPSMotionX = stateX;      
-    lastGPSMotionY = stateY;      
+    lastGPSMotionX = stateEstimator.stateX;      
+    lastGPSMotionY = stateEstimator.stateY;      
   }    
   return false;
 }
@@ -911,7 +915,7 @@ bool detectObstacleRotation(){
   }*/
   if (imuDriver.imuFound){
     if (millis() > angularMotionStartTime + 3000) {                  
-      if (fabs(stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s yaw speed, e.g. due to obstacle
+      if (fabs(stateEstimator.stateDeltaSpeedLP) < 3.0/180.0 * PI){ // less than 3 degree/s yaw speed, e.g. due to obstacle
         CONSOLE.println("no IMU rotation speed detected for requested rotation => assuming obstacle");    
         statMowImuNoRotationSpeedCounter++;
         Logger.event(EVT_IMU_NO_ROTATION_OBSTACLE);    
@@ -919,7 +923,7 @@ bool detectObstacleRotation(){
         return true;      
       }
     }
-    if (diffIMUWheelYawSpeedLP > 10.0/180.0 * PI) {  // yaw speed difference between wheels and IMU more than 8 degree/s, e.g. due to obstacle
+    if (stateEstimator.diffIMUWheelYawSpeedLP > 10.0/180.0 * PI) {  // yaw speed difference between wheels and IMU more than 8 degree/s, e.g. due to obstacle
       CONSOLE.println("yaw difference between wheels and IMU for requested rotation => assuming obstacle");            
       statMowDiffIMUWheelYawSpeedCounter++;
       Logger.event(EVT_IMU_WHEEL_DIFFERENCE_OBSTACLE);            
@@ -1013,10 +1017,10 @@ void run(){
     int ims = 750 / IMU_FIFO_RATE;
     nextImuTime = millis() + ims;        
     //imu.resetFifo();    
-    if (imuIsCalibrating) {
+    if (stateEstimator.imuIsCalibrating) {
       activeOp->onImuCalibration();             
     } else {
-      readIMU();    
+      stateEstimator.readIMU();    
       // LiDAR relocalization
       if (gps.isRelocalizing){
         activeOp->onRelocalization();
@@ -1048,7 +1052,7 @@ void run(){
     nextControlTime = millis() + 20; 
     controlLoops++;    
     
-    computeRobotState();
+    stateEstimator.computeRobotState();
     if (!robotShouldMove()){
       resetLinearMotionMeasurement();
       updateGPSMotionCheckTime();  

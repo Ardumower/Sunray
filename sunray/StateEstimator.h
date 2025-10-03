@@ -19,52 +19,77 @@ enum LocalizationMode {
       LOC_REFLECTOR_TAG,    // LiDAR localization (reflector-tag)       
 };    
 
-extern LocalizationMode stateLocalizationMode;
+class StateEstimator {
+public:
+  // public state
+  LocalizationMode stateLocalizationMode = LOC_GPS;
 
+  float stateX = 0;            // position-east (m)
+  float stateY = 0;            // position-north (m)
+  float stateDelta = 0;        // direction (rad)
+  float stateRoll = 0;
+  float statePitch = 0;
+  float stateDeltaGPS = 0;
+  float stateDeltaIMU = 0;
 
-extern float stateX;  // position-east (m)
-extern float stateY;  // position-north (m)
-extern float stateDelta;  // direction (rad)
-extern float stateRoll;
-extern float statePitch;
-extern float stateDeltaGPS;
-extern float stateDeltaIMU;
+  bool stateAprilTagFound = false;
+  float stateXAprilTag = 0;    // camera-position in april-tag frame
+  float stateYAprilTag = 0;
+  float stateDeltaAprilTag = 0;
 
-extern bool stateAprilTagFound; // found april-tag in camera stream?
-extern float stateXAprilTag; // camera-position in april-tag frame
-extern float stateYAprilTag;  
-extern float stateDeltaAprilTag; 
+  bool stateReflectorTagFound = false;
+  bool stateReflectorTagOutsideFound = false;
+  bool stateReflectorUndockCompleted = false;
+  float stateXReflectorTag = 0;  // camera-position in reflector-tag frame
+  float stateYReflectorTag = 0;
+  float stateDeltaReflectorTag = 0;
 
-extern bool stateReflectorTagFound; // found reflector-tag in camera stream?
-extern bool stateReflectorTagOutsideFound; // found outside reflector-tag in camera stream?
-extern bool stateReflectorUndockCompleted; // completed undocking with reflector?
-extern float stateXReflectorTag; // camera-position in reflector-tag frame
-extern float stateYReflectorTag;  
-extern float stateDeltaReflectorTag; 
+  float stateGroundSpeed = 0;  // m/s
+  float lateralError = 0;      // lateral error
 
-extern float stateGroundSpeed; // m/s
-extern float lateralError; // lateral error
+  float stateDeltaLast = 0;
+  float stateDeltaSpeed = 0;
+  float stateDeltaSpeedLP = 0;
+  float stateDeltaSpeedIMU = 0;
+  float stateDeltaSpeedWheels = 0;
+  float diffIMUWheelYawSpeed = 0;
+  float diffIMUWheelYawSpeedLP = 0;
 
-extern float stateDeltaLast;
-extern float stateDeltaSpeed;
-extern float stateDeltaSpeedLP;
-extern float stateDeltaSpeedIMU;
-extern float stateDeltaSpeedWheels;
-extern float diffIMUWheelYawSpeed;
-extern float diffIMUWheelYawSpeedLP;
+  bool gpsJump = false;
 
-extern bool gpsJump;
+  bool imuIsCalibrating = false;
+  float lastIMUYaw = 0;
+  unsigned long imuDataTimeout = 0;
 
-extern bool imuIsCalibrating;
-extern unsigned long imuDataTimeout;
-extern float lastIMUYaw; 
+  // API
+  void begin();
+  bool startIMU(bool forceIMU);
+  void readIMU();
+  void computeRobotState();
+  void resetImuTimeout();
 
+private:
+  // internal variables (previously file-local)
+  float stateXReflectorTagLast = 0;
+  unsigned long stateLeftTicks = 0;
+  unsigned long stateRightTicks = 0;
+  float lastPosN = 0;
+  float lastPosE = 0;
+  float lastPosDelta = 0;
+  bool resetLastPos = true;
+  float rollChange = 0;
+  float pitchChange = 0;
+  int imuCalibrationSeconds = 0;
+  unsigned long nextImuCalibrationSecond = 0;
+  unsigned long nextDumpTime = 0;
 
-bool startIMU(bool forceIMU);
-void readIMU();
-void computeRobotState();
-void resetImuTimeout();
+  // helpers
+  void testRelativeLL();
+  void dumpImuTilt();
+};
+
+// Instance declared in robot.h
+extern StateEstimator stateEstimator;
 
 
 #endif
-

@@ -1,5 +1,5 @@
 #include "WebSocketClient.h"
-#include "../config.h"
+#include "../../config.h"
 
 
 static String base64Encode(const uint8_t* in, size_t len) {

@@ -15,59 +15,10 @@
 #include "events.h"
 
 
-LocalizationMode stateLocalizationMode = LOC_GPS;
-
-float stateX = 0;  // position-east (m)
-float stateY = 0;  // position-north (m)
-float stateDelta = 0;  // direction (rad)
-float stateRoll = 0;
-float statePitch = 0;
-float stateDeltaGPS = 0;
-float stateDeltaIMU = 0;
-float stateGroundSpeed = 0; // m/s
-
-bool stateAprilTagFound = false;
-float stateXAprilTag = 0; // camera-position in april-tag frame
-float stateYAprilTag = 0;  
-float stateDeltaAprilTag = 0; 
-
-bool stateReflectorTagFound = false;
-bool stateReflectorTagOutsideFound = false;
-bool stateReflectorUndockCompleted = false;
-float stateXReflectorTag = 0; // camera-position in reflector-tag frame
-float stateYReflectorTag = 0;  
-float stateXReflectorTagLast = 0;
-float stateDeltaReflectorTag = 0; 
-
-unsigned long stateLeftTicks = 0;
-unsigned long stateRightTicks = 0;
-
-float lastPosN = 0;
-float lastPosE = 0;
-float lastPosDelta = 0;
-
-float stateDeltaLast = 0;
-float stateDeltaSpeed = 0;
-float stateDeltaSpeedLP = 0;
-float stateDeltaSpeedIMU = 0;
-float stateDeltaSpeedWheels = 0;
-float diffIMUWheelYawSpeed = 0;
-float diffIMUWheelYawSpeedLP = 0;
-
-bool gpsJump = false;
-bool resetLastPos = true;
-
-float lastIMUYaw = 0; 
-float lateralError = 0; // lateral error
-float rollChange = 0;
-float pitchChange = 0;
-bool imuIsCalibrating = false;
-int imuCalibrationSeconds = 0;
-unsigned long nextImuCalibrationSecond = 0;
-unsigned long nextDumpTime = 0;
+// Refactored: globals are now members of StateEstimator
 
 
-void testRelativeLL(){
+void StateEstimator::testRelativeLL(){
   // ---- relativeLL calc test (will detect compiler calculation issues) -------- 
   double absolutePosSourceLat = 52.26742967;
   double absolutePosSourceLon = 8.60921633;
@@ -89,13 +40,17 @@ void testRelativeLL(){
 
 
 
+void StateEstimator::begin(){
+  // run a quick relativeLL self-check after GPS is initialized
+  testRelativeLL();
+}
+
 // https://learn.sparkfun.com/tutorials/9dof-razor-imu-m0-hookup-guide#using-the-mpu-9250-dmp-arduino-library
 // start IMU sensor and calibrate
-bool startIMU(bool forceIMU){    
+bool StateEstimator::startIMU(bool forceIMU){    
   // detect IMU
   uint8_t data = 0;
   int counter = 0;  
-  testRelativeLL();
   while ((forceIMU) || (counter < 1)){          
      imuDriver.detect();
      if (imuDriver.imuFound){
@@ -147,7 +102,7 @@ bool startIMU(bool forceIMU){
 }
 
 
-void dumpImuTilt(){
+void StateEstimator::dumpImuTilt(){
   if (millis() < nextDumpTime) return;
   nextDumpTime = millis() + 10000;
   CONSOLE.print("IMU tilt: ");
@@ -169,7 +124,7 @@ void dumpImuTilt(){
 // We check if the communication is significantly (10ms instead of 1ms) delayed, if so we restart the I2C 
 // bus (by clocking out any garbage on the I2C bus) and then restarting the IMU module.
 // https://learn.sparkfun.com/tutorials/9dof-razor-imu-m0-hookup-guide/using-the-mpu-9250-dmp-arduino-library
-void readIMU(){
+void StateEstimator::readIMU(){
   if (!imuDriver.imuFound) return;
   // Check for new data in the FIFO  
   unsigned long startTime = millis();
@@ -192,7 +147,7 @@ void readIMU(){
     stateSensor = SENS_IMU_TIMEOUT;
     motor.stopImmediately(true);    
     statImuRecoveries++;            
-    if (!startIMU(true)){ // restart I2C bus
+    if (!this->startIMU(true)){ // restart I2C bus
       return;
     }    
     return;
@@ -235,7 +190,7 @@ void readIMU(){
 }
 
 
-void resetImuTimeout(){
+void StateEstimator::resetImuTimeout(){
   imuDataTimeout = millis() + 10000;  
 }
 
@@ -245,7 +200,7 @@ void resetImuTimeout(){
 // to fusion GPS heading (long-term) and IMU heading (short-term)
 // with IMU: heading (stateDelta) is computed by gyro (stateDeltaIMU)
 // without IMU: heading (stateDelta) is computed by odometry (deltaOdometry)
-void computeRobotState(){  
+void StateEstimator::computeRobotState(){  
   stateLocalizationMode = LOC_GPS;
   bool useGPSposition = true; // use GPS position?
   bool useGPSdelta = true; // correct yaw with gps delta estimation?
@@ -527,3 +482,4 @@ void computeRobotState(){
 }
 
 
+// StateEstimator instance is defined in robot.cpp

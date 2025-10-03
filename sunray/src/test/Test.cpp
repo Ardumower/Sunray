@@ -94,15 +94,15 @@ void ObstacleAvoidanceTest::run(){
     Point target = maps.targetPoint;  
     targetX = target.x();
     targetY = target.y();    
-    float robotDist = distance(targetX, targetY, stateX, stateY);
+    float robotDist = distance(targetX, targetY, stateEstimator.stateX, stateEstimator.stateY);
     if (robotDist > 2.0){        
-      robotDriver.setObstacle(targetX + (stateX-targetX)/2, targetY + (stateY-targetY)/2, 0.2);
+      robotDriver.setObstacle(targetX + (stateEstimator.stateX-targetX)/2, targetY + (stateEstimator.stateY-targetY)/2, 0.2);
       speak("Obstacle Avoidance Test");
       startTime = millis();
     }
   } else {
     // check if target reached
-    float robotDist = distance(targetX, targetY, stateX, stateY);
+    float robotDist = distance(targetX, targetY, stateEstimator.stateX, stateEstimator.stateY);
     if (robotDist < 0.25){        
       speak("succeeded");
       setSucceeded(true);
@@ -182,7 +182,7 @@ void SessionTest::run(){
     currTargetX = target.x();
     currTargetY = target.y();    
     if (waypointCounter % 2 == 0){
-      float robotDist = distance(currTargetX, currTargetY, stateX, stateY);
+      float robotDist = distance(currTargetX, currTargetY, stateEstimator.stateX, stateEstimator.stateY);
       if (robotDist > 1.0){
         speak("obstacle");
         robotDriver.setObstacle(currTargetX, currTargetY, 0.2);
@@ -324,4 +324,3 @@ void Tester::run(){
 
 
 #endif // DRV_SIM_ROBOT
-
