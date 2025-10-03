@@ -26,6 +26,8 @@
 #include "sonar.h"
 #include "VL53L0X.h"
 #include "map.h"   
+#include "comm.h"
+#include "httpserver.h"
 #include "StateEstimator.h"
 #include "src/ublox/ublox.h"
 #include "src/skytraq/skytraq.h"
@@ -166,6 +168,7 @@ extern int motorErrorCounter;
 extern Motor motor;
 extern Battery battery;
 extern BLEConfig bleConfig;
+extern BLEComm ble;
 extern Bumper bumper;
 extern Buzzer buzzer;
 extern LidarBumperDriver lidarBumper;
@@ -173,6 +176,8 @@ extern Sonar sonar;
 extern VL53L0X tof;
 extern PinManager pinMan;
 extern Map maps;
+extern Comm comm;
+extern HttpServer httpServer;
 extern StateEstimator stateEstimator;
 extern TimeTable timetable;
 #ifdef DRV_SIM_ROBOT

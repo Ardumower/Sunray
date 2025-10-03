@@ -22,7 +22,15 @@ class BLEConfig
     
 };
 
-void processBLE();
+class BLEComm {
+public:
+  void process();
+  bool isConnected() const { return connected; }
+private:
+  bool connected = false;
+  unsigned long connectedTimeout = 0;
+  String inputBuf;
+};
 
 
 #endif

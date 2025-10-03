@@ -124,12 +124,15 @@ PinManager pinMan;
   UBLOX gps;
 #endif 
 BLEConfig bleConfig;
+BLEComm ble;
 Buzzer buzzer;
 LidarBumperDriver lidarBumper;
 Sonar sonar;
 Bumper bumper;
 VL53L0X tof(VL53L0X_ADDRESS_DEFAULT);
 Map maps;
+Comm comm;
+HttpServer httpServer;
 StateEstimator stateEstimator;
 RCModel rcmodel;
 TimeTable timetable;
@@ -1144,7 +1147,7 @@ void run(){
     } else if (stateButton == 9){
       stateButton = 0;  // reset button state
       stateSensor = SENS_STOP_BUTTON;
-      cmdSwitchOffRobot();
+      comm.cmdSwitchOffRobot();
     } else if (stateButton == 12){
       stateButton = 0; // reset button state
       stateSensor = SENS_STOP_BUTTON;
@@ -1159,8 +1162,8 @@ void run(){
   }   // if (millis() >= nextControlTime)
     
   // ----- read serial input (BT/console) -------------
-  processComm();
-  outputConsole();    
+  comm.processComm();
+  comm.outputConsole();    
 
   //##############################################################################
 

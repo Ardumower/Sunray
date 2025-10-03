@@ -6,6 +6,7 @@
 
 #include "SerialRobotDriver.h"
 #include "../../config.h"
+#include "../../robot.h"
 #include "../../ioboard.h"
 
 #define COMM  ROBOT
@@ -485,6 +486,7 @@ void SerialRobotDriver::updatePanelLEDs(){
 }
 
 void SerialRobotDriver::run(){  
+  // process MCU serial responses (class member)
   processComm();
   if (millis() > nextMotorTime){
     nextMotorTime = millis() + 20; // 50 hz
@@ -860,6 +862,3 @@ void SerialBuzzerDriver::noTone(){
 void SerialBuzzerDriver::tone(int freq){
   ioExpanderOut(EX2_I2C_ADDR, EX2_BUZZER_PORT, EX2_BUZZER_PIN, true);
 }
-
-
-

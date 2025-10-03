@@ -19,8 +19,7 @@
 #include "robot.h"
 #include "comm.h"
 
-bool bleConnected = false;
-unsigned long bleConnectedTimeout = 0;
+// BLEComm implementation
 
 
 String BLEConfig::read(){
@@ -118,29 +117,29 @@ void BLEConfig::run(){
 
 
 // process Bluetooth input
-void processBLE(){
+void BLEComm::process(){
   char ch;   
   if (BLE.available()){
     battery.resetIdle();  
-    bleConnected = true;
-    bleConnectedTimeout = millis() + 5000;
+    connected = true;
+    connectedTimeout = millis() + 5000;
     while ( BLE.available() ){    
       ch = BLE.read();      
       if ((ch == '\r') || (ch == '\n')) {   
         #ifdef VERBOSE
-          CONSOLE.print("BLE:");     
-          CONSOLE.println(cmd);        
+          CONSOLE.println("BLE: cmd received");
         #endif
-        processCmd("BLE",true, true,false);              
-        BLE.print(cmdResponse);    
-        cmd = "";
-      } else if (cmd.length() < 500){
-        cmd += ch;
+        comm.setCmd(inputBuf);
+        comm.processCmd("BLE",true, true,false);              
+        BLE.print(comm.getCmdResponse());    
+        inputBuf = "";
+      } else {
+        if (inputBuf.length() < 500) inputBuf += ch;
       }
     }    
   } else {
-    if (millis() > bleConnectedTimeout){
-      bleConnected = false;
+    if (millis() > connectedTimeout){
+      connected = false;
     }
   }  
 }  

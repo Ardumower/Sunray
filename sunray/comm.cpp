@@ -25,26 +25,13 @@
 
 //#define VERBOSE 1
 
-unsigned long nextInfoTime = 0;
-bool triggerWatchdog = false;
+// Comm instance is defined in robot.cpp
 
-int encryptMode = 0; // 0=off, 1=encrypt
-int encryptPass = PASS; 
-int encryptChallenge = 0;
-int encryptKey = 0;
-
-bool simFaultyConn = false; // simulate a faulty connection?
-int simFaultConnCounter = 0;
-
-String cmd;
-String cmdResponse;
-
-float statControlCycleTime = 0; 
-float statMaxControlCycleTime = 0; 
+// moved globals into Comm class (see comm.h)
 
 
 // answer Bluetooth with CRC
-void cmdAnswer(String s){  
+void Comm::cmdAnswer(String s){  
   byte crc = 0;
   for (int i=0; i < s.length(); i++) crc += s[i];
   s += F(",0x");
@@ -56,7 +43,7 @@ void cmdAnswer(String s){
 }
 
 // request tune param
-void cmdTuneParam(){
+void Comm::cmdTuneParam(){
   if (cmd.length()<6) return;  
   int counter = 0;
   int paramIdx = -1;
@@ -121,7 +108,7 @@ void cmdTuneParam(){
 }
 
 // request operation
-void cmdControl(){
+void Comm::cmdControl(){
   if (cmd.length()<6) return;  
   int counter = 0;
   int lastCommaIdx = 0;
@@ -193,7 +180,7 @@ void cmdControl(){
 }
 
 // request motor 
-void cmdMotor(){
+void Comm::cmdMotor(){
   if (cmd.length()<6) return;  
   int counter = 0;
   int lastCommaIdx = 0;
@@ -223,19 +210,19 @@ void cmdMotor(){
   cmdAnswer(s);
 }
 
-void cmdMotorTest(){
+void Comm::cmdMotorTest(){
   String s = F("E");
   cmdAnswer(s);
   motor.test();  
 }
 
-void cmdMotorPlot(){
+void Comm::cmdMotorPlot(){
   String s = F("Q");
   cmdAnswer(s);
   motor.plot();  
 }
 
-void cmdSensorTest(){
+void Comm::cmdSensorTest(){
   String s = F("F");
   cmdAnswer(s);
   sensorTest();  
@@ -245,7 +232,7 @@ void cmdSensorTest(){
 // TT,enable,daymask,daymask,daymask,daymask,daymask,...
 // TT,1,0,0,0,0,0,0,0,0,0,0,127,127,127,127,127,127,127,127,127,0,0,0,0,0
 // NOTE: protocol for this command will change in near future (please do not assume this a final implementation)
-void cmdTimetable(){
+void Comm::cmdTimetable(){
   if (cmd.length()<6) return;
   //CONSOLE.println(cmd);  
   int lastCommaIdx = 0;
@@ -287,7 +274,7 @@ void cmdTimetable(){
 
 // request waypoint (perim,excl,dock,mow,free)
 // W,startidx,x,y,x,y,x,y,x,y,...
-void cmdWaypoint(){
+void Comm::cmdWaypoint(){
   if (cmd.length()<6) return;  
   int counter = 0;
   int lastCommaIdx = 0;
@@ -341,7 +328,7 @@ void cmdWaypoint(){
 
 // request waypoints count
 // N,#peri,#excl,#dock,#mow,#free
-void cmdWayCount(){
+void Comm::cmdWayCount(){
   if (cmd.length()<6) return;  
   int counter = 0;
   int lastCommaIdx = 0;
@@ -375,7 +362,7 @@ void cmdWayCount(){
 
 // request exclusion count
 // X,startidx,cnt,cnt,cnt,cnt,...
-void cmdExclusionCount(){
+void Comm::cmdExclusionCount(){
   if (cmd.length()<6) return;  
   int counter = 0;
   int lastCommaIdx = 0;
@@ -405,7 +392,7 @@ void cmdExclusionCount(){
 
 
 // request position mode
-void cmdPosMode(){
+void Comm::cmdPosMode(){
   if (cmd.length()<6) return;  
   int counter = 0;
   int lastCommaIdx = 0;  
@@ -438,7 +425,7 @@ void cmdPosMode(){
 }
 
 // request version
-void cmdVersion(){  
+void Comm::cmdVersion(){  
 #ifdef ENABLE_PASS
   if (encryptMode == 0){
     encryptMode = 1;
@@ -498,7 +485,7 @@ void cmdVersion(){
 }
 
 // request add obstacle
-void cmdObstacle(){
+void Comm::cmdObstacle(){
   String s = F("O");
   cmdAnswer(s);  
   Logger.event(EVT_TRIGGERED_OBSTACLE);
@@ -506,28 +493,28 @@ void cmdObstacle(){
 }
 
 // request rain
-void cmdRain(){
+void Comm::cmdRain(){
   String s = F("O2");
   cmdAnswer(s);  
   activeOp->onRainTriggered();  
 }
 
 // request battery low
-void cmdBatteryLow(){
+void Comm::cmdBatteryLow(){
   String s = F("O3");
   cmdAnswer(s);  
   activeOp->onBatteryLowShouldDock();  
 }
 
 // perform pathfinder stress test
-void cmdStressTest(){
+void Comm::cmdStressTest(){
   String s = F("Z");
   cmdAnswer(s);  
   maps.stressTest();  
 }
 
 // perform hang test (watchdog should trigger and restart robot)
-void cmdTriggerWatchdog(){
+void Comm::cmdTriggerWatchdog(){
   String s = F("Y");
   cmdAnswer(s);  
   setOperation(OP_IDLE);
@@ -541,7 +528,7 @@ void cmdTriggerWatchdog(){
 }
 
 // perform hang test (watchdog should trigger)
-void cmdGNSSReboot(){
+void Comm::cmdGNSSReboot(){
   String s = F("Y2");
   cmdAnswer(s);  
   CONSOLE.println("GNNS reboot");
@@ -550,7 +537,7 @@ void cmdGNSSReboot(){
 }
 
 // switch-off robot
-void cmdSwitchOffRobot(){
+void Comm::cmdSwitchOffRobot(){
   String s = F("Y3");
   cmdAnswer(s);  
   setOperation(OP_IDLE);
@@ -559,7 +546,7 @@ void cmdSwitchOffRobot(){
 }
 
 // kidnap test (kidnap detection should trigger)
-void cmdKidnap(){
+void Comm::cmdKidnap(){
   String s = F("K");
   cmdAnswer(s);  
   CONSOLE.println("kidnapping robot - kidnap detection should trigger");
@@ -568,7 +555,7 @@ void cmdKidnap(){
 }
 
 // toggle GPS solution (invalid,float,fix) for testing
-void cmdToggleGPSSolution(){
+void Comm::cmdToggleGPSSolution(){
   String s = F("G");
   cmdAnswer(s);  
   CONSOLE.println("toggle GPS solution");
@@ -597,7 +584,7 @@ void cmdToggleGPSSolution(){
 
 
 // request obstacles
-void cmdObstacles(){
+void Comm::cmdObstacles(){
   String s = F("S2,");
   s += maps.obstacles.numPolygons;
   for (int idx=0; idx < maps.obstacles.numPolygons; idx++){
@@ -615,7 +602,7 @@ void cmdObstacles(){
 }
 
 // request summary
-void cmdSummary(){
+void Comm::cmdSummary(){
   String s = F("S,");
   s += battery.batteryVoltage;  
   s += ",";
@@ -671,7 +658,7 @@ void cmdSummary(){
 }
 
 // request statistics
-void cmdStats(){
+void Comm::cmdStats(){
   String s = F("T,");
   s += statIdleDuration;  
   s += ",";
@@ -739,7 +726,7 @@ void cmdStats(){
 }
 
 // clear statistics
-void cmdClearStats(){
+void Comm::cmdClearStats(){
   String s = F("L");
   statMowDurationMotorRecovery = 0;
   statIdleDuration = 0;
@@ -774,7 +761,7 @@ void cmdClearStats(){
 }
 
 // scan WiFi networks
-void cmdWiFiScan(){
+void Comm::cmdWiFiScan(){
   CONSOLE.println("cmdWiFiScan");
   String s = F("B1,");  
   #ifdef __linux__    
@@ -791,7 +778,7 @@ void cmdWiFiScan(){
 }
 
 // setup WiFi
-void cmdWiFiSetup(){
+void Comm::cmdWiFiSetup(){
   CONSOLE.println("cmdWiFiSetup");
   #ifdef __linux__
     if (cmd.length()<6) return;  
@@ -825,7 +812,7 @@ void cmdWiFiSetup(){
 }
 
 // request WiFi status
-void cmdWiFiStatus(){
+void Comm::cmdWiFiStatus(){
   String s = F("B3,");  
   #ifdef __linux__
   IPAddress addr = WiFi.localIP();
@@ -842,7 +829,7 @@ void cmdWiFiStatus(){
 
 
 // request firmware update
-void cmdFirmwareUpdate(){
+void Comm::cmdFirmwareUpdate(){
   String s = F("U1");  
   #ifdef __linux__
     if (cmd.length()<6) return;  
@@ -869,7 +856,7 @@ void cmdFirmwareUpdate(){
 }
 
 // process request
-void processCmd(String channel, bool checkCrc, bool decrypt, bool verbose){
+void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose){
   cmdResponse = "";      
   if (cmd.length() < 4) return;
 #ifdef ENABLE_PASS
@@ -986,7 +973,7 @@ void processCmd(String channel, bool checkCrc, bool decrypt, bool verbose){
 }
 
 // process console input
-void processConsole(){
+void Comm::processConsole(){
   char ch;      
   if (CONSOLE.available()){
     battery.resetIdle();  
@@ -1008,13 +995,13 @@ void processConsole(){
 
 
 
-void processComm(){
+void Comm::processComm(){
   processConsole();     
-  processBLE();     
-  if (!bleConnected){
-    processWifiAppServer();
-    processWifiRelayClient();
-    processWifiWSClient();
+  ble.process();     
+  if (!ble.isConnected()){
+    httpServer.processWifiAppServer();
+    httpServer.processWifiRelayClient();
+    httpServer.processWifiWSClient();
     processWifiMqttClient();
   }
   if (triggerWatchdog) {
@@ -1027,7 +1014,7 @@ void processComm(){
 
 
 // output summary on console
-void outputConsole(){
+void Comm::outputConsole(){
   //return;
   if (millis() > nextInfoTime){        
     bool started = (nextInfoTime == 0);

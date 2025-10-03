@@ -8,32 +8,9 @@
 #include "reset.h"
 #include "comm.h"
 
-#ifdef __linux__
-  #include <BridgeClient.h>
-  #include <Process.h>
-  #include <WiFi.h>
-  #include <sys/resource.h>
-#else
-  #include "src/esp/WiFiEsp.h"
-#endif
-#include "RingBuffer.h"
 #include "timetable.h"
-#include "src/net/WebSocketClient.h"
 
 
-// wifi client
-WiFiEspClient wifiClient;
-unsigned long nextWifiClientCheckTime = 0;
-
-// use a ring buffer to increase speed and reduce memory allocation
-ERingBuffer buf(8);
-int reqCount = 0;                // number of requests received
-unsigned long stopClientTime = 0;
-unsigned long wifiVerboseStopTime = 0;
-unsigned long wifiLastClientAvailableWait = 0;
-int wifiLastClientAvailable = 0;
-
-// --- WebSocket-based gateway client (AT protocol) ---
 #ifndef ENABLE_WS_CLIENT
 #define ENABLE_WS_CLIENT false
 #define WS_HOST ""
@@ -42,21 +19,19 @@ int wifiLastClientAvailable = 0;
 #define WS_ROBOT_SECRET 123456
 #endif
 
-static WiFiEspClient wsTcp;
-static WebSocketClient wsClient(
-  wsTcp,
-  WS_HOST,
-  WS_PORT,
-  String("/ws/robot?robot_id=") + String(WS_ROBOT_ID) + String("&secret=") + String(WS_ROBOT_SECRET) + String("&proto=at")
-);
-static unsigned long wsNextConnectTime = 0;
-static unsigned long wsLastRxTime = 0;
+HttpServer::HttpServer()
+  : buf(8),
+    wsClient(wsTcp,
+             WS_HOST,
+             WS_PORT,
+             String("/ws/robot?robot_id=") + String(WS_ROBOT_ID) + String("&secret=") + String(WS_ROBOT_SECRET) + String("&proto=at"))
+{}
 
 
 // process WIFI input (relay client)
 // a relay server allows to access the robot via the Internet by transferring data from app to robot and vice versa
 // client (app) --->  relay server  <--- client (robot)
-void processWifiRelayClient(){
+void HttpServer::processWifiRelayClient(){
   if (!wifiFound) return;
   if (!ENABLE_RELAY) return;
   if (!wifiClient.connected() || (wifiClient.available() == 0)){
@@ -90,17 +65,18 @@ void processWifiRelayClient(){
       // you got two newline characters in a row
       // that's the end of the HTTP request, so send a response
       if (buf.endsWith("\r\n\r\n")) {
-        cmd = "";
+        String httpCmd = "";
         while ((wifiClient.connected()) && (wifiClient.available()) && (millis() < timeout)) {
           char ch = wifiClient.read();
           timeout = millis() + 200;
-          cmd = cmd + ch;
+          httpCmd = httpCmd + ch;
           gps.run();
         }
         CONSOLE.print("WIF:");
-        CONSOLE.println(cmd);
+        CONSOLE.println(httpCmd);
         if (wifiClient.connected()) {
-          processCmd("WIF", true,true,true);
+          comm.setCmd(httpCmd);
+          comm.processCmd("WIF", true,true,true);
           String s = "HTTP/1.1 200 OK\r\n";
             s += "Host: " RELAY_USER "." RELAY_MACHINE "." RELAY_HOST ":";        
             s += String(RELAY_PORT) + "\r\n";
@@ -109,9 +85,9 @@ void processWifiRelayClient(){
             s += "Connection: close\r\n";  // the connection will be closed after completion of the response
             // "Refresh: 1\r\n"        // refresh the page automatically every 20 sec                                    
             s += "Content-length: ";
-            s += String(cmdResponse.length());
+            s += String(comm.getCmdResponse().length());
             s += "\r\n\r\n";  
-            s += cmdResponse;                      
+            s += comm.getCmdResponse();                      
             wifiClient.print(s);                                   
         }
         break;
@@ -124,7 +100,7 @@ void processWifiRelayClient(){
 
 // process WIFI input (App server)
 // client (app) --->  server (robot)
-void processWifiAppServer()
+void HttpServer::processWifiAppServer()
 {
   if (!wifiFound) return;
   if (!ENABLE_SERVER) return;
@@ -171,11 +147,11 @@ void processWifiAppServer()
         // you got two newline characters in a row
         // that's the end of the HTTP request, so send a response
         if (buf.endsWith("\r\n\r\n")) {
-          cmd = "";
+          String httpCmd = "";
           while ((client.connected()) && (client.available()) && (millis() < timeout)) {
             char ch = client.read();
             timeout = millis() + 50;
-            cmd = cmd + ch;
+            httpCmd = httpCmd + ch;
             gps.run();
           }
           if (millis() > wifiVerboseStopTime){
@@ -183,10 +159,11 @@ void processWifiAppServer()
           }    
           if (wifiVerboseStopTime != 0){          
             CONSOLE.print("WIF:");
-            CONSOLE.println(cmd);            
+            CONSOLE.println(httpCmd);            
           }
           if (client.connected()) {
-            processCmd("WIF",true,true, (wifiVerboseStopTime != 0) );
+            comm.setCmd(httpCmd);
+            comm.processCmd("WIF",true,true, (wifiVerboseStopTime != 0) );
             client.print(
               "HTTP/1.1 200 OK\r\n"
               "Access-Control-Allow-Origin: *\r\n"              
@@ -195,9 +172,9 @@ void processWifiAppServer()
               // "Refresh: 1\r\n"        // refresh the page automatically every 20 sec                        
               );
             client.print("Content-length: ");
-            client.print(cmdResponse.length());
+            client.print(comm.getCmdResponse().length());
             client.print("\r\n\r\n");                        
-            client.print(cmdResponse);                                   
+            client.print(comm.getCmdResponse());                                   
           }
           break;
         }
@@ -222,7 +199,7 @@ void processWifiAppServer()
 
 // process WIFI input (WebSocket robot gateway client)
 // robot (this) ---> WebSocket server (cloud backend)
-void processWifiWSClient() {
+void HttpServer::processWifiWSClient() {
   if (!wifiFound) return;
   if (!ENABLE_WS_CLIENT) return;
 
@@ -253,10 +230,10 @@ void processWifiWSClient() {
     // Trim CRLF if present
     while (msg.endsWith("\r") || msg.endsWith("\n")) msg.remove(msg.length()-1);
     // Pass through to existing command handler with decrypt=true
-    cmd = msg;
-    processCmd("WS", true, true, false);
-    if (cmdResponse.length() > 0) {
-      wsClient.sendText(cmdResponse);
+    comm.setCmd(msg);
+    comm.processCmd("WS", true, true, false);
+    if (comm.getCmdResponse().length() > 0) {
+      wsClient.sendText(comm.getCmdResponse());
     }
   }
 
