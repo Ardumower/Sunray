@@ -339,9 +339,14 @@ void StateEstimator::computeRobotState(){
 
   // ---------- GPS relative/absolute position source -----------------
   float posN = 0;
-  float posE = 0;
+  float posE = 0;  
   if (absolutePosSource){
-    relativeLL(absolutePosSourceLat, absolutePosSourceLon, gps.lat, gps.lon, posN, posE);    
+    #ifdef DRV_SIM_ROBOT // absolute pos-mode not supported by simulator
+      posN = gps.relPosN;  
+      posE = gps.relPosE;     
+    #else 
+      relativeLL(absolutePosSourceLat, absolutePosSourceLon, gps.lat, gps.lon, posN, posE);    
+    #endif
   } else {
     posN = gps.relPosN;  
     posE = gps.relPosE;     
