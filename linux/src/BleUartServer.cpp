@@ -65,7 +65,7 @@ extern "C" {
 #define COLOR_BOLDGRAY	"\x1B[1;30m"
 #define COLOR_BOLDWHITE	"\x1B[1;37m"
 
-#ifndef __arm__
+//#ifndef __arm__
 	void baswap(bdaddr_t *dst, const bdaddr_t *src)
 	{
 		register unsigned char *d = (unsigned char *) dst;
@@ -82,7 +82,7 @@ extern "C" {
 			b[0], b[1], b[2], b[3], b[4], b[5]);
 		return 0;
 	} 	
-#endif
+//#endif
 
 
 void *bleThreadFun(void *user_data)
