@@ -16,6 +16,7 @@ cpu_ok=false
 case "$CPU" in
   x86_64|amd64)          cpu_ok=true ;;   # Intel/AMD 64-bit
   aarch64|arm64)         cpu_ok=true ;;   # ARM 64-bit
+  armv7l)                cpu_ok=true ;;   # ARM 32-bit
 esac
 if ! $cpu_ok; then
   echo "WARNING: probably unsupported CPU: $CPU (expected: x86_64/amd64, aarch64/arm64)"
