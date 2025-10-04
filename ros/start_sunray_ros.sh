@@ -100,7 +100,8 @@ arp
 if ! command -v play &> /dev/null
 then 
   echo "installing audio player..."
-  apt install -y libsox-fmt-mp3 sox mplayer alsa-utils pulseaudio
+  apt install -y libsox-fmt-mp3 sox mplayer alsa-utils pulseaudio can-utils
+  apt install -y libavcodec58
 fi
 # add root to dialout group
 echo "whoami: $WHOAMI"
