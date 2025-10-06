@@ -222,8 +222,17 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define WIFI_PASS "pass"      // choose WiFi network password
 
 // client (app) --->  server (robot)
-#define ENABLE_SERVER true          // must be enabled if robot should act as server (recommended)
-//#define ENABLE_SERVER false           // must be disabled if robot should act as client (requires external relay server)
+//#define ENABLE_SERVER true          // must be enabled if robot should act as server (recommended)
+#define ENABLE_SERVER false           // must be disabled if robot should act as client (requires external relay server)
+
+// cloud integration via web socket
+// client (robot) ---> server (cloud)
+#define ENABLE_WS_CLIENT true
+//#define ENABLE_WS_CLIENT false
+#define WS_HOST "localhost"
+#define WS_PORT 8080
+#define WS_ROBOT_ID 3
+#define WS_ROBOT_SECRET "secret"
 
 
 // a relay server allows to access the robot via the Internet by transferring data from app to robot and vice versa (not available yet, highly experimental)
