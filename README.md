@@ -52,7 +52,7 @@ https://github.com/Ardumower/Sunray/releases
 
 # Sunray for SMARTMOW-DIY / owlPlatform / Alfred  <a name="sunray_alfred"></a>
 
-NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' (or SMARTMOW-DIY/owlPlatform) firmware. The code for all steps will require a Linux system (either the Alfred, a OrangePi5Pro/Raspberry Pi5 or some PC). For SMARTMOW-DIY/owlPlatform, it is assumed that you have installed SMARTMOW-DIY/owlPlatform drivers already as described here: https://github.com/owlRobotics-GmbH/owlRobotPlatform.
+NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' (or SMARTMOW-DIY/owlPlatform) firmware. The code for all steps will require a Linux system (either the Alfred, a OrangePi5Pro (RaspberryPi) or some PC). For SMARTMOW-DIY/owlPlatform, it is assumed that you have installed SMARTMOW-DIY/owlPlatform drivers already as described here: https://github.com/owlRobotics-GmbH/owlRobotPlatform.
 
 ## How to install code and compile 'Sunray for SMARTMOW-DIY / owlPlatform  Alfred' (required only once)
 Run this on your Linux terminal (in your Linux home folder):
@@ -116,7 +116,7 @@ Before running above commands, install required libs:
 sudo apt-get -y install cmake
 sudo apt-get -y install libbluetooth-dev
 ```
-For OrangePi5Pro/Raspberry Pi5, you may have to adjust the serial path for the Alfred MCU UART connection in 'linux/config.h': 
+For OrangePi5Pro (Raspberry), you may have to adjust the serial path for the Alfred MCU UART connection in 'linux/config.h': 
 ```
 #define SERIAL_ROBOT_PATH "/dev/ttyS0" 
 ```
@@ -267,7 +267,7 @@ https://forum.ardumower.de/threads/advanced-topic-generate-wifi-gps-heatmaps-wit
 ## Sunray ROS (via Docker)  <a name="sunray_ros"></a>
 The Sunray firmware can be compiled as ROS (robotic operating system) node, and ROS packages can then be used to replace the localization drivers (GPS/IMU) in Sunray. Typical ROS packages are LiDAR drivers, LiDAR-based SLAM (LiDAR mapping & localization) and LiDAR-based obstacle detection. Currently, the ROS system has been experimentally tested using these hardware combinations:
 
-- OrangePi5Pro/Raspberry Pi5 and Livox MID-360 ( https://owlrobotics-store.company.site/products/LIDAR-Livox-MID-360-incl-Cable-p605042897 )
+- OrangePi5Pro (Raspberry) and Livox MID-360 ( https://owlrobotics-store.company.site/products/LIDAR-Livox-MID-360-incl-Cable-p605042897 )
 
 Demo videos ( https://www.youtube.com/watch?v=47-9z_iPiTs , https://www.youtube.com/watch?v=OYC_oKYsXts, https://www.youtube.com/watch?v=eZM_R9n57KA,  https://www.youtube.com/watch?v=vfD_GPRI-98 )
 
