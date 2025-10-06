@@ -227,10 +227,10 @@ void Motor::setMowState(bool switchOn){
     if (toggleMowDir){
       // toggle mowing motor direction each mow motor start
       motorMowForwardSet = !motorMowForwardSet;
-      if (motorMowForwardSet) motorMowPWMSet = pwmMaxMow;  
-        else motorMowPWMSet = -pwmMaxMow;  
+      if (motorMowForwardSet) motorMowPWMSet = 255;  
+        else motorMowPWMSet = -255;  
     }  else  {      
-      motorMowPWMSet = pwmMaxMow;  
+      motorMowPWMSet = 255;  
     }
   } else {
     if (abs(motorMowPWMSet) < 0.01) return; // mowing motor already switch OFF    
