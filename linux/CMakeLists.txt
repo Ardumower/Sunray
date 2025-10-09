@@ -32,6 +32,10 @@ endif()
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -lbluetooth")
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x c")
+
+# Implicit function declarations should not be treated as errors
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error=implicit-function-declaration")
+
 # SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x c -I /usr/include/libnl3/")
 SET(CMAKE_BUILD_TYPE Debug)
 #SET(CMAKE_BUILD_TYPE Release)
