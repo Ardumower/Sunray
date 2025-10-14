@@ -70,8 +70,19 @@ function build_sunray() {
   rm -f CMakeCache.txt
   rm -f cmake_install.cmake
   rm -Rf CMakeFiles
-  cd build
-  rm -Rf * 
+  
+  # Ensure build directory exists and cleanup safely inside it
+  mkdir -p build
+  cd build || { echo "ERROR: failed to enter build directory"; return 1; }
+  if [[ "$(basename "$PWD")" != "build" ]]; then
+    echo "ERROR: safety check failed (not in build dir), aborting cleanup"
+    return 1
+  fi
+  # Remove previous build artifacts only inside build directory (including dotfiles)
+  shopt -s dotglob nullglob
+  rm -rf -- *
+  shopt -u dotglob nullglob
+  
   #exit
   cmake -D CONFIG_FILE=$CONFIG_PATHNAME ..
   make 
