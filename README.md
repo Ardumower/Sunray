@@ -52,7 +52,7 @@ https://github.com/Ardumower/Sunray/releases
 
 # Sunray for SMARTMOW-DIY / owlPlatform / Alfred  <a name="sunray_alfred"></a>
 
-NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' (or SMARTMOW-DIY/owlPlatform) firmware. The code for all steps will require a Linux system (either the Alfred, a OrangePi5Pro (RaspberryPi) or some PC). For SMARTMOW-DIY/owlPlatform, it is assumed that you have installed SMARTMOW-DIY/owlPlatform drivers already as described here: https://github.com/owlRobotics-GmbH/owlRobotPlatform.
+NOTE: Below steps are only required if you want to compile a custom version of the 'Sunray for Alfred' (or SMARTMOW-DIY/owlPlatform) firmware. The code for all steps will require a Linux system (either the Alfred, a OrangePi5Pro (RaspberryPi) or some PC). For SMARTMOW-DIY/owlPlatform, it is assumed that you have installed SMARTMOW-DIY/owlPlatform drivers already as described here: https://github.com/owlRobotics-GmbH/owlRobotPlatform. NOTE: you can find a complete guide for the owlPlatform here: https://github.com/Ardumower/Sunray?tab=readme-ov-file#sunray_husqvarna
 
 ## How to install code and compile 'Sunray for SMARTMOW-DIY / owlPlatform  Alfred' (required only once)
 Run this on your Linux terminal (in your Linux home folder):
