@@ -12,6 +12,11 @@
 
 void SimRobotDriver::begin(){
   CONSOLE.println("using robot driver: SimRobotDriver");
+  CONSOLE.println("reading robot ID...");
+  Process p2;
+  p2.runShellCommand("ip link show eth0 | grep link/ether | awk '{print $2}'");
+  robotID = p2.readString();    
+  robotID.trim();
   simTicksLeft = simTicksRight = 0;  
   linearSpeed = angularSpeed = 0;
   leftSpeed = rightSpeed = mowSpeed = 0;
@@ -25,7 +30,8 @@ void SimRobotDriver::begin(){
 }
 
 bool SimRobotDriver::getRobotID(String &id){
-  id = "sim";
+  //id = "sim";
+  id = robotID;
   return true;
 }
 

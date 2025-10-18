@@ -232,14 +232,14 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // Transport selection for Linux builds:
 // 1 = use TLS (wss) with optional client certs; 0 = use plain TCP (ws) without CA
-#define WS_USE_TLS 1
+#define WS_USE_TLS 0
 //#define WS_HOST "localhost"
 //#define WS_PORT 8080
 //#define WS_HOST "owlrobotics.app"
 #define WS_HOST "alex-pc.local"
 // Tunnelmole terminates TLS; use standard HTTPS/WSS port
-#define WS_PORT 443
-//#define WS_PORT 8080
+//#define WS_PORT 443
+#define WS_PORT 8080
 #define WS_ROBOT_ID 3
 #define WS_ROBOT_SECRET "secret"
 

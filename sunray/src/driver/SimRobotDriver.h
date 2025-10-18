@@ -14,6 +14,7 @@
 
 class SimRobotDriver: public RobotDriver {
   public:
+    String robotID;
     float simX;  // robot x
     float simY;  // robot y
     float simDelta; // robot yaw        
