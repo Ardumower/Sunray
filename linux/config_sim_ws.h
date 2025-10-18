@@ -229,7 +229,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // client (robot) ---> server (cloud)
 #define ENABLE_WS_CLIENT true
 //#define ENABLE_WS_CLIENT false
-
 // Transport selection for Linux builds:
 // 1 = use TLS (wss) with optional client certs; 0 = use plain TCP (ws) without CA
 #define WS_USE_TLS 0
@@ -237,11 +236,16 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define WS_PORT 8080
 //#define WS_HOST "owlrobotics.app"
 #define WS_HOST "alex-pc.local"
+// Prefer connect-by-key (no robot_id required):
+#define WS_ROBOT_CONNECT_KEY "99bb86e57429815531ce96aea6389f99"
 // Tunnelmole terminates TLS; use standard HTTPS/WSS port
 //#define WS_PORT 443
 #define WS_PORT 8080
-#define WS_ROBOT_ID 3
-#define WS_ROBOT_SECRET "secret"
+// Legacy (id + secret) removed
+
+// TLS settings for Linux WebSocket client (only used if WS_USE_TLS=1)
+// Use scripts under scripts/mtls to generate these files.
+// For local dev (CN=localhost, label=server-dev) and robot_id=3:
 
 // self-signed certs
 // #define WS_TLS_ROOT_CA_PATH "../../certs/root/rootCA.pem"
@@ -251,6 +255,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // https tunnel
 #define WS_TLS_ROOT_CA_PATH "SYSTEM"  // use OS CA trust 
+// In tunnel mode mTLS is NOT required; disable client cert/key
 #define WS_TLS_CLIENT_CERT_PATH ""
 #define WS_TLS_CLIENT_KEY_PATH ""
 // Set SNI / server name to the (tunnel) host for correct certificate selection

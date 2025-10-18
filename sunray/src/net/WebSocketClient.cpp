@@ -188,7 +188,21 @@ bool WebSocketClient::pollText(String& out) {
   }
   // Control frames (ping/pong/close)
   if (opcode == 0x8) { // close
-    CONSOLE.println("WS: opcode close");
+    uint16_t code = 0;
+    String reason;
+    if (len >= 2) {
+      uint8_t b[2]; if (!readExact(b, 2, 50)) { close(); return false; }
+      code = ((uint16_t)b[0] << 8) | (uint16_t)b[1];
+      for (uint64_t i = 2; i < len; i++) {
+        int ch = -1; unsigned long t = millis() + 50; while (ch < 0 && millis() < t) { if (_client.available()) ch = _client.read(); }
+        if (ch < 0) break; reason += (char)ch;
+      }
+    } else {
+      // consume any remaining bytes just in case
+      for (uint64_t i = 0; i < len; i++) { int b = _client.read(); (void)b; }
+    }
+    CONSOLE.print("WS: close "); CONSOLE.print((int)code); if (reason.length()) { CONSOLE.print(" "); CONSOLE.print(reason); }
+    CONSOLE.println("");
     close();
     return false;
   } else if (opcode == 0x9) { // ping -> respond with pong

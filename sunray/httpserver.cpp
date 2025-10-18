@@ -11,6 +11,8 @@
 #include "timetable.h"
 
 
+/* machine-id WS handshake helpers removed; firmware embeds ID in AT+V response */
+
 #ifndef ENABLE_WS_CLIENT
 #define ENABLE_WS_CLIENT false
 #define WS_HOST ""
@@ -50,7 +52,13 @@ HttpServer::HttpServer()
     wsClient(wsTcp,
              WS_HOST,
              WS_PORT,
-             String("/ws/robot?robot_id=") + String(WS_ROBOT_ID) + String("&secret=") + String(WS_ROBOT_SECRET) + String("&proto=at"))
+             // Build WS path using connect_key only (no legacy id+secret)
+             ([](){
+               #ifndef WS_ROBOT_CONNECT_KEY
+               #error "Define WS_ROBOT_CONNECT_KEY (connect key) in your config."
+               #endif
+               return String("/ws/robot?connect_key=") + String(WS_ROBOT_CONNECT_KEY) + String("&proto=at");
+             })())
 {}
 
 void HttpServer::begin(){
@@ -245,12 +253,12 @@ void HttpServer::processWifiWSClient() {
     CONSOLE.print(WS_HOST);
     CONSOLE.print(":");
     CONSOLE.print(WS_PORT);
-    // Show request path (mask secret)
+    // Show request path (mask connect_key)
     {
-      String path = String("/ws/robot?robot_id=") + String(WS_ROBOT_ID) + String("&secret=") + String(WS_ROBOT_SECRET) + String("&proto=at");
-      int idx = path.indexOf("secret=");
+      String path = String("/ws/robot?connect_key=") + String(WS_ROBOT_CONNECT_KEY) + String("&proto=at");
+      int idx = path.indexOf("connect_key=");
       if (idx >= 0) {
-        int start = idx + 7;
+        int start = idx + 12;
         int end = path.indexOf('&', start);
         String masked = path.substring(0, start) + String("***");
         if (end >= 0) masked += path.substring(end);
@@ -293,5 +301,9 @@ void HttpServer::processWifiWSClient() {
       wsClient.close();
       wsNextConnectTime = millis() + 2000;
     }
+  }
+  // If connection was closed by server (handled in pollText), pause before reconnecting
+  if (!wsClient.connected()) {
+    if (wsNextConnectTime < millis() + 2000) wsNextConnectTime = millis() + 2000;
   }
 }
