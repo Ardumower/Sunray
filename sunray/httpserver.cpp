@@ -19,9 +19,34 @@
 #define WS_ROBOT_SECRET 123456
 #endif
 
+// TLS defaults (Linux only; non-Linux uses BLE/serial, not WS)
+#ifdef __linux__
+  #ifndef WS_TLS_ROOT_CA_PATH
+  #define WS_TLS_ROOT_CA_PATH "./certs/rootCA.pem"
+  #endif
+  #ifndef WS_TLS_CLIENT_CERT_PATH
+  #define WS_TLS_CLIENT_CERT_PATH "./certs/client.crt"
+  #endif
+  #ifndef WS_TLS_CLIENT_KEY_PATH
+  #define WS_TLS_CLIENT_KEY_PATH "./certs/client.key"
+  #endif
+  #ifndef WS_TLS_SERVER_NAME
+  #define WS_TLS_SERVER_NAME WS_HOST
+  #endif
+#endif
+
 HttpServer::HttpServer()
   : buf(8),
     server(80),
+#ifdef __linux__
+  #if WS_USE_TLS
+    wsTcp(WS_TLS_ROOT_CA_PATH, WS_TLS_CLIENT_CERT_PATH, WS_TLS_CLIENT_KEY_PATH, WS_TLS_SERVER_NAME),
+  #else
+    wsTcp(),
+  #endif
+#else
+    wsTcp(),
+#endif
     wsClient(wsTcp,
              WS_HOST,
              WS_PORT,
@@ -212,10 +237,28 @@ void HttpServer::processWifiWSClient() {
   // Maintain connection
   if (!wsClient.connected()) {
     if (millis() < wsNextConnectTime) return;
-    CONSOLE.print("WS: connecting ws://");
+  #if defined(__linux__) && WS_USE_TLS
+      CONSOLE.print("WS: connecting wss://");
+  #else
+      CONSOLE.print("WS: connecting ws://");
+  #endif
     CONSOLE.print(WS_HOST);
     CONSOLE.print(":");
     CONSOLE.print(WS_PORT);
+    // Show request path (mask secret)
+    {
+      String path = String("/ws/robot?robot_id=") + String(WS_ROBOT_ID) + String("&secret=") + String(WS_ROBOT_SECRET) + String("&proto=at");
+      int idx = path.indexOf("secret=");
+      if (idx >= 0) {
+        int start = idx + 7;
+        int end = path.indexOf('&', start);
+        String masked = path.substring(0, start) + String("***");
+        if (end >= 0) masked += path.substring(end);
+        path = masked;
+      }
+      CONSOLE.print(" path=");
+      CONSOLE.print(path);
+    }
     CONSOLE.println(" ...");
     if (!wsClient.connect()) {
       CONSOLE.println("WS: connect failed");

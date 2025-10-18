@@ -19,8 +19,15 @@ static String base64Encode(const uint8_t* in, size_t len) {
 
 bool WebSocketClient::connect() {
   if (_client.connected()) _client.stop();
-  if (!_client.connect(_host.c_str(), _port)) return false;
-  if (!handshake()) { _client.stop(); return false; }
+  if (!_client.connect(_host.c_str(), _port)) {
+    CONSOLE.println(F("WS: TCP connect() failed"));
+    return false;
+  }
+  if (!handshake()) {
+    CONSOLE.println(F("WS: handshake failed"));
+    _client.stop();
+    return false;
+  }
   _connected = true;
   return true;
 }
@@ -37,6 +44,24 @@ bool WebSocketClient::handshake() {
   String keyB64 = base64Encode(key, sizeof(key));
 
   // Send HTTP upgrade request
+  // Debug: print request line (mask secret if present)
+  auto maskSecret = [](const String& p) {
+    int idx = p.indexOf("secret=");
+    if (idx >= 0) {
+      int start = idx + 7;
+      int end = p.indexOf('&', start);
+      String out = p.substring(0, start);
+      out += "***";
+      if (end >= 0) out += p.substring(end);
+      return out;
+    }
+    return p;
+  };
+  CONSOLE.print(F("WS: request GET "));
+  CONSOLE.print(maskSecret(_path));
+  CONSOLE.print(F(" Host: "));
+  CONSOLE.println(_host);
+
   _client.print(F("GET "));
   _client.print(_path);
   _client.print(F(" HTTP/1.1\r\n"));
@@ -58,17 +83,32 @@ bool WebSocketClient::readHttpHeaders() {
   unsigned long timeout = millis() + 5000;
   String line;
   bool first = true;
+  bool ok = false;
+  bool printHeaders = false; // enable on failure to show details
   while (millis() < timeout) {
     while (_client.available()) {
       int ch = _client.read();
       if (ch < 0) continue;
       if (ch == '\r') continue;
       if (ch == '\n') {
-        if (line.length() == 0) return true; // end of headers
+        if (line.length() == 0) {
+          if (printHeaders) CONSOLE.println(F("WS: end headers"));
+          return ok; // end of headers
+        }
         if (first) {
           // Expect HTTP/1.1 101
           first = false;
-          if (!line.startsWith("HTTP/1.1 101")) return false;
+          if (!line.startsWith("HTTP/1.1 101")) {
+            CONSOLE.print(F("WS: bad status: "));
+            CONSOLE.println(line);
+            // print subsequent response headers for diagnostics
+            printHeaders = true;
+          } else {
+            ok = true;
+          }
+        } else if (printHeaders) {
+          CONSOLE.print(F("WS: hdr: "));
+          CONSOLE.println(line);
         }
         line = "";
       } else {
@@ -190,4 +230,3 @@ bool WebSocketClient::pollText(String& out) {
   (void)fin;
   return true;
 }
-

@@ -229,10 +229,32 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // client (robot) ---> server (cloud)
 #define ENABLE_WS_CLIENT true
 //#define ENABLE_WS_CLIENT false
-#define WS_HOST "localhost"
-#define WS_PORT 8080
+
+// Transport selection for Linux builds:
+// 1 = use TLS (wss) with optional client certs; 0 = use plain TCP (ws) without CA
+#define WS_USE_TLS 1
+//#define WS_HOST "localhost"
+//#define WS_PORT 8080
+//#define WS_HOST "owlrobotics.app"
+#define WS_HOST "alex-pc.local"
+// Tunnelmole terminates TLS; use standard HTTPS/WSS port
+#define WS_PORT 443
+//#define WS_PORT 8080
 #define WS_ROBOT_ID 3
 #define WS_ROBOT_SECRET "secret"
+
+// self-signed certs
+// #define WS_TLS_ROOT_CA_PATH "../../certs/root/rootCA.pem"
+// #define WS_TLS_SERVER_NAME WS_HOST
+// #define WS_TLS_CLIENT_CERT_PATH "../../certs/clients/3/client.crt"
+// #define WS_TLS_CLIENT_KEY_PATH "../../certs/clients/3/client.key"
+
+// https tunnel
+#define WS_TLS_ROOT_CA_PATH "SYSTEM"  // use OS CA trust 
+#define WS_TLS_CLIENT_CERT_PATH ""
+#define WS_TLS_CLIENT_KEY_PATH ""
+// Set SNI / server name to the (tunnel) host for correct certificate selection
+#define WS_TLS_SERVER_NAME WS_HOST
 
 
 // a relay server allows to access the robot via the Internet by transferring data from app to robot and vice versa (not available yet, highly experimental)

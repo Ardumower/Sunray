@@ -20,6 +20,23 @@
 #include "RingBuffer.h"
 #include "src/net/WebSocketClient.h"
 
+// Select TCP transport for WebSocket:
+// - On Linux, allow choosing TLS (wss) vs plain TCP (ws) via WS_USE_TLS
+// - On MCUs, use WiFiEspClient (plain)
+#ifdef __linux__
+  #ifndef WS_USE_TLS
+  #define WS_USE_TLS 1
+  #endif
+  #if WS_USE_TLS
+    #include "src/net/TlsClient.h"
+    typedef TlsClient WsTcpType;
+  #else
+    typedef BridgeClient WsTcpType;
+  #endif
+#else
+  typedef WiFiEspClient WsTcpType;
+#endif
+
 
 class HttpServer {
 public:
@@ -45,7 +62,7 @@ private:
   int wifiLastClientAvailable = 0;
 
   // WebSocket-based gateway client (AT protocol)
-  WiFiEspClient wsTcp;
+  WsTcpType wsTcp;   // Linux: TLS or plain based on WS_USE_TLS; MCU: plain
   WebSocketClient wsClient;
   unsigned long wsNextConnectTime = 0;
   unsigned long wsLastRxTime = 0;

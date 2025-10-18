@@ -105,3 +105,12 @@ target_include_directories(sunray PRIVATE src ${FIRMWARE_PATH}/src)
 #ADD_LIBRARY( arduino_linux STATIC ${pi_sources} )
 #target_include_directories(arduino_linux PRIVATE src)
 
+# OpenSSL for TLS on Linux
+find_package(OpenSSL REQUIRED)
+if (OPENSSL_FOUND)
+  message(STATUS "OpenSSL found: ${OPENSSL_VERSION}")
+  target_link_libraries(sunray OpenSSL::SSL OpenSSL::Crypto)
+else()
+  message(FATAL_ERROR "OpenSSL not found. Install libssl-dev and rerun cmake.")
+endif()
+
