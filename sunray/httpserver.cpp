@@ -292,6 +292,7 @@ void HttpServer::processWifiWSClient() {
     if (comm.getCmdResponse().length() > 0) {
       wsClient.sendText(comm.getCmdResponse());
     }
+    battery.resetIdle();    
   }
 
   // If no inbound frames received for 15s, force reconnect
