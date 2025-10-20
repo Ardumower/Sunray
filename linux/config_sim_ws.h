@@ -231,16 +231,16 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define ENABLE_WS_CLIENT false
 // Transport selection for Linux builds:
 // 1 = use TLS (wss) with optional client certs; 0 = use plain TCP (ws) without CA
-#define WS_USE_TLS 0
+#define WS_USE_TLS 1
 //#define WS_HOST "localhost"
 //#define WS_PORT 8080
-//#define WS_HOST "owlrobotics.app"
-#define WS_HOST "alex-pc.local"
+#define WS_HOST "sunray.owlrobotics.app"
+//#define WS_HOST "alex-pc.local"
 // Prefer connect-by-key (no robot_id required):
 #define WS_ROBOT_CONNECT_KEY "99bb86e57429815531ce96aea6389f99"
 // Tunnelmole terminates TLS; use standard HTTPS/WSS port
-//#define WS_PORT 443
-#define WS_PORT 8080
+#define WS_PORT 443
+//#define WS_PORT 8080
 // Legacy (id + secret) removed
 
 // TLS settings for Linux WebSocket client (only used if WS_USE_TLS=1)
