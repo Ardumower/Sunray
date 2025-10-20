@@ -91,11 +91,15 @@ void CanRobotDriver::begin(){
     CONSOLE.println(workingDir);
 
     CONSOLE.println("reading robot ID...");
-    Process p2;
-    p2.runShellCommand("ip link show eth0 | grep link/ether | awk '{print $2}'");
-	  robotID = p2.readString();    
+    Process p2;    
+    p2.runShellCommand("ip link show wlan0 | grep link/ether | awk '{print $2}'");
+	  robotID = p2.readString();
     robotID.trim();
-
+    if (robotID == ""){
+      p2.runShellCommand("ip link show eth0 | grep link/ether | awk '{print $2}'");
+      robotID = p2.readString();
+      robotID.trim();  
+    }    
     
     if (false){
       // trigger linux bus error - steps to examine:
