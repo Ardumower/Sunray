@@ -49,7 +49,7 @@ function build_sunray() {
   then
     echo "installing required Linux libraries... (you may have to enter your sudo password)"  
     sudo apt-get -y install cmake
-    sudo apt-get -y install libbluetooth-dev
+    sudo apt-get -y install libbluetooth-dev libssl-dev
   fi
   #if [ "$EUID" -eq 0 ]
   #  then echo "Please run as non-root (not sudo)"
