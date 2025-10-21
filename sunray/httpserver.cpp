@@ -18,7 +18,7 @@
 #define WS_HOST ""
 #define WS_PORT 8080
 #define WS_ROBOT_ID 1
-#define WS_ROBOT_SECRET 123456
+#define WS_ROBOT_CONNECT_KEY "01234567890123456789"
 #endif
 
 // TLS defaults (Linux only; non-Linux uses BLE/serial, not WS)
