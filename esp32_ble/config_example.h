@@ -7,17 +7,16 @@
   Steps to install ESP32 for Arduino IDE 1.8.13:
      1. Arduino IDE: File->Preferences:  Add to board manager URLs: ",https://dl.espressif.com/dl/package_esp32_index.json"
      2. Choose "Tools->Board->Boards Manager"
-     3. Add board "esp32" (IMPORTANT!!! choose v1.0.4, latest v1.0.6 does not seem to connect to WiFi access point! )
+     3. Add board "esp32" (IMPORTANT!!! choose latest version )
      4. Choose Board "ESP32 Dev Module"  (if upload does not work: PRESS EN+BOOT, release EN  on your ESP32)
      5. Choose Partition Scheme "Minimal SPIFFS"  (otherwise you may get 'memory space errors' in the Arduino IDE)
     (also see: https://github.com/espressif/arduino-esp32/blob/master/docs/arduino-ide/boards_manager.md )
      6. Choose Port (Windows NOTE: if the port is not shown you may have to install drivers: https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers)
      7. Choose "Tools->Manager Libraries..."
-     8. Add library "ESP32_HTTPS_Server 1.0.0 by Frank Hessel"  
-     9. Add library "ArduinoJson 6.18.5 by Benoit Blanchon" and "ThingsOfValue SDK for Arduino 1.0.0 by Kyuseok Oh" (only required if activated 'USE_MQTT')
-     10. Add library "NimBLE-Arduino 1.3.1 by h2zero"  (requires less memory - only required if activated 'USE_NIM_BLE')
-     11. Copy this file into 'config.h'     
-     12. Configure the options below and finally compile and upload this project.
+     8. Add library "ArduinoJson 6.18.5 by Benoit Blanchon" and "ThingsOfValue SDK for Arduino 1.0.0 by Kyuseok Oh" (only required if activated 'USE_MQTT')
+     9. Add library "NimBLE-Arduino 1.3.1 by h2zero"  (requires less memory - only required if activated 'USE_NIM_BLE')
+     10. Copy this file into 'config.h'     
+     11. Configure the options below and finally compile and upload this project.
      
 
   wiring (also see wiring image in Github folder):
@@ -72,6 +71,8 @@
 //#define USE_HTTPS  1  
 
 
+
+
 // Relay server
 //
 // Install this library with the Arduino Library Manager:
@@ -83,6 +84,17 @@
 //#define RELAY_PASSWORD  ""
 //#define RELAY_TIMEOUT   1000
 //#define RELAY_PINGWAIT  55
+
+// Cloud WebSocket (robot → cloud)
+// Mirrors Linux WS client (see linux/config_*_ws.h). Uses ESP32 core CA bundle only (no fallback).
+//
+// Uncomment to enable and set your connect key.
+//
+//#define USE_CLOUD  1
+//#define WS_HOST "sunray.owlrobotics.app"
+//#define WS_PORT 443
+//#define WS_ROBOT_CONNECT_KEY "your_connect_key_here"
+// No insecure mode or pinned CA supported in this config.
 
 // MQTT server 
 // (subscribed topcis: '/command/start', '/command/stop', '/command/dock', '/command/reboot', '/command/shutdown', '/command/"every AT+... command supported by comm.cpp"')
@@ -114,4 +126,3 @@
 
 #define CONSOLE Serial  // where to send/receive console messages for debugging etc.
 #define UART Serial2    // where to send/receive UART data
-
