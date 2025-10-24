@@ -849,7 +849,7 @@ void CanRobotDriver::processResponse(){
                 case owlctl::can_val_lift_state:
                   triggeredLift = (data.byteVal[0] != 0);
                   break;
-                case owlctl::can_val_charger_voltage:
+                case owlctl::can_val_charger_voltage: {
                   float volt = data.floatVal;                  
                   //CONSOLE.print("charger: ");
                   //CONSOLE.println(volt);                                    
@@ -857,6 +857,7 @@ void CanRobotDriver::processResponse(){
                   if (volt > 20) chargeVoltage = volt;
                     else chargeVoltage = 0;            
                   break;
+                }
                 case owlctl::can_val_power_off_state:
                   handlePowerOffState((owlctl::powerOffState_t)data.byteVal[0], data.byteVal[1], data.byteVal[2]);
                   break;
