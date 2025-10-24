@@ -144,7 +144,7 @@ void cloud_loop() {
       while (msg.endsWith("\r") || msg.endsWith("\n")) msg.remove(msg.length()-1);
       CONSOLE.print("cloud rx:");
       CONSOLE.println(msg);
-      UART.print(msg);
+      UART.println(msg);
 
       char buffer[1024];
       size_t len = 0;
