@@ -7,18 +7,10 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
-// Use ESP32 core HTTPS (mbedTLS) with CA bundle, and a minimal WS client over WiFiClientSecure
+// Use mbedTLS HTTPS client with pinned Let's Encrypt ISRG Root X1 (same as relay)
 #include <WiFiClientSecure.h>
 #include <time.h>
-#include <esp_crt_bundle.h>
-// Extern symbols provided by the ESP32 core certificate bundle.
-// Different core versions/targets expose different names. Declare them weak and choose at runtime.
-extern const uint8_t x509_crt_bundle_start[] asm("_binary_x509_crt_bundle_start") __attribute__((weak));
-extern const uint8_t x509_crt_bundle_end[]   asm("_binary_x509_crt_bundle_end")   __attribute__((weak));
-extern const uint8_t rootca_crt_bundle_start[] asm("_binary_rootca_crt_bundle_start") __attribute__((weak));
-extern const uint8_t rootca_crt_bundle_end[]   asm("_binary_rootca_crt_bundle_end")   __attribute__((weak));
-extern const uint8_t ca_cert_bundle_start[] asm("_binary_ca_cert_bundle_start") __attribute__((weak));
-extern const uint8_t ca_cert_bundle_end[]   asm("_binary_ca_cert_bundle_end")   __attribute__((weak));
+#include "trust.h"
 #include "src/ws/WebSocketClient.h"
 
 // Backoff for reconnect attempts
@@ -41,26 +33,8 @@ static String cloud_url() {
 }
 
 static void cloud_setup_tls() {
-  // Strictly use ESP32 core CA bundle (no fallback)
-  // Arduino-ESP32 exposes bundle as binary symbols; pass pointer and size
-  const uint8_t* start = nullptr;
-  const uint8_t* end   = nullptr;
-  if ((intptr_t)&x509_crt_bundle_start != 0 && (intptr_t)&x509_crt_bundle_end != 0) {
-    start = x509_crt_bundle_start; end = x509_crt_bundle_end;
-  } else if ((intptr_t)&rootca_crt_bundle_start != 0 && (intptr_t)&rootca_crt_bundle_end != 0) {
-    start = rootca_crt_bundle_start; end = rootca_crt_bundle_end;
-  } else if ((intptr_t)&ca_cert_bundle_start != 0 && (intptr_t)&ca_cert_bundle_end != 0) {
-    start = ca_cert_bundle_start; end = ca_cert_bundle_end;
-  }
-  if (!start || !end) {
-    CONSOLE.println("WS: ERROR no CA bundle symbols found in core");
-    // Intentionally do not fallback to insecure or pinned CA per requirement
-    return;
-  }  else {
-    CONSOLE.println("WS: CA bundle symbols found in core");
-  }
-  size_t bundle_size = (size_t)(end - start);
-  cloudTls.setCACertBundle(start, bundle_size);
+  // Pin Let's Encrypt ISRG Root X1
+  cloudTls.setCACert(tls_ca_trust);
   cloudTls.setHandshakeTimeout(15000);
   cloudTls.setTimeout(15000);
   static const char* alpn_protos[] = { "http/1.1", 0 };
