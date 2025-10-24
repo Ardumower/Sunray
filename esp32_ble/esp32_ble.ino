@@ -16,7 +16,7 @@
 
 #include "config.h"
 
-#define VERSION "ESP32 firmware V0.4.5,Bluetooth V4.0 LE"
+#define VERSION "ESP32 firmware V0.5.0,Bluetooth V4.0 LE"
 
 // watch dog timeout (WDT) in seconds
 #define WDT_TIMEOUT 60
@@ -36,7 +36,13 @@ String pass = WIFI_STA_PSK;
 //#include <ESPmDNS.h>
 //#include <WiFiUdp.h>
 
-// Local HTTP(S) server removed. ESP32 uses only HTTPS client for cloud.
+// Local intranet HTTP server (built-in WebServer) when requested and no cloud is used
+#if defined(USE_HTTP_SERVER) && !defined(USE_CLOUD)
+  #include <WebServer.h>
+  static WebServer* httpServer = nullptr;
+  void handleHttpRoot();
+  void handleHttpOptions();
+#endif
 
 #ifdef USE_BLE
   #ifdef USE_NIM_BLE
@@ -103,7 +109,7 @@ byte txBuf[BLE_BUF_SZ];
 String notifyData;
 
 // ----- wifi --------------------------
-// No local HTTP(S) server
+// Optional local HTTP server (intranet mode)
 
 // ------------------------------- UART -----------------------------------------------------
 
@@ -331,7 +337,21 @@ void startWIFI() {
     CONSOLE.print(" and IP=");
     IPAddress ip = WiFi.localIP();
     CONSOLE.println(ip);
-    //server.begin();
+    // Initialize local HTTP server (only when intranet mode enabled and no cloud)
+    #if defined(USE_HTTP_SERVER) && !defined(USE_CLOUD)
+      if (httpServer == nullptr) { // start only once
+        CONSOLE.println("starting HTTP server (intranet mode)");
+        httpServer = new WebServer(80);
+        httpServer->on("/", HTTP_OPTIONS, handleHttpOptions);
+        httpServer->on("/", HTTP_POST, handleHttpRoot);
+        // simple health endpoint
+        httpServer->on("/health", HTTP_GET, [](){
+          httpServer->sendHeader("Access-Control-Allow-Origin", "*");
+          httpServer->send(200, "text/plain", "OK");
+        });
+        httpServer->begin();
+      }
+    #endif
     // Sync time once for TLS certificate validation (required for HTTPS)
     static bool timeSynced = false;
     if (!timeSynced) {
@@ -388,8 +408,49 @@ void startWIFI() {
   }
 }
 
+// Local HTTP server handlers (intranet mode)
+#if defined(USE_HTTP_SERVER) && !defined(USE_CLOUD)
+void handleHttpOptions() {
+  // CORS preflight
+  httpServer->sendHeader("Access-Control-Allow-Origin", "*");
+  httpServer->sendHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  httpServer->sendHeader("Access-Control-Allow-Headers", "Content-Type");
+  httpServer->send(204);
+}
 
-// legacy HTTP server handler removed
+void handleHttpRoot() {
+  httpServer->sendHeader("Access-Control-Allow-Origin", "*");
+  httpServer->sendHeader("Cache-Control", "no-store");
+
+  String wifiCmd = httpServer->arg("plain");
+  CONSOLE.print("HTTP rx:");
+  CONSOLE.println(wifiCmd);
+
+  if (wifiCmd.length() > 0) {
+    UART.write((const uint8_t*)wifiCmd.c_str(), wifiCmd.length());
+    #ifdef USE_MQTT
+      mower.tx(wifiCmd);
+    #endif
+  }
+
+  String cmdResponse;
+  unsigned long timeout = millis() + WIFI_TIMEOUT_FIRST_RESPONSE;
+  while ( millis() < timeout) {
+    if (UART.available()) {
+      char ch = UART.read();
+      #ifdef USE_MQTT
+        mower.rx(ch);
+      #endif
+      cmdResponse += ch;
+      timeout = millis() + WIFI_TIMEOUT_RESPONSE;
+    }
+    delay(1);
+  }
+  CONSOLE.print("UART tx:");
+  CONSOLE.println(cmdResponse);
+  httpServer->send(200, "text/plain", cmdResponse);
+}
+#endif
 
 
 void cmdVersion() {
@@ -659,7 +720,12 @@ void loop() {
     CONSOLE.println(" ping");
   }
   
-  // no local HTTP(S) server loop
+  // local HTTP server loop (intranet mode only)
+  #if defined(USE_HTTP_SERVER) && !defined(USE_CLOUD)
+    if (!bleConnected && (httpServer != nullptr)) {
+      httpServer->handleClient();
+    }
+  #endif
 
   if (!bleConnected) {
     startWIFI();

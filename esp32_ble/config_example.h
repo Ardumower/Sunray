@@ -66,10 +66,10 @@
 #define WIFI_TIMEOUT_FIRST_RESPONSE  800   // fast response times (500), for more reliable choose: 800     
 #define WIFI_TIMEOUT_RESPONSE        400   // fast response times (100), for more reliable choose: 400
 
-// comment this line to use HTTP, uncomment to use HTTPS
-// NOTE: if using HTTPS, you also need to uncomment USE_NIM_BLE above!
-//#define USE_HTTPS  1  
-
+// Intranet HTTP server (unencrypted, built-in WebServer)
+// Enable this to use the classic local HTTP bridge instead of cloud.
+// Note: do not use together with USE_CLOUD.
+#define USE_HTTP_SERVER 1
 
 
 
