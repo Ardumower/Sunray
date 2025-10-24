@@ -20,6 +20,35 @@
 
 //#define DEBUG_CAN_ROBOT 1
 
+#ifndef POWER_OFF_COMMAND_DELAY_SEC
+#define POWER_OFF_COMMAND_DELAY_SEC 30
+#endif
+
+#ifndef POWER_OFF_LOG_INTERVAL_MS
+#define POWER_OFF_LOG_INTERVAL_MS 2000
+#endif
+
+#ifndef POWER_OFF_COMMAND_RETRY_MS
+#define POWER_OFF_COMMAND_RETRY_MS 1000
+#endif
+
+#ifndef POWER_OFF_DECISION_TIMEOUT_MS
+#define POWER_OFF_DECISION_TIMEOUT_MS 30000UL
+#endif
+
+#ifndef POWER_OFF_GPIO_CONFIRMATION_SECONDS
+#define POWER_OFF_GPIO_CONFIRMATION_SECONDS 3
+#endif
+
+static const char* powerOffStateToStr(owlctl::powerOffState_t state){
+  switch (state){
+    case owlctl::power_off_inactive: return "inactive";
+    case owlctl::power_off_active: return "active";
+    case owlctl::power_off_shutdown_pending: return "shutdown_pending";
+    default: return "unknown";
+  }
+}
+
 int MOW_MOTOR_NODE_IDS[] = { MOW1_MOTOR_NODE_ID, MOW2_MOTOR_NODE_ID, MOW3_MOTOR_NODE_ID, MOW4_MOTOR_NODE_ID, MOW5_MOTOR_NODE_ID  };
 int OWL_MSG_IDS[] = { OWL_RECEIVER_MSG_ID, OWL_CONTROL_MSG_ID, OWL_DRIVE_MSG_ID, OWL_RELAIS_MSG_ID };
 
@@ -82,6 +111,18 @@ void CanRobotDriver::begin(){
   ledStateShutdown = false;  
   ledStateError = false;
   ledStateShutdown = false;
+  powerOffLogTime = 0;
+  powerOffCommandSendTime = 0;
+  powerOffCommandSent = false;
+  powerOffCommandAccepted = false;
+  linuxShutdownIssued = false;
+  powerOffState = owlctl::power_off_inactive;
+  powerOffDelaySeconds = POWER_OFF_COMMAND_DELAY_SEC;
+  powerOffDecisionPending = false;
+  powerOffDecisionStartTime = 0;
+  powerOffDecisionDeadline = 0;
+  powerOffDecisionDelaySeconds = POWER_OFF_COMMAND_DELAY_SEC;
+  powerOffDecisionTrigger = PowerOffDecisionTrigger::None;
 
   #ifdef __linux__
     Process p;
@@ -303,7 +344,7 @@ void CanRobotDriver::requestSummary(){
   canDataType_t data;
   data.floatVal = 0;
   
-  switch (cmdSummaryCounter % 7){
+  switch (cmdSummaryCounter % 8){
     case 0:
       sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_stop_button_state, data );  
       break;
@@ -324,6 +365,9 @@ void CanRobotDriver::requestSummary(){
       break;
     case 6:
       sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_slow_down_state, data );
+      break;
+    case 7:
+      requestPowerOffState();
       break;
   }
   cmdSummaryCounter++;
@@ -454,11 +498,202 @@ void CanRobotDriver::requestPushboxState(){
   sendCanData(OWL_RECEIVER_MSG_ID, RECEIVER_PUSHBOX_NODE_ID, can_cmd_request, owlrecv::can_val_button_state, data);  
 }
 
+void CanRobotDriver::requestPowerOffState(){
+  canDataType_t data;
+  sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_power_off_state, data);
+}
+
+void CanRobotDriver::requestManagedShutdown(uint8_t delaySeconds){
+  powerOffDelaySeconds = delaySeconds;
+  startPowerOffDecision(delaySeconds, PowerOffDecisionTrigger::InternalRequest);
+}
+
+void CanRobotDriver::sendPowerOffCommand(uint8_t delaySeconds){
+  canDataType_t data;
+  data.byteVal[0] = delaySeconds;
+  data.byteVal[1] = 0;
+  data.byteVal[2] = 0;
+  data.byteVal[3] = 0;
+  sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_set, owlctl::can_val_power_off_command, data);
+  powerOffCommandSent = true;
+  powerOffCommandAccepted = false;
+  powerOffCommandSendTime = millis();
+  unsigned long now = millis();
+  if (now > powerOffLogTime){
+    CONSOLE.print("CAN: requested power-off in ");
+    CONSOLE.print(delaySeconds);
+    CONSOLE.println("s");
+    powerOffLogTime = now + POWER_OFF_LOG_INTERVAL_MS;
+  }
+}
+
+uint8_t CanRobotDriver::getPowerOffDelaySeconds() const{
+  return powerOffDelaySeconds;
+}
+
 void CanRobotDriver::versionResponse(){
 }
 
 
 void CanRobotDriver::summaryResponse(){
+}
+
+void CanRobotDriver::handlePowerOffState(owlctl::powerOffState_t remoteState, uint8_t activeSeconds, uint8_t configuredDelay){
+  if (configuredDelay != 0){
+    powerOffDelaySeconds = configuredDelay;
+  } else {
+    powerOffDelaySeconds = POWER_OFF_COMMAND_DELAY_SEC;
+  }
+  bool stateChanged = (powerOffState != remoteState);
+  powerOffState = remoteState;
+  unsigned long now = millis();
+  if (stateChanged && now > powerOffLogTime){
+    CONSOLE.print("CAN: power-off state -> ");
+    CONSOLE.print(powerOffStateToStr(remoteState));
+    CONSOLE.print(" (held ");
+    CONSOLE.print(activeSeconds);
+    CONSOLE.println("s)");
+    powerOffLogTime = now + POWER_OFF_LOG_INTERVAL_MS;
+  }
+  switch (remoteState){
+    case owlctl::power_off_active:
+      if (activeSeconds >= POWER_OFF_GPIO_CONFIRMATION_SECONDS){
+        if (!powerOffDecisionPending || powerOffDecisionTrigger != PowerOffDecisionTrigger::ExternalPin){
+          startPowerOffDecision(powerOffDelaySeconds, PowerOffDecisionTrigger::ExternalPin);
+        }
+      } else {
+        cancelPowerOffDecision(PowerOffDecisionTrigger::ExternalPin);
+      }
+      break;
+    case owlctl::power_off_inactive:
+      cancelPowerOffDecision(PowerOffDecisionTrigger::ExternalPin);
+      if (!powerOffCommandAccepted && (powerOffCommandSendTime != 0)){
+        CONSOLE.println("CAN: power-off pin released before shutdown ack");
+      }
+      powerOffCommandSent = false;
+      powerOffCommandAccepted = false;
+      linuxShutdownIssued = false;
+      powerOffCommandSendTime = 0;
+      break;
+    case owlctl::power_off_shutdown_pending:
+      break;
+  }
+}
+
+void CanRobotDriver::handlePowerOffCommandAck(uint8_t acceptedFlag, uint8_t delaySeconds){
+  bool accepted = (acceptedFlag != 0);
+  if (accepted){
+    if (delaySeconds != 0){
+      powerOffDelaySeconds = delaySeconds;
+    }
+    powerOffCommandSent = true;
+    if (!powerOffCommandAccepted){
+      powerOffCommandAccepted = true;
+      powerOffState = owlctl::power_off_shutdown_pending;
+      unsigned long now = millis();
+      if (now > powerOffLogTime){
+        CONSOLE.print("CAN: power-off accepted, shutdown in ");
+        CONSOLE.print(powerOffDelaySeconds);
+        CONSOLE.println("s");
+        powerOffLogTime = now + POWER_OFF_LOG_INTERVAL_MS;
+      }
+      ledStateShutdown = true;
+      #ifdef __linux__
+        if (!linuxShutdownIssued){
+          linuxShutdownIssued = true;
+          Process p;
+          p.runShellCommand("shutdown now");
+          CONSOLE.println("CAN: linux shutdown command issued");
+        }
+      #endif
+    }
+  } else {
+    if (powerOffCommandSent){
+      unsigned long now = millis();
+      if (now > powerOffLogTime){
+        CONSOLE.println("CAN: power-off command not accepted");
+        powerOffLogTime = now + POWER_OFF_LOG_INTERVAL_MS;
+      }
+    }
+    powerOffCommandSent = false;
+    powerOffCommandAccepted = false;
+    linuxShutdownIssued = false;
+    powerOffCommandSendTime = 0;
+  }
+}
+
+void CanRobotDriver::startPowerOffDecision(uint8_t delaySeconds, PowerOffDecisionTrigger trigger){
+  unsigned long now = millis();
+  bool freshTrigger = (!powerOffDecisionPending) || (powerOffDecisionTrigger != trigger);
+  if (freshTrigger){
+    powerOffDecisionStartTime = now;
+    powerOffDecisionDeadline = now + POWER_OFF_DECISION_TIMEOUT_MS;
+  }
+  powerOffDecisionPending = true;
+  powerOffDecisionTrigger = trigger;
+  powerOffDecisionDelaySeconds = delaySeconds;
+  if (freshTrigger && now > powerOffLogTime){
+    const char* triggerStr = "none";
+    switch (trigger){
+      case PowerOffDecisionTrigger::ExternalPin:
+        triggerStr = "pin";
+        break;
+      case PowerOffDecisionTrigger::InternalRequest:
+        triggerStr = "sunray";
+        break;
+      default:
+        break;
+    }
+    CONSOLE.print("CAN: preparing shutdown (trigger=");
+    CONSOLE.print(triggerStr);
+    CONSOLE.print(") with delay ");
+    CONSOLE.print(delaySeconds);
+    CONSOLE.println("s");
+    powerOffLogTime = now + POWER_OFF_LOG_INTERVAL_MS;
+  }
+}
+
+void CanRobotDriver::cancelPowerOffDecision(PowerOffDecisionTrigger trigger){
+  if (!powerOffDecisionPending){
+    return;
+  }
+  if ((trigger != PowerOffDecisionTrigger::None) && (powerOffDecisionTrigger != trigger)){
+    return;
+  }
+  powerOffDecisionPending = false;
+  powerOffDecisionTrigger = PowerOffDecisionTrigger::None;
+  powerOffDecisionStartTime = 0;
+  powerOffDecisionDeadline = 0;
+}
+
+bool CanRobotDriver::readyForManagedShutdown(PowerOffDecisionTrigger trigger){
+  (void)trigger;
+  return true;
+}
+
+void CanRobotDriver::processPowerOffDecision(){
+  if (!powerOffDecisionPending){
+    return;
+  }
+  unsigned long now = millis();
+  bool timeoutReached = (powerOffDecisionDeadline != 0) && (now >= powerOffDecisionDeadline);
+  if (readyForManagedShutdown(powerOffDecisionTrigger) || timeoutReached){
+    sendPowerOffCommand(powerOffDecisionDelaySeconds);
+    powerOffDecisionPending = false;
+    powerOffDecisionTrigger = PowerOffDecisionTrigger::None;
+    powerOffDecisionStartTime = 0;
+    powerOffDecisionDeadline = 0;
+  }
+}
+
+void CanRobotDriver::processPendingPowerOffCommand(){
+  if (!powerOffCommandSent || powerOffCommandAccepted){
+    return;
+  }
+  unsigned long now = millis();
+  if ((powerOffCommandSendTime == 0) || (now - powerOffCommandSendTime > POWER_OFF_COMMAND_RETRY_MS)){
+    sendPowerOffCommand(powerOffDelaySeconds);
+  }
 }
 
 // process response
@@ -614,13 +849,20 @@ void CanRobotDriver::processResponse(){
                 case owlctl::can_val_lift_state:
                   triggeredLift = (data.byteVal[0] != 0);
                   break;
-                case owlctl::can_val_charger_voltage:
+                case owlctl::can_val_charger_voltage: {
                   float volt = data.floatVal;                  
                   //CONSOLE.print("charger: ");
                   //CONSOLE.println(volt);                                    
                   if (volt > 1000) volt = volt / 1000.0;
                   if (volt > 20) chargeVoltage = volt;
                     else chargeVoltage = 0;            
+                  break;
+                }
+                case owlctl::can_val_power_off_state:
+                  handlePowerOffState((owlctl::powerOffState_t)data.byteVal[0], data.byteVal[1], data.byteVal[2]);
+                  break;
+                case owlctl::can_val_power_off_command:
+                  handlePowerOffCommandAck(data.byteVal[0], data.byteVal[1]);
                   break;
               }
             }
@@ -633,6 +875,8 @@ void CanRobotDriver::processResponse(){
 
 void CanRobotDriver::run(){  
   processResponse();
+  processPowerOffDecision();
+  processPendingPowerOffCommand();
   if (millis() > nextMotorTime){
     nextMotorTime = millis() + 20; // 50 hz
     /*while (can.available()){
@@ -856,6 +1100,7 @@ CanBatteryDriver::CanBatteryDriver(CanRobotDriver &sr) : canRobot(sr){
   batteryTemp = 0;
   adcTriggered = false;
   linuxShutdownTime = 0;
+  owlPowerOffNotified = false;
 }
 
 void CanBatteryDriver::begin(){
@@ -920,6 +1165,13 @@ void CanBatteryDriver::enableCharging(bool flag){
 
 
 void CanBatteryDriver::keepPowerOn(bool flag){
+  if (flag){
+    owlPowerOffNotified = false;
+  } else if (!owlPowerOffNotified){
+    canRobot.requestManagedShutdown(canRobot.getPowerOffDelaySeconds());
+    owlPowerOffNotified = true;
+  }
+
   #ifdef __linux__
     if (flag){
       // keep power on
@@ -1095,4 +1347,3 @@ void CanRelaisDriver::setRelaisStateCountdown(int relais_node_id, bool state, un
 
   canRobot.sendCanData(OWL_RELAIS_MSG_ID, relais_node_id, can_cmd_set, owlrls::can_val_relais_countdown, data);
 }
-

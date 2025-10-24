@@ -125,6 +125,14 @@ namespace owlctl {
       can_val_slow_down_state   = 9, // slow-down state
       can_val_ip_address        = 10, // IP address
       can_val_device_id         = 11,
+      can_val_power_off_state   = 12, // power-off pin state
+      can_val_power_off_command = 13, // schedule power-off
+  };
+
+  enum powerOffState_t: uint8_t {
+      power_off_inactive = 0,
+      power_off_active = 1,
+      power_off_shutdown_pending = 2,
   };
 }
 
@@ -233,6 +241,10 @@ class CanRobotDriver: public RobotDriver {
     void updateCpuTemperature();
     void updateWifiConnectionState();
     virtual void sendIpAddress() override;
+    void requestPowerOffState();
+    void requestManagedShutdown(uint8_t delaySeconds);
+    void sendPowerOffCommand(uint8_t delaySeconds);
+    uint8_t getPowerOffDelaySeconds() const;
     void sendCanData(int msgId, int destNodeId, canCmdType_t cmd, int val, canDataType_t data);
   protected:    
     bool ledPanelInstalled;
@@ -255,6 +267,23 @@ class CanRobotDriver: public RobotDriver {
     unsigned long nextTempTime;
     unsigned long nextWifiTime;
     unsigned long nextLedTime;    
+    unsigned long powerOffLogTime;
+    unsigned long powerOffCommandSendTime;
+    bool powerOffCommandSent;
+    bool powerOffCommandAccepted;
+    bool linuxShutdownIssued;
+    owlctl::powerOffState_t powerOffState;
+    uint8_t powerOffDelaySeconds;
+    enum class PowerOffDecisionTrigger : uint8_t {
+      None = 0,
+      ExternalPin,
+      InternalRequest
+    };
+    bool powerOffDecisionPending;
+    unsigned long powerOffDecisionStartTime;
+    unsigned long powerOffDecisionDeadline;
+    uint8_t powerOffDecisionDelaySeconds;
+    PowerOffDecisionTrigger powerOffDecisionTrigger;
     int consoleCounter;
     int cmdMotorCounter;
     int cmdSummaryCounter;
@@ -265,6 +294,13 @@ class CanRobotDriver: public RobotDriver {
     void motorResponse();
     void summaryResponse();
     void versionResponse();
+    void handlePowerOffState(owlctl::powerOffState_t remoteState, uint8_t activeSeconds, uint8_t configuredDelay);
+    void handlePowerOffCommandAck(uint8_t acceptedFlag, uint8_t delaySeconds);
+    void startPowerOffDecision(uint8_t delaySeconds, PowerOffDecisionTrigger trigger);
+    void cancelPowerOffDecision(PowerOffDecisionTrigger trigger);
+    void processPowerOffDecision();
+    bool readyForManagedShutdown(PowerOffDecisionTrigger trigger);
+    void processPendingPowerOffCommand();
 };
 
 class CanMotorDriver: public MotorDriver {
@@ -292,6 +328,7 @@ class CanBatteryDriver : public BatteryDriver {
     unsigned long nextADCTime;
     bool adcTriggered;
     unsigned long linuxShutdownTime;
+    bool owlPowerOffNotified;
     #ifdef __linux__
       Process batteryTempProcess;
     #endif
