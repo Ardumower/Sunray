@@ -345,6 +345,7 @@ void startWIFI() {
           CONSOLE.println("Time synced for TLS");
           break;
         }
+        esp_task_wdt_reset();
         delay(100);
       }
       if (!timeSynced) CONSOLE.println("WARN: time sync timeout");
@@ -519,6 +520,7 @@ void setup() {
       esp_task_wdt_config_t twdt_cfg = {};
       twdt_cfg.timeout_ms = (uint32_t)(WDT_TIMEOUT * 1000);
       twdt_cfg.trigger_panic = true;
+      twdt_cfg.idle_core_mask = (1 << portNUM_PROCESSORS) - 1; // feed WDT on both cores
       esp_task_wdt_init(&twdt_cfg);
     #else
       esp_task_wdt_init(WDT_TIMEOUT, true); // enable panic so ESP32 restarts

@@ -81,8 +81,41 @@ static bool cloud_loopConnection() {
     CONSOLE.println("WS: DNS resolution failed");
   }
 
+  // One-time TLS probe to isolate handshake failures from WS logic
+  static bool tlsProbed = false;
+  static bool tlsProbeOk = false;
+  if (!tlsProbed) {
+    tlsProbed = true;
+    WiFiClientSecure probe;
+    // Reuse pinned CA and settings
+    probe.setCACert(tls_ca_trust);
+    probe.setHandshakeTimeout(15000);
+    probe.setTimeout(15000);
+    static const char* alpn_protos[] = { "http/1.1", 0 };
+    probe.setAlpnProtocols(alpn_protos);
+    CONSOLE.print("TLS probe: connecting to ");
+    CONSOLE.print(WS_HOST);
+    CONSOLE.print(":");
+    CONSOLE.println(WS_PORT);
+    esp_task_wdt_reset();
+    if (probe.connect(WS_HOST, WS_PORT)) {
+      CONSOLE.println("TLS probe: success");
+      tlsProbeOk = true;
+      probe.stop();
+    } else {
+      CONSOLE.println("TLS probe: FAILED");
+      tlsProbeOk = false;
+    }
+    esp_task_wdt_reset();
+    if (!tlsProbeOk) {
+      // Skip WS handshake if TLS itself fails; try again later
+      return false;
+    }
+  }
+
   if (ws) { delete ws; ws = nullptr; }
   ws = new WebSocketClient(cloudTls, WS_HOST, WS_PORT, path);
+  esp_task_wdt_reset();
   if (ws->connect()) {
     CONSOLE.println("WS: connected");
     cloudConnected = true;
@@ -95,6 +128,7 @@ static bool cloud_loopConnection() {
     CONSOLE.print(WiFi.localIP());
     CONSOLE.println(")");
   }
+  esp_task_wdt_reset();
   return false;
 }
 

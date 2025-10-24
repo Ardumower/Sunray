@@ -87,7 +87,8 @@
 
 // Cloud WebSocket (robot → cloud)
 // Mirrors Linux WS client (see linux/config_*_ws.h). Uses ESP32 core CA bundle only (no fallback).
-//
+// Note: disable everything else (USE_BLE, USE_RELAY etc.) so ESP32 TLS get's enough memory 
+// (find out TLS memory issues with Arduino: Tools->Core Debug Level: Verbose)
 // Uncomment to enable and set your connect key.
 //
 //#define USE_CLOUD  1
