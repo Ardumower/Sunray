@@ -138,7 +138,7 @@ void Comm::cmdControl(){
           if (intValue >= 0) op = intValue; 
       } else if (counter == 3){                                      
           dbg += " spd=";
-          dbg += intValue;
+          dbg += floatValue;
           if (floatValue >= 0) stateEstimator.setSpeed = floatValue; 
       } else if (counter == 4){                                      
           dbg += " fixTO=";
@@ -156,6 +156,8 @@ void Comm::cmdControl(){
             restartRobot = true;
           }
       } else if (counter == 7){
+          dbg += " skip=";
+          dbg += intValue;
           if (intValue > 0) {
             maps.skipNextMowingPoint();
             restartRobot = true;
