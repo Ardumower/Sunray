@@ -133,6 +133,14 @@ static bool cloud_loopConnection() {
 }
 
 void cloud_loop() {
+  // If we believe we're connected but the socket isn't, fix state and schedule reconnect
+  if (cloudConnected && (!ws || !ws->connected())) {
+    CONSOLE.println("WS: transport closed, scheduling reconnect");
+    cloudConnected = false;
+    wsNextConnectTime = millis() + 2000;
+    if (ws) { ws->close(); delete ws; ws = nullptr; }
+  }
+
   if (!cloud_loopConnection()) return;
 
   // Poll for incoming frames and process AT commands
@@ -166,13 +174,14 @@ void cloud_loop() {
       }
     }
 
-    // Reconnect if idle for too long (15s)
-    if (millis() - wsLastRxTime > 15000) {
-      CONSOLE.println("WS: no RX for 15s, reconnecting");
-      ws->close();
-      cloudConnected = false;
-      wsNextConnectTime = millis() + 2000;
-    }
+  }
+
+  // Reconnect if idle for too long (15s) even if ws->connected() flipped already
+  if (cloudConnected && (millis() - wsLastRxTime > 15000)) {
+    CONSOLE.println("WS: no RX for 15s, reconnecting");
+    if (ws) ws->close();
+    cloudConnected = false;
+    wsNextConnectTime = millis() + 2000;
   }
 }
 

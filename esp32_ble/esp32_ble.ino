@@ -16,7 +16,7 @@
 
 #include "config.h"
 
-#define VERSION "ESP32 firmware V0.5.0,Bluetooth V4.0 LE"
+#define VERSION "ESP32 firmware V0.5.1,Bluetooth V4.0 LE"
 
 // watch dog timeout (WDT) in seconds
 #define WDT_TIMEOUT 60
@@ -323,13 +323,37 @@ void startWIFI() {
     CONSOLE.println("using dynamic IP");
   }
 
-  WiFi.disconnect(); // disconnect any previous (aborted) connection
+  // Ensure STA mode and avoid NVS persistence delays
+  WiFi.mode(WIFI_STA);
+  WiFi.persistent(false);
+  WiFi.setAutoReconnect(true);
+  WiFi.disconnect(true); // disconnect any previous (aborted) connection
   WiFi.begin(ssid.c_str(), pass.c_str());
-  if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+
+  // Replace blocking waitForConnectResult() to keep feeding WDT
+  // Wait up to 20s for association/DHCP while resetting watchdog
+  {
+    const unsigned long start = millis();
+    const unsigned long timeout = 20000;
+    wl_status_t last = WL_IDLE_STATUS;
+    while (WiFi.status() != WL_CONNECTED && (millis() - start) < timeout) {
+      wl_status_t s = WiFi.status();
+      if (s != last) {
+        last = s;
+        CONSOLE.print("WiFi status: ");
+        CONSOLE.println((int)s);
+      }
+      esp_task_wdt_reset();
+      delay(100);
+    }
+  }
+
+  if (WiFi.status() != WL_CONNECTED) {
     CONSOLE.println("Connection Failed!");
-    delay(2000);
+    // Back off a bit before next attempt
+    delay(200);
     return;
-  };
+  }
 
   if (WiFi.status() == WL_CONNECTED) {
     CONSOLE.print("You're connected with SSID=");
