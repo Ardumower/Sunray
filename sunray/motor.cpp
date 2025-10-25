@@ -159,6 +159,7 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
       motorReleaseBrakesTime = millis() + 2000;
     }
   }    
+  pwmMowOut = pwmMow;
   motorDriver.setMotorPwm(pwmLeft, pwmRight, pwmMow, releaseBrakes);
 }
 

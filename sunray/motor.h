@@ -35,6 +35,7 @@ class Motor {
     bool motorMowForwardSet; 
     bool odometryError;    
     unsigned long motorOverloadDuration; // accumulated duration (ms)
+    int pwmMowOut;  // value sent to driver
     int  pwmMax;
     int  pwmMaxMow;
     int mowHeightMillimeter;  
@@ -59,6 +60,7 @@ class Motor {
     unsigned long motorMowSpinUpTime;
     unsigned long motorReleaseBrakesTime;
     bool motorRecoveryState;    
+    float motorMowPWMCurr; 
     PID motorLeftPID;
     PID motorRightPID;    
     LowPassFilter motorLeftLpf;
@@ -86,7 +88,6 @@ class Motor {
     float motorLeftRpmLast;
     float motorRightRpmLast;
     float motorMowPWMSet;  
-    float motorMowPWMCurr; 
     int motorLeftPWMCurr;
     int motorRightPWMCurr;    
     float motorMowPWMCurrLP; 

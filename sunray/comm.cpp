@@ -1074,6 +1074,8 @@ void Comm::outputConsole(){
     CONSOLE.print(battery.chargingCurrent);    
     CONSOLE.print(") diff=");
     CONSOLE.print(battery.chargingVoltBatteryVoltDiff, 3);
+    CONSOLE.print(" mow=");
+    CONSOLE.print(motor.pwmMowOut);
     CONSOLE.print(" tg=");
     CONSOLE.print(maps.targetPoint.x());
     CONSOLE.print(",");
