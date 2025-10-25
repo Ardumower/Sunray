@@ -196,6 +196,11 @@ void Comm::cmdControl(){
     // certain operations may require a start from IDLE state (https://github.com/Ardumower/Sunray/issues/66)
     setOperation(OP_IDLE);    
   }
+  if (op == 0){
+      // special security case: directly calling IDLE state ensures all motors to stop
+      CONSOLE.println("direct call: idleOp.begin()");
+      idleOp.begin();
+  }
   if (op >= 0) setOperation((OperationType)op, false); // new operation by operator
     else if (restartRobot){     // no operation given by operator, continue current operation from IDLE state
       setOperation(oldStateOp);    

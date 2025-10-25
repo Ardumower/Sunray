@@ -50,7 +50,7 @@ void Op::changeOp(Op &anOp, bool returnBackOnExit){
     if (&anOp == NULL){
         CONSOLE.println("==> ERROR Op::changeOp: invalid op=NULL!");        
     }
-    if (&anOp == activeOp) return;
+    if (&anOp == activeOp) return;  // we don't allow a transition from/to the same operation
     newActiveOp = &anOp;
 
     if (returnBackOnExit) {
