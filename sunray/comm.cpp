@@ -116,6 +116,8 @@ void Comm::cmdControl(){
   int op = -1;
   bool restartRobot = false;
   float wayPerc = -1;  
+  String dbg = ""; 
+  dbg += "AT+C:";
   for (int idx=0; idx < cmd.length(); idx++){
     char ch = cmd[idx];
     //Serial.print("ch=");
@@ -124,19 +126,31 @@ void Comm::cmdControl(){
       int intValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toInt();
       float floatValue = cmd.substring(lastCommaIdx+1, ch==',' ? idx : idx+1).toFloat();
       if (counter == 1){                            
+          dbg += " mow=";
+          dbg += intValue;
           if (intValue >= 0) {
             motor.enableMowMotor = (intValue == 1);
             motor.setMowState( (intValue == 1) );
           }
       } else if (counter == 2){                                      
+          dbg += " op=";
+          dbg += intValue;
           if (intValue >= 0) op = intValue; 
       } else if (counter == 3){                                      
+          dbg += " spd=";
+          dbg += intValue;
           if (floatValue >= 0) stateEstimator.setSpeed = floatValue; 
       } else if (counter == 4){                                      
+          dbg += " fixTO=";
+          dbg += intValue;
           if (intValue >= 0) stateEstimator.fixTimeout = intValue; 
       } else if (counter == 5){
+          dbg += " restart=";
+          dbg += intValue;
           if (intValue >= 0) stateEstimator.finishAndRestart = (intValue == 1);
       } else if (counter == 6){
+          dbg += " perc=";
+          dbg += floatValue;
           if (floatValue >= 0) {
             maps.setMowingPointPercent(floatValue);
             restartRobot = true;
@@ -147,21 +161,30 @@ void Comm::cmdControl(){
             restartRobot = true;
           }
       } else if (counter == 8){
+          dbg += " sonar=";
+          dbg += intValue;
           if (intValue >= 0) {
             sonar.enabled = (intValue == 1);
             bumper.enableNearObstacle = (intValue == 1);
           }
       } else if (counter == 9){
-          if (intValue >= 0) motor.setMowMaxPwm(intValue);
+        dbg += " pwm=";
+        dbg += intValue;
+        if (intValue >= 0) motor.setMowMaxPwm(intValue);
       } else if (counter == 10){
-          if (intValue >= 0) motor.setMowHeightMillimeter(intValue);
+        dbg += " height=";
+        dbg += intValue;
+        if (intValue >= 0) motor.setMowHeightMillimeter(intValue);
       } else if (counter == 11){
-          if (intValue >= 0) stateEstimator.dockAfterFinish = (intValue == 1);
+        dbg += " dock=";
+        dbg += intValue;
+        if (intValue >= 0) stateEstimator.dockAfterFinish = (intValue == 1);
       }
       counter++;
       lastCommaIdx = idx;
     }    
   }      
+  CONSOLE.println(dbg);
   /*CONSOLE.print("linear=");
   CONSOLE.print(linear);
   CONSOLE.print(" angular=");
