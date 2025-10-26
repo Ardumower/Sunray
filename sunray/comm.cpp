@@ -108,6 +108,8 @@ void Comm::cmdTuneParam(){
 }
 
 // request operation
+// AT+C,mow,op,spd,fixTO,restart,perc,skip,sonar,pwm,height,dock
+
 void Comm::cmdControl(){
   if (cmd.length()<6) return;  
   int counter = 0;
