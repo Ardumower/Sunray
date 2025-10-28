@@ -245,6 +245,9 @@ class CanRobotDriver: public RobotDriver {
     void requestManagedShutdown(uint8_t delaySeconds);
     void sendPowerOffCommand(uint8_t delaySeconds);
     uint8_t getPowerOffDelaySeconds() const;
+    void setSimulatePowerOffHang(bool flag, unsigned long durationSeconds = 0);
+    void setSimulatePowerOffHangFor(unsigned long durationSeconds){ setSimulatePowerOffHang(true, durationSeconds); }
+    bool getSimulatePowerOffHang() const;
     void sendCanData(int msgId, int destNodeId, canCmdType_t cmd, int val, canDataType_t data);
   protected:    
     bool ledPanelInstalled;
@@ -272,6 +275,15 @@ class CanRobotDriver: public RobotDriver {
     bool powerOffCommandSent;
     bool powerOffCommandAccepted;
     bool linuxShutdownIssued;
+    bool simulatePowerOffHang;
+    bool simulatePowerOffHangNotified;
+    unsigned long simulatePowerOffHangUntil;
+    bool simulatePowerOffHangConfigured;
+    unsigned long simulatePowerOffHangConfiguredDuration;
+    bool simulatePowerOffHangCommandPending;
+    unsigned long simulatePowerOffHangCommandTime;
+    bool simulatePiSelfShutdownPending;
+    unsigned long simulatePiSelfShutdownTime;
     owlctl::powerOffState_t powerOffState;
     uint8_t powerOffDelaySeconds;
     enum class PowerOffDecisionTrigger : uint8_t {

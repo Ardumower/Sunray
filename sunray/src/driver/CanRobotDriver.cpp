@@ -40,6 +40,18 @@
 #define POWER_OFF_GPIO_CONFIRMATION_SECONDS 3
 #endif
 
+#ifndef SIMULATE_SUNRAY_POWER_OFF_HANG
+#define SIMULATE_SUNRAY_POWER_OFF_HANG false
+#endif
+
+#ifndef SIMULATE_SUNRAY_POWER_OFF_HANG_DURATION_SEC
+#define SIMULATE_SUNRAY_POWER_OFF_HANG_DURATION_SEC 20  // simulated update duration in seconds
+#endif
+
+#ifndef SIMULATE_SUNRAY_POWER_OFF_COMMAND_DELAY_SEC
+#define SIMULATE_SUNRAY_POWER_OFF_COMMAND_DELAY_SEC 3     // delay before sending power-off command to owlController
+#endif
+
 static const char* powerOffStateToStr(owlctl::powerOffState_t state){
   switch (state){
     case owlctl::power_off_inactive: return "inactive";
@@ -123,6 +135,15 @@ void CanRobotDriver::begin(){
   powerOffDecisionDeadline = 0;
   powerOffDecisionDelaySeconds = POWER_OFF_COMMAND_DELAY_SEC;
   powerOffDecisionTrigger = PowerOffDecisionTrigger::None;
+  simulatePowerOffHang = false;
+  simulatePowerOffHangNotified = false;
+  simulatePowerOffHangUntil = 0;
+  simulatePowerOffHangConfigured = SIMULATE_SUNRAY_POWER_OFF_HANG;
+  simulatePowerOffHangConfiguredDuration = SIMULATE_SUNRAY_POWER_OFF_HANG_DURATION_SEC;
+  simulatePowerOffHangCommandPending = false;
+  simulatePowerOffHangCommandTime = 0;
+  simulatePiSelfShutdownPending = false;
+  simulatePiSelfShutdownTime = 0;
 
   #ifdef __linux__
     Process p;
@@ -525,10 +546,64 @@ void CanRobotDriver::sendPowerOffCommand(uint8_t delaySeconds){
     CONSOLE.println("s");
     powerOffLogTime = now + POWER_OFF_LOG_INTERVAL_MS;
   }
+  if (simulatePowerOffHang){
+    simulatePowerOffHangCommandPending = false;
+    simulatePowerOffHangCommandTime = 0;
+    if ((simulatePowerOffHangConfiguredDuration > 0) && (simulatePowerOffHangUntil == 0)){
+      simulatePowerOffHangUntil = powerOffCommandSendTime + simulatePowerOffHangConfiguredDuration * 1000UL;
+      simulatePiSelfShutdownPending = true;
+      simulatePiSelfShutdownTime = simulatePowerOffHangUntil;
+    }
+  }
 }
 
 uint8_t CanRobotDriver::getPowerOffDelaySeconds() const{
   return powerOffDelaySeconds;
+}
+
+void CanRobotDriver::setSimulatePowerOffHang(bool flag, unsigned long durationSeconds){
+  unsigned long now = millis();
+  bool previous = simulatePowerOffHang;
+  if (flag){
+    simulatePowerOffHang = true;
+    simulatePowerOffHangNotified = false;
+    if (durationSeconds > 0){
+      simulatePowerOffHangConfiguredDuration = durationSeconds;
+    }
+    simulatePowerOffHangUntil = 0;
+    simulatePiSelfShutdownPending = false;
+    simulatePiSelfShutdownTime = 0;
+    simulatePowerOffHangCommandPending = true;
+    simulatePowerOffHangCommandTime = now + (unsigned long)SIMULATE_SUNRAY_POWER_OFF_COMMAND_DELAY_SEC * 1000UL;
+    if (!previous){
+      if (simulatePowerOffHangConfiguredDuration > 0){
+        CONSOLE.print("CAN: simulate power-off hang enabled for ");
+        CONSOLE.print(simulatePowerOffHangConfiguredDuration);
+        CONSOLE.println("s");
+      } else {
+        CONSOLE.println("CAN: simulate power-off hang enabled (indefinite)");
+      }
+    } else if (simulatePowerOffHangConfiguredDuration > 0){
+      CONSOLE.print("CAN: simulate power-off hang extended for ");
+      CONSOLE.print(simulatePowerOffHangConfiguredDuration);
+      CONSOLE.println("s");
+    }
+  } else {
+    simulatePowerOffHang = false;
+    simulatePowerOffHangNotified = false;
+    simulatePowerOffHangUntil = 0;
+    simulatePowerOffHangCommandPending = false;
+    simulatePowerOffHangCommandTime = 0;
+    simulatePiSelfShutdownPending = false;
+    simulatePiSelfShutdownTime = 0;
+    if (previous){
+      CONSOLE.println("CAN: simulate power-off hang disabled");
+    }
+  }
+}
+
+bool CanRobotDriver::getSimulatePowerOffHang() const{
+  return simulatePowerOffHang;
 }
 
 void CanRobotDriver::versionResponse(){
@@ -599,7 +674,16 @@ void CanRobotDriver::handlePowerOffCommandAck(uint8_t acceptedFlag, uint8_t dela
       }
       ledStateShutdown = true;
       #ifdef __linux__
-        if (!linuxShutdownIssued){
+        if (simulatePowerOffHang && (simulatePowerOffHangConfiguredDuration > 0)){
+          if (!simulatePiSelfShutdownPending){
+            unsigned long target = powerOffCommandSendTime + simulatePowerOffHangConfiguredDuration * 1000UL;
+            if ((simulatePowerOffHangUntil != 0) && (simulatePowerOffHangUntil > target)){
+              target = simulatePowerOffHangUntil;
+            }
+            simulatePiSelfShutdownPending = true;
+            simulatePiSelfShutdownTime = target;
+          }
+        } else if (!linuxShutdownIssued){
           linuxShutdownIssued = true;
           Process p;
           p.runShellCommand("shutdown now");
@@ -632,6 +716,9 @@ void CanRobotDriver::startPowerOffDecision(uint8_t delaySeconds, PowerOffDecisio
   powerOffDecisionPending = true;
   powerOffDecisionTrigger = trigger;
   powerOffDecisionDelaySeconds = delaySeconds;
+  if (freshTrigger && simulatePowerOffHangConfigured){
+    setSimulatePowerOffHang(true, simulatePowerOffHangConfiguredDuration);
+  }
   if (freshTrigger && now > powerOffLogTime){
     const char* triggerStr = "none";
     switch (trigger){
@@ -664,6 +751,10 @@ void CanRobotDriver::cancelPowerOffDecision(PowerOffDecisionTrigger trigger){
   powerOffDecisionTrigger = PowerOffDecisionTrigger::None;
   powerOffDecisionStartTime = 0;
   powerOffDecisionDeadline = 0;
+  simulatePowerOffHangNotified = false;
+  if (simulatePowerOffHang){
+    setSimulatePowerOffHang(false);
+  }
 }
 
 bool CanRobotDriver::readyForManagedShutdown(PowerOffDecisionTrigger trigger){
@@ -673,9 +764,20 @@ bool CanRobotDriver::readyForManagedShutdown(PowerOffDecisionTrigger trigger){
 
 void CanRobotDriver::processPowerOffDecision(){
   if (!powerOffDecisionPending){
+    simulatePowerOffHangNotified = false;
     return;
   }
   unsigned long now = millis();
+  if (simulatePowerOffHang){
+    if (!simulatePowerOffHangNotified){
+      CONSOLE.println("CAN: simulation active - delaying power-off command");
+      simulatePowerOffHangNotified = true;
+    }
+    if (simulatePowerOffHangCommandPending){
+      return;
+    }
+  }
+  simulatePowerOffHangNotified = false;
   bool timeoutReached = (powerOffDecisionDeadline != 0) && (now >= powerOffDecisionDeadline);
   if (readyForManagedShutdown(powerOffDecisionTrigger) || timeoutReached){
     sendPowerOffCommand(powerOffDecisionDelaySeconds);
@@ -687,6 +789,9 @@ void CanRobotDriver::processPowerOffDecision(){
 }
 
 void CanRobotDriver::processPendingPowerOffCommand(){
+  if (simulatePowerOffHang){
+    return;
+  }
   if (!powerOffCommandSent || powerOffCommandAccepted){
     return;
   }
@@ -874,6 +979,36 @@ void CanRobotDriver::processResponse(){
 }
 
 void CanRobotDriver::run(){  
+  unsigned long now = millis();
+  if (simulatePowerOffHangCommandPending && now >= simulatePowerOffHangCommandTime){
+    simulatePowerOffHangCommandPending = false;
+    simulatePowerOffHangCommandTime = 0;
+    sendPowerOffCommand(powerOffDecisionDelaySeconds);
+    powerOffDecisionPending = false;
+    powerOffDecisionTrigger = PowerOffDecisionTrigger::None;
+    powerOffDecisionStartTime = 0;
+    powerOffDecisionDeadline = 0;
+    simulatePowerOffHangNotified = false;
+  }
+  if (simulatePiSelfShutdownPending && now >= simulatePiSelfShutdownTime){
+    simulatePiSelfShutdownPending = false;
+    simulatePiSelfShutdownTime = 0;
+    if (!linuxShutdownIssued){
+      linuxShutdownIssued = true;
+      #ifdef __linux__
+        Process p;
+        p.runShellCommand("shutdown now");
+        CONSOLE.println("CAN: simulated update complete - issuing linux shutdown");
+      #else
+        CONSOLE.println("CAN: simulated update complete - linux shutdown requested (mock)");
+      #endif
+    }
+  }
+  if (simulatePowerOffHang && (simulatePowerOffHangUntil != 0) && now >= simulatePowerOffHangUntil){
+    setSimulatePowerOffHang(false);
+    simulatePowerOffHangNotified = false;
+    CONSOLE.println("CAN: simulated update finished - power-off responses re-enabled");
+  }
   processResponse();
   processPowerOffDecision();
   processPendingPowerOffCommand();
