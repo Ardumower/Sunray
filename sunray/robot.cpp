@@ -1243,6 +1243,7 @@ void setOperation(OperationType op, bool allowRepeat){
   CONSOLE.print("setOperation op=");
   CONSOLE.println(op);
   stateEstimator.stateOp = op;  
+  robotDriver.sendDisplayOperation(op);
   activeOp->changeOperationTypeByOperator(stateEstimator.stateOp);
   storage.saveState();
 }

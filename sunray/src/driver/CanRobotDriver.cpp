@@ -81,6 +81,13 @@ void CanRobotDriver::begin(){
   cpuTemp = 30;
   motorLeftCurr = 0;
   motorRightCurr = 0;
+  nextDisplayStateTime = 0;
+  lastDisplayOpSent = stateEstimator.stateOp;
+  lastIpSent = "";
+  lastIpSentValid = false;
+  for (uint8_t &b : lastIpSentBytes) {
+    b = 0;
+  }
   resetMotorTicks = true;
   batteryTemp = 0;
   triggeredLeftBumper = false;
@@ -101,7 +108,9 @@ void CanRobotDriver::begin(){
   nextTempTime = 0;
   nextWifiTime = 0;
   nextLedTime = 0;
+  nextDisplayTelemetryTime = 0;
   nextIpTime = 0;
+  lastWifiSignalDbm = -127;
   ledPanelInstalled = true;
   cmdMotorResponseCounter = 0;
   cmdSummaryResponseCounter = 0;
@@ -144,6 +153,15 @@ void CanRobotDriver::begin(){
   simulatePowerOffHangCommandTime = 0;
   simulatePiSelfShutdownPending = false;
   simulatePiSelfShutdownTime = 0;
+  satSummarySent = false;
+  lastSatStatus = 0xFF;
+  lastSatUsed = 0xFF;
+  lastSatTotal = 0xFF;
+  rtkAgeSent = false;
+  lastRtkAgeTenths = 0xFFFF;
+  mapProgressSent = false;
+  lastMapCount = 0xFFFF;
+  lastMapPercent = 0xFF;
 
   #ifdef __linux__
     Process p;
@@ -251,82 +269,173 @@ void CanRobotDriver::updateWifiConnectionState(){
   #endif
 }
 
+void CanRobotDriver::updateWifiSignalStrength(){
+#if ENABLE_CAN_DISPLAY
+  #ifdef __linux__
+    String result;
+    while (wifiSignalProcess.available()) result += (char)wifiSignalProcess.read();
+    result.trim();
+
+    int16_t newDbm = lastWifiSignalDbm;
+    bool haveSample = false;
+
+    if (result.length() > 0) {
+      if (result.startsWith("-") || isDigit(result.charAt(0))) {
+        int parsed = result.toInt();
+        if (!(parsed == 0 && result.indexOf('-') == -1)) {
+          newDbm = static_cast<int16_t>(parsed);
+          haveSample = true;
+        }
+      }
+    } else {
+      newDbm = -127;
+      haveSample = true;
+    }
+
+    if (haveSample) {
+      canDataType_t data;
+      data.floatVal = static_cast<float>(newDbm);
+      sendCanData(OWL_DISPLAY_MSG_ID, DISPLAY_NODE_ID, can_cmd_info, owldisplay::can_val_wifi_signal, data);
+      lastWifiSignalDbm = newDbm;
+    }
+
+    wifiSignalProcess.runShellCommand("iw dev wlan0 link | awk '/signal/ {print $2}'");
+  #endif
+#endif
+}
+
+void CanRobotDriver::updateDisplayTelemetry(){
+#if !ENABLE_CAN_DISPLAY
+  return;
+#else
+  const unsigned long now = millis();
+
+  uint8_t satStatus = 2;
+  switch (gps.solution) {
+    case SOL_FIXED: satStatus = 0; break;
+    case SOL_FLOAT: satStatus = 1; break;
+    default: satStatus = 2; break;
+  }
+
+  int totalRaw = gps.numSV;
+  if (totalRaw < 0) totalRaw = 0;
+  uint8_t satTotal = static_cast<uint8_t>(min(totalRaw, 255));
+
+  int usedRaw = gps.numSVdgps > 0 ? gps.numSVdgps : gps.numSV;
+  if (usedRaw < 0) usedRaw = 0;
+  uint8_t satUsed = static_cast<uint8_t>(min(usedRaw, 255));
+
+  if (!satSummarySent || satStatus != lastSatStatus || satUsed != lastSatUsed || satTotal != lastSatTotal) {
+    canDataType_t data;
+    data.intValue = 0;
+    data.byteVal[0] = satStatus;
+    data.byteVal[1] = satUsed;
+    data.byteVal[2] = satTotal;
+    data.byteVal[3] = 0;
+    sendCanData(OWL_DISPLAY_MSG_ID, DISPLAY_NODE_ID, can_cmd_info, owldisplay::can_val_sat_summary, data);
+    satSummarySent = true;
+    lastSatStatus = satStatus;
+    lastSatUsed = satUsed;
+    lastSatTotal = satTotal;
+  }
+
+  float ageSeconds;
+  if (gps.dgpsAge == 0) {
+    ageSeconds = 9999.0f;
+  } else {
+    unsigned long ageMs = now - gps.dgpsAge;
+    ageSeconds = ageMs / 1000.0f;
+  }
+  if (ageSeconds < 0.0f) ageSeconds = 0.0f;
+  if (ageSeconds > 9999.0f) ageSeconds = 9999.0f;
+  uint16_t ageTenths = static_cast<uint16_t>(min(65535UL, (unsigned long)roundf(ageSeconds * 10.0f)));
+
+  if (!rtkAgeSent || ageTenths != lastRtkAgeTenths) {
+    canDataType_t data;
+    data.floatVal = ageSeconds;
+    sendCanData(OWL_DISPLAY_MSG_ID, DISPLAY_NODE_ID, can_cmd_info, owldisplay::can_val_rtk_age, data);
+    rtkAgeSent = true;
+    lastRtkAgeTenths = ageTenths;
+  }
+
+  bool mapAvailable = (maps.mowPoints.numPoints > 0);
+  if (mapAvailable) {
+    int mapCountRaw = maps.mowPointsIdx;
+    if (mapCountRaw < 0) mapCountRaw = 0;
+    uint16_t mapCount = static_cast<uint16_t>(min(mapCountRaw, 0xFFFF));
+    int percentRaw = maps.percentCompleted;
+    if (percentRaw < 0) percentRaw = 0;
+    if (percentRaw > 100) percentRaw = 100;
+    uint8_t mapPercent = static_cast<uint8_t>(percentRaw);
+
+    if (!mapProgressSent || mapCount != lastMapCount || mapPercent != lastMapPercent) {
+      canDataType_t data;
+      data.byteVal[0] = mapCount & 0xFF;
+      data.byteVal[1] = (mapCount >> 8) & 0xFF;
+      data.byteVal[2] = mapPercent;
+      data.byteVal[3] = 0;
+      sendCanData(OWL_DISPLAY_MSG_ID, DISPLAY_NODE_ID, can_cmd_info, owldisplay::can_val_map_progress, data);
+      mapProgressSent = true;
+      lastMapCount = mapCount;
+      lastMapPercent = mapPercent;
+    }
+  } else {
+    mapProgressSent = false;
+    lastMapCount = 0xFFFF;
+    lastMapPercent = 0xFF;
+  }
+#endif
+}
+
 
 void CanRobotDriver::sendIpAddress(){
-  return;
+  #ifdef __linux__
+    while (ipAddressToStringProcess.available()) ipAddressToStringProcess.read();
 
-  #ifdef __linux__  
-    ipAddressToStringProcess.runShellCommand("ip addr show wlan0 | grep 'inet ' | awk '{print $2}' | cut -d'/' -f1");
+    // Use hostname -I to avoid netlink permission issues; first token is primary IPv4
+    ipAddressToStringProcess.runShellCommand("hostname -I");
     String ipStr = ipAddressToStringProcess.readString();
-    ipStr.trim(); // remove any whitespace or newline
+    ipStr.trim();
 
-    // Validate IP address format
     if (ipStr.length() == 0) {
-        Serial.println("Error: Empty IP address");
-        return; // or handle error appropriately
+        return;
     }
 
-    // Count dots - should be exactly 3
-    int dotCount = 0;
-    for (int i = 0; i < ipStr.length(); i++) {
-        if (ipStr.charAt(i) == '.') {
-            dotCount++;
+    int spacePos = ipStr.indexOf(' ');
+    if (spacePos > 0) {
+        ipStr = ipStr.substring(0, spacePos);
+    }
+
+    IPAddress ip;
+    if (!ip.fromString(ipStr)) {
+        return;
+    }
+
+    if (lastIpSentValid) {
+        bool unchanged = true;
+        for (uint8_t i = 0; i < 4; i++) {
+            if (ip[i] != lastIpSentBytes[i]) {
+                unchanged = false;
+                break;
+            }
         }
-    }
-
-    if (dotCount != 3) {
-        Serial.println("Error: Invalid IP format - expected 3 dots, found " + String(dotCount));
-        return; // or handle error appropriately
+        if (unchanged) {
+            return; // already displayed
+        }
     }
 
     canDataType_t data;
-    int lastPos = 0;
-    bool validIP = true;
-
-    // Parse exactly 4 parts of the IP address
-    for (int part = 0; part < 4 && validIP; part++) {
-        int dotPos;
-        
-        if (part < 3) {
-            // For the first 3 parts, find the next dot
-            dotPos = ipStr.indexOf('.', lastPos);
-            if (dotPos == -1 || dotPos == lastPos) {
-                // Invalid IP format - missing dot or empty segment
-                Serial.println("Error: Invalid IP segment at part " + String(part));
-                validIP = false;
-                break;
-            }
-        } else {
-            // For the last part, use the end of the string
-            dotPos = ipStr.length();
-            if (dotPos == lastPos) {
-                // Empty last segment
-                Serial.println("Error: Empty last IP segment");
-                validIP = false;
-                break;
-            }
-        }
-        
-        String segment = ipStr.substring(lastPos, dotPos);
-        
-        // Validate segment is numeric and in valid range (0-255)
-        int value = segment.toInt();
-        if (value < 0 || value > 255 || (value == 0 && segment != "0")) {
-            Serial.println("Error: Invalid IP segment value: " + segment);
-            validIP = false;
-            break;
-        }
-        
-        data.byteVal[part] = value;
-        lastPos = dotPos + 1;
+    for (uint8_t i = 0; i < 4; i++) {
+        data.byteVal[i] = ip[i];
+        lastIpSentBytes[i] = ip[i];
     }
 
-    // Only send data if IP validation passed
-    if (validIP) {
-        sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_set, owlctl::can_val_ip_address, data);
-    } else {
-        Serial.println("Error: IP address validation failed for: " + ipStr);
-    }
+    sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_set, owlctl::can_val_ip_address, data);
+#if ENABLE_CAN_DISPLAY
+    sendCanData(OWL_DISPLAY_MSG_ID, DISPLAY_NODE_ID, can_cmd_info, owldisplay::can_val_ip_address, data);
+#endif
+    lastIpSent = ipStr;
+    lastIpSentValid = true;
   #endif
 }
 
@@ -351,6 +460,25 @@ void CanRobotDriver::sendCanData(int msgId, int destNodeId, canCmdType_t cmd, in
     frame.data[6] = data.byteVal[2];
     frame.data[7] = data.byteVal[3];
     can.write(frame);
+}
+
+void CanRobotDriver::sendDisplayOperation(OperationType op){
+    owldisplay::stateCode_t code = owldisplay::state_unknown;
+    switch (op){
+        case OP_MOW:    code = owldisplay::state_mow;    break;
+        case OP_DOCK:   code = owldisplay::state_dock;   break;
+        case OP_IDLE:   code = owldisplay::state_idle;   break;
+        case OP_CHARGE: code = owldisplay::state_charge; break;
+        case OP_ERROR:  code = owldisplay::state_error;  break;
+        default:        code = owldisplay::state_unknown; break;
+    }
+  canDataType_t data;
+  data.intValue = 0;
+  data.byteVal[0] = static_cast<uint8_t>(code);
+  lastDisplayOpSent = op;
+#if ENABLE_CAN_DISPLAY
+  sendCanData(OWL_DISPLAY_MSG_ID, DISPLAY_NODE_ID, can_cmd_info, owldisplay::can_val_state_code, data);
+#endif
 }
 
 
@@ -859,16 +987,25 @@ void CanRobotDriver::processResponse(){
                         rightMotorFault = (data.byteVal[0] != err_ok);
                         break;
                     }                    
-                    break;
-                  case owldrv::can_val_total_current:
-                    if (node.sourceAndDest.sourceNodeID == LEFT_MOTOR_NODE_ID) motorLeftCurr = data.floatVal;
-                    if (node.sourceAndDest.sourceNodeID == RIGHT_MOTOR_NODE_ID) motorRightCurr = data.floatVal;
-                    for (int i=0; i < MOW_MOTOR_COUNT; i++){
-                      if (node.sourceAndDest.sourceNodeID == MOW_MOTOR_NODE_IDS[i]){
-                        mowCurr[i] = data.floatVal;                        
-                      }
+                break;
+              case owldrv::can_val_total_current:
+                if (node.sourceAndDest.sourceNodeID == LEFT_MOTOR_NODE_ID) motorLeftCurr = data.floatVal;
+                if (node.sourceAndDest.sourceNodeID == RIGHT_MOTOR_NODE_ID) motorRightCurr = data.floatVal;
+                for (int i=0; i < MOW_MOTOR_COUNT; i++){
+                  if (node.sourceAndDest.sourceNodeID == MOW_MOTOR_NODE_IDS[i]){
+                    mowCurr[i] = data.floatVal;                        
+                  }
+                }
+                    {
+#if ENABLE_CAN_DISPLAY
+                      canDataType_t displayData;
+                      float totalCurrent = motorLeftCurr + motorRightCurr;
+                      for (int i = 0; i < MOW_MOTOR_COUNT; i++) totalCurrent += mowCurr[i];
+                      displayData.floatVal = totalCurrent;
+                      sendCanData(OWL_DISPLAY_MSG_ID, DISPLAY_NODE_ID, can_cmd_info, owldisplay::can_val_battery_current, displayData);
+#endif
                     }
-                    break;
+                break;
                   case owldrv::can_val_endswitch:
                     switch(node.sourceAndDest.sourceNodeID){
                       case MOW_HEIGHT_MOTOR_NODE_ID:  
@@ -928,8 +1065,14 @@ void CanRobotDriver::processResponse(){
           case OWL_CONTROL_MSG_ID:
             if (cmd == can_cmd_info){
               switch (val){
-                case owlctl::can_val_battery_voltage:
+                case owlctl::can_val_battery_voltage: {
                   batteryVoltage = data.floatVal; 
+
+#if ENABLE_CAN_DISPLAY
+                  canDataType_t displayData;
+                  displayData.floatVal = batteryVoltage;
+                  sendCanData(OWL_DISPLAY_MSG_ID, DISPLAY_NODE_ID, can_cmd_info, owldisplay::can_val_battery_voltage, displayData);
+#endif
                   /*
                   if (voltage > batteryVoltage + 0.5){
                     chargeVoltage = voltage;
@@ -938,6 +1081,7 @@ void CanRobotDriver::processResponse(){
                   }
                   */
                   break;
+                }
                 case owlctl::can_val_bumper_state:
                   triggeredLeftBumper = triggeredRightBumper = (data.byteVal[0] != 0);                  
                   break;
@@ -1034,6 +1178,13 @@ void CanRobotDriver::run(){
     requestMotorMowPwm(requestMowPwm);
     requestPushboxState();
   }
+  if (millis() > nextDisplayStateTime){
+    nextDisplayStateTime = millis() + 1000;  // refresh every second
+    if (stateEstimator.stateOp != lastDisplayOpSent){
+      lastDisplayOpSent = stateEstimator.stateOp;
+      sendDisplayOperation(lastDisplayOpSent);
+    }
+  }
   if (millis() > nextConsoleTime){
     nextConsoleTime = millis() + 1000;  // 1 hz    
     requestMotorMowCurrent();
@@ -1099,9 +1250,14 @@ void CanRobotDriver::run(){
       //setFanPowerState(true);
     }
   }
+  if (millis() > nextDisplayTelemetryTime){
+    nextDisplayTelemetryTime = millis() + 2000;
+    updateDisplayTelemetry();
+  }
   if (millis() > nextWifiTime){
     nextWifiTime = millis() + 7000; // 7 sec
     updateWifiConnectionState();
+    updateWifiSignalStrength();
   }
 }
 

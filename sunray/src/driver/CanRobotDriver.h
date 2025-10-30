@@ -11,6 +11,7 @@
 #include <Arduino.h>
 #include "RobotDriver.h"
 #include "../../config.h"
+#include "../../types.h"
 
 #ifdef __linux__
   #include <Process.h>
@@ -19,14 +20,18 @@
   #include "../../can.h"
 #endif
 
+#ifndef ENABLE_CAN_DISPLAY
+#define ENABLE_CAN_DISPLAY 0
+#endif
 
 
 // -----CAN frame data types----------------
 
-#define OWL_RELAIS_MSG_ID    128  // owlRelais PCB
+#define OWL_RELAIS_MSG_ID    400  // owlRelais PCB
 #define OWL_DRIVE_MSG_ID     300  // owlDrive PCB 
 #define OWL_CONTROL_MSG_ID   200  // owlControl PCB 
 #define OWL_RECEIVER_MSG_ID  100  // owlReceiver PCB 
+#define OWL_DISPLAY_MSG_ID   500  // owlDisplay (grafische Anzeige)
 
 #define MY_NODE_ID 61
 
@@ -46,6 +51,7 @@
 
 
 #define CONTROL_NODE_ID        1// owlControl PCB
+#define DISPLAY_NODE_ID        1// owlDisplay node (shared bus, distinct message ID)
 
 #define RELAIS_1_NODE_ID   1 // owlRelais PCB
 #define RELAIS_2_NODE_ID   2
@@ -53,13 +59,13 @@
 #define RECEIVER_PUSHBOX_NODE_ID    3 // owlReceiver PCB 
 
 
-typedef union canNodeType_t {   
+typedef union canNodeType_t {
     uint8_t byteVal[2];
-    struct __attribute__ ((__packed__)) {   
-        uint16_t sourceNodeID : 6;   // 6 bits for source node ID (valid node IDs: 1-62)
-        uint16_t destNodeID   : 6;   // 6 bits for destination node ID (valid node IDs: 1-62, value 63 means all nodes)    
+    struct __attribute__ ((__packed__)) {
+        uint8_t sourceNodeID : 6;   // 6 bits for source node ID (valid node IDs: 1-62)
+        uint8_t destNodeID   : 6;   // 6 bits for destination node ID (valid node IDs: 1-62, value 63 means all nodes)
         uint8_t reserved     : 4;   // 4 bits reserved
-    } sourceAndDest;     
+    } sourceAndDest;
 } __attribute__((packed)) canNodeType_t;
 
 // what action to do...
@@ -133,6 +139,29 @@ namespace owlctl {
       power_off_inactive = 0,
       power_off_active = 1,
       power_off_shutdown_pending = 2,
+  };
+}
+
+namespace owldisplay {
+  enum valueType_t : uint8_t {
+      can_val_sat_summary      = 0x10,
+      can_val_rtk_age          = 0x11,
+      can_val_wifi_signal      = 0x12,
+      can_val_ip_address       = 0x14,
+      can_val_battery_voltage  = 0x40,
+      can_val_battery_current  = 0x41,
+      can_val_map_progress     = 0x50,
+      can_val_state_code       = 0x51,
+      can_val_status_message   = 0x52
+  };
+
+  enum stateCode_t : uint8_t {
+      state_unknown = 0,
+      state_mow     = 1,
+      state_dock    = 2,
+      state_idle    = 3,
+      state_charge  = 4,
+      state_error   = 5
   };
 }
 
@@ -225,6 +254,11 @@ class CanRobotDriver: public RobotDriver {
     bool triggeredStopButton;
     bool triggeredSlowDown;
     bool triggeredPushboxStopButton;
+    unsigned long nextDisplayStateTime;
+    OperationType lastDisplayOpSent;
+    String lastIpSent;
+    bool lastIpSentValid;
+    uint8_t lastIpSentBytes[4];
     void begin() override;
     void run() override;
     bool getRobotID(String &id) override;
@@ -240,7 +274,9 @@ class CanRobotDriver: public RobotDriver {
     void requestVersion();
     void updateCpuTemperature();
     void updateWifiConnectionState();
+    void updateWifiSignalStrength();
     virtual void sendIpAddress() override;
+    void updateDisplayTelemetry();
     void requestPowerOffState();
     void requestManagedShutdown(uint8_t delaySeconds);
     void sendPowerOffCommand(uint8_t delaySeconds);
@@ -249,12 +285,14 @@ class CanRobotDriver: public RobotDriver {
     void setSimulatePowerOffHangFor(unsigned long durationSeconds){ setSimulatePowerOffHang(true, durationSeconds); }
     bool getSimulatePowerOffHang() const;
     void sendCanData(int msgId, int destNodeId, canCmdType_t cmd, int val, canDataType_t data);
+    void sendDisplayOperation(OperationType op);
   protected:    
     bool ledPanelInstalled;
     #ifdef __linux__
       LinuxCAN can;
       Process cpuTempProcess;
       Process wifiStatusProcess;
+      Process wifiSignalProcess;
       Process ipAddressToStringProcess;
     #else  
       CAN can; // dummy, so compiler doesn't complain on other platforms
@@ -270,6 +308,7 @@ class CanRobotDriver: public RobotDriver {
     unsigned long nextTempTime;
     unsigned long nextWifiTime;
     unsigned long nextLedTime;    
+    unsigned long nextDisplayTelemetryTime;
     unsigned long powerOffLogTime;
     unsigned long powerOffCommandSendTime;
     bool powerOffCommandSent;
@@ -286,6 +325,15 @@ class CanRobotDriver: public RobotDriver {
     unsigned long simulatePiSelfShutdownTime;
     owlctl::powerOffState_t powerOffState;
     uint8_t powerOffDelaySeconds;
+    bool satSummarySent;
+    uint8_t lastSatStatus;
+    uint8_t lastSatUsed;
+    uint8_t lastSatTotal;
+    bool rtkAgeSent;
+    uint16_t lastRtkAgeTenths;
+    bool mapProgressSent;
+    uint16_t lastMapCount;
+    uint8_t lastMapPercent;
     enum class PowerOffDecisionTrigger : uint8_t {
       None = 0,
       ExternalPin,
@@ -301,6 +349,7 @@ class CanRobotDriver: public RobotDriver {
     int cmdSummaryCounter;
     int cmdMotorResponseCounter;
     int cmdSummaryResponseCounter;
+    int16_t lastWifiSignalDbm = -127;
     void sendSerialRequest(String s);
     void processResponse();
     void motorResponse();

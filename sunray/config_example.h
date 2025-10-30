@@ -52,6 +52,11 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DRV_ARDUMOWER     1   // keep this for Ardumower
 //#define DRV_SIM_ROBOT     1   // simulation
 
+// ---- Optional hardware -----------------------------------------------------
+// Set to 1 when an owlDisplay CAN-Display is connected; otherwise all display-related
+// CAN frames remain disabled.
+#define ENABLE_CAN_DISPLAY 0
+
 // if compiling for ROS, specify robot launch file (.launch) for robot-specific ROS launch (if not running in ROS, this option will not be used )
 #define ROS_LAUNCH_FILE "ardumower"
 

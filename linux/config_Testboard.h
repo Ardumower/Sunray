@@ -481,6 +481,12 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define TTS_PATH "../../tts/de/"    // path for speakable events (.mp3 files) 
 
 
+// ---- Optional hardware -----------------------------------------------------
+// Set to 1 when an owlDisplay CAN-Display is connected; otherwise all display-related
+// CAN frames remain disabled.
+#define ENABLE_CAN_DISPLAY 0
+
+
 // ------ Simulation
 
 // Simulate that the Pi does not respond to power-off commands for a certain time.
