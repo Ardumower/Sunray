@@ -9,6 +9,8 @@
 #define ROBOT_DRIVER_H
 
 #include "../../gps.h"
+#include "../../types.h"
+
 #include <Client.h>
 
 class RobotDriver {
@@ -27,6 +29,7 @@ class RobotDriver {
     virtual bool getMcuFirmwareVersion(String &name, String &ver) = 0;    
     virtual float getCpuTemperature() = 0;
     virtual void sendIpAddress() {};
+    virtual void sendDisplayOperation(OperationType op) {}; 
 };
 
 class MotorDriver {

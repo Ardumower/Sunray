@@ -62,9 +62,9 @@
 typedef union canNodeType_t {
     uint8_t byteVal[2];
     struct __attribute__ ((__packed__)) {
-        uint8_t sourceNodeID : 6;   // 6 bits for source node ID (valid node IDs: 1-62)
-        uint8_t destNodeID   : 6;   // 6 bits for destination node ID (valid node IDs: 1-62, value 63 means all nodes)
-        uint8_t reserved     : 4;   // 4 bits reserved
+        uint16_t sourceNodeID : 6;   // 6 bits for source node ID (valid node IDs: 1-62)
+        uint16_t destNodeID   : 6;   // 6 bits for destination node ID (valid node IDs: 1-62, value 63 means all nodes)
+        uint16_t reserved     : 4;   // 4 bits reserved
     } sourceAndDest;
 } __attribute__((packed)) canNodeType_t;
 

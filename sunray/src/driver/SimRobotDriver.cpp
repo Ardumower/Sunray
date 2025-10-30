@@ -561,6 +561,8 @@ void SimGpsDriver::run(){
         accuracy = 0.01;
         hAccuracy = accuracy;
         vAccuracy = accuracy;
+        numSV = 40;
+        numSVdgps = 35; 
       } else {
         accuracy = max(floatX, floatY);
         hAccuracy = floatX;
