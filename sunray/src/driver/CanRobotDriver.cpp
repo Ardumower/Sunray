@@ -321,11 +321,18 @@ void CanRobotDriver::updateDisplayTelemetry(){
   if (totalRaw < 0) totalRaw = 0;
   uint8_t satTotal = static_cast<uint8_t>(min(totalRaw, 255));
 
-  int usedRaw = gps.numSVdgps > 0 ? gps.numSVdgps : gps.numSV;
+  int usedRaw = gps.numSVdgps >= 0 ? gps.numSVdgps : gps.numSV;
+  if (gps.solution == SOL_INVALID) {
+    usedRaw = 0;
+  }
   if (usedRaw < 0) usedRaw = 0;
+  if (usedRaw > totalRaw) usedRaw = totalRaw;
   uint8_t satUsed = static_cast<uint8_t>(min(usedRaw, 255));
 
-  if (!satSummarySent || satStatus != lastSatStatus || satUsed != lastSatUsed || satTotal != lastSatTotal) {
+  if (!satSummarySent ||
+      satStatus != lastSatStatus ||
+      satUsed != lastSatUsed ||
+      satTotal != lastSatTotal) {
     canDataType_t data;
     data.intValue = 0;
     data.byteVal[0] = satStatus;
