@@ -962,7 +962,9 @@ void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose)
     }
   }
   if (cmd[3] == 'M') cmdMotor();
-  if (cmd[3] == 'C'){ 
+  if (cmd[3] == 'C'){
+    // Special cases under 'C'
+    if ((cmd.length() > 5) && (cmd[4] == 'A') && (cmd[5] == 'M')) { cmdCamera(); return; }
     if ((cmd.length() > 4) && (cmd[4] == 'T')) cmdTuneParam();
     else cmdControl();
   }
@@ -992,8 +994,7 @@ void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose)
     if (cmd[4] == '2') cmdWiFiSetup();   
     if (cmd[4] == '3') cmdWiFiStatus();     
   }
-  // Camera control: AT+CAM,1,<index>,<width>,<height>,<fps> or AT+CAM,0
-  if (cmd[3] == 'C' && cmd.length() > 4 && cmd[4] == 'A' && cmd[5] == 'M') { cmdCamera(); return; }
+  // Camera control handled above inside 'C' group
   if (cmd[3] == 'U'){ 
     if ((cmd.length() > 4) && (cmd[4] == '1')) cmdFirmwareUpdate();
   }
