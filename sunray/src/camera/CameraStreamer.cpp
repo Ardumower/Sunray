@@ -1,5 +1,7 @@
 #include "camera/CameraStreamer.h"
 #include "camera/MediaStream.h"
+#include "camera/CameraRegistry.h"
+#include "camera/CameraRegistry.h"
 #include "Console.h"
 // Default to LinuxConsole if CONSOLE macro is not mapped by a config
 #ifndef CONSOLE
@@ -113,23 +115,77 @@ void CameraStreamer::runLoop() {
   using namespace std::chrono;
   // Open V4L2 device
   int index = camIndex_.load(); int outW = reqW_.load(); int outH = reqH_.load(); int fps = reqFps_.load();
-  char devPath[64]; std::snprintf(devPath, sizeof(devPath), "/dev/video%d", index);
+  CameraRegistry::refresh();
+  std::string devPathStr = CameraRegistry::pathForIndex(index);
+  char devPath[64];
+  if (devPathStr.empty()) {
+    CONSOLE.print("CAM index invalid: "); CONSOLE.println(index);
+    auto period = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
+    auto next = steady_clock::now();
+    while (running_.load()) {
+      // break if index changed to a valid device
+      if (camIndex_.load() != index) break;
+      buildAndSendFrame();
+      next += period;
+      std::this_thread::sleep_until(next);
+    }
+    if (running_.load()) { runLoop(); }
+    return;
+  }
+  std::snprintf(devPath, sizeof(devPath), "%s", devPathStr.c_str());
   int fd = ::open(devPath, O_RDWR);
   if (fd < 0) {
     CONSOLE.print("CAM open failed: "); CONSOLE.println(devPath);
     auto period = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
     auto next = steady_clock::now();
-    while (running_.load()) { buildAndSendFrame(); next += period; std::this_thread::sleep_until(next); }
+    while (running_.load()) {
+      if (camIndex_.load() != index) break;
+      buildAndSendFrame();
+      next += period;
+      std::this_thread::sleep_until(next);
+    }
+    if (running_.load()) { runLoop(); }
     return;
   }
   CONSOLE.print("CAM opened "); CONSOLE.println(devPath);
   // Try to set format to MJPEG
   v4l2_format fmt; memset(&fmt, 0, sizeof(fmt)); fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  if (ioctl(fd, VIDIOC_G_FMT, &fmt) == 0) { fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG; ioctl(fd, VIDIOC_S_FMT, &fmt); }
+  if (ioctl(fd, VIDIOC_G_FMT, &fmt) == 0) {
+    fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
+    ioctl(fd, VIDIOC_S_FMT, &fmt);
+    ioctl(fd, VIDIOC_G_FMT, &fmt);
+  }
   CONSOLE.print("CAM source "); CONSOLE.print((int)fmt.fmt.pix.width); CONSOLE.print("x"); CONSOLE.println((int)fmt.fmt.pix.height);
+  if ((int)fmt.fmt.pix.width <= 0 || (int)fmt.fmt.pix.height <= 0) {
+    CONSOLE.println("CAM invalid source format, fallback red frames");
+    ::close(fd);
+    auto period = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
+    auto next = steady_clock::now();
+    while (running_.load()) {
+      if (camIndex_.load() != index) break;
+      buildAndSendFrame();
+      next += period;
+      std::this_thread::sleep_until(next);
+    }
+    if (running_.load()) { runLoop(); }
+    return;
+  }
   // Request MMAP
   v4l2_requestbuffers req; memset(&req, 0, sizeof(req)); req.count = 4; req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; req.memory = V4L2_MEMORY_MMAP;
-  if (ioctl(fd, VIDIOC_REQBUFS, &req) < 0 || req.count < 2) { CONSOLE.println("CAM reqbufs failed"); ::close(fd); return; }
+  if (ioctl(fd, VIDIOC_REQBUFS, &req) < 0 || req.count < 2) {
+    CONSOLE.println("CAM reqbufs failed");
+    ::close(fd);
+    auto period = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
+    auto next = steady_clock::now();
+    while (running_.load()) {
+      if (camIndex_.load() != index) break;
+      buildAndSendFrame();
+      next += period;
+      std::this_thread::sleep_until(next);
+    }
+    if (running_.load()) { runLoop(); }
+    return;
+  }
   std::vector<MMapBuffer> bufs(req.count);
   for (unsigned i = 0; i < req.count; i++) {
     v4l2_buffer b; memset(&b, 0, sizeof(b)); b.type = req.type; b.memory = V4L2_MEMORY_MMAP; b.index = i;
