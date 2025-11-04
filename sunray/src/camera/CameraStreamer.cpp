@@ -183,7 +183,23 @@ extern "C" void cameraStreamerStop() { CameraStreamer::instance().stop(); }
 
 void CameraStreamer::buildAndSendFrame() {
   Sender s; int w = reqW_.load(), h = reqH_.load(); { std::lock_guard<std::mutex> lk(mtx_); s = sender_; }
-  if (!s) return; uint8_t hdr[16]; uint32_t ts = (uint32_t)(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() & 0xFFFFFFFFu);
+  if (!s) return;
+  if (w < 1) w = 160; if (h < 1) h = 120;
+  // Generate a solid red image WxH
+  std::vector<uint8_t> rgb((size_t)w * (size_t)h * 3);
+  for (size_t i = 0; i < (size_t)w * (size_t)h; i++) {
+    rgb[i*3 + 0] = 255; // R
+    rgb[i*3 + 1] = 0;   // G
+    rgb[i*3 + 2] = 0;   // B
+  }
+  std::vector<uint8_t> jpeg;
+  jpegEncodeRGB(rgb.data(), w, h, 70, jpeg);
+  // Build header + send
+  uint8_t hdr[16];
+  uint32_t ts = (uint32_t)(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() & 0xFFFFFFFFu);
   buildMediaHeader(hdr, 1, (uint16_t)w, (uint16_t)h, ts, 0);
-  std::vector<uint8_t> buf(sizeof(hdr) + sizeof(kTinyJpeg)); std::memcpy(buf.data(), hdr, sizeof(hdr)); std::memcpy(buf.data() + sizeof(hdr), kTinyJpeg, sizeof(kTinyJpeg)); s(buf.data(), buf.size());
+  std::vector<uint8_t> buf(sizeof(hdr) + jpeg.size());
+  std::memcpy(buf.data(), hdr, sizeof(hdr));
+  if (!jpeg.empty()) std::memcpy(buf.data() + sizeof(hdr), jpeg.data(), jpeg.size());
+  s(buf.data(), buf.size());
 }
