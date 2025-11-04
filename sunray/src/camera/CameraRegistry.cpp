@@ -25,7 +25,7 @@ namespace CameraRegistry {
     const unsigned long now = millis_linux();
     if (g_lastRefreshMs && (now - g_lastRefreshMs) < 2000) return; // throttle
     g_list.clear();
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 32; i++) {
       char dev[64]; std::snprintf(dev, sizeof(dev), "/dev/video%d", i);
       int fd = ::open(dev, O_RDWR);
       if (fd < 0) continue;
