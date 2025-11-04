@@ -42,12 +42,23 @@ bool WebSocketClient::sendBinaryRaw(const uint8_t* data, size_t len) {
   if (len <= 125) {
     _client.write((uint8_t)(0x80 | (uint8_t)len));
   } else if (len <= 0xFFFF) {
-    _client.write((uint8_t)126 | 0x80);
+    _client.write((uint8_t)(0x80 | 126));
     _client.write((uint8_t)((len >> 8) & 0xFF));
     _client.write((uint8_t)(len & 0xFF));
   } else {
-    // cap very large frames
-    return false;
+    // 64-bit extended length
+    _client.write((uint8_t)(0x80 | 127));
+    uint64_t L = (uint64_t)len;
+    uint8_t be[8];
+    be[0] = (uint8_t)((L >> 56) & 0xFF);
+    be[1] = (uint8_t)((L >> 48) & 0xFF);
+    be[2] = (uint8_t)((L >> 40) & 0xFF);
+    be[3] = (uint8_t)((L >> 32) & 0xFF);
+    be[4] = (uint8_t)((L >> 24) & 0xFF);
+    be[5] = (uint8_t)((L >> 16) & 0xFF);
+    be[6] = (uint8_t)((L >> 8) & 0xFF);
+    be[7] = (uint8_t)(L & 0xFF);
+    _client.write(be, 8);
   }
   _client.write(maskKey, 4);
   // Mask and write in chunks to reduce syscalls and CPU load
