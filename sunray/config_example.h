@@ -295,9 +295,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define SONAR_ENABLE true              // should ultrasonic sensor be used?
 #define SONAR_ENABLE false
 #define SONAR_TRIGGER_OBSTACLES true     // should sonar be used to trigger obstacles? if not, mower will only slow down
-#define SONAR_LEFT_OBSTACLE_CM   10      // stop mowing operation below this distance (cm) 
-#define SONAR_CENTER_OBSTACLE_CM 10      // stop mowing operation below this distance (cm) 
-#define SONAR_RIGHT_OBSTACLE_CM  10      // stop mowing operation below this distance (cm) 
+#define SONAR_LEFT_OBSTACLE_CM   15      // stop mowing operation below this distance (cm)
+#define SONAR_CENTER_OBSTACLE_CM 15      // stop mowing operation below this distance (cm)
+#define SONAR_RIGHT_OBSTACLE_CM  15      // stop mowing operation below this distance (cm)
+#define SONAR_POLL_INTERVAL_MS   200     // CAN polling interval for sonar distances
 
 // ------ rain sensor ----------------------------------------------------------
 //#define RAIN_ENABLE true                 // if activated, mower will dock when rain sensor triggers

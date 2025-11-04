@@ -10,6 +10,14 @@
 #include "RunningMedian.h"
 #include <Arduino.h>
 
+#if defined(SONAR_INSTALLED)
+#if !defined(pinSonarLeftTrigger) || !defined(pinSonarLeftEcho) || \
+    !defined(pinSonarCenterTrigger) || !defined(pinSonarCenterEcho) || \
+    !defined(pinSonarRightTrigger) || !defined(pinSonarRightEcho)
+#undef SONAR_INSTALLED
+#endif
+#endif
+
 
 #define MAX_DURATION 4000
 #define ROUNDING_ENABLED false

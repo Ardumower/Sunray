@@ -133,6 +133,8 @@ namespace owlctl {
       can_val_device_id         = 11,
       can_val_power_off_state   = 12, // power-off pin state
       can_val_power_off_command = 13, // schedule power-off
+      can_val_ultrasonic_left   = 14, // left ultrasonic distance (mm)
+      can_val_ultrasonic_right  = 15, // right ultrasonic distance (mm)
   };
 
   enum powerOffState_t: uint8_t {
@@ -152,7 +154,9 @@ namespace owldisplay {
       can_val_battery_current  = 0x41,
       can_val_map_progress     = 0x50,
       can_val_state_code       = 0x51,
-      can_val_status_message   = 0x52
+      can_val_status_message   = 0x52,
+      can_val_ultrasonic_alert = 0x60,
+      can_val_rain_alert       = 0x61
   };
 
   enum stateCode_t : uint8_t {
@@ -253,6 +257,20 @@ class CanRobotDriver: public RobotDriver {
     bool triggeredRain;
     bool triggeredStopButton;
     bool triggeredSlowDown;
+    bool rainDisplayLastState;
+    bool rainDisplaySent;
+    uint16_t ultrasonicLeftDistance;
+    uint16_t ultrasonicRightDistance;
+    bool ultrasonicLeftValid;
+    bool ultrasonicRightValid;
+    bool ultrasonicLeftAlertActive;
+    bool ultrasonicRightAlertActive;
+    unsigned long ultrasonicLeftAlertUntil;
+    unsigned long ultrasonicRightAlertUntil;
+    uint16_t ultrasonicLeftLastSent;
+    uint16_t ultrasonicRightLastSent;
+    bool ultrasonicLeftSentValid;
+    bool ultrasonicRightSentValid;
     bool triggeredPushboxStopButton;
     unsigned long nextDisplayStateTime;
     OperationType lastDisplayOpSent;
@@ -270,6 +288,7 @@ class CanRobotDriver: public RobotDriver {
     void requestMowHeight(int mowHeightMillimeter);
     void requestMotorErrorStatus();
     void requestSummary();
+    void requestUltrasonicDistances();
     void requestPushboxState();        
     void requestVersion();
     void updateCpuTemperature();
@@ -286,6 +305,10 @@ class CanRobotDriver: public RobotDriver {
     bool getSimulatePowerOffHang() const;
     void sendCanData(int msgId, int destNodeId, canCmdType_t cmd, int val, canDataType_t data);
     void sendDisplayOperation(OperationType op);
+    void handleUltrasonicResponse(bool isLeft, bool valid, uint16_t distanceMm);
+    void processUltrasonicTimeouts();
+    void sendUltrasonicDisplay(bool isLeft, bool valid, uint16_t distanceMm);
+    void sendRainDisplay(bool raining);
   protected:    
     bool ledPanelInstalled;
     #ifdef __linux__
@@ -309,6 +332,7 @@ class CanRobotDriver: public RobotDriver {
     unsigned long nextWifiTime;
     unsigned long nextLedTime;    
     unsigned long nextDisplayTelemetryTime;
+    unsigned long nextUltrasonicPollTime;
     unsigned long powerOffLogTime;
     unsigned long powerOffCommandSendTime;
     bool powerOffCommandSent;

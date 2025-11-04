@@ -52,6 +52,26 @@
 #define SIMULATE_SUNRAY_POWER_OFF_COMMAND_DELAY_SEC 3     // delay before sending power-off command to owlController
 #endif
 
+#ifndef SONAR_ENABLE
+#define SONAR_ENABLE false
+#endif
+
+#ifndef SONAR_LEFT_OBSTACLE_CM
+#define SONAR_LEFT_OBSTACLE_CM 0
+#endif
+
+#ifndef SONAR_RIGHT_OBSTACLE_CM
+#define SONAR_RIGHT_OBSTACLE_CM 0
+#endif
+
+#ifndef SONAR_POLL_INTERVAL_MS
+#define SONAR_POLL_INTERVAL_MS 200
+#endif
+
+static constexpr unsigned long kUltrasonicHoldMs = 3000UL;
+static constexpr unsigned long kUltrasonicPollMs = static_cast<unsigned long>(SONAR_POLL_INTERVAL_MS);
+static constexpr bool kDebugRainDisplay = true;
+
 static const char* powerOffStateToStr(owlctl::powerOffState_t state){
   switch (state){
     case owlctl::power_off_inactive: return "inactive";
@@ -96,6 +116,8 @@ void CanRobotDriver::begin(){
   triggeredStopButton = false;
   triggeredPushboxStopButton = false;
   triggeredLift = false;
+  rainDisplayLastState = false;
+  rainDisplaySent = false;
   for (int i=0; i < MOW_MOTOR_COUNT; i++) mowFault[i] = false;
   leftMotorFault = false;
   rightMotorFault = false;
@@ -109,6 +131,7 @@ void CanRobotDriver::begin(){
   nextWifiTime = 0;
   nextLedTime = 0;
   nextDisplayTelemetryTime = 0;
+  nextUltrasonicPollTime = 0;
   nextIpTime = 0;
   lastWifiSignalDbm = -127;
   ledPanelInstalled = true;
@@ -124,6 +147,18 @@ void CanRobotDriver::begin(){
   motorHeightAngleEndswitchSet = false;
   motorHeightAngleCurr = 0;
   motorHeightFoundEndswitch = false;
+  ultrasonicLeftDistance = 0;
+  ultrasonicRightDistance = 0;
+  ultrasonicLeftValid = false;
+  ultrasonicRightValid = false;
+  ultrasonicLeftAlertActive = false;
+  ultrasonicRightAlertActive = false;
+  ultrasonicLeftAlertUntil = 0;
+  ultrasonicRightAlertUntil = 0;
+  ultrasonicLeftLastSent = 0;
+  ultrasonicRightLastSent = 0;
+  ultrasonicLeftSentValid = false;
+  ultrasonicRightSentValid = false;
   robotID = "XX";
   ledStateWifiInactive = false;
   ledStateWifiConnected = false;
@@ -488,6 +523,81 @@ void CanRobotDriver::sendDisplayOperation(OperationType op){
 #endif
 }
 
+void CanRobotDriver::handleUltrasonicResponse(bool isLeft, bool valid, uint16_t distanceMm){
+  const uint16_t thresholdCm = isLeft ? SONAR_LEFT_OBSTACLE_CM : SONAR_RIGHT_OBSTACLE_CM;
+  const uint16_t threshold = thresholdCm * 10;
+  uint16_t &storedDistance = isLeft ? ultrasonicLeftDistance : ultrasonicRightDistance;
+  bool &storedValid = isLeft ? ultrasonicLeftValid : ultrasonicRightValid;
+  bool &alertActive = isLeft ? ultrasonicLeftAlertActive : ultrasonicRightAlertActive;
+  unsigned long &alertUntil = isLeft ? ultrasonicLeftAlertUntil : ultrasonicRightAlertUntil;
+  storedDistance = distanceMm;
+  storedValid = valid;
+  unsigned long now = millis();
+  if (valid && distanceMm <= threshold) {
+    alertActive = true;
+    alertUntil = now + kUltrasonicHoldMs;
+    sendUltrasonicDisplay(isLeft, true, distanceMm);
+  }
+}
+
+void CanRobotDriver::processUltrasonicTimeouts(){
+  unsigned long now = millis();
+  if (ultrasonicLeftAlertActive && now > ultrasonicLeftAlertUntil) {
+    ultrasonicLeftAlertActive = false;
+    sendUltrasonicDisplay(true, false, ultrasonicLeftDistance);
+  }
+  if (ultrasonicRightAlertActive && now > ultrasonicRightAlertUntil) {
+    ultrasonicRightAlertActive = false;
+    sendUltrasonicDisplay(false, false, ultrasonicRightDistance);
+  }
+}
+
+void CanRobotDriver::sendUltrasonicDisplay(bool isLeft, bool valid, uint16_t distanceMm){
+  uint16_t &lastDistance = isLeft ? ultrasonicLeftLastSent : ultrasonicRightLastSent;
+  bool &lastValid = isLeft ? ultrasonicLeftSentValid : ultrasonicRightSentValid;
+
+  if (lastValid == valid && (!valid || lastDistance == distanceMm)) {
+    return;
+  }
+
+  canDataType_t displayData;
+  displayData.byteVal[0] = isLeft ? 0 : 1;
+  displayData.byteVal[1] = (uint8_t)(distanceMm & 0xFF);
+  displayData.byteVal[2] = (uint8_t)((distanceMm >> 8) & 0xFF);
+  displayData.byteVal[3] = valid ? 1 : 0;
+#if ENABLE_CAN_DISPLAY
+  sendCanData(OWL_DISPLAY_MSG_ID, DISPLAY_NODE_ID, can_cmd_info, owldisplay::can_val_ultrasonic_alert, displayData);
+#else
+  (void)displayData;
+#endif
+
+  lastValid = valid;
+  lastDistance = distanceMm;
+}
+
+void CanRobotDriver::sendRainDisplay(bool raining){
+#if ENABLE_CAN_DISPLAY
+  if (rainDisplaySent && rainDisplayLastState == raining) return;
+
+  canDataType_t displayData;
+  displayData.byteVal[0] = raining ? 1 : 0;
+  displayData.byteVal[1] = 0;
+  displayData.byteVal[2] = 0;
+  displayData.byteVal[3] = 0;
+  sendCanData(OWL_DISPLAY_MSG_ID, DISPLAY_NODE_ID, can_cmd_info, owldisplay::can_val_rain_alert, displayData);
+
+  if (kDebugRainDisplay) {
+    CONSOLE.print("CAN: rain display sent state=");
+    CONSOLE.println(raining ? "1" : "0");
+  }
+
+  rainDisplayLastState = raining;
+  rainDisplaySent = true;
+#else
+  (void)raining;
+#endif
+}
+
 
 
 // request MCU SW version
@@ -527,6 +637,13 @@ void CanRobotDriver::requestSummary(){
       break;
   }
   cmdSummaryCounter++;
+}
+
+void CanRobotDriver::requestUltrasonicDistances(){
+  canDataType_t data;
+  data.intValue = 0;
+  sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_ultrasonic_left, data);
+  sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_request, owlctl::can_val_ultrasonic_right, data);
 }
 
 
@@ -1096,9 +1213,16 @@ void CanRobotDriver::processResponse(){
                   triggeredStopButton = (data.byteVal[0] != 0);
                   //CONSOLE.println(triggeredStopButton);
                   break;
-                case owlctl::can_val_rain_state:
-                  triggeredRain = (data.byteVal[0] != 0);
+                case owlctl::can_val_rain_state: {
+                  bool raining = (data.byteVal[0] != 0);
+                  triggeredRain = raining;
+                  if (kDebugRainDisplay) {
+                    CONSOLE.print("CAN: rain state received=");
+                    CONSOLE.println(triggeredRain ? "1" : "0");
+                  }
+                  sendRainDisplay(raining);
                   break;
+                }
                 case owlctl::can_val_slow_down_state:
                   triggeredSlowDown = (data.byteVal[0] != 0);
                   break;
@@ -1112,6 +1236,14 @@ void CanRobotDriver::processResponse(){
                   if (volt > 1000) volt = volt / 1000.0;
                   if (volt > 20) chargeVoltage = volt;
                     else chargeVoltage = 0;            
+                  break;
+                }
+                case owlctl::can_val_ultrasonic_left:
+                case owlctl::can_val_ultrasonic_right: {
+                  bool isLeft = (val == owlctl::can_val_ultrasonic_left);
+                  bool valid = (data.byteVal[2] != 0);
+                  uint16_t distanceMm = (uint16_t)data.byteVal[0] | ((uint16_t)data.byteVal[1] << 8);
+                  handleUltrasonicResponse(isLeft, valid, distanceMm);
                   break;
                 }
                 case owlctl::can_val_power_off_state:
@@ -1176,6 +1308,11 @@ void CanRobotDriver::run(){
     nextSummaryTime = millis() + 100; // 10 hz
     requestSummary();
   }
+  if (SONAR_ENABLE && (millis() > nextUltrasonicPollTime)) {
+    nextUltrasonicPollTime = millis() + kUltrasonicPollMs;
+    requestUltrasonicDistances();
+  }
+  processUltrasonicTimeouts();
   if (millis() > nextCheckErrorTime){
     nextCheckErrorTime = millis() + 2000; // 0.5 hz
     requestMotorErrorStatus();
