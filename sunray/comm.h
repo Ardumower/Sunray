@@ -73,6 +73,7 @@ private:
   void cmdWiFiSetup();
   void cmdWiFiStatus();
   void cmdFirmwareUpdate();
+  void cmdCamera();
 };
 
 extern Comm comm;

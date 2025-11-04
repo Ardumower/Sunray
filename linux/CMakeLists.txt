@@ -114,3 +114,12 @@ else()
   message(FATAL_ERROR "OpenSSL not found. Install libssl-dev and rerun cmake.")
 endif()
 
+# JPEG encoder/decoder for camera resizing
+find_package(JPEG REQUIRED)
+if (JPEG_FOUND)
+  message(STATUS "libjpeg found: ${JPEG_LIBRARY}")
+  target_link_libraries(sunray JPEG::JPEG)
+else()
+  message(FATAL_ERROR "libjpeg not found. Install libjpeg-dev and rerun cmake.")
+endif()
+

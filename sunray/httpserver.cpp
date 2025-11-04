@@ -7,6 +7,9 @@
 #include "src/op/op.h"
 #include "reset.h"
 #include "comm.h"
+#ifdef __linux__
+#include "camera/CameraStreamer.h"
+#endif
 
 #include "timetable.h"
 
@@ -275,6 +278,10 @@ void HttpServer::processWifiWSClient() {
     }
     CONSOLE.println("WS: connected");
     wsLastRxTime = millis();
+#ifdef __linux__
+    // Provide sender callback for camera streamer
+    CameraStreamer::instance().setSender([this](const uint8_t* data, size_t len){ wsClient.sendBinaryRaw(data, len); });
+#endif
   }
 
   // No periodic telemetry push; robot answers requests from gateway
@@ -306,5 +313,9 @@ void HttpServer::processWifiWSClient() {
   // If connection was closed by server (handled in pollText), pause before reconnecting
   if (!wsClient.connected()) {
     if (wsNextConnectTime < millis() + 2000) wsNextConnectTime = millis() + 2000;
+#ifdef __linux__
+    // Reset sender to avoid pushing into a closed socket
+    CameraStreamer::instance().setSender(nullptr);
+#endif
   }
 }

@@ -32,6 +32,37 @@ bool WebSocketClient::connect() {
   return true;
 }
 
+bool WebSocketClient::sendBinaryRaw(const uint8_t* data, size_t len) {
+  if (!connected()) return false;
+  // FIN=1, opcode=2 (binary)
+  _client.write((uint8_t)0x82);
+  // Client-to-server must be masked
+  uint8_t maskKey[4];
+  for (int i = 0; i < 4; i++) maskKey[i] = (uint8_t)random(0, 256);
+  if (len <= 125) {
+    _client.write((uint8_t)(0x80 | (uint8_t)len));
+  } else if (len <= 0xFFFF) {
+    _client.write((uint8_t)126 | 0x80);
+    _client.write((uint8_t)((len >> 8) & 0xFF));
+    _client.write((uint8_t)(len & 0xFF));
+  } else {
+    // cap very large frames
+    return false;
+  }
+  _client.write(maskKey, 4);
+  // Mask and write in chunks to reduce syscalls and CPU load
+  const size_t CHUNK = 4096;
+  uint8_t buf[CHUNK];
+  size_t off = 0;
+  while (off < len) {
+    size_t n = (len - off > CHUNK) ? CHUNK : (len - off);
+    for (size_t i = 0; i < n; i++) buf[i] = data[off + i] ^ maskKey[(off + i) % 4];
+    _client.write(buf, n);
+    off += n;
+  }
+  return true;
+}
+
 void WebSocketClient::close() {
   if (_client.connected()) _client.stop();
   _connected = false;

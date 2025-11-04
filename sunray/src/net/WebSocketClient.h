@@ -16,6 +16,7 @@ public:
 
   // Send a text message (client frames must be masked)
   bool sendText(const String& msg);
+  bool sendBinaryRaw(const uint8_t* data, size_t len);
 
   // Receive next text message into out (non-blocking, returns true if a full message was read)
   bool pollText(String& out);
@@ -33,4 +34,3 @@ private:
 };
 
 #endif
-
