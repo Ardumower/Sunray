@@ -70,7 +70,7 @@
 
 static constexpr unsigned long kUltrasonicHoldMs = 3000UL;
 static constexpr unsigned long kUltrasonicPollMs = static_cast<unsigned long>(SONAR_POLL_INTERVAL_MS);
-static constexpr bool kDebugRainDisplay = true;
+static constexpr bool kDebugRainDisplay = false;
 
 static const char* powerOffStateToStr(owlctl::powerOffState_t state){
   switch (state){
