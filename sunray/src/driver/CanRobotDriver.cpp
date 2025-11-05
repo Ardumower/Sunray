@@ -104,7 +104,6 @@ void CanRobotDriver::begin(){
   nextDisplayStateTime = 0;
   lastDisplayOpSent = stateEstimator.stateOp;
   lastIpSent = "";
-  lastIpSentValid = false;
   for (uint8_t &b : lastIpSentBytes) {
     b = 0;
   }
@@ -244,6 +243,11 @@ void CanRobotDriver::begin(){
   unsigned long diffV = (unsigned short) (currV - lastV);  
   CONSOLE.println(diffV);
 
+  #ifdef __linux__
+    pthread_create(&thread_ip_id, NULL, CanRobotDriver::canIpAddressThreadFun, (void*)this);
+    pthread_create(&thread_wifi_signal_id, NULL, CanRobotDriver::canWifiSignalThreadFun, (void*)this);
+  #endif
+
   //exit(0);
 }
 
@@ -302,41 +306,6 @@ void CanRobotDriver::updateWifiConnectionState(){
     //CONSOLE.print("updateWifiConnectionState duration: ");
     //CONSOLE.println(duration);
   #endif
-}
-
-void CanRobotDriver::updateWifiSignalStrength(){
-#if ENABLE_CAN_DISPLAY
-  #ifdef __linux__
-    String result;
-    while (wifiSignalProcess.available()) result += (char)wifiSignalProcess.read();
-    result.trim();
-
-    int16_t newDbm = lastWifiSignalDbm;
-    bool haveSample = false;
-
-    if (result.length() > 0) {
-      if (result.startsWith("-") || isDigit(result.charAt(0))) {
-        int parsed = result.toInt();
-        if (!(parsed == 0 && result.indexOf('-') == -1)) {
-          newDbm = static_cast<int16_t>(parsed);
-          haveSample = true;
-        }
-      }
-    } else {
-      newDbm = -127;
-      haveSample = true;
-    }
-
-    if (haveSample) {
-      canDataType_t data;
-      data.floatVal = static_cast<float>(newDbm);
-      sendCanData(OWL_DISPLAY_MSG_ID, DISPLAY_NODE_ID, can_cmd_info, owldisplay::can_val_wifi_signal, data);
-      lastWifiSignalDbm = newDbm;
-    }
-
-    wifiSignalProcess.runShellCommand("iw dev wlan0 link | awk '/signal/ {print $2}'");
-  #endif
-#endif
 }
 
 void CanRobotDriver::updateDisplayTelemetry(){
@@ -429,41 +398,51 @@ void CanRobotDriver::updateDisplayTelemetry(){
 #endif
 }
 
+void *CanRobotDriver::canIpAddressThreadFun(void *user_data) {
+  Console.println("CAN IP address thread started");
+  CanRobotDriver *robot = (CanRobotDriver*)user_data;
+  String currentIp = "";
 
-void CanRobotDriver::sendIpAddress(){
-  #ifdef __linux__
-    while (ipAddressToStringProcess.available()) ipAddressToStringProcess.read();
+  while (true){
 
-    // Use hostname -I to avoid netlink permission issues; first token is primary IPv4
-    ipAddressToStringProcess.runShellCommand("hostname -I");
-    String ipStr = ipAddressToStringProcess.readString();
+    // Clear buffer
+    while (robot->ipAddressToStringProcess.available()) robot->ipAddressToStringProcess.read();
+
+    // Get IP address
+    robot->ipAddressToStringProcess.runShellCommand("hostname -I");
+    String ipStr = robot->ipAddressToStringProcess.readString();
     ipStr.trim();
 
-    if (ipStr.length() == 0) {
-        return;
-    }
-
-    int spacePos = ipStr.indexOf(' ');
-    if (spacePos > 0) {
+    if (ipStr.length() > 0) {
+      // Get first IP if multiple
+      int spacePos = ipStr.indexOf(' ');
+      if (spacePos > 0) {
         ipStr = ipStr.substring(0, spacePos);
-    }
+      }
 
+      // Only process if IP changed
+      if (ipStr != currentIp) {
+        Console.print("Found new IP address: ");
+        Console.println(ipStr);
+        IPAddress ip;
+        if (ip.fromString(ipStr)) {
+          // Update current IP
+          currentIp = ipStr;
+          // Send to CAN bus
+          robot->sendIpAddress(ipStr);
+          }
+      }
+    }
+    delayMicroseconds(500);
+	}
+	return NULL;
+}
+
+void CanRobotDriver::sendIpAddress(const String &ipStr) {
+  #ifdef __linux__
     IPAddress ip;
     if (!ip.fromString(ipStr)) {
         return;
-    }
-
-    if (lastIpSentValid) {
-        bool unchanged = true;
-        for (uint8_t i = 0; i < 4; i++) {
-            if (ip[i] != lastIpSentBytes[i]) {
-                unchanged = false;
-                break;
-            }
-        }
-        if (unchanged) {
-            return; // already displayed
-        }
     }
 
     canDataType_t data;
@@ -473,19 +452,62 @@ void CanRobotDriver::sendIpAddress(){
     }
 
     sendCanData(OWL_CONTROL_MSG_ID, CONTROL_NODE_ID, can_cmd_set, owlctl::can_val_ip_address, data);
-#if ENABLE_CAN_DISPLAY
-    sendCanData(OWL_DISPLAY_MSG_ID, DISPLAY_NODE_ID, can_cmd_info, owldisplay::can_val_ip_address, data);
-#endif
+    #if ENABLE_CAN_DISPLAY
+        sendCanData(OWL_DISPLAY_MSG_ID, DISPLAY_NODE_ID, can_cmd_info, owldisplay::can_val_ip_address, data);
+    #endif
     lastIpSent = ipStr;
-    lastIpSentValid = true;
   #endif
 }
 
-// send CAN request 
-void CanRobotDriver::sendCanData(int msgId, int destNodeId, canCmdType_t cmd, int val, canDataType_t data){        
+void *CanRobotDriver::canWifiSignalThreadFun(void *user_data) {
+    Console.println("CAN WiFi signal thread started");
+    CanRobotDriver *robot = (CanRobotDriver*)user_data;
+    int16_t currentDbm = robot->lastWifiSignalDbm;
+
+    while (true) {
+        // Clear any previous output
+        while (robot->wifiSignalProcess.available()) 
+            robot->wifiSignalProcess.read();
+
+        // Run command and read result
+        robot->wifiSignalProcess.runShellCommand("iw dev wlan0 link | awk '/signal/ {print $2}'");
+        String res = robot->wifiSignalProcess.readString();
+        res.trim();
+
+        int16_t newDbm = -127; // fallback for "no signal"
+        if (res.length() > 0) {
+            float f = res.toFloat();
+            if (!(f == 0.0f && res.indexOf('0') == -1)) {
+                newDbm = static_cast<int16_t>(roundf(f));
+            }
+        }
+
+        if (newDbm != currentDbm) {
+            currentDbm = newDbm;
+            robot->lastWifiSignalDbm = newDbm;
+            robot->sendWifiSignal(newDbm);
+        }
+
+        delayMicroseconds(500);
+    }
+    return NULL;
+}
+
+void CanRobotDriver::sendWifiSignal(int16_t dbm) {
+#if ENABLE_CAN_DISPLAY
+  canDataType_t data;
+  data.floatVal = static_cast<float>(dbm);
+  sendCanData(OWL_DISPLAY_MSG_ID, DISPLAY_NODE_ID, can_cmd_info, owldisplay::can_val_wifi_signal_dbm, data);
+  lastWifiSignalDbm = dbm;
+#else
+  (void)dbm;
+#endif
+}
+// send CAN request
+void CanRobotDriver::sendCanData(int msgId, int destNodeId, canCmdType_t cmd, int val, canDataType_t data) {
     can_frame_t frame;
-    frame.can_id = msgId;    
-    if (cmd == can_cmd_request){
+    frame.can_id = msgId;
+    if (cmd == can_cmd_request) {
       frame.can_dlc = 4;
     } else {
       frame.can_dlc = 8;
@@ -1401,7 +1423,6 @@ void CanRobotDriver::run(){
   if (millis() > nextWifiTime){
     nextWifiTime = millis() + 7000; // 7 sec
     updateWifiConnectionState();
-    updateWifiSignalStrength();
   }
 }
 

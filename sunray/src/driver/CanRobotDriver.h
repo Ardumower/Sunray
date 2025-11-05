@@ -148,7 +148,7 @@ namespace owldisplay {
   enum valueType_t : uint8_t {
       can_val_sat_summary      = 0x10,
       can_val_rtk_age          = 0x11,
-      can_val_wifi_signal      = 0x12,
+      can_val_wifi_signal_dbm  = 0x12,
       can_val_ip_address       = 0x14,
       can_val_battery_voltage  = 0x40,
       can_val_battery_current  = 0x41,
@@ -157,7 +157,7 @@ namespace owldisplay {
       can_val_status_message   = 0x52,
       can_val_ultrasonic_alert = 0x60,
       can_val_rain_alert       = 0x61
-  };
+    };
 
   enum stateCode_t : uint8_t {
       state_unknown = 0,
@@ -275,7 +275,6 @@ class CanRobotDriver: public RobotDriver {
     unsigned long nextDisplayStateTime;
     OperationType lastDisplayOpSent;
     String lastIpSent;
-    bool lastIpSentValid;
     uint8_t lastIpSentBytes[4];
     void begin() override;
     void run() override;
@@ -293,8 +292,8 @@ class CanRobotDriver: public RobotDriver {
     void requestVersion();
     void updateCpuTemperature();
     void updateWifiConnectionState();
-    void updateWifiSignalStrength();
-    virtual void sendIpAddress() override;
+    void sendIpAddress(const String &ipStr);
+    void sendWifiSignal(int16_t dbm);
     void updateDisplayTelemetry();
     void requestPowerOffState();
     void requestManagedShutdown(uint8_t delaySeconds);
@@ -319,7 +318,9 @@ class CanRobotDriver: public RobotDriver {
       Process ipAddressToStringProcess;
     #else  
       CAN can; // dummy, so compiler doesn't complain on other platforms
-    #endif    
+    #endif
+    static void *canIpAddressThreadFun(void *user_data);
+    static void *canWifiSignalThreadFun(void *user_data);
     String cmd;
     String cmdResponse;
     unsigned long nextMotorTime;    
@@ -386,6 +387,8 @@ class CanRobotDriver: public RobotDriver {
     void processPowerOffDecision();
     bool readyForManagedShutdown(PowerOffDecisionTrigger trigger);
     void processPendingPowerOffCommand();
+    pthread_t thread_ip_id;
+    pthread_t thread_wifi_signal_id;
 };
 
 class CanMotorDriver: public MotorDriver {

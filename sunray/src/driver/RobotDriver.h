@@ -30,6 +30,7 @@ class RobotDriver {
     virtual float getCpuTemperature() = 0;
     virtual void sendIpAddress() {};
     virtual void sendDisplayOperation(OperationType op) {}; 
+    virtual void sendWifiSignal(int16_t dbm) {};
 };
 
 class MotorDriver {
