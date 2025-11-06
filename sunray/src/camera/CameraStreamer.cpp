@@ -3,6 +3,12 @@
 #include "camera/CameraRegistry.h"
 #include "camera/CameraRegistry.h"
 #include "Console.h"
+// Access motor speed setpoints via C-accessors (to avoid Arduino header conflicts)
+extern "C" float cameraGetLinearSet();
+extern "C" float cameraGetAngularSet();
+// Provide weak fallbacks (return 0) in case OverlayData.cpp is not linked
+extern "C" __attribute__((weak)) float cameraGetLinearSet() { return 0.0f; }
+extern "C" __attribute__((weak)) float cameraGetAngularSet() { return 0.0f; }
 // Default to LinuxConsole if CONSOLE macro is not mapped by a config
 #ifndef CONSOLE
 #define CONSOLE Console
@@ -13,6 +19,8 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
+#include <algorithm>
+#include <cmath>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/select.h>
@@ -20,6 +28,7 @@
 #include <unistd.h>
 #include <linux/videodev2.h>
 #include <jpeglib.h>
+#include <ctime>
 
 // Minimal 1x1 JPEG placeholder
 static const unsigned char kTinyJpeg[] = {
@@ -78,6 +87,134 @@ void CameraStreamer::stop() {
 }
 
 struct MMapBuffer { void* start{nullptr}; size_t length{0}; };
+
+// --- Simple OSD drawing helpers (RGB888) ---
+static inline void putPixel(uint8_t* img, int w, int h, int x, int y, uint8_t r, uint8_t g, uint8_t b) {
+  if ((unsigned)x >= (unsigned)w || (unsigned)y >= (unsigned)h) return;
+  size_t idx = ((size_t)y * (size_t)w + (size_t)x) * 3;
+  img[idx + 0] = r; img[idx + 1] = g; img[idx + 2] = b;
+}
+
+static void fillRect(uint8_t* img, int w, int h, int x0, int y0, int x1, int y1, uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255) {
+  if (x0 > x1) std::swap(x0, x1); if (y0 > y1) std::swap(y0, y1);
+  if (x0 >= w || y0 >= h || x1 < 0 || y1 < 0) return;
+  x0 = std::max(0, x0); y0 = std::max(0, y0); x1 = std::min(w - 1, x1); y1 = std::min(h - 1, y1);
+  for (int y = y0; y <= y1; y++) {
+    for (int x = x0; x <= x1; x++) {
+      if (a == 255) { putPixel(img, w, h, x, y, r, g, b); }
+      else {
+        // simple alpha blend over existing pixel
+        size_t idx = ((size_t)y * (size_t)w + (size_t)x) * 3;
+        uint8_t br = img[idx+0], bg = img[idx+1], bb = img[idx+2];
+        img[idx+0] = (uint8_t)((r * a + br * (255 - a)) / 255);
+        img[idx+1] = (uint8_t)((g * a + bg * (255 - a)) / 255);
+        img[idx+2] = (uint8_t)((b * a + bb * (255 - a)) / 255);
+      }
+    }
+  }
+}
+
+// 5x7 pixel font for digits and ':'
+static const uint8_t kFont5x7[][5] = {
+  // '0'..'9'
+  {0x7E,0x81,0x81,0x81,0x7E}, // 0
+  {0x00,0x82,0xFF,0x80,0x00}, // 1
+  {0xE2,0x91,0x91,0x91,0x8E}, // 2
+  {0x42,0x81,0x89,0x89,0x76}, // 3
+  {0x1C,0x12,0x11,0xFF,0x10}, // 4
+  {0x4F,0x89,0x89,0x89,0x71}, // 5
+  {0x7E,0x89,0x89,0x89,0x72}, // 6
+  {0x01,0x01,0xF1,0x09,0x07}, // 7
+  {0x76,0x89,0x89,0x89,0x76}, // 8
+  {0x4E,0x91,0x91,0x91,0x7E}, // 9
+};
+
+static void drawChar5x7(uint8_t* img, int w, int h, int x, int y, char c, int scale, uint8_t r, uint8_t g, uint8_t b) {
+  if (c >= '0' && c <= '9') {
+    const uint8_t* col = kFont5x7[c - '0'];
+    for (int cx = 0; cx < 5; cx++) {
+      uint8_t bits = col[cx];
+      for (int cy = 0; cy < 7; cy++) {
+        bool on = (bits >> (7 - 1 - cy)) & 1; // top bit is row 0
+        if (on) {
+          for (int yy = 0; yy < scale; yy++)
+            for (int xx = 0; xx < scale; xx++)
+              putPixel(img, w, h, x + cx*scale + xx, y + cy*scale + yy, r, g, b);
+        }
+      }
+    }
+  } else if (c == ':') {
+    // draw two dots
+    int dotSize = scale;
+    fillRect(img, w, h, x + 2*scale, y + 2*scale, x + 2*scale + dotSize - 1, y + 2*scale + dotSize - 1, r, g, b);
+    fillRect(img, w, h, x + 2*scale, y + 5*scale, x + 2*scale + dotSize - 1, y + 5*scale + dotSize - 1, r, g, b);
+  }
+}
+
+static void drawText(uint8_t* img, int w, int h, int x, int y, const std::string& text, int scale, uint8_t r, uint8_t g, uint8_t b) {
+  int cx = x;
+  for (char c : text) {
+    drawChar5x7(img, w, h, cx, y, c, scale, r, g, b);
+    cx += (5 + 1) * scale; // 1px space
+  }
+}
+
+static void drawVerticalArrow(uint8_t* img, int w, int h, int cx, int cy, int len, int thickness, bool up, uint8_t r, uint8_t g, uint8_t b) {
+  if (len <= 0) return;
+  int y0 = cy;
+  int y1 = up ? (cy - len) : (cy + len);
+  // shaft
+  fillRect(img, w, h, cx - thickness/2, std::min(y0, y1), cx + (thickness-1)/2, std::max(y0, y1), r, g, b);
+  // head: small triangle
+  int hy = up ? y1 : y1;
+  int dir = up ? -1 : 1;
+  for (int i = 0; i < thickness*2 + 6; i++) {
+    int half = i/2;
+    fillRect(img, w, h, cx - half, hy + dir*i, cx + half, hy + dir*i, r, g, b);
+  }
+}
+
+static void drawHorizontalArrow(uint8_t* img, int w, int h, int cx, int cy, int len, int thickness, bool right, uint8_t r, uint8_t g, uint8_t b) {
+  if (len <= 0) return;
+  int x0 = cx;
+  int x1 = right ? (cx + len) : (cx - len);
+  // shaft
+  fillRect(img, w, h, std::min(x0, x1), cy - thickness/2, std::max(x0, x1), cy + (thickness-1)/2, r, g, b);
+  // head
+  int hx = right ? x1 : x1;
+  int dir = right ? 1 : -1;
+  for (int i = 0; i < thickness*2 + 6; i++) {
+    int half = i/2;
+    fillRect(img, w, h, hx + dir*i, cy - half, hx + dir*i, cy + half, r, g, b);
+  }
+}
+
+static void drawOverlay(uint8_t* img, int w, int h) {
+  // Joystick arrows from last AT+M (linear m/s, angular rad/s)
+  float lin = cameraGetLinearSet();   // positive => forward
+  float ang = cameraGetAngularSet();  // positive => rotate right
+  const float maxLin = 0.7f;   // m/s typical max
+  const float maxAng = 1.0f;   // rad/s typical max
+  int r = (int)(std::min(w, h) * 0.35f);                     // joystick circle radius approx
+  // keep vertical arrow length behavior as before (worked well)
+  int vLen = (int)(std::min(1.0f, std::fabs(lin) / maxLin) * (h / 3));
+  int hLen = (int)(std::min(1.0f, std::fabs(ang) / maxAng) * r);
+  int thick = std::max(3, std::min(w, h) / 120);
+
+  // positions: restore previous vertical arrow position, and move horizontal arrow near bottom of right circle
+  int pad = std::max(2, w/160);
+  int scale = std::max(2, w/160);
+  int vCx = pad + 6*scale; 
+  int vCy = h / 2;
+  int hCx = (int)(w * 0.75f);
+  // Place horizontal arrow further below top overlays (~35% from top)
+  int hCy = std::max(pad + 6*scale, (int)(h * 0.35f));
+
+  // arrows
+  if (vLen > 0) drawVerticalArrow(img, w, h, vCx, vCy, vLen, thick, lin >= 0, 0, 255, 0);
+  // Positive angular means turn left (CCW): show left arrow for ang > 0
+  if (hLen > 0) drawHorizontalArrow(img, w, h, hCx, hCy, hLen, thick, ang < 0, 0, 200, 255);
+}
 
 static bool jpegDecodeToRGB(const uint8_t* data, size_t len, std::vector<uint8_t>& outRGB, int& w, int& h) {
   jpeg_decompress_struct cinfo; jpeg_error_mgr jerr;
@@ -215,6 +352,8 @@ void CameraStreamer::runLoop() {
       if (jpegDecodeToRGB(mjpeg, mjpegLen, rgb, srcW, srcH)) {
         std::vector<uint8_t> outRGB((size_t)outW * (size_t)outH * 3);
         resizeNearestRGB(rgb.data(), srcW, srcH, outRGB.data(), outW, outH);
+        // Overlay: time and joystick arrows
+        drawOverlay(outRGB.data(), outW, outH);
         std::vector<uint8_t> outJpeg; jpegEncodeRGB(outRGB.data(), outW, outH, 70, outJpeg);
         Sender s; { std::lock_guard<std::mutex> lk(mtx_); s = sender_; }
         if (s) {
@@ -248,6 +387,8 @@ void CameraStreamer::buildAndSendFrame() {
     rgb[i*3 + 1] = 0;   // G
     rgb[i*3 + 2] = 0;   // B
   }
+  // Overlay on fallback frame as well
+  drawOverlay(rgb.data(), w, h);
   std::vector<uint8_t> jpeg;
   jpegEncodeRGB(rgb.data(), w, h, 70, jpeg);
   // Build header + send
