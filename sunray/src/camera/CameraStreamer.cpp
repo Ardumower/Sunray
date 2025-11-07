@@ -166,11 +166,13 @@ static void drawVerticalArrow(uint8_t* img, int w, int h, int cx, int cy, int le
   // shaft
   fillRect(img, w, h, cx - thickness/2, std::min(y0, y1), cx + (thickness-1)/2, std::max(y0, y1), r, g, b);
   // head: small triangle
-  int hy = up ? y1 : y1;
+  int hy = y1;
   int dir = up ? -1 : 1;
+  // Flip head to extend opposite to shaft direction so the tip is at y1
+  int headDir = -dir;
   for (int i = 0; i < thickness*2 + 6; i++) {
     int half = i/2;
-    fillRect(img, w, h, cx - half, hy + dir*i, cx + half, hy + dir*i, r, g, b);
+    fillRect(img, w, h, cx - half, hy + headDir*i, cx + half, hy + headDir*i, r, g, b);
   }
 }
 
@@ -181,11 +183,13 @@ static void drawHorizontalArrow(uint8_t* img, int w, int h, int cx, int cy, int 
   // shaft
   fillRect(img, w, h, std::min(x0, x1), cy - thickness/2, std::max(x0, x1), cy + (thickness-1)/2, r, g, b);
   // head
-  int hx = right ? x1 : x1;
+  int hx = x1;
   int dir = right ? 1 : -1;
+  // Flip head to extend opposite to shaft direction so the tip is at x1
+  int headDir = -dir;
   for (int i = 0; i < thickness*2 + 6; i++) {
     int half = i/2;
-    fillRect(img, w, h, hx + dir*i, cy - half, hx + dir*i, cy + half, r, g, b);
+    fillRect(img, w, h, hx + headDir*i, cy - half, hx + headDir*i, cy + half, r, g, b);
   }
 }
 
@@ -210,10 +214,10 @@ static void drawOverlay(uint8_t* img, int w, int h) {
   // Place horizontal arrow further below top overlays (~35% from top)
   int hCy = std::max(pad + 6*scale, (int)(h * 0.35f));
 
-  // arrows
-  if (vLen > 0) drawVerticalArrow(img, w, h, vCx, vCy, vLen, thick, lin >= 0, 0, 255, 0);
+  // arrows: keep original shaft directions; only heads are flipped in draw* functions
+  if (vLen > 0) drawVerticalArrow(img, w, h, vCx, vCy, vLen, thick, /*up=*/(lin >= 0), 0, 255, 0);
   // Positive angular means turn left (CCW): show left arrow for ang > 0
-  if (hLen > 0) drawHorizontalArrow(img, w, h, hCx, hCy, hLen, thick, ang < 0, 0, 200, 255);
+  if (hLen > 0) drawHorizontalArrow(img, w, h, hCx, hCy, hLen, thick, /*right=*/(ang < 0), 0, 200, 255);
 }
 
 static bool jpegDecodeToRGB(const uint8_t* data, size_t len, std::vector<uint8_t>& outRGB, int& w, int& h) {
