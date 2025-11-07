@@ -18,6 +18,7 @@ static String base64Encode(const uint8_t* in, size_t len) {
 }
 
 bool WebSocketClient::connect() {
+  WsLock lk(_mtx);
   if (_client.connected()) _client.stop();
   if (!_client.connect(_host.c_str(), _port)) {
     CONSOLE.println(F("WS: TCP connect() failed"));
@@ -33,7 +34,8 @@ bool WebSocketClient::connect() {
 }
 
 bool WebSocketClient::sendBinaryRaw(const uint8_t* data, size_t len) {
-  if (!connected()) return false;
+  WsLock lk(_mtx);
+  if (!connectedUnlocked()) return false;
   // FIN=1, opcode=2 (binary)
   _client.write((uint8_t)0x82);
   // Client-to-server must be masked
@@ -75,8 +77,18 @@ bool WebSocketClient::sendBinaryRaw(const uint8_t* data, size_t len) {
 }
 
 void WebSocketClient::close() {
+  WsLock lk(_mtx);
+  closeUnlocked();
+}
+
+void WebSocketClient::closeUnlocked() {
   if (_client.connected()) _client.stop();
   _connected = false;
+}
+
+bool WebSocketClient::connected() const {
+  WsLock lk(_mtx);
+  return connectedUnlocked();
 }
 
 bool WebSocketClient::handshake() {
@@ -162,7 +174,8 @@ bool WebSocketClient::readHttpHeaders() {
 }
 
 bool WebSocketClient::sendText(const String& msg) {
-  if (!connected()) return false;
+  WsLock lk(_mtx);
+  if (!connectedUnlocked()) return false;
   // Frame header: FIN=1, opcode=1 (text)
   _client.write((uint8_t)0x81);
   // Client-to-server must be masked
@@ -202,7 +215,8 @@ bool WebSocketClient::readExact(uint8_t* buf, size_t len, unsigned long timeoutM
 
 bool WebSocketClient::pollText(String& out) {
   out = "";
-  if (!connected()) return false;
+  WsLock lk(_mtx);
+  if (!connectedUnlocked()) return false;
   if (!_client.available()) return false;
 
   // Parse a single frame (no fragmentation)
@@ -245,7 +259,7 @@ bool WebSocketClient::pollText(String& out) {
     }
     CONSOLE.print("WS: close "); CONSOLE.print((int)code); if (reason.length()) { CONSOLE.print(" "); CONSOLE.print(reason); }
     CONSOLE.println("");
-    close();
+    closeUnlocked();
     return false;
   } else if (opcode == 0x9) { // ping -> respond with pong
     // Consume payload and reply pong with same payload
@@ -279,7 +293,7 @@ bool WebSocketClient::pollText(String& out) {
     int b = -1;
     unsigned long t = millis() + 100;
     while (b < 0 && millis() < t) { if (_client.available()) b = _client.read(); }
-    if (b < 0) { CONSOLE.println("WS: timeout, closing"); close(); return false; }
+    if (b < 0) { CONSOLE.println("WS: timeout, closing"); closeUnlocked(); return false; }
     char c = masked ? ((uint8_t)b) ^ maskKey[i % 4] : (char)b;
     out += c;
   }
