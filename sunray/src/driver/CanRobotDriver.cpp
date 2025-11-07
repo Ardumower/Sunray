@@ -433,7 +433,7 @@ void *CanRobotDriver::canIpAddressThreadFun(void *user_data) {
           }
       }
     }
-    delayMicroseconds(500);
+    delayMicroseconds(5000000); // 5 seconds
 	}
 	return NULL;
 }
@@ -488,7 +488,7 @@ void *CanRobotDriver::canWifiSignalThreadFun(void *user_data) {
             robot->sendWifiSignal(newDbm);
         }
 
-        delayMicroseconds(500);
+        delayMicroseconds(3000000); // 3 seconds
     }
     return NULL;
 }
