@@ -1,6 +1,6 @@
 #include "comm.h"
 #ifdef __linux__
-extern "C" void cameraStreamerStart(int index, int width, int height, int fps);
+extern "C" void cameraStreamerStart(int index, int width, int height, int fps, int quality);
 extern "C" void cameraStreamerStop();
 #endif
 #include "config.h"
@@ -1016,22 +1016,25 @@ void Comm::cmdCamera() {
   // Parse numeric args from member 'cmd'
   int commas[6] = {0}; int n = 0;
   for (int i = 0; i < (int)cmd.length() && n < 6; i++) if (cmd[i] == ',') commas[n++] = i;
-  int enable = 0, idx = 0, w = 160, h = 120, fps = 5;
+  int enable = 0, idx = 0, w = 160, h = 120, fps = 5, quality = 70;
   if (n >= 1) enable = cmd.substring(commas[0]+1, (n>=2?commas[1]:cmd.length())).toInt();
   if (n >= 2) idx = cmd.substring(commas[1]+1, (n>=3?commas[2]:cmd.length())).toInt();
   if (n >= 3) w = cmd.substring(commas[2]+1, (n>=4?commas[3]:cmd.length())).toInt();
   if (n >= 4) h = cmd.substring(commas[3]+1, (n>=5?commas[4]:cmd.length())).toInt();
   if (n >= 5) fps = cmd.substring(commas[4]+1, (n>=6?commas[5]:cmd.length())).toInt();
+  if (n >= 6) quality = cmd.substring(commas[5]+1).toInt();
 #ifdef __linux__
   if (enable) {
     // Clamp to supported range
     if (w < 160) w = 160; if (w > 640) w = 640;
     if (h < 120) h = 120; if (h > 480) h = 480;
     if (fps < 1) fps = 1; if (fps > 10) fps = 10;
+    if (quality < 10) quality = 10; if (quality > 95) quality = 95;
     CONSOLE.print("AT+CAM start idx="); CONSOLE.print(idx);
     CONSOLE.print(" -> "); CONSOLE.print(w); CONSOLE.print("x"); CONSOLE.print(h);
-    CONSOLE.print(" @"); CONSOLE.println(fps);
-    cameraStreamerStart(idx, w, h, fps);
+    CONSOLE.print(" @"); CONSOLE.print(fps);
+    CONSOLE.print(" q="); CONSOLE.println(quality);
+    cameraStreamerStart(idx, w, h, fps, quality);
   } else {
     CONSOLE.println("AT+CAM stop");
     cameraStreamerStop();

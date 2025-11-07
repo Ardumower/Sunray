@@ -66,11 +66,13 @@ CameraStreamer::~CameraStreamer() { stop(); }
 
 void CameraStreamer::setSender(Sender s) { std::lock_guard<std::mutex> lk(mtx_); sender_ = std::move(s); }
 
-void CameraStreamer::start(int index, int width, int height, int fps) {
+void CameraStreamer::start(int index, int width, int height, int fps, int quality) {
   camIndex_.store(index);
   reqW_.store(width);
   reqH_.store(height);
   reqFps_.store((fps <= 0) ? 5 : fps);
+  if (quality < 10) quality = 10; if (quality > 95) quality = 95;
+  reqQ_.store(quality);
   if (running_.load()) return;
   running_.store(true);
   CONSOLE.print("CAM start idx="); CONSOLE.print(index);
@@ -358,7 +360,8 @@ void CameraStreamer::runLoop() {
         resizeNearestRGB(rgb.data(), srcW, srcH, outRGB.data(), outW, outH);
         // Overlay: time and joystick arrows
         drawOverlay(outRGB.data(), outW, outH);
-        std::vector<uint8_t> outJpeg; jpegEncodeRGB(outRGB.data(), outW, outH, 70, outJpeg);
+        const int q = reqQ_.load();
+        std::vector<uint8_t> outJpeg; jpegEncodeRGB(outRGB.data(), outW, outH, (q > 0 ? q : 70), outJpeg);
         Sender s; { std::lock_guard<std::mutex> lk(mtx_); s = sender_; }
         if (s) {
           uint8_t hdr[16]; uint32_t ts = (uint32_t)(std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() & 0xFFFFFFFFu);
@@ -377,7 +380,7 @@ void CameraStreamer::runLoop() {
   if (running_.load()) { runLoop(); }
 }
 
-extern "C" void cameraStreamerStart(int index, int width, int height, int fps) { CameraStreamer::instance().start(index, width, height, fps); }
+extern "C" void cameraStreamerStart(int index, int width, int height, int fps, int quality) { CameraStreamer::instance().start(index, width, height, fps, quality); }
 extern "C" void cameraStreamerStop() { CameraStreamer::instance().stop(); }
 
 void CameraStreamer::buildAndSendFrame() {
@@ -394,7 +397,8 @@ void CameraStreamer::buildAndSendFrame() {
   // Overlay on fallback frame as well
   drawOverlay(rgb.data(), w, h);
   std::vector<uint8_t> jpeg;
-  jpegEncodeRGB(rgb.data(), w, h, 70, jpeg);
+  const int q = reqQ_.load();
+  jpegEncodeRGB(rgb.data(), w, h, (q > 0 ? q : 70), jpeg);
   // Build header + send
   uint8_t hdr[16];
   uint32_t ts = (uint32_t)(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() & 0xFFFFFFFFu);

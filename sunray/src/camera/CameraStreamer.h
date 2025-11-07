@@ -19,7 +19,7 @@ public:
   static CameraStreamer& instance();
 
   void setSender(Sender s);
-  void start(int index, int width, int height, int fps);
+  void start(int index, int width, int height, int fps, int quality = 70);
   void stop();
   bool running() const { return running_.load(); }
 
@@ -40,5 +40,5 @@ private:
   std::atomic<int> reqW_{160};
   std::atomic<int> reqH_{120};
   std::atomic<int> reqFps_{5};
+  std::atomic<int> reqQ_{70};
 };
-
