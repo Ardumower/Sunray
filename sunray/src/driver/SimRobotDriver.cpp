@@ -72,7 +72,8 @@ bool SimRobotDriver::pointIsInsideObstacle(float x, float y){
 // ------------------------------------------------------------------------------------
 
 SimMotorDriver::SimMotorDriver(SimRobotDriver &sr): simRobot(sr){
-  lastEncoderTicksLeft = lastEncoderTicksLeft = 0;
+  lastEncoderTicksLeft = 0;
+  lastEncoderTicksRight = 0;
   lastSampleTime = 0;
   simOdometryError = false;
   simNoMotion = false;
@@ -105,7 +106,7 @@ void SimMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm, bool rel
   float deltaT = 0;
   if (lastSampleTime != 0){
     deltaT = ((float)(millis() - lastSampleTime)) / 1000.0;
-    if (deltaT < 0.2) return;
+    if (deltaT < 0.02) return;
   } 
   lastSampleTime = millis();
 
@@ -504,7 +505,7 @@ SimGpsDriver::SimGpsDriver(SimRobotDriver &sr): simRobot(sr){
   nextSolutionTime = 0;
   floatX = 0;
   floatY = 0;
-  solutionAvail = false;
+  solutionAvail = false;  
   simGpsJump = false;
   setSimSolution(SOL_INVALID);
 }
@@ -527,6 +528,7 @@ void SimGpsDriver::run(){
       relPosE = simRobot.simX;
       relPosN = simRobot.simY;
       relPosD = 100;
+      groundSpeed = 0.3;
       if (simGpsJump){
         relPosE += 3.0;
         relPosN += 3.0; 
@@ -605,5 +607,4 @@ void SimGpsDriver::send(const uint8_t *buffer, size_t size) {
 
 void SimGpsDriver::sendRTCM(const uint8_t *buffer, size_t size){
 }
-
 
