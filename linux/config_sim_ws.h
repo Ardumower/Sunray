@@ -428,8 +428,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // detect robot being kidnapped? robot will try GPS recovery if distance to tracked path is greater than a certain value
 // (false GPS fix recovery), and if that fails go into error 
-//#define KIDNAP_DETECT true  // recommended
-#define KIDNAP_DETECT false   
+#define KIDNAP_DETECT true  // recommended
+//#define KIDNAP_DETECT false   
 #define KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE 1.0  // allowed path tolerance (m) 
 #define KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK 20.2  // allowed path tolerance (m)
 #define KIDNAP_DETECT_DISTANCE_DOCK_UNDOCK 5  // distance from dock in (m) to use KIDNAP_DETECT_ALLOWED_PATH_TOLERANCE_DOCK_UNDOCK
@@ -470,8 +470,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define TARGET_ANGLE_TOLERANCE 20
 
 // stanley control for path tracking - determines gain how fast to correct for lateral path errors
-#define STANLEY_CONTROL_P_NORMAL  1.1   // 3.0 for path tracking control (angular gain) when mowing
-#define STANLEY_CONTROL_K_NORMAL  0.1   // 1.0 for path tracking control (lateral gain) when mowing
+#define STANLEY_CONTROL_P_NORMAL  3.1   // 3.0 for path tracking control (angular gain) when mowing
+#define STANLEY_CONTROL_K_NORMAL  0.3   // 1.0 for path tracking control (lateral gain) when mowing
 
 #define STANLEY_CONTROL_P_SLOW    1.1   // 1.0 for path tracking control (angular gain) when docking tracking
 #define STANLEY_CONTROL_K_SLOW    0.1   // 0.2 for path tracking control (lateral gain) when docking tracking

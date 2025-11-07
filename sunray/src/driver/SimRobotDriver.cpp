@@ -106,7 +106,7 @@ void SimMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm, bool rel
   float deltaT = 0;
   if (lastSampleTime != 0){
     deltaT = ((float)(millis() - lastSampleTime)) / 1000.0;
-    if (deltaT < 0.02) return;
+    if (deltaT < 0.05) return;
   } 
   lastSampleTime = millis();
 
@@ -202,9 +202,11 @@ void SimMotorDriver::getMotorEncoderTicks(int &leftTicks, int &rightTicks, int &
   leftTicks = simRobot.simTicksLeft - lastEncoderTicksLeft;
   rightTicks = simRobot.simTicksRight - lastEncoderTicksRight;
   if (leftTicks > 1000){
+    CONSOLE.println("SimMotorDriver: resetting leftTicks");
     leftTicks = 0;
   }
   if (rightTicks > 1000){
+    CONSOLE.println("SimMotorDriver: resetting rightTicks");
     rightTicks = 0;
   } 
   lastEncoderTicksLeft = simRobot.simTicksLeft;
