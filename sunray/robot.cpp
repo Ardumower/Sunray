@@ -825,6 +825,30 @@ bool detectObstacle(){
     return true;
   }
   
+  #ifndef CAN_SONAR_TRIGGER_OBSTACLES
+  #define CAN_SONAR_TRIGGER_OBSTACLES 0
+  #endif
+
+  #ifdef DRV_CAN_ROBOT
+  if (CAN_SONAR_TRIGGER_OBSTACLES && (maps.wayMode != WAY_DOCK)) {
+    bool canSonarTriggered = false;
+    if (robotDriver.ultrasonicLeftValid &&
+        robotDriver.ultrasonicLeftDistance <= (SONAR_LEFT_OBSTACLE_CM * 10)) {
+      canSonarTriggered = true;
+    }
+    if (robotDriver.ultrasonicRightValid &&
+        robotDriver.ultrasonicRightDistance <= (SONAR_RIGHT_OBSTACLE_CM * 10)) {
+      canSonarTriggered = true;
+    }
+    if (canSonarTriggered) {
+      CONSOLE.println("can sonar obstacle!");
+      stats.statMowSonarCounter++;
+      triggerObstacle();
+      return true;
+    }
+  }
+  #endif
+
   if (sonar.obstacle() && (maps.wayMode != WAY_DOCK)){
     if (SONAR_TRIGGER_OBSTACLES){
       CONSOLE.println("sonar obstacle!");            
