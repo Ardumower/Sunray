@@ -36,7 +36,7 @@ echo "NOTE: you may have to edit boot config to enable CAN driver (see https://g
 ip link set can0 up type can bitrate 1000000
 retcode=$?
 if [ $retcode -ne 0 ]; then
-  echo "trying CAN-USB-bridge (SLCAN) ..."
+  echo "trying CAN-USB-bridge (SLCAN) ... (NOTE: you may get an error because SLCAN may not be used in your setup)"
   ls /dev/serial/by-id/usb-Raspberry_Pi_Pico*
   PICO_DEV=`ls /dev/serial/by-id/usb-Raspberry_Pi_Pico*`
   echo "PICO_DEV=$PICO_DEV"
