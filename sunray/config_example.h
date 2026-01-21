@@ -294,6 +294,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define SONAR_INSTALLED 1              // uncomment if ultrasonic sensors are installed
 //#define SONAR_ENABLE true              // should ultrasonic sensor be used?
 #define SONAR_ENABLE false
+#define SONAR_OBSTACLE_SLOW_CM 30        // slow down mower below this distance from trigger (cm)
 #define SONAR_TRIGGER_OBSTACLES true     // should sonar be used to trigger obstacles? if not, mower will only slow down
 #define CAN_SONAR_TRIGGER_OBSTACLES 1    // enable owlController CAN ultrasonic obstacle trigger
 #define SONAR_LEFT_OBSTACLE_CM   15      // stop mowing operation below this distance (cm)
