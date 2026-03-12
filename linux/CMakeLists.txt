@@ -121,10 +121,14 @@ find_package(JPEG REQUIRED)
 message(STATUS "JPEG_FOUND: ${JPEG_FOUND}")
 message(STATUS "JPEG_LIBRARIES: ${JPEG_LIBRARIES}")
 message(STATUS "JPEG_INCLUDE_DIRS: ${JPEG_INCLUDE_DIRS}")
-if (JPEG_FOUND)
-  message(STATUS "libjpeg found: ${JPEG_LIBRARY}")
+if(TARGET JPEG::JPEG)
   target_link_libraries(sunray JPEG::JPEG)
 else()
-  message(FATAL_ERROR "libjpeg not found. Install libjpeg-dev and rerun cmake.")
+  target_link_libraries(sunray ${JPEG_LIBRARIES})
+  if(JPEG_INCLUDE_DIRS)
+    target_include_directories(sunray ${JPEG_INCLUDE_DIRS})
+  endif()
 endif()
+
+
 
