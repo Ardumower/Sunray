@@ -9,6 +9,8 @@ cmake_minimum_required(VERSION 3.7)
 
 project(sunray)
 
+message(STATUS "CMake version: ${CMAKE_VERSION}")
+
 SET(FIRMWARE_PATH ${CMAKE_SOURCE_DIR}/../sunray)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -116,6 +118,9 @@ endif()
 
 # JPEG encoder/decoder for camera resizing
 find_package(JPEG REQUIRED)
+message(STATUS "JPEG_FOUND: ${JPEG_FOUND}")
+message(STATUS "JPEG_LIBRARIES: ${JPEG_LIBRARIES}")
+message(STATUS "JPEG_INCLUDE_DIRS: ${JPEG_INCLUDE_DIRS}")
 if (JPEG_FOUND)
   message(STATUS "libjpeg found: ${JPEG_LIBRARY}")
   target_link_libraries(sunray JPEG::JPEG)
