@@ -59,6 +59,7 @@ Run this on your Linux terminal (in your Linux home folder):
 
 ```
 ## clone repository ##
+sudo apt install git
 cd ~
 git clone https://github.com/Ardumower/Sunray.git
 
