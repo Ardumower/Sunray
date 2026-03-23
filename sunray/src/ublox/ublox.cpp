@@ -341,7 +341,7 @@ bool UBLOX::configure(){
     return true;
   }
   else {
-    CONSOLE.println("ERROR: config sending failed");        
+    CONSOLE.println("ERROR: config sending failed (you might have to upgrade ublox firmware)");        
     return false;
   }
 }
