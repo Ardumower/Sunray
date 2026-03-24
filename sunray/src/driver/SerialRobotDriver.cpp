@@ -63,7 +63,7 @@ void SerialRobotDriver::begin(){
     CONSOLE.print("linux working dir (pwd): ");
     CONSOLE.println(workingDir);
 
-    CONSOLE.println("reading robot ID...");
+    CONSOLE.println("reading robot ID... (Alfred: you may have to tune your Linux config for a constant MAC address)");
     Process p;
     p.runShellCommand("ip link show eth0 | grep link/ether | awk '{print $2}'");
 	  robotID = p.readString();    
