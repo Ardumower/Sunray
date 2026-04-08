@@ -1,7 +1,8 @@
-#include "camera/CameraStreamer.h"
-#include "camera/MediaStream.h"
-#include "camera/CameraRegistry.h"
-#include "camera/CameraRegistry.h"
+#ifdef __linux__
+#include "CameraStreamer.h"
+#include "MediaStream.h"
+#include "CameraRegistry.h"
+#include "CameraRegistry.h"
 #include "Console.h"
 // Access motor speed setpoints via C-accessors (to avoid Arduino header conflicts)
 extern "C" float cameraGetLinearSet();
@@ -152,6 +153,17 @@ static void drawChar5x7(uint8_t* img, int w, int h, int x, int y, char c, int sc
     fillRect(img, w, h, x + 2*scale, y + 5*scale, x + 2*scale + dotSize - 1, y + 5*scale + dotSize - 1, r, g, b);
   }
 }
+
+#else // !__linux__
+
+// When not building for Linux, provide no-op C hooks so the
+// rest of the firmware can link without pulling in Linux-only camera code.
+extern "C" void cameraStreamerStart(int, int, int, int, int) {}
+extern "C" void cameraStreamerStop() {}
+
+#endif // __linux__
+
+#ifdef __linux__
 
 static void drawText(uint8_t* img, int w, int h, int x, int y, const std::string& text, int scale, uint8_t r, uint8_t g, uint8_t b) {
   int cx = x;
@@ -408,3 +420,5 @@ void CameraStreamer::buildAndSendFrame() {
   if (!jpeg.empty()) std::memcpy(buf.data() + sizeof(hdr), jpeg.data(), jpeg.size());
   s(buf.data(), buf.size());
 }
+
+#endif // __linux__

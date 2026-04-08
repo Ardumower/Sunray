@@ -7,6 +7,8 @@
 #endif
 
 #pragma once
+
+#ifdef __linux__
 #include <atomic>
 #include <thread>
 #include <vector>
@@ -42,3 +44,5 @@ private:
   std::atomic<int> reqFps_{5};
   std::atomic<int> reqQ_{70};
 };
+
+#endif // __linux__

@@ -398,6 +398,7 @@ void CanRobotDriver::updateDisplayTelemetry(){
 #endif
 }
 
+#ifdef __linux__
 void *CanRobotDriver::canIpAddressThreadFun(void *user_data) {
   Console.println("CAN IP address thread started");
   CanRobotDriver *robot = (CanRobotDriver*)user_data;
@@ -437,6 +438,7 @@ void *CanRobotDriver::canIpAddressThreadFun(void *user_data) {
 	}
 	return NULL;
 }
+#endif
 
 void CanRobotDriver::sendIpAddress(const String &ipStr) {
   #ifdef __linux__
@@ -459,6 +461,7 @@ void CanRobotDriver::sendIpAddress(const String &ipStr) {
   #endif
 }
 
+#ifdef __linux__
 void *CanRobotDriver::canWifiSignalThreadFun(void *user_data) {
     Console.println("CAN WiFi signal thread started");
     CanRobotDriver *robot = (CanRobotDriver*)user_data;
@@ -492,6 +495,7 @@ void *CanRobotDriver::canWifiSignalThreadFun(void *user_data) {
     }
     return NULL;
 }
+#endif
 
 void CanRobotDriver::sendWifiSignal(int16_t dbm) {
 #if ENABLE_CAN_DISPLAY

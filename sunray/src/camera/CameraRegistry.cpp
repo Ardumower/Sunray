@@ -1,5 +1,5 @@
 #ifdef __linux__
-#include "camera/CameraRegistry.h"
+#include "CameraRegistry.h"
 #include "Console.h"
 #include <time.h>
 #include <linux/videodev2.h>
