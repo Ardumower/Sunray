@@ -28,9 +28,9 @@
 
 
 
-RunningMedian<unsigned int, 9> sonarLeftMeasurements;
-RunningMedian<unsigned int, 9> sonarRightMeasurements;
-RunningMedian<unsigned int, 9> sonarCenterMeasurements;
+RunningMedian<unsigned int, 3> sonarLeftMeasurements;
+RunningMedian<unsigned int, 3> sonarRightMeasurements;
+RunningMedian<unsigned int, 3> sonarCenterMeasurements;
 
 volatile unsigned long startTime = 0;
 volatile unsigned long echoTime = 0;
@@ -99,20 +99,53 @@ void Sonar::run() {
     distanceRight = distanceLeft = distanceCenter = 0;
     return;
   }
+
+  //sonar hit
   if (echoDuration != 0) {
     added = true;
     unsigned long raw = echoDuration;
     if (raw > MAX_DURATION) raw = MAX_DURATION;
-    if (sonarIdx == 0) sonarLeftMeasurements.add(raw);
-    else if (sonarIdx == 1) sonarCenterMeasurements.add(raw);
-    else sonarRightMeasurements.add(raw);
+    
+    //left
+    if (sonarIdx == 0) {
+      sonarLeftMeasurements.add(raw);
+      sonarLeftMeasurements.getMedian(distanceLeft);
+      distanceLeft = convertCm(distanceLeft);
+    }
+    //center
+    else if (sonarIdx == 1) {
+      sonarCenterMeasurements.add(raw);
+      sonarCenterMeasurements.getMedian(distanceCenter);
+      distanceCenter = convertCm(distanceCenter);
+    }
+    //right
+    else {
+      sonarRightMeasurements.add(raw);
+      sonarRightMeasurements.getMedian(distanceRight);
+      distanceRight = convertCm(distanceRight);
+    } 
+
     echoDuration = 0;
   }
+
   if (millis() > timeoutTime) {
     if (!added) {
-      if (sonarIdx == 0) sonarLeftMeasurements.add(MAX_DURATION);
-      else if (sonarIdx == 1) sonarCenterMeasurements.add(MAX_DURATION);
-      else sonarRightMeasurements.add(MAX_DURATION);
+      unsigned int td;
+      if (sonarIdx == 0) {
+        sonarLeftMeasurements.add(MAX_DURATION);
+        sonarLeftMeasurements.getMedian(td);
+        distanceLeft = convertCm(td);
+      }
+      else if (sonarIdx == 1) {
+        sonarCenterMeasurements.add(MAX_DURATION);
+        sonarCenterMeasurements.getMedian(td);
+        distanceCenter = convertCm(td);
+      }
+      else if (sonarIdx == 2) {
+        sonarRightMeasurements.add(MAX_DURATION);
+        sonarRightMeasurements.getMedian(td);
+        distanceRight = convertCm(td);
+      }
     }
     //if (millis() > nextSonarTime){
     sonarIdx = (sonarIdx + 1) % 3;
@@ -124,23 +157,6 @@ void Sonar::run() {
     else startHCSR04(pinSonarRightTrigger, pinSonarRightEcho);
     timeoutTime = millis() + 50;    			 // 10
     added = false;
-  }
-  if (millis() > nextEvalTime) {
-    nextEvalTime = millis() + 200;
-    float value;
-    //sonarLeftMeasurements.getLowest(distanceLeft);
-    sonarLeftMeasurements.getMedian(distanceLeft);
-    //sonar1Measurements.getAverage(avg);
-    distanceLeft = convertCm(distanceLeft);
-
-    //sonarRightMeasurements.getLowest(distanceRight);
-    sonarRightMeasurements.getMedian(distanceRight);
-    distanceRight = convertCm(distanceRight);
-
-    //sonarCenterMeasurements.getLowest(distanceCenter);
-    sonarCenterMeasurements.getMedian(distanceCenter);
-    distanceCenter = convertCm(distanceCenter);
-
   }
 #endif
 }
@@ -188,7 +204,7 @@ bool Sonar::nearObstacle()
 {
 #ifdef SONAR_INSTALLED
   if (!enabled) return false;
-  int nearZone = 30; // cm
+  int nearZone = SONAR_OBSTACLE_SLOW_CM; // cm
   if ((nearObstacleTimeout != 0) && (millis() < nearObstacleTimeout)) return true;
   nearObstacleTimeout = 0;
   bool res = ((distanceLeft < triggerLeftBelow + nearZone) || (distanceCenter < triggerCenterBelow + nearZone) || (distanceRight < triggerRightBelow + nearZone));
