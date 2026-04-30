@@ -38,3 +38,5 @@ https://www.u-blox.com/en/product/zed-f9p-module#tab-documentation-resources
 After updating, you will need to tansfer (and save) the configuration again.
 
 
+--------------------------------------------------------------------------------------
+

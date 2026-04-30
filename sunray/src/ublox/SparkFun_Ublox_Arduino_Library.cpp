@@ -3996,17 +3996,22 @@ boolean SFE_UBLOX_GPS::getProtocolVersion(uint16_t maxWait)
 
   //Payload should now contain ~220 characters (depends on module type)
 
-  // if (_printDebug == true)
-  // {
-  //   _debugSerial->print(F("MON VER Payload:"));
-  //   for (int location = 0; location < packetCfg.len; location++)
-  //   {
-  //     if (location % 30 == 0)
-  //       _debugSerial->println();
-  //     _debugSerial->write(payloadCfg[location]);
-  //   }
-  //   _debugSerial->println();
-  // }
+   //if (_printDebug == true)
+   if (true)
+   {
+     //_debugSerial->print(F("MON VER Payload:"));
+     extendedSoftwareInfo = "";
+     for (int location = 0; location < packetCfg.len; location++)
+     {
+      if (location % 30 == 0){
+        //_debugSerial->println();
+        extendedSoftwareInfo += "\n";
+      }
+      extendedSoftwareInfo += char(payloadCfg[location]); 
+      //_debugSerial->write(payloadCfg[location]);
+     }
+     //_debugSerial->println();
+  }
 
   //We will step through the payload looking at each extension field of 30 bytes
   for (uint8_t extensionNumber = 0; extensionNumber < 10; extensionNumber++)

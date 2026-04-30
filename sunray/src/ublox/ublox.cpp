@@ -176,6 +176,8 @@ bool UBLOX::configure(){
   CONSOLE.print(configGPS.versionHigh);
   CONSOLE.print(".");
   CONSOLE.println(configGPS.versionLow);
+  CONSOLE.print("UBLOX extended software info: ");
+  CONSOLE.println(configGPS.extendedSoftwareInfo);
   
   CONSOLE.println("ublox f9p: sending GPS rover configuration...");
 

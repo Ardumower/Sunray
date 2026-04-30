@@ -762,6 +762,7 @@ public:
 	uint16_t magAcc;
 	uint8_t versionLow;		 //Loaded from getProtocolVersion().
 	uint8_t versionHigh;
+	String extendedSoftwareInfo;
 
 	uint32_t timeOfWeek;		 // ms
 	int32_t highResLatitude;	 // Degrees * 10^-7
