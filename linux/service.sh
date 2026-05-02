@@ -409,6 +409,10 @@ function install_anydesk(){
   cd "$CURDIR"
 }
 
+function flash_ublox_receiver(){
+  ../ublox_f9p_configs/flash.sh
+}
+
 
 if [ ! -d "/etc/motion" ]; then
   echo installing motion...
@@ -641,6 +645,7 @@ update_menu () {
         "Fix local Sunray repository file permissions"
         "Upgrade all Linux system packages"
         "Install AnyDesk"
+        "Flash ublox receiver firmware"
         "Back"
     )
     select option in "${options[@]}"; do
@@ -662,6 +667,10 @@ update_menu () {
                 break
             ;;
             ${options[4]})
+                flash_ublox_receiver
+                break
+            ;;
+            ${options[5]})
                 return
              ;;
             *) 

@@ -139,8 +139,8 @@ image="${firmware_files[$((choice - 1))]}"
 
 echo
 echo "Available flash methods:"
-echo "   1) Python (Linux Python flasher)"
-echo "   2) wine   (official ubxfwupdate.exe via Wine)"
+echo "   1) script (Linux Python flasher, recommended)"
+echo "   2) wine   (official ubxfwupdate.exe via Wine, requires additional installation)"
 
 method_default_choice="1"
 case "$FLASH_METHOD" in
