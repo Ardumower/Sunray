@@ -192,8 +192,10 @@ else
     --no-fis 1 -C 1 -s 1 -t 1
 fi
 
+sleep 2
 echo
-read -r -p "Replug the device now, then press Enter to run --probe... " _
+#read -r -p "Replug the device now, then press Enter to run --probe... " _
+read -r -p "Press Enter to run --probe... " _
 echo
 echo "Running probe on $selected_port at $PROBE_BAUD"
 echo
