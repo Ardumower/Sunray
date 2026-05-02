@@ -9,6 +9,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PYTHON_SCRIPT="$SCRIPT_DIR/ubxfwupdate.py"
+CONFIG_WRAPPER="$SCRIPT_DIR/config.sh"
 FIRMWARE_DIR="$SCRIPT_DIR/firmwares"
 WINE_UPDATER="$SCRIPT_DIR/u-center/ubxfwupdate.exe"
 WINE_FLASH_XML="$SCRIPT_DIR/u-center/flash.xml"
@@ -28,7 +29,6 @@ if [[ `pidof sunray` != "" ]]; then
 fi
 
 mapfile -t firmware_files < <(find "$FIRMWARE_DIR" -maxdepth 1 -type f -name '*.bin' | sort)
-
 if [[ ${#firmware_files[@]} -eq 0 ]]; then
   echo "No firmware images found in $FIRMWARE_DIR" >&2
   exit 1
@@ -207,3 +207,11 @@ echo "Running probe on $selected_port at $PROBE_BAUD"
 echo
 
 python3 "$PYTHON_SCRIPT" --probe -p "$selected_port" -b "$PROBE_BAUD" -v "$VERBOSE"
+
+#if [[ -f "$CONFIG_WRAPPER" ]]; then
+#  echo
+#  read -r -p "Run config selection/apply now? [y/N]: " apply_config_choice
+#  if [[ "$apply_config_choice" =~ ^[Yy]$ ]]; then
+#    PORT="$selected_port" PROBE_BAUD="$PROBE_BAUD" bash "$CONFIG_WRAPPER"
+#  fi
+#fi

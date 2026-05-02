@@ -58,8 +58,6 @@ UBX_ID_ACK_NAK = 0x00
 UBX_CLASS_CFG = 0x06
 UBX_ID_CFG_PRT = 0x00
 UBX_ID_CFG_RST = 0x04
-UBX_ID_VALSET = 0x8A
-UBX_ID_VALGET = 0x8B
 UBX_CLASS_MON = 0x0A
 UBX_ID_MON_VER = 0x04
 UBX_ID_MON_HW3 = 0x37
@@ -203,21 +201,6 @@ UBFL_MAGIC = b"UBFL"
 UBFL_TRAILER_WORDS = 9
 UBFL_TRAILER_SIZE = UBFL_TRAILER_WORDS * 4
 
-VAL_LAYER_RAM = 1 << 0
-VAL_LAYER_BBR = 1 << 1
-VAL_LAYER_FLASH = 1 << 2
-VAL_LAYER_ALL = VAL_LAYER_RAM | VAL_LAYER_BBR | VAL_LAYER_FLASH
-
-KEY_SIZE_TO_VALUE_BYTES = {
-    0x01: 1,
-    0x02: 1,
-    0x03: 2,
-    0x04: 4,
-    0x05: 8,
-}
-
-MAX_VALSET_PAYLOAD = 512
-
 def verbose_print(enabled, message):
     if enabled:
         print(message)
@@ -236,98 +219,6 @@ def make_ubx_packet(msg_class, msg_id, payload):
     header = struct.pack("<BBH", msg_class, msg_id, len(payload))
     ck_a, ck_b = checksum(header + payload)
     return bytes(bytearray([SYNC1, SYNC2])) + header + payload + bytes(bytearray([ck_a, ck_b]))
-
-
-def parse_hex_line(line, line_number):
-    line = line.strip()
-    if not line or line.startswith("#"):
-        return None
-    if " - " not in line:
-        raise ValueError("line %d: expected '<name> - <hex bytes>' format" % line_number)
-    _, hex_bytes = line.split(" - ", 1)
-    hex_bytes = hex_bytes.strip()
-    if not hex_bytes:
-        return None
-    parts = hex_bytes.split()
-    values = bytearray()
-    for item in parts:
-        if len(item) != 2:
-            raise ValueError("line %d: invalid byte '%s'" % (line_number, item))
-        values.append(int(item, 16))
-    return bytes(values)
-
-
-def parse_cfg_dump(config_path):
-    entries = []
-    with open(config_path, "r") as handle:
-        for line_number, line in enumerate(handle, 1):
-            raw = parse_hex_line(line, line_number)
-            if raw is None:
-                continue
-            if len(raw) < 4:
-                continue
-            msg_class = raw[0]
-            msg_id = raw[1]
-            payload_len = struct.unpack("<H", raw[2:4])[0]
-            payload = raw[4:]
-            if len(payload) != payload_len:
-                raise ValueError(
-                    "line %d: payload length mismatch (%d bytes declared, %d present)"
-                    % (line_number, payload_len, len(payload))
-                )
-            if msg_class != UBX_CLASS_CFG or msg_id != UBX_ID_VALGET:
-                continue
-            if payload_len < 4:
-                raise ValueError("line %d: CFG-VALGET payload too short" % line_number)
-            offset = 4
-            while offset < payload_len:
-                if offset + 4 > payload_len:
-                    raise ValueError("line %d: truncated key at offset %d" % (line_number, offset))
-                key_bytes = payload[offset:offset + 4]
-                key = struct.unpack("<I", key_bytes)[0]
-                offset += 4
-                key_size = (key >> 28) & 0x07
-                value_len = KEY_SIZE_TO_VALUE_BYTES.get(key_size)
-                if value_len is None:
-                    raise ValueError(
-                        "line %d: unsupported key size nibble 0x%X for key 0x%08X"
-                        % (line_number, key_size, key)
-                    )
-                if offset + value_len > payload_len:
-                    raise ValueError(
-                        "line %d: truncated value for key 0x%08X at offset %d"
-                        % (line_number, key, offset)
-                    )
-                value = payload[offset:offset + value_len]
-                offset += value_len
-                entries.append((key_bytes, value, key))
-    if not entries:
-        raise ValueError("no CFG-VALGET entries found in %s" % config_path)
-    return entries
-
-
-def build_valset_packets(entries, layer_mask):
-    packets = []
-    payload = bytearray([0, layer_mask, 0, 0])
-    for key_bytes, value, _key in entries:
-        item = key_bytes + value
-        if len(payload) + len(item) > MAX_VALSET_PAYLOAD:
-            packets.append(make_ubx_packet(UBX_CLASS_CFG, UBX_ID_VALSET, bytes(payload)))
-            payload = bytearray([0, layer_mask, 0, 0])
-        payload.extend(item)
-    if len(payload) > 4:
-        packets.append(make_ubx_packet(UBX_CLASS_CFG, UBX_ID_VALSET, bytes(payload)))
-    return packets
-
-
-def resolve_layer(name):
-    mapping = {
-        "ram": VAL_LAYER_RAM,
-        "bbr": VAL_LAYER_BBR,
-        "flash": VAL_LAYER_FLASH,
-        "all": VAL_LAYER_ALL,
-    }
-    return mapping[name]
 
 
 def lookup_baud(baud_rate):
@@ -1837,22 +1728,6 @@ def resolve_cli_input_path(base_dir, maybe_relative):
     return os.path.abspath(os.path.join(base_dir, maybe_relative))
 
 
-def apply_config(port_path, baud_rate, config_path, layer_name, ack_timeout, inter_packet_delay):
-    entries = parse_cfg_dump(config_path)
-    packets = build_valset_packets(entries, resolve_layer(layer_name))
-    port = SerialPort(port_path, baud_rate)
-    try:
-        print("Applying %d config items as %d packet(s)." % (len(entries), len(packets)))
-        for index, packet in enumerate(packets, 1):
-            print("  packet %d/%d" % (index, len(packets)))
-            port.write(packet)
-            if not port.expect_ack(UBX_CLASS_CFG, 0x8A, ack_timeout):
-                raise RuntimeError("receiver did not ACK config packet %d" % index)
-            time.sleep(inter_packet_delay)
-    finally:
-        port.close()
-
-
 def parse_baud_sweep(spec):
     if not spec:
         return list(DEFAULT_BAUD_SWEEP)
@@ -1905,22 +1780,18 @@ def parse_args(argv):
     parser.add_argument("--up-ram", default="0", help="Download image to CODE-RAM instead of flash")
     parser.add_argument("--usb-alt", default="0", help="Use USB alternative mode for firmware update")
     parser.add_argument("--probe", action="store_true", help="Probe the receiver and print MON-VER / MON-HW3")
-    parser.add_argument("--apply-config", default="", help="Apply a configs/*.txt file after probe / flash")
     parser.add_argument("--probe-baud-sweep", action="store_true", help="Probe common baud rates and report the first working one")
     parser.add_argument("--baud-sweep-list", default="", help="Comma-separated baud list for --probe-baud-sweep")
-    parser.add_argument("--layer", choices=["ram", "bbr", "flash", "all"], default="all")
     parser.add_argument("--wait-reconnect", type=float, default=10.0)
     parser.add_argument("--ack-timeout", type=float, default=2.0)
     parser.add_argument("--request-retries", type=int, default=DEFAULT_REQUEST_RETRIES)
     parser.add_argument("--packet-feedback-timeout", type=float, default=DEFAULT_PACKET_FEEDBACK_TIMEOUT)
     parser.add_argument("--pipeline-window", type=int, default=DEFAULT_PIPELINE_WINDOW)
-    parser.add_argument("--inter-packet-delay", type=float, default=0.1)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
     args.base_dir = base_dir
     args.image = resolve_cli_input_path(base_dir, args.image) if args.image else ""
     args.flash_xml = resolve_cli_input_path(base_dir, args.F) if args.F else ""
-    args.apply_config = resolve_cli_input_path(base_dir, args.apply_config) if args.apply_config else ""
     args.verbose = int(args.v)
     args.safeboot = int(args.s)
     args.autobaud = int(args.a)
@@ -1955,8 +1826,6 @@ def main(argv=None):
         raise SystemExit("a port is required (-p /dev/ttyUSB0)")
     if args.image and not os.path.exists(args.image):
         raise SystemExit("image file not found: %s" % args.image)
-    if args.apply_config and not os.path.exists(args.apply_config):
-        raise SystemExit("config file not found: %s" % args.apply_config)
     if args.flash_xml and not os.path.exists(args.flash_xml):
         raise SystemExit("flash XML file not found: %s" % args.flash_xml)
 
@@ -2033,10 +1902,6 @@ def main(argv=None):
             )
     finally:
         port.close()
-
-    if args.apply_config:
-        apply_config(args.p, args.baud_cur, args.apply_config, args.layer, args.ack_timeout, args.inter_packet_delay)
-        print("Configuration applied successfully.")
 
     if args.image:
         print("Flash completed.")
