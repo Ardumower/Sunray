@@ -100,6 +100,21 @@ fi
 #  exit 1
 #fi
 
+echo "USB NOTE: ublox f9p firmware flashing via USB has the potential risk that"
+echo "the device gets not properly flashed, and in that case you need to"
+echo "manually activate the f9p safeboot:"
+echo " disconnect f9p USB, attach an UART->USB adapter:"
+echo " 1. connect f9p UART RX1 -- adapter TX"
+echo " 2. connect f9p UART TX1 -- adapter RX"
+echo " 3. connect f9p GND -- adapter GND"
+echo " 4. connect f9p 5V  -- adapter 5V"
+echo " 5. connect f9p SAFEBOOT_N to f9p GND"
+echo " 6. power-on f9p (f9p is now in safeboot)"
+echo " 7. disconnect f9p SAFEBOOT_N"
+echo " 8. re-run this script to flash via UART-USB adapter"
+echo ""
+
+
 echo "Available firmware images:"
 for i in "${!firmware_files[@]}"; do
   printf "  %2d) %s\n" "$((i + 1))" "$(basename "${firmware_files[$i]}")"
