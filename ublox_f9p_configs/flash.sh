@@ -21,6 +21,12 @@ FLASH_METHOD="${FLASH_METHOD:-script}"
 WINEPREFIX_VALUE="${WINEPREFIX:-/home/$USER/.wine-ublox-test}"
 WINEDEBUG_VALUE="${WINEDEBUG:--all}"
 
+
+if [[ `pidof sunray` != "" ]]; then
+  echo "Sunray linux app running! Please stop it before flashing the GPS receiver."
+  exit
+fi
+
 mapfile -t firmware_files < <(find "$FIRMWARE_DIR" -maxdepth 1 -type f -name '*.bin' | sort)
 
 if [[ ${#firmware_files[@]} -eq 0 ]]; then
