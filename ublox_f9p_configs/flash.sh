@@ -137,37 +137,37 @@ done
 
 image="${firmware_files[$((choice - 1))]}"
 
-echo
-echo "Available flash methods:"
-echo "   1) script (Linux Python flasher, recommended)"
-echo "   2) wine   (official ubxfwupdate.exe via Wine, requires additional installation)"
+#echo
+#echo "Available flash methods:"
+#echo "   1) script (Linux Python flasher, recommended)"
+#echo "   2) wine   (official ubxfwupdate.exe via Wine, requires additional installation)"
 
-method_default_choice="1"
-case "$FLASH_METHOD" in
-  wine) method_default_choice="2" ;;
-  script) method_default_choice="1" ;;
-  *)
-    echo "Unsupported FLASH_METHOD default '$FLASH_METHOD'; falling back to script." >&2
-    FLASH_METHOD="script"
-    ;;
-esac
+#method_default_choice="1"
+#case "$FLASH_METHOD" in
+#  wine) method_default_choice="2" ;;
+#  script) method_default_choice="1" ;;
+#  *)
+#    echo "Unsupported FLASH_METHOD default '$FLASH_METHOD'; falling back to script." >&2
+#    FLASH_METHOD="script"
+#    ;;
+#esac
 
-method_choice=""
-while true; do
-  read -r -p "Select flash method [1-2] (Enter for ${FLASH_METHOD}): " method_choice
-  if [[ -z "$method_choice" ]]; then
-    method_choice="$method_default_choice"
-  fi
-  if [[ "$method_choice" == "1" ]]; then
-    FLASH_METHOD="script"
-    break
-  fi
-  if [[ "$method_choice" == "2" ]]; then
-    FLASH_METHOD="wine"
-    break
-  fi
-  echo "Invalid selection." >&2
-done
+method_choice="script"
+#while true; do
+#  read -r -p "Select flash method [1-2] (Enter for ${FLASH_METHOD}): " method_choice
+#  if [[ -z "$method_choice" ]]; then
+#    method_choice="$method_default_choice"
+#  fi
+#  if [[ "$method_choice" == "1" ]]; then
+#    FLASH_METHOD="script"
+#    break
+#  fi
+#  if [[ "$method_choice" == "2" ]]; then
+#    FLASH_METHOD="wine"
+#    break
+#  fi
+#  echo "Invalid selection." >&2
+#done
 
 echo
 echo "Flashing $(basename "$image")"
