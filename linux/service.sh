@@ -404,10 +404,35 @@ function install_anydesk(){
   fi
   CURDIR=$(pwd)
   cd /tmp
-  wget https://download.anydesk.com/rpi/anydesk_7.0.2-1_arm64.deb
-  sudo apt install -y ./anydesk_7.0.2-1_arm64.deb
+
+  if [[ "$CPU" == "aarch64" ]]; then
+    echo "Installing AnyDesk for ARM64 ..."
+    FILE="anydesk_7.0.2-1_arm64.deb"
+    URL="https://download.anydesk.com/rpi/$FILE"
+  elif [[ "$CPU" == "armv7l" || "$CPU" == "armv6l" ]]; then
+    echo "Installing AnyDesk for ARMHF ..."
+    FILE="anydesk_6.3.0-1_armhf.deb"
+    URL="https://download.anydesk.com/rpi/$FILE"
+  else
+    echo "Unknown CPU: $CPU"
+    return
+  fi
+
+  wget "$URL"
+  sudo apt install -y "./$FILE"
+
+  echo
+  read -p "Choose AnyDesk password: " PASS
+  sudo anydesk --set-password "$PASS"
+  
+  echo
+  echo "AnyDesk ID:"
+  sudo anydesk --get-id
+  echo "On your PC, connect to your PI with the displayed ID and choosen password"
+
   cd "$CURDIR"
 }
+
 
 function flash_ublox_receiver(){
   ../ublox_f9p_configs/flash.sh
