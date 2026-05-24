@@ -405,7 +405,7 @@ function install_anydesk(){
   CURDIR=$(pwd)
   cd /tmp
 
-  if [[ "$CPU" == "aarch64" ]]; then
+  if [[ "$CPU" == "aarch64" || "$CPU" == "arm64" ]]; then
     echo "Installing AnyDesk for ARM64 ..."
     FILE="anydesk_7.0.2-1_arm64.deb"
     URL="https://download.anydesk.com/rpi/$FILE"
@@ -418,16 +418,43 @@ function install_anydesk(){
     return
   fi
 
-  wget "$URL"
+  wget -O "$FILE" "$URL"
   sudo apt install -y "./$FILE"
 
+  echo "Starting AnyDesk service..."
+  sudo systemctl daemon-reload
+  sudo systemctl enable anydesk
+  sudo systemctl restart anydesk
+  for i in {1..10}; do
+    sudo systemctl is-active --quiet anydesk && break
+    sleep 1
+  done
+  if ! sudo systemctl is-active --quiet anydesk; then
+    echo "ERROR: AnyDesk service is not running"
+    sudo systemctl --no-pager status anydesk
+    cd "$CURDIR"
+    return 1
+  fi
+
   echo
-  read -p "Choose AnyDesk password: " PASS
-  sudo anydesk --set-password "$PASS"
+  read -s -p "Choose AnyDesk password: " PASS
+  echo
+  if ! printf '%s\n' "$PASS" | sudo anydesk --set-password; then
+    echo "ERROR: failed to set AnyDesk password"
+    sudo systemctl --no-pager status anydesk
+    cd "$CURDIR"
+    return 1
+  fi
   
   echo
   echo "AnyDesk ID:"
-  sudo anydesk --get-id
+  if ! sudo anydesk --get-id; then
+    echo "ERROR: failed to read AnyDesk ID"
+    sudo systemctl --no-pager status anydesk
+    cd "$CURDIR"
+    return 1
+  fi
+  echo
   echo "On your PC, connect to your PI with the displayed ID and choosen password"
 
   cd "$CURDIR"
@@ -754,5 +781,4 @@ while true
 do 
   main_menu
 done
-
 
