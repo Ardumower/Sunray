@@ -316,6 +316,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define SONAR_TRIGGER_OBSTACLES true
 #define SONAR_OBSTACLE_WARNING_LEVEL 5
 #define SONAR_SLOW_DOWN_WARNING_LEVEL 3
+#define SONAR_MANUAL_OBSTACLE_CONTROL false
 #define ULTRASONIC_FRONT_CENTER_USED false
 #define ULTRASONIC_FRONT_LEFT_USED false
 #define ULTRASONIC_FRONT_RIGHT_USED false

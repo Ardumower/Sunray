@@ -297,7 +297,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define SONAR_TRIGGER_OBSTACLES true     // should ultrasonic sensors trigger obstacles? if not, they can only slow down
 #define SONAR_OBSTACLE_WARNING_LEVEL 5   // warning level that triggers an obstacle
 #define SONAR_SLOW_DOWN_WARNING_LEVEL 3  // warning level that slows down autonomous driving
-#define SONAR_SLOW_DOWN_MANUAL false     // also slow down manual driving when warning level is reached
+#define SONAR_MANUAL_OBSTACLE_CONTROL false  // also apply ultrasonic slow-down/stop levels during manual driving
 #define SONAR_LEFT_OBSTACLE_CM   15      // stop mowing operation below this distance (cm)
 #define SONAR_CENTER_OBSTACLE_CM 15      // stop mowing operation below this distance (cm)
 #define SONAR_RIGHT_OBSTACLE_CM  15      // stop mowing operation below this distance (cm)

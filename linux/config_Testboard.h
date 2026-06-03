@@ -291,7 +291,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define SONAR_TRIGGER_OBSTACLES true          // use ultrasonic sensors to trigger obstacles; if false, ultrasonic sensors can only slow down
 #define SONAR_OBSTACLE_WARNING_LEVEL 5    // ultrasonic warning level that triggers an obstacle
 #define SONAR_SLOW_DOWN_WARNING_LEVEL 3   // ultrasonic warning level that slows down autonomous driving
-#define SONAR_SLOW_DOWN_MANUAL false      // also slow down manual driving when ultrasonic warning level is reached
+#define SONAR_MANUAL_OBSTACLE_CONTROL false  // also apply ultrasonic slow-down/stop levels during manual driving
 #define ULTRASONIC_FRONT_CENTER_USED false
 #define ULTRASONIC_FRONT_LEFT_USED false
 #define ULTRASONIC_FRONT_RIGHT_USED false
