@@ -310,21 +310,18 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define MQTT_PASS "pass"
 
 // ------ ultrasonic sensors -----------------------------
-// CAN ultrasonic frames carry 8 warning levels. Mark installed sensors here.
+// Ultrasonic sensors are disabled by default. Enable installed sensor positions here.
 
 #define SONAR_ENABLE false
 #define SONAR_TRIGGER_OBSTACLES true
-#define CAN_SONAR_TRIGGER_OBSTACLES 1
-#define CAN_SONAR_OBSTACLE_WARNING_LEVEL 6
-#define CAN_SONAR_SLOW_DOWN_WARNING_LEVEL 6
-#define CAN_ULTRASONIC_FRONT_CENTER_USED true
-#define CAN_ULTRASONIC_FRONT_LEFT_USED true
-#define CAN_ULTRASONIC_FRONT_RIGHT_USED true
-#define CAN_ULTRASONIC_REAR_CENTER_USED false
-#define CAN_ULTRASONIC_REAR_LEFT_USED false
-#define CAN_ULTRASONIC_REAR_RIGHT_USED false
-#define CAN_ULTRASONIC_AUX1_USED false
-#define CAN_ULTRASONIC_AUX2_USED false
+#define SONAR_OBSTACLE_WARNING_LEVEL 5
+#define SONAR_SLOW_DOWN_WARNING_LEVEL 3
+#define ULTRASONIC_FRONT_CENTER_USED false
+#define ULTRASONIC_FRONT_LEFT_USED false
+#define ULTRASONIC_FRONT_RIGHT_USED false
+#define ULTRASONIC_REAR_CENTER_USED false
+#define ULTRASONIC_REAR_LEFT_USED false
+#define ULTRASONIC_REAR_RIGHT_USED false
 #define SONAR_POLL_INTERVAL_MS 200
 
 // ------ rain sensor ----------------------------------------------------------

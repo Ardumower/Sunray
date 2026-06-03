@@ -68,48 +68,36 @@
 #define SONAR_POLL_INTERVAL_MS 200
 #endif
 
-#ifndef CAN_SONAR_TRIGGER_OBSTACLES
-#define CAN_SONAR_TRIGGER_OBSTACLES 0
+#ifndef ULTRASONIC_FRONT_CENTER_USED
+#define ULTRASONIC_FRONT_CENTER_USED false
 #endif
 
-#ifndef CAN_ULTRASONIC_FRONT_CENTER_USED
-#define CAN_ULTRASONIC_FRONT_CENTER_USED false
+#ifndef ULTRASONIC_FRONT_LEFT_USED
+#define ULTRASONIC_FRONT_LEFT_USED false
 #endif
 
-#ifndef CAN_ULTRASONIC_FRONT_LEFT_USED
-#define CAN_ULTRASONIC_FRONT_LEFT_USED false
+#ifndef ULTRASONIC_FRONT_RIGHT_USED
+#define ULTRASONIC_FRONT_RIGHT_USED false
 #endif
 
-#ifndef CAN_ULTRASONIC_FRONT_RIGHT_USED
-#define CAN_ULTRASONIC_FRONT_RIGHT_USED false
+#ifndef ULTRASONIC_REAR_CENTER_USED
+#define ULTRASONIC_REAR_CENTER_USED false
 #endif
 
-#ifndef CAN_ULTRASONIC_REAR_CENTER_USED
-#define CAN_ULTRASONIC_REAR_CENTER_USED false
+#ifndef ULTRASONIC_REAR_LEFT_USED
+#define ULTRASONIC_REAR_LEFT_USED false
 #endif
 
-#ifndef CAN_ULTRASONIC_REAR_LEFT_USED
-#define CAN_ULTRASONIC_REAR_LEFT_USED false
+#ifndef ULTRASONIC_REAR_RIGHT_USED
+#define ULTRASONIC_REAR_RIGHT_USED false
 #endif
 
-#ifndef CAN_ULTRASONIC_REAR_RIGHT_USED
-#define CAN_ULTRASONIC_REAR_RIGHT_USED false
+#ifndef SONAR_SLOW_DOWN_WARNING_LEVEL
+#define SONAR_SLOW_DOWN_WARNING_LEVEL 3
 #endif
 
-#ifndef CAN_ULTRASONIC_AUX1_USED
-#define CAN_ULTRASONIC_AUX1_USED false
-#endif
-
-#ifndef CAN_ULTRASONIC_AUX2_USED
-#define CAN_ULTRASONIC_AUX2_USED false
-#endif
-
-#ifndef CAN_SONAR_SLOW_DOWN_WARNING_LEVEL
-#define CAN_SONAR_SLOW_DOWN_WARNING_LEVEL 6
-#endif
-
-#ifndef CAN_ULTRASONIC_DIRECTION_SPEED_EPSILON
-#define CAN_ULTRASONIC_DIRECTION_SPEED_EPSILON 0.01f
+#ifndef ULTRASONIC_DIRECTION_SPEED_EPSILON
+#define ULTRASONIC_DIRECTION_SPEED_EPSILON 0.01f
 #endif
 
 static constexpr unsigned long kUltrasonicHoldMs = 3000UL;
@@ -119,25 +107,22 @@ static constexpr uint8_t kUltrasonicMissingWarningLevel = 0x0F;
 static constexpr bool kDebugRainDisplay = false;
 static constexpr bool kCanUltrasonicPollingEnabled =
   SONAR_ENABLE ||
-  (CAN_SONAR_TRIGGER_OBSTACLES != 0) ||
-  CAN_ULTRASONIC_FRONT_CENTER_USED ||
-  CAN_ULTRASONIC_FRONT_LEFT_USED ||
-  CAN_ULTRASONIC_FRONT_RIGHT_USED ||
-  CAN_ULTRASONIC_REAR_CENTER_USED ||
-  CAN_ULTRASONIC_REAR_LEFT_USED ||
-  CAN_ULTRASONIC_REAR_RIGHT_USED ||
-  CAN_ULTRASONIC_AUX1_USED ||
-  CAN_ULTRASONIC_AUX2_USED;
+  ULTRASONIC_FRONT_CENTER_USED ||
+  ULTRASONIC_FRONT_LEFT_USED ||
+  ULTRASONIC_FRONT_RIGHT_USED ||
+  ULTRASONIC_REAR_CENTER_USED ||
+  ULTRASONIC_REAR_LEFT_USED ||
+  ULTRASONIC_REAR_RIGHT_USED;
 
 static const bool kConfiguredUltrasonicSensors[CanRobotDriver::kUltrasonicWarningLevelCount] = {
-  CAN_ULTRASONIC_FRONT_CENTER_USED,
-  CAN_ULTRASONIC_FRONT_LEFT_USED,
-  CAN_ULTRASONIC_FRONT_RIGHT_USED,
-  CAN_ULTRASONIC_REAR_CENTER_USED,
-  CAN_ULTRASONIC_REAR_LEFT_USED,
-  CAN_ULTRASONIC_REAR_RIGHT_USED,
-  CAN_ULTRASONIC_AUX1_USED,
-  CAN_ULTRASONIC_AUX2_USED
+  ULTRASONIC_FRONT_CENTER_USED,
+  ULTRASONIC_FRONT_LEFT_USED,
+  ULTRASONIC_FRONT_RIGHT_USED,
+  ULTRASONIC_REAR_CENTER_USED,
+  ULTRASONIC_REAR_LEFT_USED,
+  ULTRASONIC_REAR_RIGHT_USED,
+  false,
+  false
 };
 
 static const char* kUltrasonicSensorNames[CanRobotDriver::kUltrasonicWarningLevelCount] = {
@@ -147,8 +132,8 @@ static const char* kUltrasonicSensorNames[CanRobotDriver::kUltrasonicWarningLeve
   "rear_center",
   "rear_left",
   "rear_right",
-  "aux1",
-  "aux2"
+  "unsupported_6",
+  "unsupported_7"
 };
 
 static const char* powerOffStateToStr(owlctl::powerOffState_t state){
@@ -678,8 +663,8 @@ CanRobotDriver::UltrasonicMotionDirection CanRobotDriver::currentUltrasonicMotio
       (millis() <= ultrasonicMotionDirectionHintUntil)) {
     return ultrasonicMotionDirectionHint;
   }
-  if (motor.linearSpeedSet > CAN_ULTRASONIC_DIRECTION_SPEED_EPSILON) return ultrasonic_motion_forward;
-  if (motor.linearSpeedSet < -CAN_ULTRASONIC_DIRECTION_SPEED_EPSILON) return ultrasonic_motion_reverse;
+  if (motor.linearSpeedSet > ULTRASONIC_DIRECTION_SPEED_EPSILON) return ultrasonic_motion_forward;
+  if (motor.linearSpeedSet < -ULTRASONIC_DIRECTION_SPEED_EPSILON) return ultrasonic_motion_reverse;
   return ultrasonic_motion_any;
 }
 
@@ -741,7 +726,7 @@ void CanRobotDriver::processUltrasonicSensorPresence(){
 }
 
 void CanRobotDriver::updateUltrasonicDerivedState(){
-  triggeredUltrasonicSlowDown = configuredUltrasonicWarningAtOrAbove(CAN_SONAR_SLOW_DOWN_WARNING_LEVEL);
+  triggeredUltrasonicSlowDown = configuredUltrasonicWarningAtOrAbove(SONAR_SLOW_DOWN_WARNING_LEVEL);
   updateSlowDownState();
   processUltrasonicSensorPresence();
 }

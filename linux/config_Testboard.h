@@ -285,23 +285,20 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define MQTT_PASS "pass"
 
 // ------ ultrasonic sensors -----------------------------
-// CAN ultrasonic frames carry 8 warning levels. Mark installed sensors here.
+// Ultrasonic sensors are disabled by default. Enable installed sensor positions here.
 
 #define SONAR_ENABLE false                    // enable sonar polling
-#define SONAR_TRIGGER_OBSTACLES true          // use sonar to trigger obstacles; if false, sonar can only slow down
-#define CAN_SONAR_TRIGGER_OBSTACLES 1         // enable CAN ultrasonic obstacle trigger
-#define CAN_SONAR_OBSTACLE_WARNING_LEVEL 5    // CAN ultrasonic warning level that triggers an obstacle
-#define CAN_SONAR_SLOW_DOWN_WARNING_LEVEL 3   // CAN ultrasonic warning level that slows down autonomous driving
-#define CAN_SONAR_SLOW_DOWN_MANUAL false      // also slow down manual driving when CAN ultrasonic warning level is reached
-#define CAN_ULTRASONIC_FRONT_CENTER_USED true
-#define CAN_ULTRASONIC_FRONT_LEFT_USED true
-#define CAN_ULTRASONIC_FRONT_RIGHT_USED true
-#define CAN_ULTRASONIC_REAR_CENTER_USED false
-#define CAN_ULTRASONIC_REAR_LEFT_USED false
-#define CAN_ULTRASONIC_REAR_RIGHT_USED false
-#define CAN_ULTRASONIC_AUX1_USED false
-#define CAN_ULTRASONIC_AUX2_USED false
-#define SONAR_POLL_INTERVAL_MS 200            // CAN ultrasonic polling interval
+#define SONAR_TRIGGER_OBSTACLES true          // use ultrasonic sensors to trigger obstacles; if false, ultrasonic sensors can only slow down
+#define SONAR_OBSTACLE_WARNING_LEVEL 5    // ultrasonic warning level that triggers an obstacle
+#define SONAR_SLOW_DOWN_WARNING_LEVEL 3   // ultrasonic warning level that slows down autonomous driving
+#define SONAR_SLOW_DOWN_MANUAL false      // also slow down manual driving when ultrasonic warning level is reached
+#define ULTRASONIC_FRONT_CENTER_USED false
+#define ULTRASONIC_FRONT_LEFT_USED false
+#define ULTRASONIC_FRONT_RIGHT_USED false
+#define ULTRASONIC_REAR_CENTER_USED false
+#define ULTRASONIC_REAR_LEFT_USED false
+#define ULTRASONIC_REAR_RIGHT_USED false
+#define SONAR_POLL_INTERVAL_MS 200            // ultrasonic polling interval
 
 // ------ rain sensor ----------------------------------------------------------
 #define RAIN_ENABLE true                 // if activated, mower will dock when rain sensor triggers

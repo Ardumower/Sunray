@@ -825,12 +825,8 @@ bool detectObstacle(){
     return true;
   }
   
-  #ifndef CAN_SONAR_TRIGGER_OBSTACLES
-  #define CAN_SONAR_TRIGGER_OBSTACLES 0
-  #endif
-
-  #ifndef CAN_SONAR_OBSTACLE_WARNING_LEVEL
-  #define CAN_SONAR_OBSTACLE_WARNING_LEVEL 6
+  #ifndef SONAR_OBSTACLE_WARNING_LEVEL
+  #define SONAR_OBSTACLE_WARNING_LEVEL 5
   #endif
 
   #ifndef SONAR_LEFT_OBSTACLE_CM
@@ -842,10 +838,10 @@ bool detectObstacle(){
   #endif
 
   #ifdef DRV_CAN_ROBOT
-  if (CAN_SONAR_TRIGGER_OBSTACLES && (maps.wayMode != WAY_DOCK)) {
+  if (SONAR_TRIGGER_OBSTACLES && (maps.wayMode != WAY_DOCK)) {
     bool canSonarTriggered = false;
     if (robotDriver.ultrasonicWarningLevelValid) {
-      canSonarTriggered = robotDriver.configuredUltrasonicWarningAtOrAbove(CAN_SONAR_OBSTACLE_WARNING_LEVEL);
+      canSonarTriggered = robotDriver.configuredUltrasonicWarningAtOrAbove(SONAR_OBSTACLE_WARNING_LEVEL);
     } else {
       if (robotDriver.ultrasonicLeftValid &&
           robotDriver.ultrasonicLeftDistance <= (SONAR_LEFT_OBSTACLE_CM * 10)) {

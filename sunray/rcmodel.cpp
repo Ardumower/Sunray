@@ -11,12 +11,12 @@ volatile unsigned long PPM_end_lin = 0;
 volatile unsigned long PPM_start_ang = 0;
 volatile unsigned long PPM_end_ang = 0 ;        
 
-#ifndef CAN_SONAR_SLOW_DOWN_MANUAL
-#define CAN_SONAR_SLOW_DOWN_MANUAL false
+#ifndef SONAR_SLOW_DOWN_MANUAL
+#define SONAR_SLOW_DOWN_MANUAL false
 #endif
 
 static float applyManualSlowDown(float linear){
-  if (!CAN_SONAR_SLOW_DOWN_MANUAL) return linear;
+  if (!SONAR_SLOW_DOWN_MANUAL) return linear;
 
   #ifdef DRV_CAN_ROBOT
     if (linear > 0.001f) robotDriver.setUltrasonicMotionDirectionHint(CanRobotDriver::ultrasonic_motion_forward);
