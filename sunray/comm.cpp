@@ -33,6 +33,24 @@ extern "C" void cameraStreamerStop();
 
 // moved globals into Comm class (see comm.h)
 
+#ifndef CAN_SONAR_SLOW_DOWN_MANUAL
+#define CAN_SONAR_SLOW_DOWN_MANUAL false
+#endif
+
+static float applyManualSlowDown(float linear){
+  if (!CAN_SONAR_SLOW_DOWN_MANUAL) return linear;
+
+  #ifdef DRV_CAN_ROBOT
+    if (linear > 0.001f) robotDriver.setUltrasonicMotionDirectionHint(CanRobotDriver::ultrasonic_motion_forward);
+    else if (linear < -0.001f) robotDriver.setUltrasonicMotionDirectionHint(CanRobotDriver::ultrasonic_motion_reverse);
+    else robotDriver.setUltrasonicMotionDirectionHint(CanRobotDriver::ultrasonic_motion_any);
+  #endif
+
+  if (!bumperDriver.nearObstacle()) return linear;
+  if (linear > 0.10f) return 0.10f;
+  if (linear < -0.10f) return -0.10f;
+  return linear;
+}
 
 // answer Bluetooth with CRC
 void Comm::cmdAnswer(String s){  
@@ -241,6 +259,7 @@ void Comm::cmdMotor(){
   CONSOLE.print(linear);
   CONSOLE.print(" angular=");
   CONSOLE.println(angular);*/
+  linear = applyManualSlowDown(linear);
   motor.setLinearAngularSpeed(linear, angular, false);
   String s = F("M");
   cmdAnswer(s);

@@ -135,6 +135,7 @@ namespace owlctl {
       can_val_power_off_command = 13, // schedule power-off
       can_val_ultrasonic_left   = 14, // left ultrasonic distance (mm)
       can_val_ultrasonic_right  = 15, // right ultrasonic distance (mm)
+      can_val_ultrasonic_generic = 16, // packed ultrasonic warning levels, 4 bit per sensor
   };
 
   enum powerOffState_t: uint8_t {
@@ -257,12 +258,25 @@ class CanRobotDriver: public RobotDriver {
     bool triggeredRain;
     bool triggeredStopButton;
     bool triggeredSlowDown;
+    bool triggeredExternalSlowDown;
+    bool triggeredUltrasonicSlowDown;
     bool rainDisplayLastState;
     bool rainDisplaySent;
     uint16_t ultrasonicLeftDistance;
     uint16_t ultrasonicRightDistance;
     bool ultrasonicLeftValid;
     bool ultrasonicRightValid;
+    static const uint8_t kUltrasonicWarningLevelCount = 8;
+    enum UltrasonicMotionDirection : uint8_t {
+      ultrasonic_motion_any = 0,
+      ultrasonic_motion_forward = 1,
+      ultrasonic_motion_reverse = 2
+    };
+    uint8_t ultrasonicWarningLevel[kUltrasonicWarningLevelCount];
+    bool ultrasonicSensorMissing[kUltrasonicWarningLevelCount];
+    bool ultrasonicWarningLevelValid;
+    unsigned long ultrasonicWarningLevelUpdated;
+    bool ultrasonicMissingSensorError;
     bool ultrasonicLeftAlertActive;
     bool ultrasonicRightAlertActive;
     unsigned long ultrasonicLeftAlertUntil;
@@ -304,7 +318,14 @@ class CanRobotDriver: public RobotDriver {
     bool getSimulatePowerOffHang() const;
     void sendCanData(int msgId, int destNodeId, canCmdType_t cmd, int val, canDataType_t data);
     void sendDisplayOperation(OperationType op);
+    UltrasonicMotionDirection currentUltrasonicMotionDirection() const;
+    void setUltrasonicMotionDirectionHint(UltrasonicMotionDirection direction, unsigned long holdMs = 250);
+    bool configuredUltrasonicWarningAtOrAbove(uint8_t minLevel) const;
+    bool configuredUltrasonicWarningAtOrAbove(uint8_t minLevel, UltrasonicMotionDirection direction) const;
+    bool configuredUltrasonicSensorMissing() const;
+    uint8_t firstMissingConfiguredUltrasonicSensor() const;
     void handleUltrasonicResponse(bool isLeft, bool valid, uint16_t distanceMm);
+    void handleUltrasonicWarningLevels(canDataType_t data);
     void processUltrasonicTimeouts();
     void sendUltrasonicDisplay(bool isLeft, bool valid, uint16_t distanceMm);
     void sendRainDisplay(bool raining);
@@ -334,6 +355,8 @@ class CanRobotDriver: public RobotDriver {
     unsigned long nextLedTime;    
     unsigned long nextDisplayTelemetryTime;
     unsigned long nextUltrasonicPollTime;
+    UltrasonicMotionDirection ultrasonicMotionDirectionHint;
+    unsigned long ultrasonicMotionDirectionHintUntil;
     unsigned long powerOffLogTime;
     unsigned long powerOffCommandSendTime;
     bool powerOffCommandSent;
@@ -382,6 +405,15 @@ class CanRobotDriver: public RobotDriver {
     void versionResponse();
     void handlePowerOffState(owlctl::powerOffState_t remoteState, uint8_t activeSeconds, uint8_t configuredDelay);
     void handlePowerOffCommandAck(uint8_t acceptedFlag, uint8_t delaySeconds);
+    bool isConfiguredUltrasonicSensor(uint8_t sensorIndex) const;
+    bool isUltrasonicMissingLevel(uint8_t warningLevel) const;
+    bool isFrontUltrasonicSensor(uint8_t sensorIndex) const;
+    bool isRearUltrasonicSensor(uint8_t sensorIndex) const;
+    bool isUltrasonicSensorRelevantForDirection(uint8_t sensorIndex, UltrasonicMotionDirection direction) const;
+    void updateSlowDownState();
+    void updateUltrasonicDerivedState();
+    void processUltrasonicSensorPresence();
+    const char* ultrasonicSensorName(uint8_t sensorIndex) const;
     void startPowerOffDecision(uint8_t delaySeconds, PowerOffDecisionTrigger trigger);
     void cancelPowerOffDecision(PowerOffDecisionTrigger trigger);
     void processPowerOffDecision();

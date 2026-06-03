@@ -131,6 +131,13 @@ void LineTracker::trackLine(bool runControl){
         //CONSOLE.println("SLOW: float");
       } else
         linear = stateEstimator.setSpeed;         // desired speed
+      #ifdef DRV_CAN_ROBOT
+        CanRobotDriver::UltrasonicMotionDirection ultrasonicDirection = CanRobotDriver::ultrasonic_motion_any;
+        if (fabs(linear) > 0.001) {
+          ultrasonicDirection = maps.trackReverse ? CanRobotDriver::ultrasonic_motion_reverse : CanRobotDriver::ultrasonic_motion_forward;
+        }
+        robotDriver.setUltrasonicMotionDirectionHint(ultrasonicDirection);
+      #endif
       if (bumperDriver.nearObstacle()){
         linear = 0.1;  // slow down near obstacles 
         //CONSOLE.println("SLOW: BUMPER");      

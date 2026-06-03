@@ -284,19 +284,24 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define MQTT_USER "user"
 #define MQTT_PASS "pass"
 
-// ------ ultrasonic sensor -----------------------------
-// see Wiki on how to install the ultrasonic sensors: 
-// https://wiki.ardumower.de/index.php?title=Ardumower_Sunray#Ultrasonic_sensor
+// ------ ultrasonic sensors -----------------------------
+// CAN ultrasonic frames carry 8 warning levels. Mark installed sensors here.
 
-//#define SONAR_INSTALLED 1              // uncomment if ultrasonic sensors are installed
-//#define SONAR_ENABLE true              // should ultrasonic sensor be used?
-#define SONAR_ENABLE false
-#define SONAR_TRIGGER_OBSTACLES true     // should sonar be used to trigger obstacles? if not, mower will only slow down
-#define CAN_SONAR_TRIGGER_OBSTACLES 1    // enable owlController CAN ultrasonic obstacle trigger
-#define SONAR_LEFT_OBSTACLE_CM   10      // stop mowing operation below this distance (cm) 
-#define SONAR_CENTER_OBSTACLE_CM 10      // stop mowing operation below this distance (cm) 
-#define SONAR_RIGHT_OBSTACLE_CM  10      // stop mowing operation below this distance (cm) 
-#define SONAR_POLL_INTERVAL_MS   200     // CAN polling interval for sonar distances
+#define SONAR_ENABLE false                    // enable sonar polling
+#define SONAR_TRIGGER_OBSTACLES true          // use sonar to trigger obstacles; if false, sonar can only slow down
+#define CAN_SONAR_TRIGGER_OBSTACLES 1         // enable CAN ultrasonic obstacle trigger
+#define CAN_SONAR_OBSTACLE_WARNING_LEVEL 5    // CAN ultrasonic warning level that triggers an obstacle
+#define CAN_SONAR_SLOW_DOWN_WARNING_LEVEL 3   // CAN ultrasonic warning level that slows down autonomous driving
+#define CAN_SONAR_SLOW_DOWN_MANUAL false      // also slow down manual driving when CAN ultrasonic warning level is reached
+#define CAN_ULTRASONIC_FRONT_CENTER_USED true
+#define CAN_ULTRASONIC_FRONT_LEFT_USED true
+#define CAN_ULTRASONIC_FRONT_RIGHT_USED true
+#define CAN_ULTRASONIC_REAR_CENTER_USED false
+#define CAN_ULTRASONIC_REAR_LEFT_USED false
+#define CAN_ULTRASONIC_REAR_RIGHT_USED false
+#define CAN_ULTRASONIC_AUX1_USED false
+#define CAN_ULTRASONIC_AUX2_USED false
+#define SONAR_POLL_INTERVAL_MS 200            // CAN ultrasonic polling interval
 
 // ------ rain sensor ----------------------------------------------------------
 #define RAIN_ENABLE true                 // if activated, mower will dock when rain sensor triggers
