@@ -65,7 +65,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define WS_USE_TLS 1
 #define WS_HOST "sunray.owlrobotics.app"
 #define WS_PORT 443
-#define WS_ROBOT_CONNECT_KEY "0a3c8b7c35610c6f9a6207bed6ab8358"
+#define WS_ROBOT_CONNECT_KEY "0a3c8b7c35610c6f9a6207bed6ab8359"
 #define WS_TLS_ROOT_CA_PATH "SYSTEM"
 #define WS_TLS_CLIENT_CERT_PATH ""
 #define WS_TLS_CLIENT_KEY_PATH ""
