@@ -279,7 +279,7 @@ void sensorTest(){
       } 
       CONSOLE.println();  
       #ifdef DRV_CAN_ROBOT
-        if (millis() > nextCanUltrasonicDebugTime){
+        if (SONAR_ENABLE && millis() > nextCanUltrasonicDebugTime){
           nextCanUltrasonicDebugTime = millis() + 5000;
           robotDriver.debugUltrasonicStatus();
         }

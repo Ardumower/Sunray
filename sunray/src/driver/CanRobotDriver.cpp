@@ -788,7 +788,7 @@ void CanRobotDriver::handleUltrasonicWarningLevels(canDataType_t data){
   }
   ultrasonicWarningLevelValid = true;
   ultrasonicWarningLevelUpdated = millis();
-  if (!wasValid) {
+  if (SONAR_ENABLE && !wasValid) {
     CONSOLE.println("CAN ultrasonic debug: first generic warning-level frame received");
   }
   updateUltrasonicDerivedState();
@@ -797,7 +797,9 @@ void CanRobotDriver::handleUltrasonicWarningLevels(canDataType_t data){
 void CanRobotDriver::processUltrasonicTimeouts(){
   unsigned long now = millis();
   if (ultrasonicWarningLevelValid && (now - ultrasonicWarningLevelUpdated > kUltrasonicGenericTimeoutMs)) {
-    CONSOLE.println("CAN ultrasonic debug: generic warning-level frame timeout");
+    if (SONAR_ENABLE) {
+      CONSOLE.println("CAN ultrasonic debug: generic warning-level frame timeout");
+    }
     ultrasonicWarningLevelValid = false;
     ultrasonicWarningLevelUpdated = 0;
     ultrasonicMissingSensorError = false;
@@ -1625,8 +1627,10 @@ void CanRobotDriver::run(){
       CONSOLE.print(" pwm=");
       CONSOLE.print(requestLeftPwm);
       CONSOLE.print(","); 
-      CONSOLE.println(requestRightPwm);  
-      debugUltrasonicStatus();
+      CONSOLE.println(requestRightPwm);
+      if (SONAR_ENABLE) {
+        debugUltrasonicStatus();
+      }
     }
 
     if (!mcuCommunicationLost){
