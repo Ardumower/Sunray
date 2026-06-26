@@ -218,6 +218,7 @@ void sensorTest(){
   CONSOLE.println("testing sensors for 60 seconds...");
   unsigned long stopTime = millis() + 60000;  
   unsigned long nextMeasureTime = 0;
+  unsigned long nextCanUltrasonicDebugTime = 0;
   while (millis() < stopTime){
     sonar.run();
     bumper.run();
@@ -277,6 +278,12 @@ void sensorTest(){
         CONSOLE.print( ((int)rainDriver.triggered()) );                                                                                        
       } 
       CONSOLE.println();  
+      #ifdef DRV_CAN_ROBOT
+        if (millis() > nextCanUltrasonicDebugTime){
+          nextCanUltrasonicDebugTime = millis() + 5000;
+          robotDriver.debugUltrasonicStatus();
+        }
+      #endif
       watchdogReset();
     }
   }

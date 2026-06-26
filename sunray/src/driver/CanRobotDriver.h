@@ -324,6 +324,7 @@ class CanRobotDriver: public RobotDriver {
     bool configuredUltrasonicWarningAtOrAbove(uint8_t minLevel, UltrasonicMotionDirection direction) const;
     bool configuredUltrasonicSensorMissing() const;
     uint8_t firstMissingConfiguredUltrasonicSensor() const;
+    void debugUltrasonicStatus() const;
     void handleUltrasonicResponse(bool isLeft, bool valid, uint16_t distanceMm);
     void handleUltrasonicWarningLevels(canDataType_t data);
     void processUltrasonicTimeouts();
