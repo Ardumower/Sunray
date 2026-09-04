@@ -608,12 +608,12 @@ void AmBatteryDriver::run(){
     
 float AmBatteryDriver::getBatteryVoltage(){
   float voltage = ((float)ADC2voltage(analogRead(pinBatteryVoltage))) * batteryFactor;
-  return voltage;  
+  return voltage + BATT_VOLTAGE_OFFSET;  
 }
 
 float AmBatteryDriver::getChargeVoltage(){
   float voltage = ((float)ADC2voltage(analogRead(pinChargeVoltage))) * batteryFactor;
-  return voltage;
+  return voltage + BATT_VOLTAGE_OFFSET;
 }
 
 
