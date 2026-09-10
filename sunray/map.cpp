@@ -490,6 +490,8 @@ void Map::begin(){
   shouldDock = false; 
   shouldRetryDock = false; 
   shouldMow = false;         
+  gotoActive = false;
+  gotoMowMotor = false;
   mapCRC = 0;  
   CONSOLE.print("sizeof Point=");
   CONSOLE.println(sizeof(Point));  
@@ -1831,6 +1833,28 @@ int Map::findNextNeighbor(NodeList &nodes, PolygonList &obstacles, Node &node, i
   return -1;
 }  
 
+
+// check if an AT+R target is inside the perimeter and outside all exclusions
+bool Map::isGotoTargetAllowed(float x, float y){
+  if (perimeterPoints.numPoints < 3) return false;
+  Point pt(x, y);
+  if (!pointIsInsidePolygon(perimeterPoints, pt)) return false;
+  for (int idx=0; idx < exclusions.numPolygons; idx++){
+    if (pointIsInsidePolygon(exclusions.polygons[idx], pt)) return false;
+  }
+  return true;
+}
+
+// plan an AT+R route into freePoints (the path finder avoids perimeter, exclusions and obstacles)
+// freePoints stays unchanged if no route is found
+bool Map::findGotoRoute(float startX, float startY, float targetX, float targetY){
+  if (!isGotoTargetAllowed(targetX, targetY)) return false;
+  Point src(startX, startY);
+  Point dst(targetX, targetY);
+  if (!findPath(src, dst)) return false;
+  freePointsIdx = 0;
+  return true;
+}
 
 // astar path finder 
 // https://briangrinstead.com/blog/astar-search-algorithm-in-javascript/

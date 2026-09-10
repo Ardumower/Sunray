@@ -16,13 +16,57 @@
 MowOp::MowOp(){
     lastMapRoutingFailed = false;
     mapRoutingFailedCounter = 0;
+    gotoNearTargetSince = 0;
+    gotoDone = false;
 }
 
 String MowOp::name(){
     return "Mow";
 }
 
+// start (or switch to) the AT+R route in maps.freePoints
+void MowOp::beginGoto(){
+    CONSOLE.print("OP_MOW (goto) mow=");
+    CONSOLE.println(maps.gotoMowMotor);
+    gotoNearTargetSince = 0;
+    gotoDone = false;
+    motor.enableTractionMotors(true);
+    motor.setReleaseBrakesWhenZero(false);
+    motor.setLinearAngularSpeed(0, 0);
+    motor.setMowState(maps.gotoMowMotor);
+    battery.setIsDocked(false);
+    stateEstimator.lastFixTime = millis();
+    maps.setLastTargetPoint(stateEstimator.stateX, stateEstimator.stateY);
+    lastMapRoutingFailed = false;
+    mapRoutingFailedCounter = 0;
+}
+
+// AT+R target reached
+void MowOp::finishGoto(){
+    CONSOLE.println("goto: target reached");
+    maps.gotoActive = false;
+    gotoDone = true;  // onNoFurtherWaypoints() may follow and must not report 'mowing finished'
+    changeOp(idleOp);
+}
+
 void MowOp::begin(){
+    gotoNearTargetSince = 0;
+    gotoDone = false;
+    if (maps.gotoActive){
+        if ((previousOp == &escapeReverseOp) || (previousOp == &escapeForwardOp)){
+            // back from an obstacle: plan the route again around the new obstacle
+            if (!maps.findGotoRoute(stateEstimator.stateX, stateEstimator.stateY, maps.gotoTarget.x(), maps.gotoTarget.y())){
+                CONSOLE.println("goto: no route after obstacle");
+                stateEstimator.stateSensor = SENS_MAP_NO_ROUTE;
+                maps.gotoActive = false;
+                changeOp(idleOp);
+                return;
+            }
+        }
+        beginGoto();
+        return;
+    }
+
     bool error = false;
     bool routingFailed = false;      
 
@@ -93,6 +137,25 @@ void MowOp::run(){
     lineTracker.trackLine(true); 
     detectSensorMalfunction();    
     battery.resetIdle();
+
+    if ((maps.gotoActive) && (maps.wayMode == WAY_FREE)) {
+        // GPS imprecision may prevent the target from being reached exactly
+        float distanceToTarget = maps.distanceToTargetPoint(stateEstimator.stateX, stateEstimator.stateY);
+        if (distanceToTarget >= 0.5f) {
+            gotoNearTargetSince = 0;
+        } else if (distanceToTarget > 0.1f) {
+            if (gotoNearTargetSince == 0) gotoNearTargetSince = millis();
+            if (millis() - gotoNearTargetSince > 8000) {
+                if (maps.freePointsIdx + 1 < maps.freePoints.numPoints) {
+                    maps.nextPoint(false, stateEstimator.stateX, stateEstimator.stateY);
+                    gotoNearTargetSince = 0;
+                } else {
+                    onTargetReached();
+                    return;
+                }
+            }
+        }
+    }
     
     if (timetable.shouldAutostopNow()){
         if (DOCKING_STATION){
@@ -251,6 +314,8 @@ void MowOp::onTargetReached(){
         maps.clearObstacles(); // clear obstacles if target reached
         stateEstimator.motorErrorCounter = 0; // reset motor error counter if target reached
         stateEstimator.stateSensor = SENS_NONE; // clear last triggered sensor
+    } else if ((maps.gotoActive) && (maps.wayMode == WAY_FREE)) {
+        if (maps.freePointsIdx + 1 >= maps.freePoints.numPoints) finishGoto();
     }
 }
 
@@ -296,6 +361,10 @@ void MowOp::onKidnapped(bool state){
 }
 
 void MowOp::onNoFurtherWaypoints(){
+    if (gotoDone){
+        gotoDone = false;
+        return;
+    }
     CONSOLE.println("mowing finished!");
     Logger.event(EVT_MOWING_COMPLETED);
     timetable.setMowingCompletedInCurrentTimeFrame(true);

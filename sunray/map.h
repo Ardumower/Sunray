@@ -159,6 +159,9 @@ class Map
     bool shouldDock;  // start docking?
     bool shouldRetryDock; // retry docking?
     bool shouldMow;  // start mowing?       
+    bool gotoActive; // navigate to single point (AT+R)
+    bool gotoMowMotor; // keep the cutter running while navigating (AT+R)
+    Point gotoTarget; // target of the active AT+R route
     
     long mapCRC;  // map data CRC
         
@@ -228,6 +231,8 @@ class Map
     // -----misc-----------------------------------------------
     bool pointIsInsidePolygon( Polygon &polygon, Point &pt);
     bool findPath(Point &src, Point &dst);    
+    bool isGotoTargetAllowed(float x, float y);
+    bool findGotoRoute(float startX, float startY, float targetX, float targetY);
     void generateRandomMap();    
     // check if given point is inside perimeter (and outside exclusions) of current map 
     bool isInsidePerimeterOutsideExclusions(Point &pt);

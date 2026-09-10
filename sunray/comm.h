@@ -56,6 +56,7 @@ private:
   void cmdWayCount();
   void cmdExclusionCount();
   void cmdPosMode();
+  void cmdRoute();
   void cmdVersion();
   void cmdObstacle();
   void cmdRain();

@@ -173,6 +173,9 @@ void Op::checkStop(){
       activeOp->OpChain =  activeOp->getOpChain();      
       CONSOLE.println(activeOp->OpChain);
       activeOp->shouldStop = false;
+      if ((activeOp == &idleOp) || (activeOp == &dockOp) || (activeOp == &chargeOp) || (activeOp == &errorOp)){
+        maps.gotoActive = false;  // an AT+R route ends when the robot stops, docks, charges or fails
+      }
       activeOp->begin();
     }
 }
