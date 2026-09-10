@@ -722,6 +722,76 @@ void Comm::cmdSummary(){
   cmdAnswer(s);  
 }
 
+static uint8_t hexCharToByte(char c) {
+  if (c >= '0' && c <= '9') return c - '0';
+  if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+  if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+  return 0;
+}
+
+static void hexStringToBytes(const String& hex, uint8_t* out, size_t maxOutLen,
+size_t& outLen) {
+  outLen = 0;
+  size_t len = hex.length();
+  for (size_t i = 0; i + 1 < len && outLen < maxOutLen; i += 2) {
+    out[outLen++] = (hexCharToByte(hex[i]) << 4) | hexCharToByte(hex[i + 1]);
+  }
+}
+
+// UBX Proxy: send hex bytes to GPS, receive response, return as hex
+void Comm::cmdUbxProxy(){
+  String hexPayload = cmd.substring(7); // skip "AT+UBX,"
+
+  // Accept a trailing command CRC, which is separated by a comma.
+  int commaIdx = hexPayload.indexOf(',');
+  if (commaIdx >= 0) hexPayload = hexPayload.substring(0, commaIdx);
+  hexPayload.trim();
+  if (hexPayload.length() == 0 || hexPayload.length() % 2 != 0) {
+    cmdAnswer(String(F("U,ERR_INVALID_HEX")));
+    return;
+  }
+  for (size_t i = 0; i < hexPayload.length(); i++) {
+    char c = hexPayload.charAt(i);
+    if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') ||
+          (c >= 'a' && c <= 'f'))) {
+      cmdAnswer(String(F("U,ERR_INVALID_HEX")));
+      return;
+    }
+  }
+
+  uint8_t txBuf[256];
+  size_t txLen = 0;
+  hexStringToBytes(hexPayload, txBuf, sizeof(txBuf), txLen);
+
+  // Do not drain the GPS UART: the UBX parser may be receiving this frame.
+  for (size_t i = 0; i < txLen; i++) {
+    GPS.write(txBuf[i]);
+  }
+
+  // Collect long responses while allowing short gaps between UART chunks.
+  uint32_t deadline = millis() + 500;
+  uint8_t rxBuf[2048];
+  size_t rxLen = 0;
+  while ((int32_t)(millis() - deadline) < 0 && rxLen < sizeof(rxBuf)) {
+    bool receivedThisRound = false;
+    while (GPS.available() && rxLen < sizeof(rxBuf)) {
+      rxBuf[rxLen++] = GPS.read();
+      receivedThisRound = true;
+    }
+    if (receivedThisRound) deadline = millis() + 50;
+    delay(1);
+  }
+
+  String answer = F("U,");
+  answer.reserve(2 + rxLen * 2);
+  char buf[3];
+  for (size_t i = 0; i < rxLen; i++) {
+    snprintf(buf, sizeof(buf), "%02X", rxBuf[i]);
+    answer += buf;
+  }
+  cmdAnswer(answer);
+}
+
 // request statistics
 void Comm::cmdStats(){
   String s = F("T,");
@@ -1026,6 +1096,11 @@ void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose)
   // Camera control handled above inside 'C' group
   if (cmd[3] == 'U'){ 
     if ((cmd.length() > 4) && (cmd[4] == '1')) cmdFirmwareUpdate();
+    else if (cmd.length() >= 5){
+      if ((cmd[4] == 'B') && (cmd[5] == 'X')) {
+        cmdUbxProxy();
+      }
+    }
   }
   if (cmd[3] == 'G') cmdToggleGPSSolution();   // for developers
   if (cmd[3] == 'K') cmdKidnap();   // for developers

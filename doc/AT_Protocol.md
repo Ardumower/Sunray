@@ -113,6 +113,14 @@ WiFi (Linux targets)
 Firmware Update (Linux targets)
 - `AT+U1,<url>` → Trigger firmware update via installer script. Ack: `U1,0xHH`
 
+UBX Proxy
+- `AT+UBX,<hex>` → Forward raw UBX bytes to the u-Blox receiver and return the received bytes as hexadecimal text.
+  - `<hex>`: Even-length hexadecimal string, two characters per byte. Up to 256 request bytes are accepted.
+  - The command CRC is appended after the payload as usual: `AT+UBX,<hex>,0xHH`.
+  - Response: `U,<response_hex>,0xHH`
+  - `<response_hex>`: All bytes received from the u-Blox receiver, in uppercase hexadecimal notation. The proxy waits up to 500 ms and extends the wait by 50 ms whenever another byte block arrives; responses up to 2048 bytes are collected.
+  - Invalid or empty hexadecimal payloads return `U,ERR_INVALID_HEX,0xHH`.
+
 Camera (Linux targets)
 - `AT+CAM,<enable>,<index>,<width>,<height>,<fps>[,<quality>]`
   - Starts/stops MJPEG streaming via cloud WebSocket when enabled.

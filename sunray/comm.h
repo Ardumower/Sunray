@@ -68,6 +68,7 @@ private:
   void cmdObstacles();
   void cmdSummary();
   void cmdStats();
+  void cmdUbxProxy();
   void cmdClearStats();
   void cmdWiFiScan();
   void cmdWiFiSetup();
