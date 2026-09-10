@@ -58,6 +58,13 @@ Summary and Obstacles
     - `<tt_day>,<tt_hour>`: Next timetable stop/start: if mowing → autostop day,hour; if charging → autostart day,hour; else `-1,0`.
 - `AT+S2` → Obstacles.
   - Response: `S2,<poly_cnt>,[0.5,0.5,1,<n>,x1,y1,...]...,0xHH` (polygons with RGB=(0.5,0.5,1) and their vertices).
+- `AT+S3` → Sensor summary.
+  - Response: `S3,<sonar_left>,<sonar_center>,<sonar_right>,<sonar_obstacle>,<sonar_near_obstacle>,<bumper_left_test>,<bumper_right_test>,<bumper_obstacle>,<bumper_near_obstacle>,<lidar_obstacle>,<lidar_near_obstacle>,<lift_triggered>,<rain_triggered>,0xHH`
+  - The distance fields use the sensor values reported by the three ultrasonic sensors. The remaining fields are boolean or numeric sensor states as provided by the corresponding drivers.
+- `AT+S4` → GNSS and satellite details.
+  - Response: `S4,<num_sv>,<num_sv_dgps>,<solution>,<h_accuracy>,<v_accuracy>,<dgps_age>,<satellite_count>,[<gnss_id>,<sv_id>,<sig_id>,<cno>,<quality_ind>,<pr_used>,<cr_corr_used>,<pr_res>,<elevation>,<azimuth>]...,0xHH`
+  - One satellite record is returned for each `<satellite_count>` entry.
+  - `<pr_used>` and `<cr_corr_used>` are `0` or `1`. The remaining satellite fields are the values reported by the u-Blox receiver.
 
 Control and Tuning
 - `AT+M,<linear>,<angular>` → Set linear (m/s) and angular (rad/s) speed.

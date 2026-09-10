@@ -8,6 +8,7 @@
 #include "../../config.h"
 #include "../../events.h"
 
+extern UBLOX gps;
 
 
 
@@ -787,10 +788,19 @@ void UBLOX::dispatchMessage() {
               float rsum = 0;                  
               int crcnt = 0;              
               int healthycnt = 0;              
-              for (int i=0; i < numSigs; i++){                
+              gps.satelliteCount = min(numSigs, 40);
+              for (int i=0; i < gps.satelliteCount; i++){
+                gps.satellites[i].gnssId = this->unpack_int8(8+16*i);
+                gps.satellites[i].svId = this->unpack_int8(9+16*i);
+                gps.satellites[i].sigId = this->unpack_int8(10+16*i);
                 float prRes = ((float)((short)this->unpack_int16(12+16*i))) * 0.1;
                 float cno = ((float)this->unpack_int8(14+16*i));
                 int qualityInd = this->unpack_int8(15+16*i);                                                
+                gps.satellites[i].prRes = prRes;
+                gps.satellites[i].cno = cno;
+                gps.satellites[i].qualityInd = qualityInd;
+                gps.satellites[i].elevation = this->unpack_int8(20+16*i);
+                gps.satellites[i].azimuth = this->unpack_int8(21+16*i);
                 int corrSource = this->unpack_int8(16+16*i);                                                
                 int sigFlags = (unsigned short)this->unpack_int16(18+16*i);                                                
                 bool prUsed = ((sigFlags & 8) != 0);                                    
@@ -799,6 +809,8 @@ void UBLOX::dispatchMessage() {
                 bool prCorrUsed = ((sigFlags & 64) != 0);                    
                 bool crCorrUsed = ((sigFlags & 128) != 0);                    
                 bool doCorrUsed = ((sigFlags & 256) != 0);                    
+                gps.satellites[i].prUsed = prUsed;
+                gps.satellites[i].crCorrUsed = crCorrUsed;
                 bool health = ((sigFlags & 3) == 1);                                                    
                 if (health){       // signal is healthy               
                   if (prUsed){     // pseudorange has been used (indicates satellites will be also used for carrier correction)

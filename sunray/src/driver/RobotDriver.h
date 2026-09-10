@@ -136,6 +136,24 @@ class BuzzerDriver {
     virtual void tone(int freq) = 0;
 };
 
+struct UbxSatelliteInfo {
+  uint8_t gnssId;
+  uint8_t svId;
+  uint8_t sigId;
+  uint8_t cno;
+  uint8_t qualityInd;
+  bool prUsed;
+  bool crCorrUsed;
+  float prRes;
+  int8_t elevation;
+  int8_t azimuth;
+
+  UbxSatelliteInfo()
+      : gnssId(0), svId(0), sigId(0), cno(0), qualityInd(0),
+        prUsed(false), crCorrUsed(false), prRes(0), elevation(0), azimuth(0) {
+  }
+};
+
 class GpsDriver {
   public:
     bool isRelocalizing = false;  // should robot wait for localization device until it gets its position?
@@ -167,6 +185,8 @@ class GpsDriver {
     int sec;           // UTC time second (0..60) (incl. leap second)
     int dayOfWeek;     // UTC dayOfWeek (0=Monday)
     String nmeaGGAMessage; // last NMEA-GGA message from GPS receiver
+    UbxSatelliteInfo satellites[40]; // max 40 signals (UBX-NAV-SIG)
+    int satelliteCount = 0;
     // start tcp receiver
     virtual void begin(Client &client, char *host, uint16_t port) = 0;
     // start serial receiver          

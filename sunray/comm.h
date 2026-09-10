@@ -67,6 +67,8 @@ private:
   void cmdToggleGPSSolution();
   void cmdObstacles();
   void cmdSummary();
+  void cmdSensorSummary();
+  void cmdGpsDetails();
   void cmdStats();
   void cmdUbxProxy();
   void cmdClearStats();

@@ -722,6 +722,78 @@ void Comm::cmdSummary(){
   cmdAnswer(s);  
 }
 
+// request sensor summary
+void Comm::cmdSensorSummary(){
+  String s = F("S3,");
+  s += sonar.distanceLeft;
+  s += ",";
+  s += sonar.distanceCenter;
+  s += ",";
+  s += sonar.distanceRight;
+  s += ",";
+  s += sonar.obstacle();
+  s += ",";
+  s += sonar.nearObstacle();
+  s += ",";
+  s += bumper.testLeft();
+  s += ",";
+  s += bumper.testRight();
+  s += ",";
+  s += bumper.obstacle();
+  s += ",";
+  s += bumper.nearObstacle();
+  s += ",";
+  s += lidarBumper.obstacle();
+  s += ",";
+  s += lidarBumper.nearObstacle();
+  s += ",";
+  s += liftDriver.triggered();
+  s += ",";
+  s += rainDriver.triggered();
+  cmdAnswer(s);
+}
+
+// request GPS satellite details
+void Comm::cmdGpsDetails(){
+  String s = F("S4,");
+  s += gps.numSV;
+  s += ",";
+  s += gps.numSVdgps;
+  s += ",";
+  s += gps.solution;
+  s += ",";
+  s += gps.hAccuracy;
+  s += ",";
+  s += gps.vAccuracy;
+  s += ",";
+  s += gps.dgpsAge;
+  s += ",";
+  s += gps.satelliteCount;
+  for (int i=0; i < gps.satelliteCount; i++){
+    s += ",";
+    s += gps.satellites[i].gnssId;
+    s += ",";
+    s += gps.satellites[i].svId;
+    s += ",";
+    s += gps.satellites[i].sigId;
+    s += ",";
+    s += gps.satellites[i].cno;
+    s += ",";
+    s += gps.satellites[i].qualityInd;
+    s += ",";
+    s += (gps.satellites[i].prUsed ? 1 : 0);
+    s += ",";
+    s += (gps.satellites[i].crCorrUsed ? 1 : 0);
+    s += ",";
+    s += gps.satellites[i].prRes;
+    s += ",";
+    s += gps.satellites[i].elevation;
+    s += ",";
+    s += gps.satellites[i].azimuth;
+  }
+  cmdAnswer(s);
+}
+
 static uint8_t hexCharToByte(char c) {
   if (c >= '0' && c <= '9') return c - '0';
   if (c >= 'A' && c <= 'F') return c - 'A' + 10;
@@ -1057,7 +1129,9 @@ void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose)
     if (cmd.length() <= 4){
       cmdSummary(); 
     } else {
-      if (cmd[4] == '2') cmdObstacles();      
+      if (cmd[4] == '2') cmdObstacles();
+      if (cmd[4] == '3') cmdSensorSummary();
+      if (cmd[4] == '4') cmdGpsDetails();
     }
   }
   if (cmd[3] == 'M') cmdMotor();
