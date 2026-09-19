@@ -66,6 +66,7 @@ private:
   void cmdKidnap();
   void cmdToggleGPSSolution();
   void cmdObstacles();
+  void cmdMotorRpm();
   void cmdSummary();
   void cmdStats();
   void cmdClearStats();

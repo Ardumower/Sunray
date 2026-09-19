@@ -105,6 +105,14 @@ Statistics
   - Response: `T,<idle_s>,<charge_s>,<mow_s>,<mow_float_s>,<mow_fix_s>,<float_to_fix>,<mow_dist_m>,<max_dgps_age_s>,<imu_recov>,<tmin_C>,<tmax_C>,<gps_chk_err>,<dgps_chk_err>,<max_ctl_cycle_s>,<serial_buf_sz>,<mow_invalid_s>,<mow_invalid_recov>,<mow_obstacles>,<free_mem>,<reset_cause>,<gps_jumps>,<sonar_cnt>,<bumper_cnt>,<gps_motion_to_cnt>,<mow_motor_recovery_s>,<lift_cnt>,<gps_no_speed_cnt>,<tof_cnt>,<diff_imu_wheel_yaw_cnt>,<imu_no_rot_speed_cnt>,<rot_timeout_cnt>,0xHH`
 - `AT+L` → Clear statistics. Ack: `L,0xHH`
 
+Motor Telemetry
+- `AT+S5` → Motor telemetry.
+  - Response: `S5,<rpm_left>,<rpm_right>,<rpm_mow>,<pwm_mow>,<amps_left>,<amps_right>,<amps_mow>,0xHH`
+    - `<rpm_left>`, `<rpm_right>`, `<rpm_mow>`: Measured motor speeds (rpm, one decimal, low-pass filtered).
+    - `<pwm_mow>`: Mow motor PWM actually sent to the driver (0..255) — the setpoint behind `<rpm_mow>`.
+    - `<amps_left>`, `<amps_right>`, `<amps_mow>`: Measured motor currents (amps, two decimals, low-pass filtered).
+    - Mow rpm requires a mowing motor with an rpm output; it reads 0 otherwise.
+
 WiFi (Linux targets)
 - `AT+B1` → Scan SSIDs. Response: `B1,<ssid0>,<ssid1>,...,0xHH`
 - `AT+B2,<ssid>,<pass>` → Configure WiFi. Ack: `B2,0xHH`
