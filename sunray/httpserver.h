@@ -30,6 +30,8 @@
   #endif
   #include <atomic>
   #include <thread>
+  #include <memory>
+  #include "src/net/CloudWorker.h"
   #ifndef min
     #define min(a,b) ((a) < (b) ? (a) : (b))
   #endif
@@ -86,9 +88,10 @@ private:
   unsigned long wsNextConnectTime = 0;
   unsigned long wsLastRxTime = 0;
 #ifdef __linux__
-  std::thread wsConnectThread;
-  std::atomic<bool> wsConnectInProgress{false};
-  std::atomic<bool> wsConnectSucceeded{false};
+  std::shared_ptr<CloudWorker> wsWorker;
+  bool wsReplyPending = false;
+  unsigned long long wsReplySession = 0;
+  std::string wsReply;
 #endif
 };
 

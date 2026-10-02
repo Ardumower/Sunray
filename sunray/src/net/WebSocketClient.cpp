@@ -73,7 +73,7 @@ bool WebSocketClient::sendBinaryRaw(const uint8_t* data, size_t len) {
     _client.write(buf, n);
     off += n;
   }
-  return true;
+  return connectedUnlocked();
 }
 
 void WebSocketClient::close() {
@@ -82,7 +82,7 @@ void WebSocketClient::close() {
 }
 
 void WebSocketClient::closeUnlocked() {
-  if (_client.connected()) _client.stop();
+  _client.stop();
   _connected = false;
 }
 
@@ -100,9 +100,11 @@ bool WebSocketClient::handshake() {
   // Send HTTP upgrade request
   // Debug: print request line (mask secret if present)
   auto maskSecret = [](const String& p) {
-    int idx = p.indexOf("secret=");
+    int idx = p.indexOf("connect_key=");
+    int keyLength=12;
+    if(idx<0) {idx=p.indexOf("secret=");keyLength=7;}
     if (idx >= 0) {
-      int start = idx + 7;
+      int start = idx + keyLength;
       int end = p.indexOf('&', start);
       String out = p.substring(0, start);
       out += "***";
@@ -197,7 +199,7 @@ bool WebSocketClient::sendText(const String& msg) {
     char c = msg[i] ^ maskKey[i % 4];
     _client.write((uint8_t)c);
   }
-  return true;
+  return connectedUnlocked();
 }
 
 bool WebSocketClient::readExact(uint8_t* buf, size_t len, unsigned long timeoutMs) {
@@ -234,10 +236,11 @@ bool WebSocketClient::pollText(String& out) {
   } else if (len == 127) {
     CONSOLE.println("WS: unsupported header len: 127");
     // Not supported for memory reasons
-    close();
+    closeUnlocked();
     return false;
   } 
 
+  if(len>65536) { closeUnlocked(); return false; }
   uint8_t maskKey[4] = {0,0,0,0};
   if (masked) {
     if (!readExact(maskKey, 4, 50)) return false;
@@ -247,7 +250,7 @@ bool WebSocketClient::pollText(String& out) {
     uint16_t code = 0;
     String reason;
     if (len >= 2) {
-      uint8_t b[2]; if (!readExact(b, 2, 50)) { close(); return false; }
+      uint8_t b[2]; if (!readExact(b, 2, 50)) { closeUnlocked(); return false; }
       code = ((uint16_t)b[0] << 8) | (uint16_t)b[1];
       for (uint64_t i = 2; i < len; i++) {
         int ch = -1; unsigned long t = millis() + 50; while (ch < 0 && millis() < t) { if (_client.available()) ch = _client.read(); }

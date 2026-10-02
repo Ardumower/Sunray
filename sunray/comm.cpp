@@ -17,6 +17,7 @@ extern "C" void cameraStreamerStop();
 
 #ifdef __linux__
   #include <BridgeClient.h>
+  #include <LinuxBoardName.h>
   #include <Process.h>
   #include <WiFi.h>
   #include <sys/resource.h>
@@ -516,13 +517,7 @@ void Comm::cmdVersion(){
   s += F(",");
   String board(BOARD);
   #ifdef __linux__
-    Process p;
-    board = "Linux";
-    // returns: Sinovoip_Bananapi_M4, Raspberry Pi 5, etc.
-    p.runShellCommand("cat /sys/firmware/devicetree/base/model 2>/dev/null");        
-	  String boardAdd = p.readString();    
-    if (boardAdd != "") board += " " + boardAdd;
-    //board += getCPUArchitecture();
+    board = linuxBoardName().c_str();
   #endif
   s += board;
   s += F(",");

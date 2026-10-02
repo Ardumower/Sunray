@@ -85,6 +85,10 @@ int BridgeSecureClient::connect(const char *host, uint16_t port) {
   for (struct addrinfo* p = res; p; p = p->ai_next) {
     sock = ::socket(p->ai_family, p->ai_socktype, p->ai_protocol);
     if (sock < 0) continue;
+    // Bound TCP/TLS stalls in the network worker so it can reconnect.
+    timeval timeout={2,0};
+    setsockopt(sock,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));
+    setsockopt(sock,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));
     if (::connect(sock, p->ai_addr, p->ai_addrlen) == 0) break;
     ::close(sock); sock = -1;
   }
@@ -102,19 +106,21 @@ size_t BridgeSecureClient::write(uint8_t data) {
 }
 
 size_t BridgeSecureClient::write(const uint8_t *buf, size_t size) {
-  if (!_ssl) return 0;
+  if (!_ssl || !_connected) return 0;
   int n = SSL_write(_ssl, buf, (int)size);
+  if(n<=0) _connected=false;
   return (n > 0) ? (size_t)n : 0;
 }
 
 int BridgeSecureClient::available() {
-  if (!_ssl) return 0;
+  if (!_ssl || !_connected) return 0;
   // Bytes buffered in SSL layer
   int p = SSL_pending(_ssl);
   if (p > 0) return p;
   // Fallback non-blocking peek
   char c;
   int n = ::recv(_sock, &c, 1, MSG_PEEK | MSG_DONTWAIT);
+  if(n==0) _connected=false;
   return (n > 0) ? n : 0;
 }
 
@@ -125,13 +131,14 @@ int BridgeSecureClient::read() {
 }
 
 int BridgeSecureClient::read(uint8_t *buf, size_t size) {
-  if (!_ssl) return -1;
+  if (!_ssl || !_connected) return -1;
   int n = SSL_read(_ssl, buf, (int)size);
+  if(n<=0) _connected=false;
   return (n > 0) ? n : -1;
 }
 
 void BridgeSecureClient::stop() {
-  if (_ssl) { SSL_shutdown(_ssl); SSL_free(_ssl); _ssl = nullptr; }
+  if (_ssl) { SSL_set_quiet_shutdown(_ssl,1); SSL_free(_ssl); _ssl = nullptr; }
   if (_ctx) { SSL_CTX_free(_ctx); _ctx = nullptr; }
   if (_sock >= 0) { ::close(_sock); _sock = -1; }
   _connected = false;

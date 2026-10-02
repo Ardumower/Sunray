@@ -66,7 +66,8 @@ HttpServer::HttpServer()
 
 HttpServer::~HttpServer(){
 #ifdef __linux__
-  if (wsConnectThread.joinable()) wsConnectThread.join();
+  if(wsWorker) wsWorker->stopAndJoin();
+  wsWorker.reset();
 #endif
 }
 
@@ -252,25 +253,40 @@ void HttpServer::processWifiWSClient() {
   if (!ENABLE_WS_CLIENT) return;
 
 #ifdef __linux__
-  // Do not touch wsClient while its connect method owns the WebSocket mutex in
-  // the worker. DNS, TCP and TLS setup may otherwise block the control loop.
-  if (wsConnectInProgress.load(std::memory_order_acquire)) return;
-
-  // A joinable, non-running worker has completed. Joining is immediate and
-  // makes its result safe to consume in the control thread.
-  if (wsConnectThread.joinable()) {
-    wsConnectThread.join();
-    if (!wsConnectSucceeded.load(std::memory_order_acquire)) {
-      CONSOLE.println("WS: connect failed");
-      wsNextConnectTime = millis() + 10000;
-      return;
-    }
-    CONSOLE.println("WS: connected");
-    wsLastRxTime = millis();
-    CameraStreamer::instance().setSender([this](const uint8_t* data, size_t len){ wsClient.sendBinaryRaw(data, len); });
+  if (!wsWorker) {
+    CloudWorker::Transport io;
+    io.connect = [this]{ return wsClient.connect(); };
+    io.connected = [this]{ return wsClient.connected(); };
+    io.close = [this]{ wsClient.close(); };
+    io.receive = [this](std::string& value){
+      String msg; bool ok=wsClient.pollText(msg);
+      if(ok) value.assign(msg.c_str(),msg.length());
+      return ok;
+    };
+    io.send = [this](const std::string& value){return wsClient.sendText(String(value.c_str()));};
+    io.binary = [this](const unsigned char* data,size_t length){return wsClient.sendBinaryRaw(data,length);};
+    wsWorker = std::make_shared<CloudWorker>(std::move(io));
+    std::weak_ptr<CloudWorker> weak=wsWorker;
+    CameraStreamer::instance().setSender([weak](const uint8_t* data,size_t length){
+      if(auto worker=weak.lock()) worker->camera(data,length);
+    });
+    wsWorker->start();
   }
-#endif
-
+  if(wsReplyPending){
+    if(!wsWorker->reply(wsReplySession,wsReply)) return;
+    wsReplyPending=false;wsReply.clear();
+  }
+  CloudWorker::Request request;
+  if(wsWorker->take(request)){
+    String msg(request.text.c_str());
+    while(msg.endsWith("\r") || msg.endsWith("\n")) msg.remove(msg.length()-1);
+    comm.setCmd(msg);
+    comm.processCmd("WS",true,true,false);
+    wsReply=comm.getCmdResponse().c_str();wsReplySession=request.session;
+    wsReplyPending=!wsWorker->reply(wsReplySession,wsReply);
+    battery.resetIdle();
+  }
+#else
   // Maintain connection
   if (!wsClient.connected()) {
     if (millis() < wsNextConnectTime) return;
@@ -297,19 +313,6 @@ void HttpServer::processWifiWSClient() {
       CONSOLE.print(path);
     }
     CONSOLE.println(" ...");
-#ifdef __linux__
-    // Ensure the camera cannot enter wsClient while the connection worker is
-    // active. Only one worker can exist at a time.
-    CameraStreamer::instance().setSender(nullptr);
-    wsConnectSucceeded.store(false, std::memory_order_relaxed);
-    wsConnectInProgress.store(true, std::memory_order_release);
-    wsConnectThread = std::thread([this]() {
-      bool succeeded = wsClient.connect();
-      wsConnectSucceeded.store(succeeded, std::memory_order_release);
-      wsConnectInProgress.store(false, std::memory_order_release);
-    });
-    return;
-#else
     if (!wsClient.connect()) {
       CONSOLE.println("WS: connect failed");
       wsNextConnectTime = millis() + 10000;
@@ -317,7 +320,6 @@ void HttpServer::processWifiWSClient() {
     }
     CONSOLE.println("WS: connected");
     wsLastRxTime = millis();
-#endif
   }
 
   // No periodic telemetry push; robot answers requests from gateway
@@ -349,9 +351,7 @@ void HttpServer::processWifiWSClient() {
   // If connection was closed by server (handled in pollText), pause before reconnecting
   if (!wsClient.connected()) {
     if (wsNextConnectTime < millis() + 2000) wsNextConnectTime = millis() + 2000;
-#ifdef __linux__
-    // Reset sender to avoid pushing into a closed socket
-    CameraStreamer::instance().setSender(nullptr);
-#endif
+
   }
+#endif
 }
