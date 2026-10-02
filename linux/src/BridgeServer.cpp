@@ -77,7 +77,7 @@ void BridgeServer::run(){
 
 BridgeClient BridgeServer::available(){
   if(!_listening){
-    Serial.println("available(): not listening");
+    // begin() reports bind/listen failures once; polling must stay silent.
     return BridgeClient();
   }
   

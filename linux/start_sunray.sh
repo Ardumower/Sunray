@@ -96,23 +96,8 @@ echo "(to change default audio card: sudo nano /etc/mplayer/mplayer.conf  and ad
 ../ros/scripts/dbus_send.sh -m Play -p ../tts/de/system_starting.mp3
 
 
-echo "----waiting for TCP connections to be closed from previous sessions----"
-echo "Waiting TCP port 80 to be closed..."
-for _ in `seq 1 20`; do 
-  RES=$(netstat -ant | grep -w 80 | grep LISTEN)
-  #RES=$(lsofs -i:80)
-  #RES=$(fuser 80/tcp) 
-  if [ -z "$RES" ]; then
-    break
-  fi
-  echo $RES
-  PID=`fuser 80/tcp | cut -d' ' -f 2`
-  echo "PID:$PID"
-  ls -l /proc/$PID/exe  
-  # echo -n .  
-  sleep 2.0     
-done; 
-
+# Bind once during startup; another service may legitimately own port 80.
+# A fixed wait cannot resolve that conflict and delays robot initialization.
 
 echo "---starting custom script----"
 if [ -e "custom_script.sh" ]; then
