@@ -5,6 +5,9 @@
 
 
 #include "CanRobotDriver.h"
+#ifdef __linux__
+  #include <LinuxWifiStatus.h>
+#endif
 #include "../../config.h"
 #include "../../ioboard.h"
 #include "../../config.h"
@@ -365,22 +368,9 @@ void CanRobotDriver::updateCpuTemperature(){
 
 void CanRobotDriver::updateWifiConnectionState(){
   #ifdef __linux__
-    //unsigned long startTime = millis();   
-    String s; 
-    while (wifiStatusProcess.available()) s+= (char)wifiStatusProcess.read(); 
-    if (s.length() > 0){    
-      s.trim();
-      //CONSOLE.print("updateWifiConnectionState state=");
-      //CONSOLE.println(s);
-      // DISCONNECTED, SCANNING, INACTIVE, COMPLETED 
-      //CONSOLE.println(s);
-      ledStateWifiConnected = (s == "COMPLETED");
-      ledStateWifiInactive = (s == "INACTIVE");                   
-    }  
-    wifiStatusProcess.runShellCommand("wpa_cli -i wlan0 status | grep wpa_state | cut -d '=' -f2");  
-    //unsigned long duration = millis() - startTime;        
-    //CONSOLE.print("updateWifiConnectionState duration: ");
-    //CONSOLE.println(duration);
+    const LinuxWifiStatus status = linuxWifiStatus();
+    ledStateWifiConnected = status.connected;
+    ledStateWifiInactive = status.inactive;
   #endif
 }
 

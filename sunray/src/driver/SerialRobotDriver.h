@@ -60,7 +60,6 @@ class SerialRobotDriver: public RobotDriver {
     bool ledPanelInstalled;
     #ifdef __linux__
       Process cpuTempProcess;
-      Process wifiStatusProcess;    
     #endif
     String cmd;
     String cmdResponse;

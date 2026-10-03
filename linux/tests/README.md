@@ -36,3 +36,8 @@ process plus Stream::readString, which waits 1,000 ms at EOF.
 This change covers the Linux cloud WebSocket path. Direct HTTP, BLE, NTRIP and
 MCU network implementations are not converted to this worker. Explicit robot
 commands (including Stop) and sensor safety decisions continue to apply.
+
+The separate Linux WiFi LED/status probe is also isolated from the control
+thread by `LinuxWifiStatus`. Its test blocks the probe for 3.4 seconds while
+polling the cached state, checks state transitions, and exercises the real shell
+timeout/parser using a temporary fake `wpa_cli` (no WiFi changes).
