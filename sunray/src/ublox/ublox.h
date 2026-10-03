@@ -48,9 +48,28 @@ class UBLOX : public GpsDriver {
     void send(const uint8_t *buffer, size_t size) override;
     void sendRTCM(const uint8_t *buffer, size_t size) override;
     void run() override;
+    bool isConfiguring() const override;
     bool configure() override;  
     void reboot() override;
   private:
+    enum ConfigPhase { CFG_DISABLED, CFG_PROBE_TARGET, CFG_PROBE_FALLBACK,
+      CFG_SWITCH_BAUD, CFG_PROBE_VERIFY, CFG_VERSION, CFG_APPLY, CFG_PAUSE,
+      CFG_RETRY, CFG_READY };
+    ConfigPhase configPhase;
+    uint8_t configTx[128];
+    uint16_t configTxLength, configTxOffset;
+    uint8_t configStep, configAttempt;
+    uint32_t configDeadline;
+    uint32_t lastPacketTime, serialGeneration;
+    bool configResponse, configRejected;
+    void startConfigPacket(uint8_t cls, uint8_t id);
+    void finishConfigPacket();
+    void startConfigValues();
+    void addConfigValue(uint32_t key, uint32_t value);
+    void startConfigProbe(ConfigPhase phase, uint32_t baud);
+    void retryConfiguration();
+    void runConfiguration();
+    void queueConfigStep();
     bool useTCP;
     Client* _client;    
     uint32_t _baud;  	

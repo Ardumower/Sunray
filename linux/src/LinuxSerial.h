@@ -2,6 +2,7 @@
 #define LINUX_SERIAL_H
 
 #include <stdint.h>
+#include <atomic>
 #include <unistd.h>
 #include <termios.h>
 #include <pthread.h>
@@ -18,6 +19,7 @@
 class LinuxSerial : public HardwareSerial{
   protected:
     int            _stream = 0;
+    std::atomic<uint32_t> serialGeneration{0};
     struct termios _termios;
     String         devPath;
     uint32_t       configuredBaudrate = 0;
@@ -47,6 +49,7 @@ class LinuxSerial : public HardwareSerial{
     virtual void begin(uint32_t baudrate) override;     
     virtual void end() override;
 
+    uint32_t connectionGeneration() const override { return serialGeneration.load(); }
     virtual int available() override;
     virtual int read() override;
     virtual int peek() override;

@@ -112,6 +112,7 @@ bool LinuxSerial::open(const char *devicePath){
     return false;
   }
   _stream = stream;
+  ++serialGeneration;
   #ifdef LINUX_SERIAL_FIFO
     if (thread_rx_id == 0){    
       //::printf("LINUX_SERIAL_FIFO: starting serial threads...");
@@ -146,6 +147,7 @@ void LinuxSerial::handleDisconnect(const char *operation){
             devPath.c_str(), operation);
   ::close(_stream);
   _stream = 0;
+  ++serialGeneration;
   lastOpenAttempt = millis();
 }
 
@@ -158,6 +160,7 @@ void LinuxSerial::end(){
     tcsetattr(_stream, TCSANOW, &_termios);
     close(_stream);
     _stream = 0;
+    ++serialGeneration;
   }
 }
 

@@ -138,6 +138,7 @@ void Motor::setMowHeightMillimeter( int val )
 
 void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
 {
+  if (gps.isConfiguring()) pwmLeft = pwmRight = pwmMow = 0;
   //Correct Motor Direction
   if (motorLeftSwapDir) pwmLeft *= -1;
   if (motorRightSwapDir) pwmRight *= -1;
@@ -152,7 +153,7 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
   pwmMow = min(pwmMaxMow, max(-pwmMaxMow, pwmMow)); 
   
   bool releaseBrakes = false;  
-  if (releaseBrakesWhenZero){
+  if (releaseBrakesWhenZero && !gps.isConfiguring()){
     if ((pwmLeft == 0) && (pwmRight == 0)){
       if (millis() > motorReleaseBrakesTime) releaseBrakes = true;
     } else {
@@ -173,6 +174,10 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
 //      V     = (VR + VL) / 2       =>  VR = V + omega * L/2
 //      omega = (VR - VL) / L       =>  VL = V - omega * L/2
 void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRamp){
+   if (gps.isConfiguring()){
+     linear = angular = 0;
+     useLinearRamp = false;
+   }
    setLinearAngularSpeedTimeout = millis() + 1000;
    setLinearAngularSpeedTimeoutActive = true;
    if ((activateLinearSpeedRamp) && (useLinearRamp)) {
@@ -219,6 +224,7 @@ void Motor::setReleaseBrakesWhenZero(bool release){
 
 
 void Motor::setMowState(bool switchOn){
+  if (gps.isConfiguring()) switchOn = false;
   //CONSOLE.print("Motor::setMowState ");
   //CONSOLE.println(switchOn);
   if ((enableMowMotor) && (switchOn)){
@@ -272,6 +278,12 @@ void Motor::stopImmediately(bool includeMowerMotor){
 
 void Motor::run() {
   if (millis() < lastControlTime + 50) return;
+  if (gps.isConfiguring()){
+    // Clear old commands/PID state too, so reconnect cannot replay stale output.
+    stopImmediately(true);
+    lastControlTime = millis();
+    return;
+  }
   
   if (setLinearAngularSpeedTimeoutActive){
     if (millis() > setLinearAngularSpeedTimeout){

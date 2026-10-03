@@ -14,6 +14,8 @@ class HardwareSerial : public Stream {
     inline HardwareSerial(){}
     virtual void begin(uint32_t baud) {}
     virtual void end() {}
+    // Changes after a detected disconnect or successful reopen; 0 for static ports.
+    virtual uint32_t connectionGeneration() const { return 0; }
     virtual int available(void) { return 0; }
     virtual int peek(void) { return 0; }
     virtual int read(void) { return 0; }

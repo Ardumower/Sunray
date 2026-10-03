@@ -173,6 +173,8 @@ class GpsDriver {
     virtual void begin(HardwareSerial& bus,uint32_t baud) = 0;
     // should process receiver data
     virtual void run() = 0;    
+    // True while initial receiver setup is pending; motor commands are inhibited.
+    virtual bool isConfiguring() const { return false; }
     // should configure receiver    
     virtual bool configure() = 0; 
     // should reboot receiver

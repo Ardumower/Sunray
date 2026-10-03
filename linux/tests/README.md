@@ -4,6 +4,7 @@ On Linux with a C++14 compiler and OpenSSL development libraries:
 
 ```sh
 linux/tests/run-cloud-tests.sh
+sh linux/tests/run-gps-cloud-tests.sh
 ```
 
 The worker test blocks connect, receive, send, close and camera transfer while
@@ -41,3 +42,59 @@ The separate Linux WiFi LED/status probe is also isolated from the control
 thread by `LinuxWifiStatus`. Its test blocks the probe for 3.4 seconds while
 polling the cached state, checks state transitions, and exercises the real shell
 timeout/parser using a temporary fake `wpa_cli` (no WiFi changes).
+
+## GPS during a stalled cloud connection
+
+`run-gps-cloud-tests.sh` compiles the production UBLOX parser and CloudWorker in
+an isolated temporary source tree, without changing the robot's `config.h`.
+An in-memory serial receiver supplies checksummed UBX-NAV-RELPOSNED packets at
+5 Hz while connect, receive, send, close and camera transfer are each stalled
+for 3.4 seconds (longer than the GPS watchdog). FIX and advancing iTOW must be
+preserved in every phase. No physical device or external network is used.
+
+The test also checks receiver-reported INVALID/FLOAT, corrupt checksums, silence
+past the GPS timeout and recovery. It uses the real SparkFun library but disables
+hardware configuration (`GPS_CONFIG=false`); it does not verify receiver/radio
+configuration, the complete robot loop, or physical WiFi loss.
+
+## Cooperative u-blox startup and reconnect
+
+Run `sh linux/tests/run-gps-startup-tests.sh` on Linux. It builds the production
+UBLOX parser/configuration and Motor implementation with `config_xlmower.h` in
+an isolated directory. UART, clock, motor driver and cloud transport are fakes;
+no robot is controlled. Checks cover absent/late receivers, cloud request
+handling during initialization, all ten RAM-only configuration groups, radio
+RTCM settings, fallback baud, optional MON-VER timeout, NAK/missing/invalid ACKs,
+bounded RX/TX, clock rollover, position watchdog, USB generation changes,
+silence-triggered recovery, and motor/brake inhibition including stale commands.
+
+`GPS_CONFIG=true` now schedules configuration in `UBLOX::run()`. Each poll writes
+at most 32 bytes and parses at most 1024 received bytes. Probe/ACK/TX timeouts
+are 2 seconds; configuration groups have two attempts, with 300 ms between
+successful groups. A failed setup retries after 10 seconds while the main loop
+continues. Configuration replies share the navigation parser; there is no
+second UART reader/thread. `configure()` reports acceptance, not completion;
+`isConfiguring()` reports the pending state. Navigation remains INVALID until
+setup finishes and a fresh solution arrives. Motion and cutter output are
+inhibited during setup, and old motor commands are cleared.
+
+On Linux, a detected serial disconnect/reopen changes `connectionGeneration()`
+and restarts configuration. Ten seconds without a checksummed UBX message also
+triggers a retry; loss of RTK FIX with continuing UBX traffic does not. With
+`GPS_CONFIG=false`, startup and reconnect send no automatic configuration.
+The existing GPS/cloud test verifies that disabled-config behavior explicitly.
+Raw/RTCM writes are suppressed during setup so they cannot split a CFG packet.
+The former UART1 TIMEUTC-disable call mistakenly used the timeout as the value;
+the replacement packet explicitly sends zero.
+
+Validated on an Orange Pi 5 Pro, 2026-10-03: startup/reconnect/motor
+regressions, GPS/cloud regression (five 3.4-second stalls; 17 positions each,
+worst measured poll 1 ms), and complete XL-mower firmware build passed.
+Receiver responses in the regression suite are emulated. A physical F9P USB
+unplug/replug also passed: disconnect at 18:18:55.705, reopen at 18:19:04.707,
+and configuration complete at 18:19:08.817 (Europe/Berlin). iTOW advanced after
+recovery and control-duration samples remained 0.02 s. This verifies USB/setup
+recovery, not an RTK FIX or mowing/navigation behavior. A live cloud handshake
+also completed while GPS configuration was still in progress (18:43:25 versus
+18:43:27). Cloud availability still requires a working network and valid,
+unique connection credentials.
