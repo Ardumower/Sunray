@@ -1,5 +1,23 @@
 # Cloud/control isolation regression tests
 
+## Linux monotonic control timers
+
+Run `sh linux/tests/run-monotonic-time-tests.sh` on Linux. This compiles the
+production `wiring_main.cpp` with hardware initialization disabled. Process-local
+clock wrappers simulate forward/backward system-clock steps (including the
+observed +2281 s NTP correction); the system clock itself is never changed.
+Checks cover concurrent first use, the shared millis/micros epoch, precision,
+GPS/PID deadlines, long uptime, and a separate run with the real monotonic clock.
+
+Linux `millis()` and `micros()` use `CLOCK_MONOTONIC` with one immutable epoch,
+initialized at first use and retained through main(). They no longer follow
+wall-clock jumps. The unsigned-long API and its platform-specific wrap width are
+unchanged. Calendar time and MCU implementations are unaffected. CLOCK_MONOTONIC
+does not count system suspend; ordinary NTP frequency slewing can still adjust
+its rate slightly, but cannot introduce a discontinuous wall-clock step.
+
+## Cloud/control tests
+
 On Linux with a C++14 compiler and OpenSSL development libraries:
 
 ```sh

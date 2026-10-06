@@ -18,10 +18,26 @@
  */
 
 #include "Arduino.h"
-#include <sys/time.h>
+#include <time.h>
 //#include "idemonitor.h"
 
-unsigned long startMillis = 0;
+namespace {
+uint64_t monotonicNanoseconds(){
+    struct timespec ts;
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0){
+        perror("clock_gettime(CLOCK_MONOTONIC)");
+        abort(); // Never fall back to the adjustable wall clock for control timers.
+    }
+    return static_cast<uint64_t>(ts.tv_sec) * 1000000000ULL + ts.tv_nsec;
+}
+
+uint64_t elapsedNanoseconds(){
+    // One shared, thread-safe epoch, also valid for calls before main().
+    // Do not reset it in main: constructors may already have armed timers.
+    static const uint64_t epoch = monotonicNanoseconds();
+    return monotonicNanoseconds() - epoch;
+}
+}
 
 
 void analogReadResolution(uint8_t res){
@@ -35,18 +51,13 @@ void watchdogEnable(uint32_t ms){
 }
 
 
-//#ifndef __arm__ 
-    unsigned long micros(){
-        struct timeval tv;
-        gettimeofday(&tv,NULL);
-        return 1000000 * tv.tv_sec + tv.tv_usec - startMillis*1000;
-    }
-    unsigned long millis(){
-        struct timeval tv;
-        gettimeofday(&tv,NULL);
-        return 1000 * tv.tv_sec + tv.tv_usec/1000 - startMillis;
-    }
-//#endif
+unsigned long micros(){
+    return static_cast<unsigned long>(elapsedNanoseconds() / 1000ULL);
+}
+
+unsigned long millis(){
+    return static_cast<unsigned long>(elapsedNanoseconds() / 1000000ULL);
+}
 
 
 
@@ -112,9 +123,7 @@ __attribute__((constructor(101))) void startInit() {
 int main(int argc __attribute__((unused)), char **argv __attribute__((unused))){
     printf("main\n");
     
-    struct timeval tv;
-    gettimeofday(&tv,NULL);
-    startMillis = 1000 * tv.tv_sec + tv.tv_usec/1000;
+    (void)millis(); // Initialize the monotonic epoch before starting the loop.
     
     thread_set_priority(65);
     _keep_sketch_running = 1;
