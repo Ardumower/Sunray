@@ -687,13 +687,22 @@ bool Map::setPoint(int idx, float x, float y){
   //CONSOLE.print(x, 2);
   //CONSOLE.print(",");
   //CONSOLE.println(y, 2);
+  if (idx == 0){   
+    clearMap();
+    // A failed allocation (e.g. a map that did not fit) only means memory ran out; after
+    // clearMap() it is free again. Without this reset every later upload - even a much smaller
+    // map - was refused until the next reboot ("ERROR setPoint: memory errors").
+    // Corruptions are real damage and keep blocking.
+    if (memoryAllocErrors != 0){
+      CONSOLE.print("setPoint: new upload, resetting memoryAllocErrors=");
+      CONSOLE.println(memoryAllocErrors);
+      memoryAllocErrors = 0;
+    }
+  }    
   if ((memoryCorruptions != 0) || (memoryAllocErrors != 0)){
     CONSOLE.println("ERROR setPoint: memory errors");
     return false; 
   }  
-  if (idx == 0){   
-    clearMap();
-  }    
   if (idx % 100 == 0){
     if (freeMemory () < 20000){
       CONSOLE.println("OUT OF MEMORY");
