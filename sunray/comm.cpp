@@ -811,7 +811,58 @@ size_t& outLen) {
 }
 
 // UBX Proxy: send hex bytes to GPS, receive response, return as hex
-void Comm::cmdUbxProxy(){
+
+// Collected bytes per answer. Hex-encoded with "U," and CRC this stays below
+// 4096 characters, the line limit of the ArduMower modem.
+#define UBX_PROXY_MAX_BYTES 2000
+// The answer is complete after this pause, at the latest after UBX_PROXY_TIMEOUT.
+#define UBX_PROXY_GAP_MS 50
+#define UBX_PROXY_TIMEOUT_MS 500
+
+#if !defined(DRV_SIM_ROBOT) && !GPS_LIDAR && !GPS_SKYTRAQ
+  #define UBX_PROXY_CAPTURE 1   // gps is UBLOX: capture through its parser
+#endif
+
+String Comm::ubxProxyAnswer(const uint8_t *buf, size_t len){
+  String answer = F("U,");
+  answer.reserve(2 + len * 2);
+  char hex[3];
+  for (size_t i = 0; i < len; i++) {
+    snprintf(hex, sizeof(hex), "%02X", buf[i]);
+    answer += hex;
+  }
+  return answer;
+}
+
+bool Comm::ubxProxyFinished(){
+#ifdef UBX_PROXY_CAPTURE
+  const uint32_t now = millis();
+  const size_t len = gps.proxyCaptureLength();
+  if (len >= UBX_PROXY_MAX_BYTES) return true;
+  if (len > 0 && (uint32_t)(now - gps.proxyLastByteTime()) >= UBX_PROXY_GAP_MS) return true;
+  return (int32_t)(now - ubxProxyDeadline) >= 0;
+#else
+  return true;
+#endif
+}
+
+String Comm::takeUbxProxyAnswer(){
+#ifdef UBX_PROXY_CAPTURE
+  if (!ubxProxyBuf || !ubxProxyFinished()) return "";
+  gps.stopProxyCapture();
+  String answer = ubxProxyAnswer(ubxProxyBuf, gps.proxyCaptureLength());
+  free(ubxProxyBuf);
+  ubxProxyBuf = NULL;
+  cmdAnswer(answer);
+  String s = cmdResponse;
+  cmdResponse = "";
+  return s;
+#else
+  return "";
+#endif
+}
+
+void Comm::cmdUbxProxy(bool async){
   String hexPayload = cmd.substring(7); // skip "AT+UBX,"
 
   // Accept a trailing command CRC, which is separated by a comma.
@@ -835,14 +886,42 @@ void Comm::cmdUbxProxy(){
   size_t txLen = 0;
   hexStringToBytes(hexPayload, txBuf, sizeof(txBuf), txLen);
 
+#ifdef UBX_PROXY_CAPTURE
+  // A request that is still open (no answer expected anymore) is dropped.
+  if (ubxProxyBuf) {
+    gps.stopProxyCapture();
+    free(ubxProxyBuf);
+    ubxProxyBuf = NULL;
+  }
+  ubxProxyBuf = (uint8_t*)malloc(UBX_PROXY_MAX_BYTES);
+  if (!ubxProxyBuf) {
+    cmdAnswer(String(F("U,ERR_NO_MEMORY")));
+    return;
+  }
+  // The GPS parser keeps receiving every byte; the capture only copies them.
+  gps.startProxyCapture(ubxProxyBuf, UBX_PROXY_MAX_BYTES);
+  for (size_t i = 0; i < txLen; i++) {
+    GPS.write(txBuf[i]);
+  }
+  ubxProxyDeadline = millis() + UBX_PROXY_TIMEOUT_MS;
+  if (async) return;   // answer follows via takeUbxProxyAnswer()
+
+  // Other channels expect the answer now: keep the GPS parser running meanwhile.
+  while (!ubxProxyFinished()) {
+    gps.run();
+    delay(1);
+  }
+  String answer = takeUbxProxyAnswer();
+  cmdResponse = answer;
+#else
   // Do not drain the GPS UART: the UBX parser may be receiving this frame.
   for (size_t i = 0; i < txLen; i++) {
     GPS.write(txBuf[i]);
   }
 
   // Collect long responses while allowing short gaps between UART chunks.
-  uint32_t deadline = millis() + 500;
-  uint8_t rxBuf[2048];
+  uint32_t deadline = millis() + UBX_PROXY_TIMEOUT_MS;
+  uint8_t rxBuf[UBX_PROXY_MAX_BYTES];
   size_t rxLen = 0;
   while ((int32_t)(millis() - deadline) < 0 && rxLen < sizeof(rxBuf)) {
     bool receivedThisRound = false;
@@ -850,18 +929,11 @@ void Comm::cmdUbxProxy(){
       rxBuf[rxLen++] = GPS.read();
       receivedThisRound = true;
     }
-    if (receivedThisRound) deadline = millis() + 50;
+    if (receivedThisRound) deadline = millis() + UBX_PROXY_GAP_MS;
     delay(1);
   }
-
-  String answer = F("U,");
-  answer.reserve(2 + rxLen * 2);
-  char buf[3];
-  for (size_t i = 0; i < rxLen; i++) {
-    snprintf(buf, sizeof(buf), "%02X", rxBuf[i]);
-    answer += buf;
-  }
-  cmdAnswer(answer);
+  cmdAnswer(ubxProxyAnswer(rxBuf, rxLen));
+#endif
 }
 
 // request statistics
@@ -1172,7 +1244,9 @@ void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose)
     if ((cmd.length() > 4) && (cmd[4] == '1')) cmdFirmwareUpdate();
     else if (cmd.length() >= 5){
       if ((cmd[4] == 'B') && (cmd[5] == 'X')) {
-        cmdUbxProxy();
+        // BLE (the modem) gets the answer later from BLEComm::process, so the
+        // main loop keeps running while the receiver answers
+        cmdUbxProxy(channel == "BLE");
       }
     }
   }

@@ -119,6 +119,9 @@ void BLEConfig::run(){
 // process Bluetooth input
 void BLEComm::process(){
   char ch;   
+  // asynchronous AT+UBX answer (see Comm::cmdUbxProxy)
+  String ubxAnswer = comm.takeUbxProxyAnswer();
+  if (ubxAnswer.length() > 0) BLE.print(ubxAnswer);
   if (BLE.available()){
     battery.resetIdle();  
     connected = true;
