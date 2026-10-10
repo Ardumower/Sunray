@@ -107,6 +107,37 @@ class NodeList  // owns nodes!
 };
 
 
+// points received during a map upload (AT+W), kept in blocks of UPLOAD_BLOCK_POINTS:
+// the list grows without copying the points received so far, so a map needs about
+// its own size during the upload, and blocks that were transferred to the specific
+// point lists are freed right away
+#define UPLOAD_BLOCK_POINTS 64
+
+struct UploadBlock
+{
+  UploadBlock *next;
+  Point points[UPLOAD_BLOCK_POINTS];
+};
+
+class UploadPoints
+{
+  public:
+    UploadBlock *first;   // block holding point firstIdx
+    UploadBlock *last;
+    int firstIdx;         // points below were freed (releaseBelow)
+    int capacity;         // index after the last allocated point
+    int numPoints;
+    UploadPoints();
+    void init();
+    bool resize(int count);   // like Polygon::alloc: new points are (0,0)
+    bool set(int idx, float x, float y);
+    Point *at(int idx);
+    void copyTo(Point *dst, int srcIdx, int count);
+    void releaseBelow(int idx);
+    void dealloc();
+};
+
+
 
 // there are three types of points used as waypoints:
 // mowing points:     fixed and transfered by the phone
@@ -144,7 +175,7 @@ class Map
     int freePointsIdx;   // next free point in free point polygon
     int percentCompleted;
     
-    Polygon points;      // all points in one list (mowPoints, perimeterPoints, dockPoints) transfered to robot
+    UploadPoints points; // all points in one list (mowPoints, perimeterPoints, dockPoints) transfered to robot
     Polygon perimeterPoints;  // all perimeter points
     Polygon mowPoints;        // all mowing points
     Polygon dockPoints;       // all docking points

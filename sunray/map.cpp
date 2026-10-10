@@ -416,6 +416,107 @@ void NodeList::dealloc(){
 }
 
 
+// -----------------------------------
+
+UploadPoints::UploadPoints(){
+  init();
+}
+
+void UploadPoints::init(){
+  first = NULL;
+  last = NULL;
+  firstIdx = 0;
+  capacity = 0;
+  numPoints = 0;
+}
+
+void UploadPoints::dealloc(){
+  while (first != NULL){
+    UploadBlock *next = first->next;
+    delete first;
+    first = next;
+  }
+  init();
+}
+
+bool UploadPoints::resize(int count){
+  if (count == numPoints) return true;
+  if ((count < firstIdx) || (count > 10000)) {
+    CONSOLE.println("ERROR UploadPoints::resize invalid number");
+    return false;
+  }
+  while (capacity < count){
+    UploadBlock *block = new UploadBlock;
+    if (block == NULL) {
+      CONSOLE.println("ERROR UploadPoints::resize out of memory");
+      memoryAllocErrors++;
+      return false;
+    }
+    block->next = NULL;
+    if (last == NULL) first = block;
+      else last->next = block;
+    last = block;
+    capacity += UPLOAD_BLOCK_POINTS;
+  }
+  if (count < numPoints){
+    // free the blocks behind the last point, the rest of its block becomes (0,0) again
+    int keepBlocks = (count - firstIdx + UPLOAD_BLOCK_POINTS - 1) / UPLOAD_BLOCK_POINTS;
+    UploadBlock *prev = NULL;
+    UploadBlock *block = first;
+    for (int i=0; i < keepBlocks; i++){
+      prev = block;
+      block = block->next;
+    }
+    if (prev == NULL) first = NULL;
+      else prev->next = NULL;
+    last = prev;
+    while (block != NULL){
+      UploadBlock *next = block->next;
+      delete block;
+      block = next;
+    }
+    capacity = firstIdx + keepBlocks * UPLOAD_BLOCK_POINTS;
+    for (int i=count; i < numPoints && i < capacity; i++) at(i)->init();
+  }
+  numPoints = count;
+  return true;
+}
+
+Point *UploadPoints::at(int idx){
+  if ((idx < firstIdx) || (idx >= capacity)) return NULL;
+  if (idx >= capacity - UPLOAD_BLOCK_POINTS) return &last->points[idx - (capacity - UPLOAD_BLOCK_POINTS)];
+  UploadBlock *block = first;
+  for (int i = (idx - firstIdx) / UPLOAD_BLOCK_POINTS; i > 0; i--) block = block->next;
+  return &block->points[(idx - firstIdx) % UPLOAD_BLOCK_POINTS];
+}
+
+bool UploadPoints::set(int idx, float x, float y){
+  if (!resize(idx+1)) return false;
+  at(idx)->setXY(x, y);
+  return true;
+}
+
+// points that were not received keep their value in dst
+void UploadPoints::copyTo(Point *dst, int srcIdx, int count){
+  for (int i=0; i < count; i++){
+    if (srcIdx + i >= numPoints) break;
+    Point *pt = at(srcIdx + i);
+    if (pt != NULL) dst[i].assign(*pt);
+  }
+}
+
+// frees the blocks holding only points below idx
+void UploadPoints::releaseBelow(int idx){
+  while ((first != NULL) && (firstIdx + UPLOAD_BLOCK_POINTS <= idx)){
+    UploadBlock *next = first->next;
+    delete first;
+    first = next;
+    firstIdx += UPLOAD_BLOCK_POINTS;
+  }
+  if (first == NULL) last = NULL;
+}
+
+
 
 // ---------------------------------------------------------------------
 
@@ -510,7 +611,7 @@ void Map::dump(){
   CONSOLE.print("map dump - mapCRC=");
   CONSOLE.println(mapCRC);
   CONSOLE.print("points: ");
-  points.dump();
+  CONSOLE.println(points.numPoints);
   CONSOLE.print("perimeter pts: ");
   CONSOLE.println(perimeterPoints.numPoints);
   //perimeterPoints.dump();
@@ -709,11 +810,7 @@ bool Map::setPoint(int idx, float x, float y){
       return false;
     }
   }
-  if (points.alloc(idx+1)){
-    points.points[idx].setXY(x, y);      
-    return true;
-  }
-  return false;
+  return points.set(idx, x, y);
 }
 
 
@@ -727,10 +824,8 @@ bool Map::setWayCount(WayType type, int count){
   switch (type){
     case WAY_PERIMETER:            
       if (perimeterPoints.alloc(count)) {
-        for (int i=0; i < count; i++){
-          int sidx = i;
-          if (sidx < points.numPoints) perimeterPoints.points[i].assign( points.points[sidx] );
-        }
+        points.copyTo(perimeterPoints.points, 0, count);
+        points.releaseBelow(count); // exclusion, dock and mow points follow the perimeter
       }
       break;
     case WAY_EXCLUSION:      
@@ -738,21 +833,18 @@ bool Map::setWayCount(WayType type, int count){
       break;
     case WAY_DOCK:    
       if (dockPoints.alloc(count)){
-        for (int i=0; i < count; i++){
-          int sidx = perimeterPoints.numPoints + exclusionPointsCount + i;
-          if (sidx < points.numPoints) dockPoints.points[i].assign( points.points[ sidx ] );
-        }
+        points.copyTo(dockPoints.points, perimeterPoints.numPoints + exclusionPointsCount, count);
       }
       break;
     case WAY_MOW:          
       if (mowPoints.alloc(count)){
-        for (int i=0; i < count; i++){
-          int sidx = perimeterPoints.numPoints + exclusionPointsCount + dockPoints.numPoints + i;
-          if (sidx < points.numPoints) mowPoints.points[i].assign( points.points[ sidx ] );
-        }
+        points.copyTo(mowPoints.points, perimeterPoints.numPoints + exclusionPointsCount + dockPoints.numPoints, count);
         if (exclusionPointsCount == 0){
           points.dealloc(); // free point list
           finishedUploadingMap();
+        } else {
+          // keep only the exclusion points until they arrive (AT+X)
+          points.resize(max(points.firstIdx, min(points.numPoints, perimeterPoints.numPoints + exclusionPointsCount)));
         }
       }
       break;    
@@ -787,11 +879,8 @@ bool Map::setExclusionLength(int idx, int len){
   for (int i=0; i < idx; i++){    
     ptIdx += exclusions.polygons[i].numPoints;    
   }    
-  for (int j=0; j < len; j++){
-    int sidx =  perimeterPoints.numPoints + ptIdx;
-    if (sidx < points.numPoints) exclusions.polygons[idx].points[j].assign( points.points[ sidx ] );        
-    ptIdx ++;
-  }
+  points.copyTo(exclusions.polygons[idx].points, perimeterPoints.numPoints + ptIdx, len);
+  ptIdx += len;
   CONSOLE.print("ptIdx=");
   CONSOLE.print(ptIdx);
   CONSOLE.print(" exclusionPointsCount=");
