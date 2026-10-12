@@ -63,8 +63,9 @@ Summary and Obstacles
   - The distance fields use the sensor values reported by the three ultrasonic sensors. The remaining fields are boolean or numeric sensor states as provided by the corresponding drivers.
 - `AT+S4` → GNSS and satellite details.
   - Response: `S4,<num_sv>,<num_sv_dgps>,<solution>,<h_accuracy>,<v_accuracy>,<dgps_age>,<satellite_count>,[<gnss_id>,<sv_id>,<sig_id>,<cno>,<quality_ind>,<pr_used>,<cr_corr_used>,<pr_res>,<elevation>,<azimuth>]...,0xHH`
-  - One satellite record is returned for each `<satellite_count>` entry.
-  - `<pr_used>` and `<cr_corr_used>` are `0` or `1`. The remaining satellite fields are the values reported by the u-Blox receiver.
+  - The records come from UBX-NAV-SIG: one record per signal, so a satellite tracked on two frequencies (e.g. L1 and L2) appears twice. At most 40 records are returned; `<num_sv>` and `<num_sv_dgps>` count all signals.
+  - `<pr_used>` and `<cr_corr_used>` are `0` or `1`. `<pr_res>` is the pseudorange residual in metres.
+  - `<elevation>` and `<azimuth>` are always `0`: NAV-SIG does not contain them (only UBX-NAV-SAT does, which can be polled with `AT+UBX`).
 
 Control and Tuning
 - `AT+M,<linear>,<angular>` → Set linear (m/s) and angular (rad/s) speed.
@@ -125,7 +126,9 @@ UBX Proxy
   - `<hex>`: Even-length hexadecimal string, two characters per byte. Up to 256 request bytes are accepted.
   - The command CRC is appended after the payload as usual: `AT+UBX,<hex>,0xHH`.
   - Response: `U,<response_hex>,0xHH`
-  - `<response_hex>`: All bytes received from the u-Blox receiver, in uppercase hexadecimal notation. The proxy waits up to 500 ms and extends the wait by 50 ms whenever another byte block arrives; responses up to 2048 bytes are collected.
+  - `<response_hex>`: All bytes received from the u-Blox receiver after the request, in uppercase hexadecimal notation. This includes the receiver's regular output, so the answer has to be searched for the expected UBX frame.
+  - The answer is complete when the receiver pauses for 50 ms, after 500 ms at the latest, or after 2000 bytes. The GPS parser keeps receiving all bytes meanwhile.
+  - On the BLE channel the answer is sent asynchronously, so the main loop keeps running; other channels wait for it. Send the next command only after the `U,...` answer arrived.
   - Invalid or empty hexadecimal payloads return `U,ERR_INVALID_HEX,0xHH`.
 
 Camera (Linux targets)
