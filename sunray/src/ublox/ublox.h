@@ -51,7 +51,18 @@ class UBLOX : public GpsDriver {
     bool isConfiguring() const override;
     bool configure() override;  
     void reboot() override;
+    // UBX proxy (AT+UBX): copies every received byte into buf in addition to
+    // parsing it, so the proxy neither steals bytes from the parser nor has to
+    // read the UART itself.
+    void startProxyCapture(uint8_t *buf, size_t capacity);
+    void stopProxyCapture();
+    size_t proxyCaptureLength() const { return proxyCaptureLen; }
+    uint32_t proxyLastByteTime() const { return proxyLastByte; }
   private:
+    uint8_t *proxyCaptureBuf = NULL;
+    size_t proxyCaptureCap = 0;
+    size_t proxyCaptureLen = 0;
+    uint32_t proxyLastByte = 0;
     enum ConfigPhase { CFG_DISABLED, CFG_PROBE_TARGET, CFG_PROBE_FALLBACK,
       CFG_SWITCH_BAUD, CFG_PROBE_VERIFY, CFG_VERSION, CFG_APPLY, CFG_PAUSE,
       CFG_RETRY, CFG_READY };

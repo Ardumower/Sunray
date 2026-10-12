@@ -8,6 +8,7 @@
 #include "../../config.h"
 #include "../../events.h"
 
+extern UBLOX gps;
 
 
 
@@ -780,38 +781,43 @@ void UBLOX::dispatchMessage() {
             { // UBX-NAV-SIG
               if (verbose) CONSOLE.print("UBX-NAV-SIG ");
               iTOW = (unsigned long)this->unpack_int32(0);
-              int numSigs = this->unpack_int8(5);              
+              int numSigs = (uint8_t)this->unpack_int8(5);
+              if (8 + 16*numSigs > this->msglen) numSigs = (this->msglen - 8) / 16;
               float ravg = 0;
               float rmax = 0;
               float rmin = 9999;
               float rsum = 0;                  
               int crcnt = 0;              
               int healthycnt = 0;              
-              for (int i=0; i < numSigs; i++){                
+              // NAV-SIG lists one entry per signal (L1 and L2 of a satellite are
+              // two entries). All of them are counted; AT+S4 reports the first 40.
+              gps.satelliteCount = min(numSigs, 40);
+              for (int i=0; i < numSigs; i++){
                 float prRes = ((float)((short)this->unpack_int16(12+16*i))) * 0.1;
                 float cno = ((float)this->unpack_int8(14+16*i));
                 int qualityInd = this->unpack_int8(15+16*i);                                                
-                int corrSource = this->unpack_int8(16+16*i);                                                
                 int sigFlags = (unsigned short)this->unpack_int16(18+16*i);                                                
                 bool prUsed = ((sigFlags & 8) != 0);                                    
-                bool crUsed = ((sigFlags & 16) != 0);                                    
-                bool doUsed = ((sigFlags & 32) != 0);                                    
-                bool prCorrUsed = ((sigFlags & 64) != 0);                    
                 bool crCorrUsed = ((sigFlags & 128) != 0);                    
-                bool doCorrUsed = ((sigFlags & 256) != 0);                    
+                if (i < gps.satelliteCount){
+                  gps.satellites[i].gnssId = this->unpack_int8(8+16*i);
+                  gps.satellites[i].svId = this->unpack_int8(9+16*i);
+                  gps.satellites[i].sigId = this->unpack_int8(10+16*i);
+                  gps.satellites[i].prRes = prRes;
+                  gps.satellites[i].cno = cno;
+                  gps.satellites[i].qualityInd = qualityInd;
+                  // NAV-SIG has no elevation/azimuth (only NAV-SAT has); bytes
+                  // 20..23 of an entry belong to the next signal or are reserved
+                  gps.satellites[i].elevation = 0;
+                  gps.satellites[i].azimuth = 0;
+                  gps.satellites[i].prUsed = prUsed;
+                  gps.satellites[i].crCorrUsed = crCorrUsed;
+                }
                 bool health = ((sigFlags & 3) == 1);                                                    
                 if (health){       // signal is healthy               
                   if (prUsed){     // pseudorange has been used (indicates satellites will be also used for carrier correction)
-                  //if (cno > 0){  // signal has some strength (carriar-to-noise)
                     healthycnt++;                   
                     if (crCorrUsed){  // Carrier range corrections have been used
-                      /*CONSOLE.print(sigFlags);
-                      CONSOLE.print(",");                                
-                      CONSOLE.print(qualityInd);
-                      CONSOLE.print(",");                                
-                      CONSOLE.print(prRes);
-                      CONSOLE.print(",");
-                      CONSOLE.println(cno); */
                       rsum += fabs(prRes);    // pseudorange residual
                       rmax = max(rmax, fabs(prRes));
                       rmin = min(rmin, fabs(prRes));
@@ -1016,6 +1022,18 @@ long UBLOX::unpack(int offset, int size) {
   
   
 /* parse the uBlox data */
+void UBLOX::startProxyCapture(uint8_t *buf, size_t capacity){
+  proxyCaptureBuf = buf;
+  proxyCaptureCap = capacity;
+  proxyCaptureLen = 0;
+  proxyLastByte = millis();
+}
+
+void UBLOX::stopProxyCapture(){
+  proxyCaptureBuf = NULL;
+  proxyCaptureCap = 0;
+}
+
 void UBLOX::run()
 {
   if ((int32_t)((uint32_t)millis() - (uint32_t)solutionTimeout) >= 0){
@@ -1044,6 +1062,10 @@ void UBLOX::run()
     if (value < 0) break;
     byte data = value;
 		parse(data);
+    if (proxyCaptureBuf && proxyCaptureLen < proxyCaptureCap){
+      proxyCaptureBuf[proxyCaptureLen++] = data;
+      proxyLastByte = millis();
+    }
 #ifdef GPS_DUMP
     if (data == 0xB5) CONSOLE.println("\n");
     CONSOLE.print(data, HEX);

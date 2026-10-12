@@ -722,6 +722,220 @@ void Comm::cmdSummary(){
   cmdAnswer(s);  
 }
 
+// request sensor summary
+void Comm::cmdSensorSummary(){
+  String s = F("S3,");
+  s += sonar.distanceLeft;
+  s += ",";
+  s += sonar.distanceCenter;
+  s += ",";
+  s += sonar.distanceRight;
+  s += ",";
+  s += sonar.obstacle();
+  s += ",";
+  s += sonar.nearObstacle();
+  s += ",";
+  s += bumper.testLeft();
+  s += ",";
+  s += bumper.testRight();
+  s += ",";
+  s += bumper.obstacle();
+  s += ",";
+  s += bumper.nearObstacle();
+  s += ",";
+  s += lidarBumper.obstacle();
+  s += ",";
+  s += lidarBumper.nearObstacle();
+  s += ",";
+  s += liftDriver.triggered();
+  s += ",";
+  s += rainDriver.triggered();
+  cmdAnswer(s);
+}
+
+// request GPS satellite details
+void Comm::cmdGpsDetails(){
+  String s = F("S4,");
+  s += gps.numSV;
+  s += ",";
+  s += gps.numSVdgps;
+  s += ",";
+  s += gps.solution;
+  s += ",";
+  s += gps.hAccuracy;
+  s += ",";
+  s += gps.vAccuracy;
+  s += ",";
+  s += gps.dgpsAge;
+  s += ",";
+  s += gps.satelliteCount;
+  for (int i=0; i < gps.satelliteCount; i++){
+    s += ",";
+    s += gps.satellites[i].gnssId;
+    s += ",";
+    s += gps.satellites[i].svId;
+    s += ",";
+    s += gps.satellites[i].sigId;
+    s += ",";
+    s += gps.satellites[i].cno;
+    s += ",";
+    s += gps.satellites[i].qualityInd;
+    s += ",";
+    s += (gps.satellites[i].prUsed ? 1 : 0);
+    s += ",";
+    s += (gps.satellites[i].crCorrUsed ? 1 : 0);
+    s += ",";
+    s += gps.satellites[i].prRes;
+    s += ",";
+    s += gps.satellites[i].elevation;
+    s += ",";
+    s += gps.satellites[i].azimuth;
+  }
+  cmdAnswer(s);
+}
+
+static uint8_t hexCharToByte(char c) {
+  if (c >= '0' && c <= '9') return c - '0';
+  if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+  if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+  return 0;
+}
+
+static void hexStringToBytes(const String& hex, uint8_t* out, size_t maxOutLen,
+size_t& outLen) {
+  outLen = 0;
+  size_t len = hex.length();
+  for (size_t i = 0; i + 1 < len && outLen < maxOutLen; i += 2) {
+    out[outLen++] = (hexCharToByte(hex[i]) << 4) | hexCharToByte(hex[i + 1]);
+  }
+}
+
+// UBX Proxy: send hex bytes to GPS, receive response, return as hex
+
+// Collected bytes per answer. Hex-encoded with "U," and CRC this stays below
+// 4096 characters, the line limit of the ArduMower modem.
+#define UBX_PROXY_MAX_BYTES 2000
+// The answer is complete after this pause, at the latest after UBX_PROXY_TIMEOUT.
+#define UBX_PROXY_GAP_MS 50
+#define UBX_PROXY_TIMEOUT_MS 500
+
+#if !defined(DRV_SIM_ROBOT) && !GPS_LIDAR && !GPS_SKYTRAQ
+  #define UBX_PROXY_CAPTURE 1   // gps is UBLOX: capture through its parser
+#endif
+
+String Comm::ubxProxyAnswer(const uint8_t *buf, size_t len){
+  String answer = F("U,");
+  answer.reserve(2 + len * 2);
+  char hex[3];
+  for (size_t i = 0; i < len; i++) {
+    snprintf(hex, sizeof(hex), "%02X", buf[i]);
+    answer += hex;
+  }
+  return answer;
+}
+
+bool Comm::ubxProxyFinished(){
+#ifdef UBX_PROXY_CAPTURE
+  const uint32_t now = millis();
+  const size_t len = gps.proxyCaptureLength();
+  if (len >= UBX_PROXY_MAX_BYTES) return true;
+  if (len > 0 && (uint32_t)(now - gps.proxyLastByteTime()) >= UBX_PROXY_GAP_MS) return true;
+  return (int32_t)(now - ubxProxyDeadline) >= 0;
+#else
+  return true;
+#endif
+}
+
+String Comm::takeUbxProxyAnswer(){
+#ifdef UBX_PROXY_CAPTURE
+  if (!ubxProxyBuf || !ubxProxyFinished()) return "";
+  gps.stopProxyCapture();
+  String answer = ubxProxyAnswer(ubxProxyBuf, gps.proxyCaptureLength());
+  free(ubxProxyBuf);
+  ubxProxyBuf = NULL;
+  cmdAnswer(answer);
+  String s = cmdResponse;
+  cmdResponse = "";
+  return s;
+#else
+  return "";
+#endif
+}
+
+void Comm::cmdUbxProxy(bool async){
+  String hexPayload = cmd.substring(7); // skip "AT+UBX,"
+
+  // Accept a trailing command CRC, which is separated by a comma.
+  int commaIdx = hexPayload.indexOf(',');
+  if (commaIdx >= 0) hexPayload = hexPayload.substring(0, commaIdx);
+  hexPayload.trim();
+  if (hexPayload.length() == 0 || hexPayload.length() % 2 != 0) {
+    cmdAnswer(String(F("U,ERR_INVALID_HEX")));
+    return;
+  }
+  for (size_t i = 0; i < hexPayload.length(); i++) {
+    char c = hexPayload.charAt(i);
+    if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') ||
+          (c >= 'a' && c <= 'f'))) {
+      cmdAnswer(String(F("U,ERR_INVALID_HEX")));
+      return;
+    }
+  }
+
+  uint8_t txBuf[256];
+  size_t txLen = 0;
+  hexStringToBytes(hexPayload, txBuf, sizeof(txBuf), txLen);
+
+#ifdef UBX_PROXY_CAPTURE
+  // A request that is still open (no answer expected anymore) is dropped.
+  if (ubxProxyBuf) {
+    gps.stopProxyCapture();
+    free(ubxProxyBuf);
+    ubxProxyBuf = NULL;
+  }
+  ubxProxyBuf = (uint8_t*)malloc(UBX_PROXY_MAX_BYTES);
+  if (!ubxProxyBuf) {
+    cmdAnswer(String(F("U,ERR_NO_MEMORY")));
+    return;
+  }
+  // The GPS parser keeps receiving every byte; the capture only copies them.
+  gps.startProxyCapture(ubxProxyBuf, UBX_PROXY_MAX_BYTES);
+  for (size_t i = 0; i < txLen; i++) {
+    GPS.write(txBuf[i]);
+  }
+  ubxProxyDeadline = millis() + UBX_PROXY_TIMEOUT_MS;
+  if (async) return;   // answer follows via takeUbxProxyAnswer()
+
+  // Other channels expect the answer now: keep the GPS parser running meanwhile.
+  while (!ubxProxyFinished()) {
+    gps.run();
+    delay(1);
+  }
+  String answer = takeUbxProxyAnswer();
+  cmdResponse = answer;
+#else
+  // Do not drain the GPS UART: the UBX parser may be receiving this frame.
+  for (size_t i = 0; i < txLen; i++) {
+    GPS.write(txBuf[i]);
+  }
+
+  // Collect long responses while allowing short gaps between UART chunks.
+  uint32_t deadline = millis() + UBX_PROXY_TIMEOUT_MS;
+  uint8_t rxBuf[UBX_PROXY_MAX_BYTES];
+  size_t rxLen = 0;
+  while ((int32_t)(millis() - deadline) < 0 && rxLen < sizeof(rxBuf)) {
+    bool receivedThisRound = false;
+    while (GPS.available() && rxLen < sizeof(rxBuf)) {
+      rxBuf[rxLen++] = GPS.read();
+      receivedThisRound = true;
+    }
+    if (receivedThisRound) deadline = millis() + UBX_PROXY_GAP_MS;
+    delay(1);
+  }
+  cmdAnswer(ubxProxyAnswer(rxBuf, rxLen));
+#endif
+}
+
 // request statistics
 void Comm::cmdStats(){
   String s = F("T,");
@@ -987,7 +1201,9 @@ void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose)
     if (cmd.length() <= 4){
       cmdSummary(); 
     } else {
-      if (cmd[4] == '2') cmdObstacles();      
+      if (cmd[4] == '2') cmdObstacles();
+      if (cmd[4] == '3') cmdSensorSummary();
+      if (cmd[4] == '4') cmdGpsDetails();
     }
   }
   if (cmd[3] == 'M') cmdMotor();
@@ -1026,6 +1242,13 @@ void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose)
   // Camera control handled above inside 'C' group
   if (cmd[3] == 'U'){ 
     if ((cmd.length() > 4) && (cmd[4] == '1')) cmdFirmwareUpdate();
+    else if (cmd.length() >= 5){
+      if ((cmd[4] == 'B') && (cmd[5] == 'X')) {
+        // BLE (the modem) gets the answer later from BLEComm::process, so the
+        // main loop keeps running while the receiver answers
+        cmdUbxProxy(channel == "BLE");
+      }
+    }
   }
   if (cmd[3] == 'G') cmdToggleGPSSolution();   // for developers
   if (cmd[3] == 'K') cmdKidnap();   // for developers

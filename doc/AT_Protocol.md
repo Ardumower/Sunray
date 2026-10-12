@@ -58,6 +58,14 @@ Summary and Obstacles
     - `<tt_day>,<tt_hour>`: Next timetable stop/start: if mowing → autostop day,hour; if charging → autostart day,hour; else `-1,0`.
 - `AT+S2` → Obstacles.
   - Response: `S2,<poly_cnt>,[0.5,0.5,1,<n>,x1,y1,...]...,0xHH` (polygons with RGB=(0.5,0.5,1) and their vertices).
+- `AT+S3` → Sensor summary.
+  - Response: `S3,<sonar_left>,<sonar_center>,<sonar_right>,<sonar_obstacle>,<sonar_near_obstacle>,<bumper_left_test>,<bumper_right_test>,<bumper_obstacle>,<bumper_near_obstacle>,<lidar_obstacle>,<lidar_near_obstacle>,<lift_triggered>,<rain_triggered>,0xHH`
+  - The distance fields use the sensor values reported by the three ultrasonic sensors. The remaining fields are boolean or numeric sensor states as provided by the corresponding drivers.
+- `AT+S4` → GNSS and satellite details.
+  - Response: `S4,<num_sv>,<num_sv_dgps>,<solution>,<h_accuracy>,<v_accuracy>,<dgps_age>,<satellite_count>,[<gnss_id>,<sv_id>,<sig_id>,<cno>,<quality_ind>,<pr_used>,<cr_corr_used>,<pr_res>,<elevation>,<azimuth>]...,0xHH`
+  - The records come from UBX-NAV-SIG: one record per signal, so a satellite tracked on two frequencies (e.g. L1 and L2) appears twice. At most 40 records are returned; `<num_sv>` and `<num_sv_dgps>` count all signals.
+  - `<pr_used>` and `<cr_corr_used>` are `0` or `1`. `<pr_res>` is the pseudorange residual in metres.
+  - `<elevation>` and `<azimuth>` are always `0`: NAV-SIG does not contain them (only UBX-NAV-SAT does, which can be polled with `AT+UBX`).
 
 Control and Tuning
 - `AT+M,<linear>,<angular>` → Set linear (m/s) and angular (rad/s) speed.
@@ -112,6 +120,16 @@ WiFi (Linux targets)
 
 Firmware Update (Linux targets)
 - `AT+U1,<url>` → Trigger firmware update via installer script. Ack: `U1,0xHH`
+
+UBX Proxy
+- `AT+UBX,<hex>` → Forward raw UBX bytes to the u-Blox receiver and return the received bytes as hexadecimal text.
+  - `<hex>`: Even-length hexadecimal string, two characters per byte. Up to 256 request bytes are accepted.
+  - The command CRC is appended after the payload as usual: `AT+UBX,<hex>,0xHH`.
+  - Response: `U,<response_hex>,0xHH`
+  - `<response_hex>`: All bytes received from the u-Blox receiver after the request, in uppercase hexadecimal notation. This includes the receiver's regular output, so the answer has to be searched for the expected UBX frame.
+  - The answer is complete when the receiver pauses for 50 ms, after 500 ms at the latest, or after 2000 bytes. The GPS parser keeps receiving all bytes meanwhile.
+  - On the BLE channel the answer is sent asynchronously, so the main loop keeps running; other channels wait for it. Send the next command only after the `U,...` answer arrived.
+  - Invalid or empty hexadecimal payloads return `U,ERR_INVALID_HEX,0xHH`.
 
 Camera (Linux targets)
 - `AT+CAM,<enable>,<index>,<width>,<height>,<fps>[,<quality>]`

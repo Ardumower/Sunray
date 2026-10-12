@@ -23,6 +23,8 @@ public:
   // helpers for external producers/consumers
   void setCmd(const String &s) { cmd = s; }
   String getCmdResponse() const { return cmdResponse; }
+  // Answer of an asynchronous AT+UBX (BLE channel), empty while none is ready.
+  String takeUbxProxyAnswer();
 
 private:
   // state previously global
@@ -39,6 +41,12 @@ private:
 
   String cmd;
   String cmdResponse;
+
+  // pending asynchronous AT+UBX (see cmdUbxProxy)
+  uint8_t *ubxProxyBuf = NULL;
+  uint32_t ubxProxyDeadline = 0;
+  bool ubxProxyFinished();
+  String ubxProxyAnswer(const uint8_t *buf, size_t len);
 
   float statControlCycleTime = 0; 
   float statMaxControlCycleTime = 0; 
@@ -67,7 +75,10 @@ private:
   void cmdToggleGPSSolution();
   void cmdObstacles();
   void cmdSummary();
+  void cmdSensorSummary();
+  void cmdGpsDetails();
   void cmdStats();
+  void cmdUbxProxy(bool async);
   void cmdClearStats();
   void cmdWiFiScan();
   void cmdWiFiSetup();
