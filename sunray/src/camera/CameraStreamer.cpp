@@ -3,6 +3,7 @@
 #include "MediaStream.h"
 #include "CameraRegistry.h"
 #include "LedStripDetector.h"
+#include "SafeJpeg.h"
 #include "Console.h"
 // Access motor speed setpoints via C-accessors (to avoid Arduino header conflicts)
 extern "C" float cameraGetLinearSet();
@@ -273,19 +274,7 @@ static void drawOverlay(uint8_t* img, int w, int h) {
 }
 
 static bool jpegDecodeToRGB(const uint8_t* data, size_t len, std::vector<uint8_t>& outRGB, int& w, int& h) {
-  jpeg_decompress_struct cinfo; jpeg_error_mgr jerr;
-  cinfo.err = jpeg_std_error(&jerr);
-  jpeg_create_decompress(&cinfo);
-  jpeg_mem_src(&cinfo, const_cast<unsigned char*>(data), len);
-  if (jpeg_read_header(&cinfo, TRUE) != JPEG_HEADER_OK) { jpeg_destroy_decompress(&cinfo); return false; }
-  jpeg_start_decompress(&cinfo);
-  w = cinfo.output_width; h = cinfo.output_height; int ch = cinfo.output_components; if (ch != 3) { jpeg_destroy_decompress(&cinfo); return false; }
-  outRGB.resize((size_t)w * (size_t)h * 3);
-  while (cinfo.output_scanline < cinfo.output_height) {
-    JSAMPROW rowptr = (JSAMPROW)&outRGB[(size_t)cinfo.output_scanline * (size_t)w * 3];
-    jpeg_read_scanlines(&cinfo, &rowptr, 1);
-  }
-  jpeg_finish_decompress(&cinfo); jpeg_destroy_decompress(&cinfo); return true;
+  return SafeJpeg::decode(data, len, outRGB, w, h);
 }
 
 static void resizeNearestRGB(const uint8_t* src, int sw, int sh, uint8_t* dst, int dw, int dh) {
@@ -398,6 +387,7 @@ void CameraStreamer::runLoop() {
   auto lastDetection = steady_clock::now() - milliseconds(1000);
   bool ledStatusInitialized = false;
   bool lastLedFound = false;
+  auto lastBadFrameLog = steady_clock::now() - seconds(5);
   auto minPeriod = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
   CONSOLE.print("CAM out req="); CONSOLE.print(outW); CONSOLE.print("x"); CONSOLE.print(outH); CONSOLE.print(" @"); CONSOLE.println((int)fps);
 
@@ -409,6 +399,14 @@ void CameraStreamer::runLoop() {
 
     fd_set fds; FD_ZERO(&fds); FD_SET(fd, &fds); timeval tv; tv.tv_sec = 1; tv.tv_usec = 0; int r = select(fd + 1, &fds, NULL, NULL, &tv); if (r <= 0) continue;
     v4l2_buffer b; memset(&b, 0, sizeof(b)); b.type = req.type; b.memory = V4L2_MEMORY_MMAP; if (ioctl(fd, VIDIOC_DQBUF, &b) < 0) continue;
+    if (b.index >= bufs.size()) { CONSOLE.println("CAM invalid buffer index, reopening"); break; }
+    if ((b.flags & V4L2_BUF_FLAG_ERROR) || !b.bytesused || b.bytesused > bufs[b.index].length) {
+      if (steady_clock::now() - lastBadFrameLog >= seconds(5)) {
+        CONSOLE.println("CAM dropped invalid capture buffer"); lastBadFrameLog = steady_clock::now();
+      }
+      ioctl(fd, VIDIOC_QBUF, &b);
+      continue;
+    }
     const uint8_t* mjpeg = (const uint8_t*)bufs[b.index].start; size_t mjpegLen = b.bytesused;
     auto now = steady_clock::now();
     const bool shouldSend = streamingRequested_.load() && (now - lastSend) >= minPeriod;
@@ -427,6 +425,7 @@ void CameraStreamer::runLoop() {
             lastLedFound = led.found;
             CONSOLE.print("CAM LED found="); CONSOLE.print(led.found);
             CONSOLE.print(" leds="); CONSOLE.print(led.ledCount);
+            CONSOLE.print(" mode="); CONSOLE.print(led.found ? (led.ledCount ? "points" : "solid") : "none");
             CONSOLE.print(" confidence="); CONSOLE.print(led.confidence);
             CONSOLE.print(" error="); CONSOLE.println(led.horizontalError);
           }
@@ -459,6 +458,9 @@ void CameraStreamer::runLoop() {
           }
           lastSend = now;
         }
+      } else if (now - lastBadFrameLog >= seconds(5)) {
+        CONSOLE.println("CAM dropped invalid JPEG frame");
+        lastBadFrameLog = now;
       }
     }
     ioctl(fd, VIDIOC_QBUF, &b);

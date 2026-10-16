@@ -448,6 +448,23 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define DOCK_APRIL_TAG 1         // use visual (april-tag) docking/undocking?
 //#define DOCK_GUIDANCE_SHEET  1   // use guidance sheet for docking/undocking?
 //#define DOCK_REFLECTOR_TAG  1   // use reflector tag for docking/undocking?
+#define DOCK_LED_STRIP_ROI_TOP 0.40 // ignore upper 40 percent of the camera image
+#define DOCK_LED_STRIP 1         // Linux only: native camera LED-strip docking/undocking (no ROS)
+#define DOCK_LED_STRIP_SWITCH_DISTANCE 1.5 // hand over between GPS and camera this far from dock (m)
+#define DOCK_LED_STRIP_CAMERA_INDEX 0      // logical CameraRegistry index
+#define DOCK_LED_STRIP_DETECTION_FPS 10
+#define DOCK_LED_STRIP_MIN_CONTRAST 0.20 // brightness above the local background
+#define DOCK_LED_STRIP_MIN_PEAK_DELTA 10 // minimum contrast above sensor noise
+#define DOCK_LED_STRIP_MAX_RELATIVE_COLOR_SPREAD 0.25 // neutral LED highlights
+#define DOCK_LED_STRIP_MIN_LEDS 7           // minimum aligned bright spots
+#define DOCK_LED_STRIP_MIN_VERTICAL_SPAN 0.10 // minimum LED-chain span relative to image height
+#define DOCK_LED_STRIP_MAX_SLOPE 0.12       // maximum horizontal/vertical slope of the strip
+#define DOCK_LED_STRIP_ACQUIRE_FRAMES 3     // consecutive detections required before driving
+#define DOCK_LED_STRIP_LOST_TIMEOUT_MS 500  // stop if the strip is stale for this long
+#define DOCK_LED_STRIP_ANGULAR_P 0.7        // image-error steering gain (rad/s)
+#define DOCK_LED_STRIP_MAX_ANGULAR 0.35     // steering limit (rad/s)
+#define DOCK_LED_STRIP_MAX_ERROR_FOR_DRIVE 0.65 // rotate only outside this normalized image error
+
 #define DOCK_LINEAR_SPEED 0.1   // linear speed for docking
 
 #define DOCK_DETECT_OBSTACLE_IN_DOCK false   // enable obstacle detection in dock?

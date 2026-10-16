@@ -116,3 +116,8 @@ recovery, not an RTK FIX or mowing/navigation behavior. A live cloud handshake
 also completed while GPS configuration was still in progress (18:43:25 versus
 18:43:27). Cloud availability still requires a working network and valid,
 unique connection credentials.
+
+
+## Camera JPEG error recovery
+
+Run `linux/tests/run-jpeg-decode-tests.sh` on Linux with g++, libjpeg development headers, and AddressSanitizer/UndefinedBehaviorSanitizer support. The test covers zero-filled camera frames, malformed headers, every truncation of a generated JPEG, oversized dimensions, RGB/grayscale input, and repeated valid decoding after failures. Corrupt frames must return failure with empty output instead of invoking libjpeg's default process-exit handler.
