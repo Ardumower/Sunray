@@ -100,10 +100,55 @@ static void checkConfig(const Receiver& r, size_t first=0){
 }
 struct TestMotor : Motor {
   using Motor::speedPWM;
+  using Motor::control;
+  using Motor::motorLeftPWMCurr;
+  using Motor::motorRightPWMCurr;
+  using Motor::motorLeftRpmCurr;
+  using Motor::motorRightRpmCurr;
   using Motor::motorMowPWMSet;
   using Motor::motorLeftRpmSet;
   using Motor::motorRightRpmSet;
 };
+static void testMotorStop(){
+  TestMotor m{}; m.begin();
+  m.motorLeftSwapDir=m.motorRightSwapDir=false;
+  for (int residual : {29,30,33,255,-33,-255}) {
+    m.setLinearAngularSpeed(0,0,false);
+    m.motorLeftPWMCurr=m.motorRightPWMCurr=residual;
+    m.motorLeftPID.esum=m.motorRightPID.esum=100;
+    // A coasting wheel must not regenerate drive PWM at zero target.
+    m.motorLeftRpmCurr=5; m.motorRightRpmCurr=-5;
+    for(int i=0;i<5;++i){
+      now+=50; m.control();
+      assert(motorDriver.left==0 && motorDriver.right==0);
+      assert(m.motorLeftPID.esum==0 && m.motorRightPID.esum==0);
+    }
+  }
+  m.motorLeftRpmCurr=m.motorRightRpmCurr=0;
+  // One stopped wheel must not prevent the other wheel from driving.
+  for(int direction : {-1,1}){
+    m.motorLeftRpmSet=0; m.motorRightRpmSet=direction*20;
+    now+=50; m.control();
+    assert(motorDriver.left==0 && direction*motorDriver.right>0);
+    m.motorLeftRpmSet=direction*20; m.motorRightRpmSet=0;
+    now+=50; m.control();
+    assert(direction*motorDriver.left>0 && motorDriver.right==0);
+    m.stopImmediately(true);
+    assert(motorDriver.left==0 && motorDriver.right==0 && motorDriver.mow==0);
+  }
+  m.setLinearAngularSpeed(0.3,0,false);
+  m.enableTractionMotors(false);
+  now+=50; m.control();
+  assert(motorDriver.left==0 && motorDriver.right==0);
+  assert(m.motorLeftPID.esum==0 && m.motorRightPID.esum==0);
+  m.enableTractionMotors(true);
+  now+=50; m.control();
+  assert(motorDriver.left>0 && motorDriver.right>0);
+  // Joystick command timeout also reaches the same zero-PWM path.
+  now+=1100; m.run();
+  assert(motorDriver.left==0 && motorDriver.right==0);
+  std::cout<<"PASS zero-speed PWM/PID reset, coasting, pivot, restart and command timeout\n";
+}
 int main(){
   now=0;
   Receiver uart; gps.begin(uart,115200);
@@ -131,6 +176,7 @@ int main(){
   assert(command && gps.isConfiguring() && gps.solution==SOL_INVALID && errors>=1);
   uart.online=true; uart.position(); step(gps); assert(gps.solution==SOL_INVALID);
   ready(gps); checkConfig(uart);
+  testMotorStop();
   uart.position(); step(gps); assert(gps.solution==SOL_FIXED);
   motor.setLinearAngularSpeed(0.5,0.2,false); motor.setMowState(true);
   motor.speedPWM(100,100,200);

@@ -14,8 +14,7 @@ String IdleOp::name(){
 
 void IdleOp::begin(){
     CONSOLE.println("OP_IDLE");          
-    motor.setLinearAngularSpeed(0,0);
-    motor.setMowState(false);
+    motor.stopImmediately(true); // clear PWM and controller state as well as speed targets
     maps.setIsDocked(false);
 }
 

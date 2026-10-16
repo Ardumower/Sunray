@@ -554,42 +554,56 @@ void Motor::sense(){
 }
 
 
-void Motor::control(){  
-    
+void Motor::control(){
+
   //########################  Calculate PWM for left driving motor ############################
 
-  motorLeftPID.TaMax = 0.1;
-  motorLeftPID.x = motorLeftLpf(motorLeftRpmCurr);  
-  motorLeftPID.w  = motorLeftRpmSet;
-  motorLeftPID.y_min = -pwmMax;
-  motorLeftPID.y_max = pwmMax;
-  motorLeftPID.max_output = pwmMax;
-  motorLeftPID.output_ramp = MOTOR_PID_RAMP;
-  //CONSOLE.print(motorLeftPID.x);
-  //CONSOLE.print(",");
-  //CONSOLE.print(motorLeftPID.w);
-  //CONSOLE.println();
-  motorLeftPID.compute();
-  motorLeftPWMCurr = motorLeftPWMCurr + motorLeftPID.y;
-  if (motorLeftRpmSet >= 0) motorLeftPWMCurr = min( max(0, (int)motorLeftPWMCurr), pwmMax); // 0.. pwmMax
-  if (motorLeftRpmSet < 0) motorLeftPWMCurr = max(-pwmMax, min(0, (int)motorLeftPWMCurr));  // -pwmMax..0
+  // Zero speed is a stop, not a request to retain the previous PWM.
+  // Reset each wheel separately so pivot turns still work.
+  if (!tractionMotorsEnabled || abs(motorLeftRpmSet) < 0.01) {
+    motorLeftPWMCurr = 0;
+    motorLeftPID.reset();
+    motorLeftLpf.reset();
+  } else {
+    motorLeftPID.TaMax = 0.1;
+    motorLeftPID.x = motorLeftLpf(motorLeftRpmCurr);
+    motorLeftPID.w  = motorLeftRpmSet;
+    motorLeftPID.y_min = -pwmMax;
+    motorLeftPID.y_max = pwmMax;
+    motorLeftPID.max_output = pwmMax;
+    motorLeftPID.output_ramp = MOTOR_PID_RAMP;
+    //CONSOLE.print(motorLeftPID.x);
+    //CONSOLE.print(",");
+    //CONSOLE.print(motorLeftPID.w);
+    //CONSOLE.println();
+    motorLeftPID.compute();
+    motorLeftPWMCurr = motorLeftPWMCurr + motorLeftPID.y;
+    if (motorLeftRpmSet >= 0) motorLeftPWMCurr = min( max(0, (int)motorLeftPWMCurr), pwmMax); // 0.. pwmMax
+    if (motorLeftRpmSet < 0) motorLeftPWMCurr = max(-pwmMax, min(0, (int)motorLeftPWMCurr));  // -pwmMax..0
+  }
 
   //########################  Calculate PWM for right driving motor ############################
-  
-  motorRightPID.TaMax = 0.1;
-  motorRightPID.x = motorRightLpf(motorRightRpmCurr);
-  motorRightPID.w = motorRightRpmSet;
-  motorRightPID.y_min = -pwmMax;
-  motorRightPID.y_max = pwmMax;
-  motorRightPID.max_output = pwmMax;
-  motorRightPID.output_ramp = MOTOR_PID_RAMP;
-  motorRightPID.compute();
-  motorRightPWMCurr = motorRightPWMCurr + motorRightPID.y;
-  if (motorRightRpmSet >= 0) motorRightPWMCurr = min( max(0, (int)motorRightPWMCurr), pwmMax);  // 0.. pwmMax
-  if (motorRightRpmSet < 0) motorRightPWMCurr = max(-pwmMax, min(0, (int)motorRightPWMCurr));   // -pwmMax..0  
 
-  if ((abs(motorLeftRpmSet) < 0.01) && (motorLeftPWMCurr < 30)) motorLeftPWMCurr = 0;
-  if ((abs(motorRightRpmSet) < 0.01) && (motorRightPWMCurr < 30)) motorRightPWMCurr = 0;
+  // Zero speed is a stop, not a request to retain the previous PWM.
+  // Reset each wheel separately so pivot turns still work.
+  if (!tractionMotorsEnabled || abs(motorRightRpmSet) < 0.01) {
+    motorRightPWMCurr = 0;
+    motorRightPID.reset();
+    motorRightLpf.reset();
+  } else {
+    motorRightPID.TaMax = 0.1;
+    motorRightPID.x = motorRightLpf(motorRightRpmCurr);
+    motorRightPID.w = motorRightRpmSet;
+    motorRightPID.y_min = -pwmMax;
+    motorRightPID.y_max = pwmMax;
+    motorRightPID.max_output = pwmMax;
+    motorRightPID.output_ramp = MOTOR_PID_RAMP;
+    motorRightPID.compute();
+    motorRightPWMCurr = motorRightPWMCurr + motorRightPID.y;
+    if (motorRightRpmSet >= 0) motorRightPWMCurr = min( max(0, (int)motorRightPWMCurr), pwmMax);  // 0.. pwmMax
+    if (motorRightRpmSet < 0) motorRightPWMCurr = max(-pwmMax, min(0, (int)motorRightPWMCurr));   // -pwmMax..0
+  }
+
 
   //########################  Print Motor Parameter to LOG ############################
   
