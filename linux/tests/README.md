@@ -121,3 +121,12 @@ unique connection credentials.
 ## Camera JPEG error recovery
 
 Run `linux/tests/run-jpeg-decode-tests.sh` on Linux with g++, libjpeg development headers, and AddressSanitizer/UndefinedBehaviorSanitizer support. The test covers zero-filled camera frames, malformed headers, every truncation of a generated JPEG, oversized dimensions, RGB/grayscale input, and repeated valid decoding after failures. Corrupt frames must return failure with empty output instead of invoking libjpeg's default process-exit handler.
+
+### LED strip detection
+
+`./linux/tests/run-led-strip-tests.sh` builds an isolated detector with default
+configuration and runs synthetic saturated-bloom, exposure, false-positive and
+temporal-acquisition cases. It requires a C++11 compiler, no image libraries.
+For a diagnostic RGB24 image, append `image.rgb width height`; the runner prints
+the acquired position and confidence. Camera recordings are kept outside the
+repository. Optional `CXXFLAGS` can enable AddressSanitizer/UBSan.

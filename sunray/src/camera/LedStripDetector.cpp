@@ -60,6 +60,78 @@ static bool isLedPixel(const uint8_t* pixel) {
   return hi > 0 && hi - lo <= hi * DOCK_LED_STRIP_MAX_RELATIVE_COLOR_SPREAD;
 }
 
+// A saturated LED chain loses its internal LED pattern. Recover its centre
+// from a tapered neutral core with two visible shoulders, not from white area
+// alone. Inspect the full component to distinguish a lower-image bloom from
+// a post cut by the ROI. The bottom may leave the image; the top must be visible.
+struct BloomStrip { bool found{false}; float x{0}; float span{0}; };
+static BloomStrip findBloom(const std::vector<float>& peak,
+                            const std::vector<float>& light, int w, int h, int roi) {
+  BloomStrip result;
+  float maximum = 0;
+  for (int y = roi; y < h; ++y)
+    for (int x = 0; x < w; ++x) maximum = std::max(maximum, peak[y*w+x]);
+  if (maximum < 40) return result;
+  const float threshold = maximum * 0.88f;
+  std::vector<uint8_t> seen(w*h, 0);
+  std::vector<int> queue;
+  for (int start = 0; start < w*h; ++start) {
+    if (seen[start] || peak[start] < threshold) continue;
+    queue.clear(); queue.push_back(start); seen[start] = 1;
+    std::vector<int> left(h,w), right(h,-1);
+    int minY=h, maxY=0, minX=w, maxX=0;
+    for (size_t i=0; i<queue.size(); ++i) {
+      int pos=queue[i], x=pos%w, y=pos/w;
+      left[y]=std::min(left[y],x); right[y]=std::max(right[y],x);
+      minY=std::min(minY,y); maxY=std::max(maxY,y);
+      minX=std::min(minX,x); maxX=std::max(maxX,x);
+      for (int dy=-1;dy<=1;++dy) for(int dx=-1;dx<=1;++dx) {
+        int nx=x+dx, ny=y+dy;
+        if(nx<0 || nx>=w || ny<0 || ny>=h) continue;
+        int n=ny*w+nx;
+        if(!seen[n] && peak[n]>=threshold) {seen[n]=1;queue.push_back(n);}
+      }
+    }
+    const int bw=maxX-minX+1, bh=maxY-minY+1;
+    if (minY<h*.08f || minY>h*.60f || maxY<h*.85f || bh<h*.50f ||
+        bw<w*.025f || bw>w*.45f || minX<5 || maxX>=w-5) continue;
+    // A flare widens from its visible tip. Uniform white posts/rectangles
+    // have no taper, even if they have smooth edges.
+    double upper=0,lower=0;int nu=0,nl=0;
+    for(int y=minY; y<=maxY; ++y) if(right[y]>=left[y]) {
+      if(y<minY+bh/4){upper+=right[y]-left[y]+1;++nu;}
+      if(y>maxY-bh/4){lower+=right[y]-left[y]+1;++nl;}
+    }
+    if(!nu || !nl || lower/nl < 1.30*upper/nu) continue;
+    int n=0,paired=0,halo=0;double sx=0,sy=0,sxy=0,syy=0;
+    for(int y=std::max(roi,minY);y<=maxY;++y) {
+      if(right[y]<left[y]) continue;
+      const int width=right[y]-left[y]+1, offset=std::max(5,width/3);
+      const int l=left[y]-offset,r=right[y]+offset;
+      if(l<0 || r>=w) continue;
+      const double x=(left[y]+right[y])*0.5;
+      ++n;sx+=x;sy+=y;sxy+=x*y;syy+=y*y;
+      float core=light[y*w+(int)x], delta=std::max(10.0f,core*.12f);
+      if(core-light[y*w+l]>=delta && core-light[y*w+r]>=delta) ++paired;
+      float a=light[y*w+std::max(0,left[y]-3)], b=light[y*w+std::min(w-1,right[y]+3)];
+      if(a>core*.50f && b>core*.50f && a<core*.95f && b<core*.95f) ++halo;
+    }
+    if(n<(maxY-std::max(roi,minY)+1)*.85f || n<2 || paired<n*.85f || halo<n*.50f) continue;
+    double denom=n*syy-sy*sy;
+    double slope=denom>0 ? (n*sxy-sx*sy)/denom : 0;
+    double intercept=(sx-slope*sy)/n, residual=0;
+    for(int y=std::max(roi,minY);y<=maxY;++y) {
+      if(right[y]<left[y]) continue;
+      double d=(left[y]+right[y])*.5-(slope*y+intercept);residual+=d*d;
+    }
+    if(std::fabs(slope)>DOCK_LED_STRIP_MAX_SLOPE || residual>n*std::pow(std::max(2.0,w*.006),2)) continue;
+    // Two plausible blooms are ambiguous: do not choose one arbitrarily.
+    if(result.found) return BloomStrip{};
+    result.found=true;result.x=sx/n;result.span=(float)(maxY-std::max(roi,minY)+1)/h;
+  }
+  return result;
+}
+
 } // namespace
 
 LedStripDetector& LedStripDetector::instance() {
@@ -315,9 +387,11 @@ void LedStripDetector::processRgb(const uint8_t* rgb, int width, int height,
     }
   }
 
+  const BloomStrip bloom = findBloom(peak, luminance, workW, workH, roiTop);
   const bool chainFound = bestCount >= DOCK_LED_STRIP_MIN_LEDS &&
                           bestSpan >= DOCK_LED_STRIP_MIN_VERTICAL_SPAN;
-  const bool useSolid = !chainFound && solidSpan > 0.0f;
+  const bool useSolid = bloom.found || (!chainFound && solidSpan > 0.0f);
+  if (bloom.found) { solidX = bloom.x; solidSpan = bloom.span; }
   const bool found = chainFound || useSolid;
 #ifdef DOCK_LED_STRIP_DEBUG
   std::fprintf(stderr, "LED model spots=%zu count=%d span=%.3f a=%.3f b=%.3f residual=%.3f\n",
@@ -350,6 +424,12 @@ void LedStripDetector::processRgb(const uint8_t* rgb, int width, int height,
   const float spanScore = std::min(1.0f, bestSpan / 0.45f);
   const float confidence = 0.6f * countScore + 0.4f * spanScore;
 
+  // Acquisition must follow the same marker over consecutive fresh frames.
+  const unsigned long previousTime = timestampMs_.load(std::memory_order_relaxed);
+  if (acquireCount_ && (timestampMs - previousTime > DOCK_LED_STRIP_LOST_TIMEOUT_MS ||
+      std::fabs(horizontalError - horizontalError_.load(std::memory_order_relaxed)) > 0.08f)) {
+    acquireCount_ = 0;
+  }
   if (acquireCount_ < DOCK_LED_STRIP_ACQUIRE_FRAMES) acquireCount_++;
 
   horizontalError_.store(horizontalError, std::memory_order_relaxed);
