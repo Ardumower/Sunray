@@ -375,3 +375,22 @@ The ROS workspace, ROS-only LiDAR drivers, relocalization operation and AprilTag
 input path have been removed. Localization and event IDs retain their historical
 numbers. Linux audio helpers now live in `linux/scripts/`; the service wrapper
 and event logger use those paths. Native camera reflector guidance is unchanged.
+
+### Keep mowing progress across map uploads
+
+`sh linux/tests/run-map-upload-progress-tests.sh` exercises production upload
+methods with hardware-free storage fixtures. Before the first upload point
+clears the map, the current mowing index and an ordered 64-bit fingerprint of
+mowing coordinates (centimetre protocol precision) are saved. Only a completed
+upload with the same mowing count and fingerprint restores the index. Changes
+to dock/perimeter/exclusion points do not reset an unchanged mowing route.
+Changing/reordering/removing mowing points, invalid prior indices, explicit map
+clears and abandoned uploads reset progress. No stable waypoint IDs are sent by
+the protocol, so moved mowing points cannot safely retain progress merely because
+the count is unchanged. Tests cover uploads with and without exclusions and the
+final WAY_FREE count, which must not reset the restored index after completion.
+
+Validated on mscmower (2026-10-17): a full re-upload of the active 376-point
+mowing route retained index 165 (43.9%). Operation remained Charge, wheel PWM
+stayed zero and encoder counts stayed unchanged. The build and offline tests
+also passed with AddressSanitizer/UndefinedBehaviorSanitizer.

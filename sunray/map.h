@@ -9,6 +9,7 @@
 
 #include <Arduino.h>
 #include <SD.h>
+#include "src/navigation/MowingUploadProgress.h"
 
 
 // waypoint type
@@ -160,6 +161,7 @@ class Map
     bool shouldRetryDock; // retry docking?
     bool shouldMow;  // start mowing?       
     
+    MowingUploadProgress uploadProgress;
     long mapCRC;  // map data CRC
         
     void begin();    

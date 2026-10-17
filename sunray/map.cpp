@@ -640,6 +640,10 @@ bool Map::save(){
 
 void Map::finishedUploadingMap(){
   CONSOLE.println("finishedUploadingMap");
+  mowPointsIdx = uploadProgress.restoredIndex(mowPoints);
+  uploadProgress.reset();
+  CONSOLE.print("map upload: mowing point index=");
+  CONSOLE.println(mowPointsIdx);
   #ifdef DRV_SIM_ROBOT
     float x;
     float y;
@@ -669,6 +673,8 @@ void Map::finishedUploadingMap(){
    
 void Map::clearMap(){
   CONSOLE.println("clearMap");
+  uploadProgress.reset();
+  mowPointsIdx = 0;
   points.dealloc();    
   perimeterPoints.dealloc();    
   exclusions.dealloc();
@@ -691,8 +697,11 @@ bool Map::setPoint(int idx, float x, float y){
     CONSOLE.println("ERROR setPoint: memory errors");
     return false; 
   }  
-  if (idx == 0){   
+  if (idx == 0){
+    MowingUploadProgress previousProgress;
+    previousProgress.capture(mowPoints, mowPointsIdx);
     clearMap();
+    uploadProgress = previousProgress;
   }    
   if (idx % 100 == 0){
     if (freeMemory () < 20000){
@@ -735,7 +744,8 @@ bool Map::setWayCount(WayType type, int count){
         }
       }
       break;
-    case WAY_MOW:          
+    case WAY_MOW:
+      mowPointsIdx = 0;
       if (mowPoints.alloc(count)){
         for (int i=0; i < count; i++){
           int sidx = perimeterPoints.numPoints + exclusionPointsCount + dockPoints.numPoints + i;
@@ -752,7 +762,6 @@ bool Map::setWayCount(WayType type, int count){
     default: 
       return false;       
   }
-  mowPointsIdx = 0;
   dockPointsIdx = 0;
   freePointsIdx = 0;  
   return true;
