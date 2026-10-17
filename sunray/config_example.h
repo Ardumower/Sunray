@@ -446,7 +446,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DOCK_REFLECTOR_STRIPS_CAMERA_INDEX 0      // logical CameraRegistry index
 #define DOCK_REFLECTOR_STRIPS_DETECTION_FPS 10
 #define DOCK_REFLECTOR_STRIPS_ROI_TOP 0.40 // lower-image anchor; full strips may extend above this
-#define DOCK_REFLECTOR_STRIPS_MIN_VERTICAL_SPAN 0.055 // each strip: fraction of image height
+#define DOCK_REFLECTOR_STRIPS_MIN_VERTICAL_SPAN 0.04 // each strip: fraction of image height
 #define DOCK_REFLECTOR_STRIPS_MAX_SLOPE 0.25 // tolerate modest camera roll
 #define DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO 1.6 // longest/shortest and widest/narrowest
 #define DOCK_REFLECTOR_STRIPS_MAX_SPACING_RATIO 1.45 // perspective tolerance

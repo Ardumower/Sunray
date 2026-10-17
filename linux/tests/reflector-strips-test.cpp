@@ -59,6 +59,20 @@ int main(int argc,char**argv){
  for(int y=200;y<204;++y)for(int x=353;x<405;++x)for(int c=0;c<3;++c)a[(y*W+x)*3+c]=110;
  for(int y=180;y<230;++y)for(int x=400;x<430;++x)for(int c=0;c<3;++c)a[(y*W+x)*3+c]=110;
  check("distant narrow threshold interval",a,true);
+ // At 640x360 a real distant marker has thresholded heights 22/18/23.
+ // The former 5.5% height floor intermittently discarded the centre strip.
+ a.assign(W*H*3,20);
+ strip(a,430,193,3,22);strip(a,441,195,3,18);strip(a,452,193,3,23);
+ check("distant unequal thresholded ends",a,true,(441-320.f)/320);
+ a.assign(W*H*3,20);
+ for(int x:{430,441,452})strip(a,x,193,3,14);
+ check("too short distant highlights",a,false);
+ // A large vertical closing radius joins a far strip to background below;
+ // the short-gap fallback must recover the actual narrow triple.
+ a.assign(W*H*3,20);
+ for(int x:{430,441,452})strip(a,x,200,3,18);
+ strip(a,452,225,25,15);
+ check("distant strip above bright scenery",a,true,(441-320.f)/320);
  // At charging contacts the strips exceed both the old 75% height and
  // 8% width limits; scale alone must not lose an otherwise valid triple.
  for(int count:{2,3,4}){
@@ -148,6 +162,26 @@ int main(int argc,char**argv){
   strip(a,25,-30,100,420,gain);strip(a,332,-30,120,420,gain);strip(a,615,-30,100,420,gain);
   check("both sides cropped wide middle",a,true,12.f/320);
  }
+ // Contact view with asymmetric clipping: one outer is only ~30% of
+ // the middle width. Its reconstructed centre can be outside the image.
+ for(float gain:{.1f,.2f,1.f})for(bool mirror:{false,true}){
+  a.assign(W*H*3,uint8_t(20*gain));
+  strip(a,mirror?640:0,-30,150,420,gain);
+  strip(a,mirror?287:353,-30,136,420,gain);
+  strip(a,mirror?0:640,-30,80,420,gain);
+  check("asymmetric clipped contact",a,true,(mirror?-33.f:33.f)/320);
+ }
+ // Contact with a ~20%-width right remnant and diverging outer slopes.
+ for(float gain:{.1f,.2f,1.f}){
+  a.assign(W*H*3,uint8_t(20*gain));
+  strip(a,42,-30,100,420,gain,.114f);
+  strip(a,390,-30,130,420,gain,-.056f);
+  strip(a,667,-30,100,420,gain,-.15f);
+  check("contact thin outer and perspective slopes",a,true,59.f/320);
+ }
+ a.assign(W*H*3,20);
+ strip(a,0,-30,150,420);strip(a,353,-30,136,420);strip(a,680,-30,100,420);
+ check("contact outer tiny remnant rejected",a,false);
  a.assign(W*H*3,20);strip(a,0,-30,100,420);strip(a,332,-30,120,420);strip(a,640,-30,100,420);
  check("both sides too little visible",a,false);
  a.assign(W*H*3,20);strip(a,25,-30,100,420);strip(a,332,5,120,350);strip(a,615,-30,100,420);

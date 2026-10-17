@@ -52,7 +52,7 @@ bool DockOp::requestCameraDocking(){
 #endif
 }
 
-// Used at command entry (also from Error/calibration) and every approach cycle.
+// Used only at command entry and during an already authorized marker search.
 // A fresh marker in the camera is the orientation reference; map yaw can drift.
 bool DockOp::tryCameraEntry(bool confirmedCameraEntry){
 #ifdef DOCK_REFLECTOR_STRIPS
@@ -64,9 +64,15 @@ bool DockOp::tryCameraEntry(bool confirmedCameraEntry){
     const bool nearPath = ReflectorDockingGate::nearCameraPath(
         stateEstimator.stateX,stateEstimator.stateY,
         maps.dockPoints.points[handoff].x(),maps.dockPoints.points[handoff].y(),dockX,dockY);
+    // A command may resume camera docking only on the station side of the
+    // handoff. The 2 m endpoint circle alone also includes earlier dock points.
+    // A search already authorized at the handoff may acquire within its radius.
+    const bool stationSide = cameraSearch.active() || DockMarkerSearch::eligible(
+        stateEstimator.stateX,stateEstimator.stateY,
+        maps.dockPoints.points[handoff].x(),maps.dockPoints.points[handoff].y(),dockX,dockY);
     // Found already includes consecutive-frame stability and freshness checks.
     automaticCameraEntry = ReflectorDockingGate::cameraEntryAllowed(
-        cameraReflectorStripsFound(),nearPath,cameraReflectorStripsHorizontalError());
+        cameraReflectorStripsFound(),nearPath && stationSide,cameraReflectorStripsHorizontalError());
   }
   if (confirmedCameraEntry || automaticCameraEntry){
     cameraSearchAvailable=false;
@@ -86,7 +92,7 @@ bool DockOp::tryCameraEntry(bool confirmedCameraEntry){
     lastMapRoutingFailed = false;
     mapRoutingFailedCounter = 0;
     CONSOLE.println(automaticCameraEntry
-        ? "dock: stable marker within 2m of final dock path, acquiring camera without GPS approach"
+        ? "dock: stable marker on station side of handoff, acquiring camera without GPS approach"
         : "dock: operator confirmed entry, acquiring camera marker without GPS approach");
     return true;
   }
@@ -247,10 +253,9 @@ void DockOp::run(){
     // A later tracking loss waits for reacquisition; it must not start a new scan.
     if ((cameraPhase==ReflectorDockingGate::AcquireDock || cameraPhase==ReflectorDockingGate::Dock) && markerFound)
         cameraSearchAvailable=false;
-    // Stop before switching a running GPS approach to image-based tracking.
-    // Never reset an existing acquisition/loss gate or a latched blocked state.
-    if (!dockContactAdvanceActive && !stateEstimator.reflectorDockingGate.active() &&
-        tryCameraEntry(false)) return;
+    // Once GPS approach has begun, only the route-aware StateEstimator gate
+    // may hand over at the penultimate dock point (with configured tolerance).
+    // Seeing a marker near the final segment must not skip earlier dock points.
     // begin() can change maps after this cycle's state estimation.
     if (maps.isDocking() && stateEstimator.reflectorDockingGate.phase == ReflectorDockingGate::Inactive) {
         motor.stopImmediately(false);

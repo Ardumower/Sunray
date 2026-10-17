@@ -10,6 +10,9 @@
 #endif
 
 #include "robot.h"
+#ifdef __linux__
+#include "src/camera/NavigationOverlay.h"
+#endif
 #include "StateEstimator.h"
 #include "Storage.h"
 #include "Stats.h"
@@ -1190,6 +1193,9 @@ void run(){
     
   // ----- read serial input (BT/console) -------------
   comm.processComm();
+#ifdef __linux__
+  cameraUpdateNavigationOverlay();
+#endif
   comm.outputConsole();    
 
   //##############################################################################

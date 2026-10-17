@@ -3,3 +3,6 @@
 # Local ESP32 device configurations contain WiFi/cloud credentials.
 esp32_ble/config.h
 esp32_ble/config_wlan*.local.h
+
+# Runtime camera light telemetry and reference images.
+/linux/camera_light/

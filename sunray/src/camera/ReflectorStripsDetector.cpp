@@ -14,7 +14,7 @@
 #define DOCK_REFLECTOR_STRIPS_ROI_TOP 0.40f
 #endif
 #ifndef DOCK_REFLECTOR_STRIPS_MIN_VERTICAL_SPAN
-#define DOCK_REFLECTOR_STRIPS_MIN_VERTICAL_SPAN 0.055f
+#define DOCK_REFLECTOR_STRIPS_MIN_VERTICAL_SPAN 0.04f
 #endif
 #ifndef DOCK_REFLECTOR_STRIPS_MAX_SLOPE
 #define DOCK_REFLECTOR_STRIPS_MAX_SLOPE 0.25f
@@ -67,6 +67,10 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
   // Resolve the intermediate levels too: blurred distant strips can have only
   // a narrow threshold interval between background attachment and disappearance.
   // A candidate must pass geometry and dark-gap checks at one of these levels.
+  // For distant markers, a 4%-height bridge can merge a short strip with
+  // scenery. Retry with only a 2-pixel gap if the ordinary pass has no marker.
+  // Never resolve an ambiguous ordinary result by silently discarding candidates.
+  for(int gapPass=0;gapPass<2 && markers.empty();++gapPass){
   for(float fraction : {.25f,.30f,.35f,.40f,.45f,.50f,.55f,.60f,.70f,.85f}){
     const float threshold=std::max(6.0f,maximum*fraction);
     // Search complete components, including their portion above the lower-image
@@ -75,7 +79,7 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
     // horizontal dark gaps separating the three strips.
     std::vector<uint8_t> mask(w*h,0);
     for(int i=0;i<w*h;++i)mask[i]=neutral[i]>=threshold;
-    const int maxGap=std::max(1,int(h*.04f));
+    const int maxGap=gapPass==0?std::max(1,int(h*.04f)):2;
     for(int x=0;x<w;++x){
       int previous=-1;
       for(int y=0;y<h;++y)if(neutral[y*w+x]>=threshold){
@@ -168,8 +172,11 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
           // the directly measured middle strip remains the steering target.
           if(a[0]->top>0 || a[1]->top>0 || a[2]->top>0 ||
              a[0]->bottom<h-1 || a[1]->bottom<h-1 || a[2]->bottom<h-1)continue;
-          if(a[0]->width<a[1]->width*.5f || a[2]->width<a[1]->width*.5f ||
-             !similar(a[0]->width,a[2]->width,DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO))continue;
+          // Unequal clipping does not imply unequal physical strip widths.
+          // Keep one substantial outer segment and at least an 18%-width
+          // of the other; two tiny edge remnants still cannot form a marker.
+          if(std::min(a[0]->width,a[2]->width)<a[1]->width*.18f ||
+             std::max(a[0]->width,a[2]->width)<a[1]->width*.5f)continue;
           const float outerWidth=std::max(std::max(a[0]->width,a[2]->width),
               a[1]->width/float(DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO));
           effectiveW[0]=effectiveW[2]=outerWidth;
@@ -200,7 +207,12 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
         similar(effectiveW[1],outerMean,DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO);
       if(!similar(minH,maxH,DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO) ||
          (!similar(minW,maxW,DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO) && !nearWidths) || bottom-top<maxH*.70f)continue;
-      if(std::fabs(a[0]->slope-a[1]->slope)>.12f || std::fabs(a[2]->slope-a[1]->slope)>.12f)continue;
+      // At full-height, side-clipped contact range the wide-angle image
+      // bends outer strips away from the centre. Keep the stricter parallel
+      // check everywhere else; all individual slope/contrast checks remain.
+      const float slopeDifference=bothSidesCut?.20f:.12f;
+      if(std::fabs(a[0]->slope-a[1]->slope)>slopeDifference ||
+         std::fabs(a[2]->slope-a[1]->slope)>slopeDifference)continue;
       const float y=(top+bottom)*.5f;
       Marker m;float shift[3]={0,0,0};
       if(a[0]->leftCut)shift[0]=-(effectiveW[0]-a[0]->width)*.5f;
@@ -213,7 +225,9 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
       // produce multiple different plausible triplets and remain ambiguous.
       int dark=0,total=0;
       for(int yy=int(top);yy<=int(bottom);++yy){
-        float xs[3];for(int n=0;n<3;++n)xs[n]=a[n]->x+a[n]->slope*(yy-a[n]->y)+shift[n];
+        // Contrast must sample visible strip cores, not reconstructed centres
+        // which may legitimately lie outside the frame after side clipping.
+        float xs[3];for(int n=0;n<3;++n)xs[n]=a[n]->x+a[n]->slope*(yy-a[n]->y);
         ++total;
         if(xs[0]<0 || xs[1]<0 || xs[2]<0 || xs[0]>=w || xs[1]>=w || xs[2]>=w)continue;
         const float core=std::min(light[yy*w+int(xs[0])],std::min(light[yy*w+int(xs[1])],light[yy*w+int(xs[2])]));
@@ -228,6 +242,7 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
       }
       if(!duplicate)markers.push_back(m);
     }
+  }
   }
   if(markers.size()!=1){clear();return;}
   const Marker& marker=markers.front();

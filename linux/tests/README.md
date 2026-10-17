@@ -498,3 +498,52 @@ bounded search even on the approach side within the tolerance circle. Search
 availability is consumed by a scan or valid camera acquisition, so subsequent
 tracking loss only stops/reacquires. Regression coordinates reproduce the XL
 first/second points overlapping the penultimate point's 1 m radius.
+
+### Distant marker minimum height and background bridging (2026-10-17)
+
+The flapping far-view marker had thresholded strip heights of 18/19 pixels at
+640x360, below the previous 5.5% floor (~20 pixels). The floor is now 4% (~15
+pixels). A second pass with at most 2 pixels of vertical gap filling runs only
+when the ordinary 4%-height closing finds no marker. It avoids connecting small
+reflectors to scenery below. Ambiguous ordinary detections do not invoke the
+fallback. Geometry, contrast, three-frame acquisition and loss stops are intact.
+
+The preserved 128-frame ring snapshot improves from 52 to 119 detections,
+including all 114 frames of the reported stable far-view scene. Nine other
+frames from the turning sequence remain rejected; this does not claim universal
+recognition of blurred/edge views. All 239 older originals and four additional
+positive/negative snapshots pass. The older 62-frame twilight set passes all
+nine gain/noise variants. Synthetic tests cover threshold-shortened distant
+strips, excessive shortening, background bridging and the existing negative
+patterns. Strongly darkened distant frames still lose usable contrast; stop-on-
+loss is deliberately retained.
+
+Original JPEGs, ring metadata and replay results are preserved externally in
+`reflector-datasets/2026-10-17/distant-marker`. The ring was copied while recording,
+so JPEG/metadata pairs spanning an overwrite must not be treated as synchronized.
+
+Camera navigation overlay (no robot commands):
+
+```sh
+python3 linux/tests/test-navigation-overlay.py
+```
+
+Exercises the production snapshot publisher for RTK fix/float, missing GPS,
+marker acquisition/search/loss, camera drive, odometry and non-automatic modes.
+Renders all labels at 160/320/640 pixels with address/undefined-behavior sanitizers.
+An optional existing output directory saves PPM previews.
+
+Asymmetric contact cropping: both outer strips may be clipped by different
+amounts when all three span the full image height. At least one outer segment
+must retain half the centre width and the other 18%. For this full-height, both-sides-clipped case only,
+outer/centre slope differences up to 0.20 are accepted (normally 0.12). Contrast is measured
+on visible cores; reconstructed centres are used only for spacing. Synthetic
+cases include mirrored views and 10/20/100% brightness, with missing-strip,
+tiny-remnant and ambiguous-four-strip negatives retained.
+
+Dock approach regression: command-time camera entry requires the station side
+of the penultimate point. Once RTK approach has started, only the route-aware
+handoff gate may switch to camera; the marker-visible shortcut is excluded.
+
+Passive light telemetry: see [CAMERA_LIGHT_LOGGING.md](CAMERA_LIGHT_LOGGING.md)
+for storage, field definitions, limits and the Linux logger test command.

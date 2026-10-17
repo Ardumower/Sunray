@@ -422,8 +422,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // Continue straight for this odometry distance after the charging contacts are first detected (m); 0 disables it.
 #define DOCK_CONTACT_ADVANCE_DISTANCE 0.10
 
-#define DOCK_AUTO_START true     // robot will automatically continue mowing after docked automatically
-//#define DOCK_AUTO_START false      // robot will not automatically continue mowing after docked automatically
+#define DOCK_AUTO_START false    // mscmower: resume mowing only on explicit request
 
 #define DOCK_RETRY_TOUCH true   // brief legacy contact recovery; intentionally independent of camera docking/undocking guards
 //#define DOCK_RETRY_TOUCH false   // robot will not retry touching docking contacts (max. 1cm) if loosing docking contacts during charging
@@ -446,7 +445,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DOCK_REFLECTOR_STRIPS_CAMERA_INDEX 0      // logical CameraRegistry index
 #define DOCK_REFLECTOR_STRIPS_DETECTION_FPS 10
 #define DOCK_REFLECTOR_STRIPS_ROI_TOP 0.40 // lower-image anchor; full strips may extend above this
-#define DOCK_REFLECTOR_STRIPS_MIN_VERTICAL_SPAN 0.055 // each strip: fraction of image height
+#define DOCK_REFLECTOR_STRIPS_MIN_VERTICAL_SPAN 0.04 // each strip: fraction of image height
 #define DOCK_REFLECTOR_STRIPS_MAX_SLOPE 0.25 // tolerate modest camera roll
 #define DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO 1.6 // longest/shortest and widest/narrowest
 #define DOCK_REFLECTOR_STRIPS_MAX_SPACING_RATIO 1.45 // perspective tolerance

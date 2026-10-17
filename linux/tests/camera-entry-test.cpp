@@ -1,7 +1,10 @@
 #include "src/navigation/ReflectorDockingGate.h"
+#include "src/navigation/DockMarkerSearch.h"
+DockMarkerSearch cameraSearch;
 #include <cassert>
 #include <cstdio>
 #include <limits>
+#include <initializer_list>
 #define PI 3.14159265358979323846f
 #define DOCK_FRONT_SIDE frontDock
 bool frontDock=true;
@@ -44,7 +47,15 @@ int main(){
  imageError=std::numeric_limits<float>::quiet_NaN();assert(!dock());assert(!undock());
  imageError=0;stateEstimator.stateDelta=0;stateEstimator.stateX=-3;stateEstimator.stateY=0;
  assert(!dock());assert(!undock());stateEstimator.stateX=2;
- // Same production decision is used after Idle, Error, calibration and during approach.
+ // Regression: the 2 m endpoint circle includes locations before the handoff.
+ // Even a stable marker there must not skip the GPS approach at command entry.
+ for(float x:{-1.5f,-1.0f,-0.01f}) {
+   stateEstimator.stateX=x;assert(!dock());
+ }
+ // A scan authorized by the route gate within the 1 m tolerance can acquire.
+ stateEstimator.stateX=-0.5f;cameraSearch.start(0,0);assert(dock());cameraSearch.reset();
+ stateEstimator.stateX=0;assert(dock());stateEstimator.stateX=2;
+ // Command entry is supported after Idle, Error and calibration.
  previousOp=&otherOp;assert(dock());previousOp=&imuCalibrationOp;assert(dock());
  previousOp=&idleOp;
  maps.valid=false;assert(!dock());assert(!undock());maps.valid=true;

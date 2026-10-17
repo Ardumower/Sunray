@@ -1,10 +1,13 @@
 #ifdef __linux__
 #include "CameraStreamer.h"
+#include "NavigationOverlay.h"
 #include "MediaStream.h"
 #include "CameraRegistry.h"
 #include "ReflectorStripsDetector.h"
 #include "SafeJpeg.h"
 #include "ReflectorFailureRecorder.h"
+#include "CameraLightLogger.h"
+#include "ImageDarkness.h"
 #include "Console.h"
 // Access motor speed setpoints via C-accessors (to avoid Arduino header conflicts)
 extern "C" float cameraGetLinearSet();
@@ -12,6 +15,7 @@ extern "C" float cameraGetAngularSet();
 // Provide weak fallbacks (return 0) in case OverlayData.cpp is not linked
 extern "C" __attribute__((weak)) float cameraGetLinearSet() { return 0.0f; }
 extern "C" __attribute__((weak)) float cameraGetAngularSet() { return 0.0f; }
+extern "C" __attribute__((weak)) int cameraGetNavigationMode() { return NavigationOverlay::Hidden; }
 // Default to LinuxConsole if CONSOLE macro is not mapped by a config
 #ifndef CONSOLE
 #define CONSOLE Console
@@ -166,9 +170,38 @@ static const uint8_t kFont5x7[][5] = {
   {0x4E,0x91,0x91,0x91,0x7E}, // 9
 };
 
+static const uint8_t kLetters5x7[][5] = {
+  {0x3f,0x48,0x48,0x48,0x3f}, // A
+  {0x0,0x0,0x0,0x0,0x0}, // B
+  {0x3e,0x41,0x41,0x41,0x22}, // C
+  {0x7f,0x41,0x41,0x41,0x3e}, // D
+  {0x7f,0x49,0x49,0x49,0x41}, // E
+  {0x7f,0x48,0x48,0x48,0x40}, // F
+  {0x3e,0x41,0x49,0x49,0x2e}, // G
+  {0x7f,0x8,0x8,0x8,0x7f}, // H
+  {0x41,0x41,0x7f,0x41,0x41}, // I
+  {0x0,0x0,0x0,0x0,0x0}, // J
+  {0x7f,0x8,0x14,0x22,0x41}, // K
+  {0x7f,0x1,0x1,0x1,0x1}, // L
+  {0x7f,0x20,0x18,0x20,0x7f}, // M
+  {0x0,0x0,0x0,0x0,0x0}, // N
+  {0x3e,0x41,0x41,0x41,0x3e}, // O
+  {0x7f,0x48,0x48,0x48,0x30}, // P
+  {0x0,0x0,0x0,0x0,0x0}, // Q
+  {0x7f,0x48,0x4c,0x4a,0x31}, // R
+  {0x31,0x49,0x49,0x49,0x46}, // S
+  {0x40,0x40,0x7f,0x40,0x40}, // T
+  {0x7e,0x1,0x1,0x1,0x7e}, // U
+  {0x0,0x0,0x0,0x0,0x0}, // V
+  {0x7e,0x1,0xe,0x1,0x7e}, // W
+  {0x63,0x14,0x8,0x14,0x63}, // X
+  {0x0,0x0,0x0,0x0,0x0}, // Y
+  {0x0,0x0,0x0,0x0,0x0}, // Z
+};
+
 static void drawChar5x7(uint8_t* img, int w, int h, int x, int y, char c, int scale, uint8_t r, uint8_t g, uint8_t b) {
-  if (c >= '0' && c <= '9') {
-    const uint8_t* col = kFont5x7[c - '0'];
+  if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z')) {
+    const uint8_t* col = c >= 'A' ? kLetters5x7[c - 'A'] : kFont5x7[c - '0'];
     for (int cx = 0; cx < 5; cx++) {
       uint8_t bits = col[cx];
       for (int cy = 0; cy < 7; cy++) {
@@ -272,6 +305,28 @@ static void drawOverlay(uint8_t* img, int w, int h) {
   if (vLen > 0) drawVerticalArrow(img, w, h, vCx, vCy, vLen, thick, /*up=*/(lin >= 0), 0, 255, 0);
   // Positive angular means turn left (CCW): show left arrow for ang > 0
   if (hLen > 0) drawHorizontalArrow(img, w, h, hCx, hCy, hLen, thick, /*right=*/(ang < 0), 0, 200, 255);
+}
+
+static void drawNavigationOverlay(uint8_t* img, int w, int h) {
+  const auto mode = static_cast<NavigationOverlay::Mode>(cameraGetNavigationMode());
+  const char* label = NavigationOverlay::label(mode);
+  if (!*label) return;
+  const int scale = std::max(1, w / 160);
+  const int pad = 3 * scale;
+  const int width = (int)std::strlen(label) * 6 * scale + 2 * pad;
+  fillRect(img, w, h, pad, pad, pad + width, pad + 7 * scale + 2 * pad, 0, 0, 0, 210);
+  const bool waiting = mode == NavigationOverlay::CameraWait || mode == NavigationOverlay::CameraSearch ||
+      mode == NavigationOverlay::CameraStop || mode == NavigationOverlay::GpsWait;
+  drawText(img, w, h, 2 * pad, 2 * pad, label, scale,
+           waiting ? 255 : 100, waiting ? 210 : 255, waiting ? 70 : 255);
+}
+
+static void drawDarknessOverlay(uint8_t* img,int w,int h,bool dark) {
+  if(!dark)return;
+  const int scale=std::max(1,w/160),pad=3*scale;
+  const int y=h-7*scale-3*pad;
+  fillRect(img,w,h,pad,y-pad,pad+8*6*scale+2*pad,h-pad,75,0,0,230);
+  drawText(img,w,h,2*pad,y,"TOO DARK",scale,255,215,80);
 }
 
 static bool jpegDecodeToRGB(const uint8_t* data, size_t len, std::vector<uint8_t>& outRGB, int& w, int& h) {
@@ -389,6 +444,9 @@ void CameraStreamer::runLoop() {
   bool reflectorStatusInitialized = false;
   bool lastReflectorFound = false;
   ReflectorFailureRecorder failureRecorder;
+  CameraLightLogger lightLogger;
+  ImageDarkness darkness;
+  auto lastLightMeasurement=steady_clock::now()-seconds(1);
   auto lastBadFrameLog = steady_clock::now() - seconds(5);
   auto minPeriod = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
   CONSOLE.print("CAM out req="); CONSOLE.print(outW); CONSOLE.print("x"); CONSOLE.print(outH); CONSOLE.print(" @"); CONSOLE.println((int)fps);
@@ -399,13 +457,16 @@ void CameraStreamer::runLoop() {
     if (nIndex != index) { CONSOLE.println("CAM index changed, reopening"); break; }
     outW = nW; outH = nH; if (nF != fps) { fps = nF; minPeriod = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200); }
 
-    fd_set fds; FD_ZERO(&fds); FD_SET(fd, &fds); timeval tv; tv.tv_sec = 1; tv.tv_usec = 0; int r = select(fd + 1, &fds, NULL, NULL, &tv); if (r <= 0) continue;
+    fd_set fds; FD_ZERO(&fds); FD_SET(fd, &fds); timeval tv; tv.tv_sec = 1; tv.tv_usec = 0; int r = select(fd + 1, &fds, NULL, NULL, &tv); if (r <= 0) { if(r==0)lightLogger.timeout(); lightLogger.sample(fd,index,cameraGetNavigationMode()); continue; }
     v4l2_buffer b; memset(&b, 0, sizeof(b)); b.type = req.type; b.memory = V4L2_MEMORY_MMAP; if (ioctl(fd, VIDIOC_DQBUF, &b) < 0) continue;
+    lightLogger.capture(b);
     if (b.index >= bufs.size()) { CONSOLE.println("CAM invalid buffer index, reopening"); break; }
     if ((b.flags & V4L2_BUF_FLAG_ERROR) || !b.bytesused || b.bytesused > bufs[b.index].length) {
       if (steady_clock::now() - lastBadFrameLog >= seconds(5)) {
         CONSOLE.println("CAM dropped invalid capture buffer"); lastBadFrameLog = steady_clock::now();
       }
+      lightLogger.invalid();
+      lightLogger.sample(fd,index,cameraGetNavigationMode());
       ioctl(fd, VIDIOC_QBUF, &b);
       continue;
     }
@@ -415,13 +476,21 @@ void CameraStreamer::runLoop() {
     const int detectorFps = std::max(1, reflectorFps_.load());
     const auto detectorPeriod = milliseconds(1000 / detectorFps);
     const bool shouldDetect = reflectorDetectionRequested_.load() && (now - lastDetection) >= detectorPeriod;
-    if (shouldSend || shouldDetect) {
+    const bool shouldMeasureLight=now-lastLightMeasurement>=seconds(1);
+    if (shouldSend || shouldDetect || lightLogger.due() || shouldMeasureLight) {
       std::vector<uint8_t> rgb; int srcW = 0, srcH = 0;
       if (jpegDecodeToRGB(mjpeg, mjpegLen, rgb, srcW, srcH)) {
+        lightLogger.decoded();
+        if(shouldMeasureLight){
+          const auto light=CameraLightLogger::measure(rgb.data(),srcW,srcH);
+          darkness.update(light.region,duration<double>(now.time_since_epoch()).count());
+          lastLightMeasurement=now;
+        }
         const unsigned long timestampMs = (unsigned long)duration_cast<milliseconds>(now.time_since_epoch()).count();
         if (shouldDetect) {
           ReflectorStripsDetector::instance().processRgb(rgb.data(), srcW, srcH, timestampMs);
           const ReflectorStripsObservation marker = ReflectorStripsDetector::instance().observation(timestampMs);
+          lightLogger.detection(marker.found);
           failureRecorder.observe(mjpeg, mjpegLen, srcW, srcH, timestampMs, marker, cameraGetLinearSet(), cameraGetAngularSet());
           if (!reflectorStatusInitialized || marker.found != lastReflectorFound) {
             reflectorStatusInitialized = true;
@@ -434,6 +503,8 @@ void CameraStreamer::runLoop() {
           }
           lastDetection = now;
         }
+        lightLogger.sample(fd,index,cameraGetNavigationMode(),rgb.data(),srcW,srcH,mjpeg,mjpegLen,
+            reflectorDetectionRequested_.load()?ReflectorStripsDetector::instance().observation(timestampMs).confidence:0);
         if (shouldSend) {
           std::vector<uint8_t> outRGB((size_t)outW * (size_t)outH * 3);
           resizeNearestRGB(rgb.data(), srcW, srcH, outRGB.data(), outW, outH);
@@ -450,6 +521,8 @@ void CameraStreamer::runLoop() {
                        0, 255, 0, 190);
             }
           }
+          drawNavigationOverlay(outRGB.data(), outW, outH);
+          drawDarknessOverlay(outRGB.data(), outW, outH,darkness.dark());
           const int q = reqQ_.load();
           std::vector<uint8_t> outJpeg; jpegEncodeRGB(outRGB.data(), outW, outH, (q > 0 ? q : 70), outJpeg);
           Sender s; { std::lock_guard<std::mutex> lk(mtx_); s = sender_; }
@@ -461,9 +534,13 @@ void CameraStreamer::runLoop() {
           }
           lastSend = now;
         }
-      } else if (now - lastBadFrameLog >= seconds(5)) {
-        CONSOLE.println("CAM dropped invalid JPEG frame");
-        lastBadFrameLog = now;
+      } else {
+        lightLogger.invalid();
+        lightLogger.sample(fd,index,cameraGetNavigationMode());
+        if (now - lastBadFrameLog >= seconds(5)) {
+          CONSOLE.println("CAM dropped invalid JPEG frame");
+          lastBadFrameLog = now;
+        }
       }
     }
     ioctl(fd, VIDIOC_QBUF, &b);
