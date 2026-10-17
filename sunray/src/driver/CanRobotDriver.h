@@ -32,6 +32,9 @@
 #define OWL_CONTROL_MSG_ID   200  // owlControl PCB 
 #define OWL_RECEIVER_MSG_ID  100  // owlReceiver PCB 
 #define OWL_DISPLAY_MSG_ID   500  // owlDisplay (grafische Anzeige)
+#define OWL_IOEXT_MSG_ID     700  // FollowMe IO extension (CAN firmware management)
+#define OWL_RC_SWITCH_MSG_ID 600  // owlRC-Switch (CAN firmware management)
+#define OWL_CANIO_MSG_ID     128  // CanIOBoard; separate from owlRelais ID 400
 
 #define MY_NODE_ID 61
 
@@ -52,6 +55,10 @@
 
 #define CONTROL_NODE_ID        1// owlControl PCB
 #define DISPLAY_NODE_ID        1// owlDisplay node (shared bus, distinct message ID)
+#define IOEXT_NODE_ID          1// First IO extension instance (message ID 700)
+#define RC_SWITCH_NODE_ID     59// Current owlRC-Switch firmware node (message ID 600)
+#define CANIO_RELAIS_1_NODE_ID  1// CanIOBoard relay channel 1 (message ID 128)
+#define CANIO_RELAIS_2_NODE_ID  2// CanIOBoard relay channel 2 (message ID 128)
 
 #define RELAIS_1_NODE_ID   1 // owlRelais PCB
 #define RELAIS_2_NODE_ID   2
