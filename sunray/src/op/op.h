@@ -65,7 +65,6 @@ class Op {
     virtual void end();        
     // --------- events --------------------------------------
     virtual void onImuCalibration();
-    virtual void onRelocalization();    
     virtual void onGpsNoSignal();
     virtual void onGpsFixTimeout();
     virtual void onRainTriggered();
@@ -114,17 +113,7 @@ class ImuCalibrationOp: public Op {
     virtual void run() override;
 };
 
-// relocalization op
-class RelocalizationOp: public Op {
-  public:        
-    unsigned long nextRelocalizationSecond;
-    int relocalizationSeconds;
-    virtual String name() override;
-    virtual void changeOp(Op &anOp, bool returnBackOnExit = false) override;
-    virtual void begin() override;
-    virtual void end() override;
-    virtual void run() override;
-};
+
 
 // mowing op (optionally, also undocking dock points)
 class MowOp: public Op {
@@ -296,7 +285,6 @@ extern GpsWaitFixOp gpsWaitFixOp;
 extern GpsWaitFloatOp gpsWaitFloatOp;
 extern GpsRebootRecoveryOp gpsRebootRecoveryOp;
 extern ImuCalibrationOp imuCalibrationOp;
-extern RelocalizationOp relocalizationOp;
 
 // active op
 extern Op *activeOp;

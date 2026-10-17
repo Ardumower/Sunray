@@ -134,9 +134,6 @@ void EventLogger::event(EventCode evt, const String &additionalData) {
             case EVT_BUMPER_OBSTACLE:
                 evtText = TXT_BUMPER_OBSTACLE;
                 break;
-            case EVT_LIDAR_BUMPER_OBSTACLE:
-                evtText = TXT_LIDAR_BUMPER_OBSTACLE;
-                break;
             case EVT_LIFTED_OBSTACLE:
                 evtText = TXT_LIFTED_OBSTACLE;
                 break;
@@ -200,12 +197,6 @@ void EventLogger::event(EventCode evt, const String &additionalData) {
             case EVT_DOCK_IGNORING_GPS:
                 evtText = TXT_DOCK_IGNORING_GPS;
                 break;
-            case EVT_LIDAR_RELOCALIZATION:
-                evtText = TXT_LIDAR_RELOCALIZATION;
-                break; 
-            case EVT_LIDAR_MAPPING_COMPLETED:
-                evtText = TXT_LIDAR_MAPPING_COMPLETED;
-                break; 
             case EVT_USER_UPLOAD_TIME_TABLE:
                 evtText = TXT_USER_UPLOAD_TIMETABLE;
                 break;
@@ -254,7 +245,7 @@ void EventLogger::playMP3(String &filename) {
     #ifdef __linux__        
         //String command = "killall mplayer; mplayer ";
         // volume 100% (-volume 100) and amplify by 5dB (-af volume=5:1)
-        String command = "../ros/scripts/dbus_send.sh -m Play -p ";
+        String command = "../linux/scripts/dbus_send.sh -m Play -p ";
         command += filename;
         command += " &";
         //Process p;

@@ -107,8 +107,6 @@ arr1=(
     "dock_recovery"                  "Ladekontakt verloren. Ich versuche nochmal."
     "dock_recovery_giveup"           "Ladekontakt verloren. Bitte lade mich auf."
     "dock_ignoring_gps"              "Ignoriere GPS."
-    "lidar_relocalization"           "LiDAR-Position unbekannt. Ich lokalisiere mich neu."
-    "lidar_mapping_completed"        "LiDAR-Kartierung abgeschlossen."
 )
 
 

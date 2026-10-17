@@ -47,7 +47,6 @@
 #define TXT_BATTERY_LOW_DOCK                F("battery_low_dock")
 #define TXT_MOWING_COMPLETED                F("mowing_completed")
 #define TXT_BUMPER_OBSTACLE                 F("bumper_obstacle")
-#define TXT_LIDAR_BUMPER_OBSTACLE           F("lidar_bumper_obstacle")
 #define TXT_LIFTED_OBSTACLE                 F("lifted_obstacle")
 #define TXT_GROUND_OBSTACLE                 F("ground_obstacle")
 #define TXT_TRIGGERED_OBSTACLE              F("triggered_obstacle")
@@ -71,8 +70,6 @@
 #define TXT_DOCK_RECOVERY                   F("dock_recovery")
 #define TXT_DOCK_RECOVERY_GIVEUP            F("dock_recovery_giveup")
 #define TXT_DOCK_IGNORING_GPS               F("dock_ignoring_gps")
-#define TXT_LIDAR_RELOCALIZATION            F("lidar_relocalization")
-#define TXT_LIDAR_MAPPING_COMPLETED         F("lidar_mapping_completed")
 #define TXT_AUDIO_TEST                      F("testing_audio")
 #define TXT_AUDIO_SHEEP                     F("sheep")
 #define TXT_AUDIO_BELL                      F("bell")
@@ -117,7 +114,7 @@ enum EventCode {
     EVT_BATTERY_LOW_DOCK,
     EVT_MOWING_COMPLETED,
     EVT_BUMPER_OBSTACLE,
-    EVT_LIDAR_BUMPER_OBSTACLE,
+    EVT_RESERVED_LEGACY_BUMPER,
     EVT_LIFTED_OBSTACLE,
     EVT_NO_ROBOT_MOTION_OBSTACLE,
     EVT_NO_GPS_SPEED_OBSTACLE,
@@ -140,8 +137,8 @@ enum EventCode {
     EVT_CHARGER_CONNECTED,
     EVT_DOCK_RECOVERY,
     EVT_DOCK_RECOVERY_GIVEUP,
-    EVT_LIDAR_RELOCALIZATION,
-    EVT_LIDAR_MAPPING_COMPLETED,
+    EVT_RESERVED_LEGACY_LOCALIZATION,
+    EVT_RESERVED_LEGACY_MAPPING,
     EVT_AUDIO_TEST,
     EVT_AUDIO_SHEEP,
     EVT_AUDIO_BELL,

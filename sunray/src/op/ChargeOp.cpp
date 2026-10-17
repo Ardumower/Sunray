@@ -35,7 +35,7 @@ void ChargeOp::begin(){
     motor.setLinearAngularSpeed(0,0, false); 
     motor.setMowState(false);
     CONSOLE.println(" Relais will be set to false (off)");
-    relaisDriver.setRelaisState(RELAIS_1_NODE_ID, false); // disable relais 1 (Lidar) when charging         
+    relaisDriver.setRelaisState(RELAIS_1_NODE_ID, false); // disable relais 1 when charging
     //motor.enableTractionMotors(false); // keep traction motors off (motor drivers tend to generate some incorrect encoder values when stopped while not turning)                 
 }
 

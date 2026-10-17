@@ -57,8 +57,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 // CAN frames remain disabled.
 #define ENABLE_CAN_DISPLAY 0
 
-// if compiling for ROS, specify robot launch file (.launch) for robot-specific ROS launch (if not running in ROS, this option will not be used )
-#define ROS_LAUNCH_FILE "ardumower"
 
 // ------- Bluetooth4.0/BLE module -----------------------------------
 // see Wiki on how to install the BLE module and configure the jumpers:
@@ -325,9 +323,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define BUMPER_TRIGGER_DELAY  0 // bumper must be active for (ms) to trigger
 #define BUMPER_MAX_TRIGGER_TIME 30  // if bumpersensor stays permanent triggered mower will stop with bumper error (time in seconds; 0 = disabled)
 
-// ------ LiDAR bumper ------------------------------------------
-#define LIDAR_BUMPER_ENABLE false
-#define LIDAR_BUMPER_DEADTIME          1000   // linear motion dead-time (ms) after bumper is allowed to trigger
 
 // ----- battery charging current measurement (INA169) --------------
 // the Marotronics charger outputs max 1.5A 
@@ -365,7 +360,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 //#define GPS_USE_TCP 1                    // comment out for serial gps, activate for TCP client-based GPS
 //#define GPS_SKYTRAQ  1               // comment out for ublox gps, uncomment for skytraq gps/NMEA
-// #define GPS_LIDAR 1                    // decomment for LiDAR
 
 #define REQUIRE_VALID_GPS  true       // mower will pause if no float and no fix GPS solution during mowing (recommended)
 //#define REQUIRE_VALID_GPS  false    // mower will continue to mow if no float or no fix solution (not recommended)
@@ -446,8 +440,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define DOCK_RELEASE_BRAKES true   // robot will release electrical brakes in dock
 #define DOCK_RELEASE_BRAKES false   // robot will not release electrical brakes in dock
 
-//#define DOCK_APRIL_TAG 1         // use visual (april-tag) docking?
-//#define DOCK_REFLECTOR_STRIPS 1         // Linux only: native camera three-reflector docking/undocking (no ROS)
+//#define DOCK_REFLECTOR_STRIPS 1         // Linux only: native camera three-reflector docking/undocking
 #define DOCK_REFLECTOR_STRIPS_FIRST_POINT_RADIUS 0.25 // stop/handoff near first dock point (m)
 #define DOCK_REFLECTOR_STRIPS_UNDOCK_EXIT_RADIUS 2.0 // hand back to GPS within 2 m of first dock point
 #define DOCK_REFLECTOR_STRIPS_STOP_MS 500 // mandatory standstill before camera tracking

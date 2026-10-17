@@ -16,8 +16,7 @@
 enum LocalizationMode {
       LOC_IMU_ODO_ONLY, // IMU/odometry-only localization 
       LOC_GPS,          // RTK localization
-      LOC_APRIL_TAG,    // vision (camera) localization (april-tag)       
-      LOC_GUIDANCE_SHEET, // sideways guidance sheets localization (one dimension)
+      LOC_GUIDANCE_SHEET = 3, // sideways guidance sheets localization (one dimension)
       LOC_REFLECTOR_STRIPS = 5,     // native camera three-reflector docking guidance
 };    
 
@@ -34,10 +33,6 @@ public:
   float stateDeltaGPS = 0;
   float stateDeltaIMU = 0;
 
-  bool stateAprilTagFound = false;
-  float stateXAprilTag = 0;    // camera-position in april-tag frame
-  float stateYAprilTag = 0;
-  float stateDeltaAprilTag = 0;
 
 
   float stateGroundSpeed = 0;  // m/s

@@ -50,8 +50,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define DRV_ARDUMOWER     1   // keep this for Ardumower
 //#define DRV_SIM_ROBOT     1   // simulation
 
-// if compiling for ROS, specify robot launch file (.launch) for robot-specific ROS launch (if not running in ROS, this option will not be used )
-#define ROS_LAUNCH_FILE "alfred"
 
 // ------- Bluetooth4.0/BLE module -----------------------------------
 // see Wiki on how to install the BLE module and configure the jumpers:
@@ -306,9 +304,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define BUMPER_TRIGGER_DELAY  0		// bumper must be active for (ms) to trigger
 #define BUMPER_MAX_TRIGGER_TIME 30	// if bumpersensor stays permanent triggered mower will stop with bumper error (time in seconds; 0 = disabled)																																				  
 
-// ------ LiDAR bumper ------------------------------------------
-#define LIDAR_BUMPER_ENABLE false
-#define LIDAR_BUMPER_DEADTIME          1000   // linear motion dead-time (ms) after bumper is allowed to trigger
 
 // ----- battery charging current measurement (INA169) --------------
 // the Marotronics charger outputs max 1.5A 
@@ -346,7 +341,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 //#define GPS_USE_TCP 1                    // comment out for serial gps, activate for TCP client-based GPS
 //#define GPS_SKYTRAQ  1               // comment out for ublox gps, uncomment for skytraq gps/NMEA
-// #define GPS_LIDAR 1                    // decomment for LiDAR
 
 #define REQUIRE_VALID_GPS  true       // mower will pause if no float and no fix GPS solution during mowing (recommended)
 //#define REQUIRE_VALID_GPS  false    // mower will continue to mow if no float or no fix solution (not recommended)
@@ -422,7 +416,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define DOCK_RELEASE_BRAKES true   // robot will release electrical brakes in dock
 #define DOCK_RELEASE_BRAKES false   // robot will not release electrical brakes in dock
 
-//#define DOCK_APRIL_TAG 1         // use visual (april-tag) docking?
 #define DOCK_LINEAR_SPEED 0.1   // linear speed for docking
 
 #define DOCK_DETECT_OBSTACLE_IN_DOCK true   // enable obstacle detection in dock?

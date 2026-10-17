@@ -149,10 +149,7 @@ void LineTracker::trackLine(bool runControl){
         linear = 0.1;  // slow down near obstacles 
         //CONSOLE.println("SLOW: BUMPER");      
       }
-      if (lidarBumper.nearObstacle()){
-        linear = 0.1;  // slow down near obstacles 
-        //CONSOLE.println("SLOW: LiDAR");      
-      }
+
       if (sonar.nearObstacle()) {
         linear = 0.1; // slow down near obstacles
         //CONSOLE.println("SLOW: sonar");      
@@ -223,16 +220,7 @@ void LineTracker::trackLine(bool runControl){
       }
     }
   }
-  if (stateEstimator.stateLocalizationMode == LOC_APRIL_TAG){
-    if (!stateEstimator.stateAprilTagFound){
-      linear = 0; // wait until april-tag found 
-      angular = 0; 
-    } else {
-      if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
-      //linear = 0; // wait until april-tag found 
-      //angular = 0; 
-    }
-  }
+
   if (stateEstimator.stateLocalizationMode == LOC_GUIDANCE_SHEET){
       if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
       angular = 0;

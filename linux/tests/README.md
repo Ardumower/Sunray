@@ -368,3 +368,10 @@ Supervised round trip on 2026-10-17 with this detector: undock completed in
 The 0.10 m contact advance completed; subsequent retry touch restored contact
 after three seconds without detection loss. Final Charge and zero wheel PWM
 remained stable. No physical bumper actuation was part of this round trip.
+
+### Native Linux build only
+
+The ROS workspace, ROS-only LiDAR drivers, relocalization operation and AprilTag
+input path have been removed. Localization and event IDs retain their historical
+numbers. Linux audio helpers now live in `linux/scripts/`; the service wrapper
+and event logger use those paths. Native camera reflector guidance is unchanged.

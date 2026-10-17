@@ -207,13 +207,7 @@ void StateEstimator::computeRobotState(){
   stateLocalizationMode = LOC_GPS;
   bool useGPSposition = true; // use GPS position?
   bool useGPSdelta = true; // correct yaw with gps delta estimation?
-  bool useImuAbsoluteYaw = false; // use IMU yaw absolute value?
 
-  // ------- lidar localization --------------------------
-  #ifdef GPS_LIDAR
-    useGPSdelta = false;
-    useImuAbsoluteYaw = true;
-  #endif      
   
   // ------- sideways guidance sheets ---------------------
   #ifdef DOCK_GUIDANCE_SHEET // use guidance sheet for docking/undocking?
@@ -221,42 +215,9 @@ void StateEstimator::computeRobotState(){
       stateLocalizationMode = LOC_GUIDANCE_SHEET;
       useGPSposition = false;
       useGPSdelta = false;
-      useImuAbsoluteYaw = false;
     }
   #endif
 
-  // ------- vision (april-tag) --------------------------
-  #ifdef DOCK_APRIL_TAG  // use april-tag for docking/undocking?
-    if (maps.isBetweenLastAndNextToLastDockPoint() ){
-      stateLocalizationMode = LOC_APRIL_TAG;
-      useGPSposition = false;
-      useGPSdelta = false;
-      useImuAbsoluteYaw = false;
-      if (stateAprilTagFound){  
-        float robotX = stateXAprilTag; // robot-in-april-tag-frame (x towards outside tag, y left, z up)
-        float robotY = stateYAprilTag;
-        float robotDelta = scalePI(stateDeltaAprilTag);    
-        /*CONSOLE.print("APRIL TAG found: ");      
-        CONSOLE.print(robotX);
-        CONSOLE.print(",");
-        CONSOLE.print(robotY);
-        CONSOLE.print(",");    
-        CONSOLE.println(robotDelta/3.1415*180.0);*/        
-        float dockX;
-        float dockY;
-        float dockDelta;
-        if (maps.getDockingPos(dockX, dockY, dockDelta)){
-          // transform robot-in-april-tag-frame into world frame
-          float worldX = dockX + robotX * cos(dockDelta+3.1415) - robotY * sin(dockDelta+3.1415);
-          float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            
-          stateX = worldX;
-          stateY = worldY;
-          stateDelta = scalePI(robotDelta + dockDelta);
-          if (DOCK_FRONT_SIDE) stateDelta = scalePI(stateDelta + 3.1415);
-        }
-      }
-    }
-  #endif
 
   // ------- GPS shadow near docking station --------------------------
   // Metal docking enclosures can make an RTK fix jump or disappear. Once the
@@ -285,7 +246,6 @@ void StateEstimator::computeRobotState(){
       stateLocalizationMode = LOC_IMU_ODO_ONLY;
       useGPSposition = false;
       useGPSdelta = false;
-      useImuAbsoluteYaw = false;
     }
   #endif
 
@@ -333,7 +293,6 @@ void StateEstimator::computeRobotState(){
       stateLocalizationMode = LOC_REFLECTOR_STRIPS;
       useGPSposition = false;
       useGPSdelta = false;
-      useImuAbsoluteYaw = false;
     }
   #endif
 
@@ -450,11 +409,7 @@ void StateEstimator::computeRobotState(){
   
   if ((imuDriver.imuFound) && (maps.useIMU)) {
     // IMU available and should be used by planner        
-    if (useImuAbsoluteYaw){
-      stateDelta = imuDriver.yaw; 
-    } else {
-      stateDelta = scalePI(stateDelta + stateDeltaIMU );          
-    }     
+    stateDelta = scalePI(stateDelta + stateDeltaIMU);
   } else {
     // odometry
     stateDelta = scalePI(stateDelta + deltaOdometry);  

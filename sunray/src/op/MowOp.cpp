@@ -34,7 +34,7 @@ void MowOp::begin(){
     battery.setIsDocked(false);                
     timetable.setMowingCompletedInCurrentTimeFrame(false); 
     CONSOLE.println(" Relais will be set to true (on)");
-    relaisDriver.setRelaisState(RELAIS_1_NODE_ID, true); // enable relais 1 (Lidar) when not charging               
+    relaisDriver.setRelaisState(RELAIS_1_NODE_ID, true); // enable relais 1 when not charging
 
 #ifdef DOCK_REFLECTOR_STRIPS
     // Recover an interrupted camera exit through the normal Mow command.

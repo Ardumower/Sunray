@@ -35,7 +35,6 @@
 #include "Storage.h"
 #include "src/ublox/ublox.h"
 #include "src/skytraq/skytraq.h"
-#include "src/lidar/lidar.h"
 #ifdef __linux__
   #include <BridgeClient.h>
   #include "src/ntrip/ntripclient.h"
@@ -106,8 +105,6 @@ extern bool hasClient;
 
 #ifdef DRV_SIM_ROBOT
   extern SimImuDriver imuDriver;
-#elif defined(GPS_LIDAR)
-  extern LidarImuDriver imuDriver;
 #elif defined(BNO055)
   extern BnoDriver imuDriver;  
 #elif defined(ICM20948)
@@ -122,7 +119,6 @@ extern BLEConfig bleConfig;
 extern BLEComm ble;
 extern Bumper bumper;
 extern Buzzer buzzer;
-extern LidarBumperDriver lidarBumper;
 extern Sonar sonar;
 extern VL53L0X tof;
 extern PinManager pinMan;
@@ -137,8 +133,6 @@ extern Storage storage;
 extern TimeTable timetable;
 #ifdef DRV_SIM_ROBOT
   extern SimGpsDriver gps;
-#elif GPS_LIDAR
-  extern LidarGpsDriver gps;
 #elif GPS_SKYTRAQ
   extern SKYTRAQ gps;
 #else

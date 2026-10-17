@@ -27,7 +27,7 @@ if [[ `pidof sunray` != "" ]]; then
 fi
 
 # starting dbus monitor
-../ros/scripts/dbus_monitor.sh &
+./scripts/dbus_monitor.sh &
 
 
 # -----------------------------------------
@@ -93,7 +93,7 @@ cat /proc/asound/cards
 #adduser root dialout audio pulse-access pulse
 echo "we will test host audio now... (you should hear a voice)"
 echo "(to change default audio card: sudo nano /etc/mplayer/mplayer.conf  and add device idx: ao=alsa:device=hw=3.0)"
-../ros/scripts/dbus_send.sh -m Play -p ../tts/de/system_starting.mp3
+./scripts/dbus_send.sh -m Play -p ../tts/de/system_starting.mp3
 
 
 # Bind once during startup; another service may legitimately own port 80.

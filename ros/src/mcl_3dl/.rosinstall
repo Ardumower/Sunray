@@ -1,4 +1,0 @@
-- git:
-    local-name: mcl_3dl_msgs
-    uri: https://github.com/at-wat/mcl_3dl_msgs.git
-    version: master

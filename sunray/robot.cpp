@@ -30,7 +30,6 @@
 #include "gps.h"
 #include "src/ublox/ublox.h"
 #include "src/skytraq/skytraq.h"
-#include "src/lidar/lidar.h"
 #include "helper.h"
 #include "buzzer.h"
 #include "rcmodel.h"
@@ -59,8 +58,6 @@ const signed char orientationMatrix[9] = {
 
 #ifdef DRV_SIM_ROBOT
   SimImuDriver imuDriver(robotDriver);
-#elif defined(GPS_LIDAR)
-  LidarImuDriver imuDriver;
 #elif defined(BNO055)
   BnoDriver imuDriver;
 #elif defined(ICM20948)
@@ -114,8 +111,6 @@ Battery battery;
 PinManager pinMan;
 #ifdef DRV_SIM_ROBOT
   SimGpsDriver gps(robotDriver);
-#elif GPS_LIDAR
-  LidarGpsDriver gps;
 #elif GPS_SKYTRAQ
   SKYTRAQ gps;
 #else 
@@ -124,7 +119,6 @@ PinManager pinMan;
 BLEConfig bleConfig;
 BLEComm ble;
 Buzzer buzzer;
-LidarBumperDriver lidarBumper;
 Sonar sonar;
 Bumper bumper;
 VL53L0X tof(VL53L0X_ADDRESS_DEFAULT);
@@ -226,7 +220,6 @@ void sensorTest(){
   while (millis() < stopTime){
     sonar.run();
     bumper.run();
-    lidarBumper.run();
     liftDriver.run();
     robotDriver.run();   
     if (millis() > nextMeasureTime){
@@ -263,13 +256,7 @@ void sensorTest(){
         CONSOLE.print(((int)bumper.nearObstacle()));        
         CONSOLE.print("\t");       
       }
-      if (LIDAR_BUMPER_ENABLE) {
-        CONSOLE.print("LiDAR bumper (triggered,nearObstacle): ");
-        CONSOLE.print(((int)lidarBumper.obstacle()));
-        CONSOLE.print("\t");
-        CONSOLE.print(((int)lidarBumper.nearObstacle()));        
-        CONSOLE.print("\t");
-      }
+
 	    #ifdef ENABLE_LIFT_DETECTION 
         CONSOLE.print("lift sensor (triggered): ");		
         bool liftTriggered = liftDriver.triggered();
@@ -499,8 +486,6 @@ void outputConfig(){
   CONSOLE.println(BUMPER_TRIGGER_DELAY);
   CONSOLE.print("BUMPER_MAX_TRIGGER_TIME: ");
   CONSOLE.println(BUMPER_MAX_TRIGGER_TIME);  
-  CONSOLE.print("LIDAR_BUMPER_ENABLE: ");
-  CONSOLE.println(LIDAR_BUMPER_ENABLE);  
   CONSOLE.print("CURRENT_FACTOR: ");
   CONSOLE.println(CURRENT_FACTOR);
   CONSOLE.print("GO_HOME_VOLTAGE: ");
@@ -558,7 +543,7 @@ void outputConfig(){
     CONSOLE.println(DOCK_CONTACT_ADVANCE_DISTANCE);
   #endif
   #ifdef DOCK_REFLECTOR_STRIPS
-    CONSOLE.println("DOCK_REFLECTOR_STRIPS: native V4L2 (no ROS)");
+    CONSOLE.println("DOCK_REFLECTOR_STRIPS: native V4L2");
     CONSOLE.print("DOCK_REFLECTOR_STRIPS_FIRST_POINT_RADIUS: ");
     CONSOLE.println(DOCK_REFLECTOR_STRIPS_FIRST_POINT_RADIUS);
     CONSOLE.print("DOCK_REFLECTOR_STRIPS_UNDOCK_EXIT_RADIUS: ");
@@ -662,7 +647,6 @@ void start(){
   motor.begin();
   sonar.begin();
   bumper.begin();
-  lidarBumper.begin();
 
   outputConfig();
 
@@ -853,13 +837,7 @@ bool detectObstacle(){
     return true;
   }
 
-  if ( (millis() > stateEstimator.linearMotionStartTime + LIDAR_BUMPER_DEADTIME) && (lidarBumper.obstacle()) ){  
-    CONSOLE.println("LiDAR bumper obstacle!");    
-    Logger.event(EVT_LIDAR_BUMPER_OBSTACLE);
-    stats.statMowBumperCounter++;
-    triggerObstacle();    
-    return true;
-  }
+
   
   #ifndef SONAR_OBSTACLE_WARNING_LEVEL
   #define SONAR_OBSTACLE_WARNING_LEVEL 5
@@ -1067,10 +1045,7 @@ void run(){
       activeOp->onImuCalibration();             
     } else {
       stateEstimator.readIMU();    
-      // LiDAR relocalization
-      if (gps.isRelocalizing){
-        activeOp->onRelocalization();
-      }
+
     }
   }
 
