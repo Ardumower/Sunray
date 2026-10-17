@@ -994,6 +994,9 @@ void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose)
   if (cmd[3] == 'C'){
     // Special cases under 'C'
     if ((cmd.length() > 5) && (cmd[4] == 'A') && (cmd[5] == 'M')) { cmdCamera(); return; }
+    // Explicit operator confirmation that the camera-entry point is reached.
+    // This command is deliberately distinct from ordinary GPS docking.
+    if (cmd == "AT+CD") { cmdAnswer(dockOp.requestCameraDocking() ? "CD,1" : "CD,0"); return; }
     if ((cmd.length() > 4) && (cmd[4] == 'T')) cmdTuneParam();
     else cmdControl();
   }

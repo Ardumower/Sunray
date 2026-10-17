@@ -15,7 +15,11 @@ String IdleOp::name(){
 void IdleOp::begin(){
     CONSOLE.println("OP_IDLE");          
     motor.stopImmediately(true); // clear PWM and controller state as well as speed targets
-    maps.setIsDocked(false);
+#ifdef DOCK_REFLECTOR_STRIPS
+    // Preserve the interrupted exit route for the next ordinary Mow command.
+    if (!(maps.isUndocking() && !stateEstimator.dockReflectorStripsUndockCompleted))
+#endif
+        maps.setIsDocked(false);
 }
 
 

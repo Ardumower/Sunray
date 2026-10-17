@@ -4,8 +4,9 @@ cd "$(dirname "$0")/../.."
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT HUP INT TERM
 # Build an isolated source copy: never replace the user's robot config.h.
-mkdir -p "$work/sunray/src/driver" "$work/linux/tests"
+mkdir -p "$work/sunray/src/navigation" "$work/sunray/src/driver" "$work/linux/tests"
 cp -R sunray/src/ublox sunray/src/net "$work/sunray/src/"
+cp sunray/src/navigation/DockMotionLimit.h "$work/sunray/src/navigation/"
 cp sunray/src/driver/RobotDriver.h "$work/sunray/src/driver/"
 cp sunray/gps.h sunray/types.h sunray/events.h "$work/sunray/"
 cp linux/tests/gps-startup-test.cpp "$work/linux/tests/"

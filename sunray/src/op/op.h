@@ -11,6 +11,10 @@
 #include "../../robot.h"
 #include "../../map.h"
 
+#ifndef DOCK_STOP_ON_OBSTACLE
+#define DOCK_STOP_ON_OBSTACLE false
+#endif
+
 
 // operations - the robot starts in operation 'IdleOp' and (depending on events) enters new operations (MowOp, EscapeReverseOp, GpsWaitFixOp etc.)
 
@@ -55,7 +59,8 @@ class Op {
     // checks if active operation should stop and if so, makes transition to new one
     virtual void checkStop();
     // op run code 
-    virtual void run();    
+    virtual void run();
+    bool stopOnDockingObstacle(Sensor sensor);
     // op exit code
     virtual void end();        
     // --------- events --------------------------------------
@@ -152,7 +157,9 @@ class MowOp: public Op {
 
 // dock op (driving to first dock point and following dock points until charging point)
 class DockOp: public Op {
-  public:        
+  public:
+    bool cameraEntryRequested = false;
+    bool requestCameraDocking();
     bool dockReasonRainTriggered;
     unsigned long dockReasonRainAutoStartTime;
     bool lastMapRoutingFailed;
@@ -268,7 +275,8 @@ class EscapeForwardOp: public Op {
 
 // error op
 class ErrorOp: public Op {
-  public:        
+  public:
+    bool dockingObstacleStop = false;
     virtual String name() override;
     virtual void begin() override;
     virtual void end() override;

@@ -36,6 +36,37 @@ void MowOp::begin(){
     CONSOLE.println(" Relais will be set to true (on)");
     relaisDriver.setRelaisState(RELAIS_1_NODE_ID, true); // enable relais 1 (Lidar) when not charging               
 
+#ifdef DOCK_REFLECTOR_STRIPS
+    // Recover an interrupted camera exit through the normal Mow command.
+    // After a restart, require route geometry and facing the station;
+    // distance to the first point alone cannot distinguish the mowing field.
+    float dockX,dockY,dockHeading;
+    bool resumeCamera = false;
+    if (maps.dockPoints.numPoints >= 2 && maps.getDockingPos(dockX,dockY,dockHeading)) {
+        const float x=stateEstimator.stateX,y=stateEstimator.stateY;
+        const float dx=x-maps.dockPoints.points[0].x(),dy=y-maps.dockPoints.points[0].y();
+        bool inCorridor=false;
+        for(int i=1;i<maps.dockPoints.numPoints;++i)
+            inCorridor |= ReflectorDockingGate::nearSegment(x,y,
+                maps.dockPoints.points[i-1].x(),maps.dockPoints.points[i-1].y(),
+                maps.dockPoints.points[i].x(),maps.dockPoints.points[i].y(),0.75f);
+        const float facing=std::cos(stateEstimator.stateDelta-dockHeading-(DOCK_FRONT_SIDE?0:PI));
+        const bool knownDockPath=maps.wayMode==WAY_DOCK;
+        resumeCamera = ReflectorDockingGate::resumeUndocking(std::sqrt(dx*dx+dy*dy),
+            DOCK_REFLECTOR_STRIPS_UNDOCK_EXIT_RADIUS,inCorridor,knownDockPath,facing);
+    }
+    if (resumeCamera){
+        maps.wayMode=WAY_DOCK;
+        // startMowing plans the normal continuation; nextPoint selects index 0.
+        maps.dockPointsIdx=1;
+        stateEstimator.reflectorDockingGate.reset();
+        stateEstimator.dockReflectorStripsActive=false;
+        stateEstimator.dockReflectorStripsUndockCompleted=false;
+        motor.stopImmediately(true);
+        CONSOLE.println("undock: Mow resumes dock corridor with camera acquisition");
+    }
+#endif
+
     // plan route to next target point 
 
     dockOp.dockReasonRainTriggered = false;    
@@ -47,7 +78,7 @@ void MowOp::begin(){
             stateEstimator.lastFixTime = millis();                
             maps.setLastTargetPoint(stateEstimator.stateX, stateEstimator.stateY);        
             //stateSensor = SENS_NONE;
-            motor.setMowState(true);                
+            motor.setMowState(!maps.isUndocking());
         } else {
             error = true;
             CONSOLE.println("error: no waypoints!");
@@ -86,9 +117,31 @@ void MowOp::end(){
 }
 
 void MowOp::run(){
+    if (bumper.obstacle() && stopOnDockingObstacle(SENS_BUMPER)) return;
+#if defined(UNDOCK_TEST_TIMEOUT_MS) && UNDOCK_TEST_TIMEOUT_MS > 0
+    // Test mode ends before any GPS/free-path continuation or mowing.
+    if (millis()-startTime >= UNDOCK_TEST_TIMEOUT_MS || !maps.isUndocking()
+#ifdef DOCK_REFLECTOR_STRIPS
+        || stateEstimator.dockReflectorStripsUndockCompleted
+#endif
+    ) {
+        motor.stopImmediately(true);
+        CONSOLE.println("undock: test limit or camera exit reached, stopping in Idle");
+        changeOp(idleOp, false);
+        return;
+    }
+#endif
+#ifdef DOCK_REFLECTOR_STRIPS
+    if (maps.isUndocking() && !stateEstimator.dockReflectorStripsUndockCompleted &&
+        !stateEstimator.dockReflectorStripsActive) {
+        motor.stopImmediately(false);
+        return;
+    }
+#endif
     if (!detectObstacle()){
         detectObstacleRotation();                              
     }        
+    if (shouldStop) return; // an obstacle transition must not be overwritten by tracking
     // line tracking
     lineTracker.trackLine(true); 
     detectSensorMalfunction();    
@@ -154,6 +207,7 @@ void MowOp::onTimetableStartMowing(){
 }
 
 void MowOp::onObstacle(){
+    if (stopOnDockingObstacle(SENS_OBSTACLE)) return;
     if ((!DOCK_DETECT_OBSTACLE_IN_DOCK) && (maps.isBetweenLastAndNextToLastDockPoint())) {
       //CONSOLE.println("triggerObstacle: ignoring, because in dock");      
       return;
@@ -176,6 +230,7 @@ void MowOp::onObstacle(){
 }
     
 void MowOp::onObstacleRotation(){
+    if (stopOnDockingObstacle(SENS_OBSTACLE)) return;
     CONSOLE.println("triggerObstacleRotation");    
     stats.statMowObstacles++;   
     if ((OBSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){    
@@ -258,8 +313,8 @@ void MowOp::onTargetReached(){
 void MowOp::onGpsFixTimeout(){
     // no gps solution
     if (REQUIRE_VALID_GPS){
-#ifdef DOCK_LED_STRIP
-        if (!maps.isUndocking() || stateEstimator.dockLedStripUndockCompleted){
+#ifdef DOCK_REFLECTOR_STRIPS
+        if (!maps.isUndocking() || stateEstimator.dockReflectorStripsUndockCompleted){
 #elif defined(UNDOCK_IGNORE_GPS_DISTANCE)
         if (!maps.isUndocking() || getDockDistance() > UNDOCK_IGNORE_GPS_DISTANCE){
 #else
@@ -273,8 +328,8 @@ void MowOp::onGpsFixTimeout(){
 
 void MowOp::onGpsNoSignal(){
     if (REQUIRE_VALID_GPS){
-#ifdef DOCK_LED_STRIP
-        if (!maps.isUndocking() || stateEstimator.dockLedStripUndockCompleted){
+#ifdef DOCK_REFLECTOR_STRIPS
+        if (!maps.isUndocking() || stateEstimator.dockReflectorStripsUndockCompleted){
 #elif defined(UNDOCK_IGNORE_GPS_DISTANCE)
         if (!maps.isUndocking() || getDockDistance() > UNDOCK_IGNORE_GPS_DISTANCE){
 #else

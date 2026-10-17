@@ -11,6 +11,9 @@
 #include "../../Stats.h"
 #include "../../map.h"
 #include "../../events.h"
+#ifdef DOCK_REFLECTOR_STRIPS
+extern "C" bool cameraReflectorStripsFound();
+#endif
 
 DockOp::DockOp(){
   lastMapRoutingFailed = false;
@@ -29,7 +32,24 @@ String DockOp::name(){
 }
 
 
+bool DockOp::requestCameraDocking(){
+#ifdef DOCK_REFLECTOR_STRIPS
+  if (stateEstimator.stateOp != OP_IDLE && stateEstimator.stateOp != OP_ERROR) return false;
+  float x,y,heading;
+  if (maps.dockPoints.numPoints < 2 || !maps.getDockingPos(x,y,heading)) return false;
+  motor.stopImmediately(true);
+  motor.setMowState(false);
+  cameraEntryRequested = true;
+  setOperation(OP_DOCK);
+  return true;
+#else
+  return false;
+#endif
+}
+
 void DockOp::begin(){
+  const bool confirmedCameraEntry = cameraEntryRequested;
+  cameraEntryRequested = false; // one-shot, never persist across commands/reboots
   dockContactAdvanceActive = false;
   if (previousOp == &chargeOp){
     battery.setIsDocked(true);    
@@ -50,6 +70,28 @@ void DockOp::begin(){
   CONSOLE.print(initiatedByOperator);
   CONSOLE.print(" dockReasonRainTriggered=");
   CONSOLE.println(dockReasonRainTriggered);
+
+#ifdef DOCK_REFLECTOR_STRIPS
+  if (confirmedCameraEntry){
+    maps.shouldDock = true;
+    maps.shouldMow = false;
+    maps.shouldRetryDock = false;
+    maps.wayMode = WAY_DOCK;
+    maps.dockPointsIdx = 0;
+    maps.targetPoint.assign(maps.dockPoints.points[0]);
+    maps.setLastTargetPoint(stateEstimator.stateX,stateEstimator.stateY);
+    maps.trackReverse = !DOCK_FRONT_SIDE;
+    stateEstimator.reflectorDockingGate.confirmDockEntry(millis());
+    stateEstimator.dockReflectorStripsActive = true;
+    stateEstimator.dockReflectorStripsUndockCompleted = false;
+    stateEstimator.stateLocalizationMode = LOC_REFLECTOR_STRIPS;
+    motor.stopImmediately(true);
+    lastMapRoutingFailed = false;
+    mapRoutingFailedCounter = 0;
+    CONSOLE.println("dock: operator confirmed entry, acquiring camera marker without GPS approach");
+    return;
+  }
+#endif
 
   // plan route to next target point 
 
@@ -98,6 +140,22 @@ void DockOp::end(){
 }
 
 void DockOp::run(){
+#ifdef DOCK_TEST_TIMEOUT_MS
+    if (DOCK_TEST_TIMEOUT_MS > 0 && millis()-startTime >= DOCK_TEST_TIMEOUT_MS) {
+        motor.stopImmediately(true);
+        CONSOLE.println("dock: local test deadline reached, stopping in Idle");
+        changeOp(idleOp, false);
+        return;
+    }
+#endif
+    if (bumper.obstacle() && stopOnDockingObstacle(SENS_BUMPER)) return;
+#ifdef DOCK_REFLECTOR_STRIPS
+    // begin() can change maps after this cycle's state estimation.
+    if (maps.isDocking() && stateEstimator.reflectorDockingGate.phase == ReflectorDockingGate::Inactive) {
+        motor.stopImmediately(false);
+        return;
+    }
+#endif
 #ifdef DOCK_CONTACT_ADVANCE_DISTANCE
     if (dockContactAdvanceActive){
         long leftTicks = (long)(motor.motorLeftTicks - dockContactAdvanceStartLeftTicks);
@@ -116,6 +174,12 @@ void DockOp::run(){
             return;
         }
 
+#ifdef DOCK_REFLECTOR_STRIPS
+        if (!stateEstimator.reflectorDockingGate.mayDrive() || !cameraReflectorStripsFound()) {
+            motor.stopImmediately(false);
+            return;
+        }
+#endif
         float speed = DOCK_FRONT_SIDE ? DOCK_LINEAR_SPEED : -DOCK_LINEAR_SPEED;
         motor.enableTractionMotors(true);
         motor.setLinearAngularSpeed(speed, 0, false);
@@ -128,6 +192,7 @@ void DockOp::run(){
     if (!detectObstacle()){
         detectObstacleRotation();                              
     }
+    if (shouldStop) return; // an obstacle transition must not be overwritten by tracking
     // line tracking
     lineTracker.trackLine(true);       
     detectSensorMalfunction(); 
@@ -172,6 +237,9 @@ void DockOp::onTargetReached(){
 
 
 void DockOp::onGpsFixTimeout(){
+#ifdef DOCK_REFLECTOR_STRIPS
+    if (stateEstimator.dockReflectorStripsActive) return;
+#endif
     if (activateDeadReckoningNearDock()) return;
     if (REQUIRE_VALID_GPS){
       stateEstimator.stateSensor = SENS_GPS_FIX_TIMEOUT;
@@ -180,6 +248,9 @@ void DockOp::onGpsFixTimeout(){
 }
 
 void DockOp::onGpsNoSignal(){
+#ifdef DOCK_REFLECTOR_STRIPS
+    if (stateEstimator.dockReflectorStripsActive) return;
+#endif
     if (activateDeadReckoningNearDock()) return;
     if (REQUIRE_VALID_GPS){
       stateEstimator.stateSensor = SENS_GPS_INVALID;
@@ -216,6 +287,7 @@ void DockOp::onKidnapped(bool state){
 
 
 void DockOp::onObstacleRotation(){
+    if (stopOnDockingObstacle(SENS_OBSTACLE)) return;
     CONSOLE.println("error: rotation error due to obstacle!");    
     stats.statMowObstacles++;   
     stateEstimator.stateSensor = SENS_OBSTACLE;
@@ -223,6 +295,7 @@ void DockOp::onObstacleRotation(){
 }
 
 void DockOp::onObstacle(){
+    if (stopOnDockingObstacle(SENS_OBSTACLE)) return;
     if (battery.chargerConnected()) {
       CONSOLE.println("triggerObstacle: ignoring, because charger connected");      
       return;

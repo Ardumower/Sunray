@@ -8,6 +8,9 @@
 #include "src/op/op.h"
 
 #include "config.h"
+#ifdef DOCK_REFLECTOR_STRIPS
+extern "C" bool cameraReflectorStripsFound();
+#endif
 #include "robot.h"
 #include "Stats.h"
 #include "helper.h"
@@ -255,69 +258,6 @@ void StateEstimator::computeRobotState(){
     }
   #endif
 
-  // map dockpoints setup:                                  |===============================
-  //               GPS waypoint         GPS waypoint    outside tag     
-  //                 x----------------------x---------------------------------------------O (last dockpoint)
-  //                                      outside                inside tag visible      inside tag
-  //                                      tag visible       |===============================          
-  //                                                           
-  // localization:              GPS                     LiDAR          
-  
-  #ifdef DOCK_REFLECTOR_TAG  // use reflector-tag for docking/undocking?
-    if (maps.isBetweenLastAndNextToLastDockPoint()) {
-      if (maps.shouldDock) {
-        stateReflectorTagOutsideFound = false;        
-        stateReflectorUndockCompleted = false;
-      }
-      if ((stateReflectorTagOutsideFound) && (stateXReflectorTag > 0.5)) stateReflectorUndockCompleted = true;
-      if (!stateReflectorUndockCompleted) { 
-        stateLocalizationMode = LOC_REFLECTOR_TAG;
-        useGPSposition = false;
-        useGPSdelta = false;
-        useImuAbsoluteYaw = false;
-        if (stateReflectorTagFound){  
-          // don't use stateXReflectorTag as we don't know which tag was detected   
-          float robotX = stateXReflectorTag;  // robot-in-reflector-tag-frame (x towards outside tag, y left, z up)      
-          if ((stateXReflectorTag > 0) && (stateXReflectorTagLast < 0)){
-            if (!maps.shouldDock){
-              stateReflectorTagOutsideFound = true;
-            } 
-          }        
-          stateXReflectorTagLast = stateXReflectorTag;
-          float robotY = stateYReflectorTag;
-          float robotDelta = scalePI(stateDeltaReflectorTag);    
-          /*CONSOLE.print("REFLECTOR TAG found: ");      
-          CONSOLE.print(robotX);
-          CONSOLE.print(",");
-          CONSOLE.print(robotY);
-          CONSOLE.print(",");    
-          CONSOLE.println(robotDelta/3.1415*180.0);*/        
-          float dockX;
-          float dockY;
-          float dockDelta;
-          //int dockPointsIdx = maps.dockPoints.numPoints-1; 
-          int dockPointsIdx = maps.dockPointsIdx;
-          if (maps.getDockingPos(dockX, dockY, dockDelta, dockPointsIdx)){
-            // transform robot-in-reflector-tag-frame into world frame
-            robotX = 0.2;
-            if (!maps.shouldDock) robotX = -0.2;  
-            if (robotX < 0) {
-              // flip robot at marker
-              //robotX *= -1;
-              //robotY *= -1;
-            }
-            float worldX = dockX + robotX * cos(dockDelta+3.1415) - robotY * sin(dockDelta+3.1415);
-            float worldY = dockY + robotX * sin(dockDelta+3.1415) + robotY * cos(dockDelta+3.1415);            
-            stateX = worldX;
-            stateY = worldY;
-            stateDelta = scalePI(robotDelta + dockDelta);
-            if (DOCK_FRONT_SIDE) stateDelta = scalePI(stateDelta + 3.1415);
-          }
-        }
-      }
-    }
-  #endif
-
   // ------- GPS shadow near docking station --------------------------
   // Metal docking enclosures can make an RTK fix jump or disappear. Once the
   // mower reaches the configured distance on the final docking segment, keep
@@ -349,57 +289,48 @@ void StateEstimator::computeRobotState(){
     }
   #endif
 
-  // ------- native camera LED-strip docking --------------------------
-  // GPS is used up to the configured hand-off distance. From there the
-  // camera controller owns steering while odometry keeps the travelled
-  // distance. Undocking starts on camera guidance and latches back to GPS
-  // after the same distance so a noisy position cannot toggle modes.
-  #ifdef DOCK_LED_STRIP
-    const bool ledDocking = maps.isDocking();
-    const bool ledUndocking = maps.isUndocking();
-    float ledDockDistance = 1e6f;
-    float ledDockX = 0.0f;
-    float ledDockY = 0.0f;
-    float ledDockDelta = 0.0f;
-    if ((ledDocking || ledUndocking) &&
-        maps.getDockingPos(ledDockX, ledDockY, ledDockDelta)) {
-      ledDockDistance = distance(ledDockX, ledDockY, stateX, stateY);
+  // Camera guidance starts at the FIRST dock point, after a complete stop.
+  // During camera guidance only IMU/odometry update position; GPS cannot jump
+  // the mower out of this mode. The same physical point ends camera undocking.
+  #ifdef DOCK_REFLECTOR_STRIPS
+    const bool reflectorDocking = stateOp == OP_DOCK && maps.isDocking();
+    const bool reflectorUndocking = stateOp == OP_MOW && maps.isUndocking();
+    float routeX, routeY, routeHeading;
+    const bool routeValid = maps.dockPoints.numPoints >= 2 && maps.getDockingPos(routeX, routeY, routeHeading);
+    const float firstX = routeValid ? maps.dockPoints.points[0].x() : 0;
+    const float firstY = routeValid ? maps.dockPoints.points[0].y() : 0;
+    if (reflectorUndocking && !reflectorDockingGate.wasUndocking) {
+      dockReflectorStripsStartLeftTicks = motor.motorLeftTicks;
+      dockReflectorStripsStartRightTicks = motor.motorRightTicks;
     }
-
-    if (!ledDocking && !ledUndocking) {
-      dockLedStripActive = false;
-      dockLedStripUndockCompleted = false;
-    } else if (ledDocking) {
-      dockLedStripUndockCompleted = false;
-      if (!dockLedStripActive && maps.isTargetingLastDockPoint() &&
-          ledDockDistance <= DOCK_LED_STRIP_SWITCH_DISTANCE) {
-        dockLedStripActive = true;
-        CONSOLE.print("dock LED: camera guidance enabled at distance=");
-        CONSOLE.println(ledDockDistance);
-      }
-    } else {
-      if (!dockLedStripUndockCompleted && !dockLedStripActive) {
-        dockLedStripActive = true;
-        dockLedStripStartLeftTicks = motor.motorLeftTicks;
-        dockLedStripStartRightTicks = motor.motorRightTicks;
-        CONSOLE.println("undock LED: camera guidance enabled");
-      }
-      const float ledTicksPerCm = motor.ticksPerCm > 0.001f ? motor.ticksPerCm : 0.001f;
-      const float ledUndockLeft = fabs((float)(motor.motorLeftTicks - dockLedStripStartLeftTicks)) /
-                                   ledTicksPerCm / 100.0f;
-      const float ledUndockRight = fabs((float)(motor.motorRightTicks - dockLedStripStartRightTicks)) /
-                                    ledTicksPerCm / 100.0f;
-      const float ledUndockTravel = (ledUndockLeft + ledUndockRight) * 0.5f;
-      if (dockLedStripActive && ledUndockTravel >= DOCK_LED_STRIP_SWITCH_DISTANCE) {
-        dockLedStripActive = false;
-        dockLedStripUndockCompleted = true;
-        CONSOLE.print("undock LED: GPS guidance enabled after travel=");
-        CONSOLE.println(ledUndockTravel);
+    const float ticksPerCm = motor.ticksPerCm > 0.001f ? motor.ticksPerCm : 0.001f;
+    const float travel = (ReflectorDockingGate::tickDisplacement(motor.motorLeftTicks, dockReflectorStripsStartLeftTicks) +
+                          ReflectorDockingGate::tickDisplacement(motor.motorRightTicks, dockReflectorStripsStartRightTicks)) / (200.0f*ticksPerCm);
+    const auto oldPhase = reflectorDockingGate.phase;
+    reflectorDockingGate.update(reflectorDocking, reflectorUndocking, routeValid,
+        maps.dockPointsIdx, stateX, stateY, firstX, firstY, travel,
+        cameraReflectorStripsFound(), millis(), DOCK_REFLECTOR_STRIPS_FIRST_POINT_RADIUS,
+        DOCK_REFLECTOR_STRIPS_UNDOCK_EXIT_RADIUS, DOCK_REFLECTOR_STRIPS_STOP_MS);
+    dockReflectorStripsActive = reflectorDockingGate.active();
+    dockReflectorStripsUndockCompleted = reflectorDockingGate.complete();
+    if (oldPhase != reflectorDockingGate.phase) {
+      CONSOLE.print("dock reflectors: phase="); CONSOLE.println((int)reflectorDockingGate.phase);
+      if ((reflectorDockingGate.active() && !reflectorDockingGate.mayDrive()) || reflectorDockingGate.complete()) motor.stopImmediately(false);
+      if (reflectorDockingGate.complete()) {
+        // Skip intermediate undocking targets only after reaching the entry
+        // point. Normal GPS tracking then finishes this point and the free path.
+        maps.dockPointsIdx = 0;
+        maps.targetPoint.assign(maps.dockPoints.points[0]);
+        maps.setLastTargetPoint(stateX, stateY);
+        maps.trackReverse = DOCK_FRONT_SIDE;
+        maps.useGPSfixForPosEstimation = true;
+        maps.useGPSfixForDeltaEstimation = true;
+        maps.useGPSfloatForPosEstimation = true;
+        maps.useGPSfloatForDeltaEstimation = true;
       }
     }
-
-    if (dockLedStripActive) {
-      stateLocalizationMode = LOC_LED_STRIP;
+    if (dockReflectorStripsActive) {
+      stateLocalizationMode = LOC_REFLECTOR_STRIPS;
       useGPSposition = false;
       useGPSdelta = false;
       useImuAbsoluteYaw = false;
@@ -510,21 +441,6 @@ void StateEstimator::computeRobotState(){
   } 
 
   
-  /*
-  // for testing lidar marker-based docking without GPS  
-  #ifdef DOCK_REFLECTOR_TAG
-    static bool initializedXYDelta = false;
-    if (useGPSposition){
-      if (!initializedXYDelta){
-        CONSOLE.println("initializedXYDelta");
-        stateX = 0;
-        stateY = 0;
-        stateDelta = 0;      
-        initializedXYDelta = true;
-      }
-    }
-  #endif
-  */
   
 
   // odometry

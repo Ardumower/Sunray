@@ -8,6 +8,7 @@
 #include "helper.h"
 #include "robot.h"
 #include "Arduino.h"
+#include "src/navigation/DockMotionLimit.h"
 
 
 void Motor::begin() {
@@ -185,7 +186,11 @@ void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRam
    } else {
      linearSpeedSet = linear;
    }
-   angularSpeedSet = angular;   
+   angularSpeedSet = angular;
+#ifdef DOCK_MAX_WHEEL_SPEED
+   if (stateEstimator.stateOp == OP_DOCK || (stateEstimator.stateOp == OP_MOW && maps.isUndocking()))
+     limitDockWheelSpeed(linearSpeedSet, angularSpeedSet, wheelBaseCm/100.0f, DOCK_MAX_WHEEL_SPEED);
+#endif
    float rspeed = linearSpeedSet + angularSpeedSet * (wheelBaseCm /100.0 /2);          
    float lspeed = linearSpeedSet - angularSpeedSet * (wheelBaseCm /100.0 /2);          
    // RPM = V / (2*PI*r) * 60
@@ -224,6 +229,9 @@ void Motor::setReleaseBrakesWhenZero(bool release){
 
 
 void Motor::setMowState(bool switchOn){
+#if defined(UNDOCK_TEST_TIMEOUT_MS) && UNDOCK_TEST_TIMEOUT_MS > 0
+  switchOn = false; // supervised undock-only test must never start the blade
+#endif
   if (gps.isConfiguring()) switchOn = false;
   //CONSOLE.print("Motor::setMowState ");
   //CONSOLE.println(switchOn);
@@ -578,8 +586,8 @@ void Motor::control(){
     //CONSOLE.println();
     motorLeftPID.compute();
     motorLeftPWMCurr = motorLeftPWMCurr + motorLeftPID.y;
-    if (motorLeftRpmSet >= 0) motorLeftPWMCurr = min( max(0, (int)motorLeftPWMCurr), pwmMax); // 0.. pwmMax
-    if (motorLeftRpmSet < 0) motorLeftPWMCurr = max(-pwmMax, min(0, (int)motorLeftPWMCurr));  // -pwmMax..0
+    if (motorLeftRpmSet >= 0) motorLeftPWMCurr = min( max(0, motorLeftPWMCurr), pwmMax); // 0.. pwmMax
+    if (motorLeftRpmSet < 0) motorLeftPWMCurr = max(-pwmMax, min(0, motorLeftPWMCurr));  // -pwmMax..0
   }
 
   //########################  Calculate PWM for right driving motor ############################
@@ -600,8 +608,8 @@ void Motor::control(){
     motorRightPID.output_ramp = MOTOR_PID_RAMP;
     motorRightPID.compute();
     motorRightPWMCurr = motorRightPWMCurr + motorRightPID.y;
-    if (motorRightRpmSet >= 0) motorRightPWMCurr = min( max(0, (int)motorRightPWMCurr), pwmMax);  // 0.. pwmMax
-    if (motorRightRpmSet < 0) motorRightPWMCurr = max(-pwmMax, min(0, (int)motorRightPWMCurr));   // -pwmMax..0
+    if (motorRightRpmSet >= 0) motorRightPWMCurr = min( max(0, motorRightPWMCurr), pwmMax);  // 0.. pwmMax
+    if (motorRightRpmSet < 0) motorRightPWMCurr = max(-pwmMax, min(0, motorRightPWMCurr));   // -pwmMax..0
   }
 
 

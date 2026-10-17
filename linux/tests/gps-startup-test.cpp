@@ -10,6 +10,7 @@
 #include "../../sunray/events.h"
 #include "../../sunray/robot.h"
 #include "../../sunray/motor.h"
+#include "../../sunray/config.h"
 #undef min
 #undef max
 #undef round
@@ -27,6 +28,8 @@ EventLogger Logger;
 UBLOX gps;
 TestMotorDriver motorDriver;
 TestRobotDriver robotDriver;
+TestStateEstimator stateEstimator;
+TestMaps maps;
 
 struct Receiver : HardwareSerial {
   std::deque<uint8_t> rx;
@@ -149,6 +152,31 @@ static void testMotorStop(){
   assert(motorDriver.left==0 && motorDriver.right==0);
   std::cout<<"PASS zero-speed PWM/PID reset, coasting, pivot, restart and command timeout\n";
 }
+static void testLowSpeedMotor(){
+  TestMotor m{};m.begin();m.motorLeftSwapDir=m.motorRightSwapDir=false;
+  stateEstimator.stateOp=OP_MOW;maps.undocking=true;
+  m.setLinearAngularSpeed(-.2f,.3f,false);
+  assert(std::abs(m.linearSpeedSet)+std::abs(m.angularSpeedSet)*m.wheelBaseCm/200.f<=.02001f);
+  maps.undocking=false;stateEstimator.stateOp=OP_IDLE;
+  for(int sign:{-1,1}){
+    m.stopImmediately(true);
+    m.motorLeftRpmCurr=m.motorRightRpmCurr=0;
+    m.setLinearAngularSpeed(sign*.02f,0,false);
+    // No encoder response: sub-unit corrections must accumulate, not vanish.
+    for(int i=0;i<60;++i){now+=50;m.control();}
+    std::cerr<<"2 cm/s, stationary feedback, 3s: PWM "<<motorDriver.left<<","<<motorDriver.right<<"\n";
+    assert(sign*motorDriver.left>10 && sign*motorDriver.right>10);
+    for(int i=0;i<1200;++i){now+=50;m.control();}
+    assert(sign*motorDriver.left==255 && sign*motorDriver.right==255);
+    // Simulated overspeed must reduce output again in either direction.
+    m.motorLeftRpmCurr=m.motorRightRpmCurr=sign*20;
+    for(int i=0;i<40;++i){now+=50;m.control();}
+    assert(motorDriver.left==0 && motorDriver.right==0);
+    m.setLinearAngularSpeed(0,0,false);now+=50;m.control();
+    assert(m.motorLeftPWMCurr==0 && m.motorRightPWMCurr==0);
+  }
+  std::cout<<"PASS fractional low-speed control, forward/reverse, saturation, overspeed and zero reset\n";
+}
 int main(){
   now=0;
   Receiver uart; gps.begin(uart,115200);
@@ -180,7 +208,12 @@ int main(){
   uart.position(); step(gps); assert(gps.solution==SOL_FIXED);
   motor.setLinearAngularSpeed(0.5,0.2,false); motor.setMowState(true);
   motor.speedPWM(100,100,200);
-  assert(motor.linearSpeedSet>0 && motor.motorMowPWMSet!=0 && motorDriver.left!=0);
+  assert(motor.linearSpeedSet>0 && motorDriver.left!=0);
+#if defined(UNDOCK_TEST_TIMEOUT_MS) && UNDOCK_TEST_TIMEOUT_MS > 0
+  assert(motor.motorMowPWMSet==0); // even an explicit blade request is blocked in test mode
+#else
+  assert(motor.motorMowPWMSet!=0);
+#endif
   std::cout<<"PASS motor and brake interlock during pending GPS configuration\n";
   std::cout<<"PASS absent/late receiver, cloud request, ten RAM packets and radio settings\n";
 
@@ -238,4 +271,6 @@ int main(){
   wrap.position();step(wg);assert(wg.solution==SOL_FIXED);
   step(wg,3001);assert(wg.solution==SOL_INVALID);
   std::cout<<"PASS clock wraparound and position watchdog\n";
+  // Long blocked-wheel simulation advances the fake clock; run after GPS checks.
+  testLowSpeedMotor();
 }

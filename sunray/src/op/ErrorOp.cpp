@@ -29,9 +29,11 @@ void ErrorOp::begin(){
 
 
 void ErrorOp::end(){
+    dockingObstacleStop = false;
 }
 
 void ErrorOp::run(){
+    if (dockingObstacleStop) return; // only a new operator command releases this stop
     if (battery.chargerConnected()){        
         changeOp(chargeOp);
     }    

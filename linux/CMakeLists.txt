@@ -93,6 +93,13 @@ set_source_files_properties(${FIRMWARE_PATH}/sunray.ino PROPERTIES COMPILE_FLAGS
 ##  add_definitions("-x c++")
 ## endif()
 
+# The image detector has a 500 ms freshness deadline, including in Debug builds.
+# Keep debug symbols, but optimize its pixel/component loops on the Orange Pi.
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  set_source_files_properties(${FIRMWARE_PATH}/src/camera/ReflectorStripsDetector.cpp
+    PROPERTIES COMPILE_FLAGS "-O2")
+endif()
+
 add_executable(sunray ${pi_sources} ${sunray_cpp} ${sunray_c} ${FIRMWARE_PATH}/sunray.ino)
 target_include_directories(sunray PRIVATE src ${FIRMWARE_PATH}/src)
 # target_link_libraries(sunray "${CMAKE_SOURCE_DIR}/lib/libarduino_${CMAKE_SYSTEM_PROCESSOR}.a")

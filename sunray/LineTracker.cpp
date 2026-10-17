@@ -13,12 +13,12 @@
 #include "Stats.h"
 #include "events.h"
 
-#ifdef DOCK_LED_STRIP
-extern "C" bool cameraLedStripFound();
-extern "C" float cameraLedStripHorizontalError();
-extern "C" float cameraLedStripConfidence();
-extern "C" int cameraLedStripLedCount();
-extern "C" unsigned long cameraLedStripAgeMs();
+#ifdef DOCK_REFLECTOR_STRIPS
+extern "C" bool cameraReflectorStripsFound();
+extern "C" float cameraReflectorStripsHorizontalError();
+extern "C" float cameraReflectorStripsConfidence();
+extern "C" int cameraReflectorStripsStripCount();
+extern "C" unsigned long cameraReflectorStripsAgeMs();
 #endif
 
 //PID pidLine(0.2, 0.01, 0); // not used
@@ -233,58 +233,47 @@ void LineTracker::trackLine(bool runControl){
       //angular = 0; 
     }
   }
-  if (stateEstimator.stateLocalizationMode == LOC_REFLECTOR_TAG){
-    if (!stateEstimator.stateReflectorTagFound){
-      linear = 0; // wait until reflector-tag found 
-      angular = 0; 
-    } else {
-      if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
-      float maxAngular = 0.015;  // 0.02
-      float maxLinear = 0.05;      
-      angular =  max(min(1.0 * trackerDiffDelta, maxAngular), -maxAngular);
-      angular =  max(min(angular, maxAngular), -maxAngular);      
-      linear = 0.05;      
-      if (maps.trackReverse) linear = -0.05;   // reverse line tracking needs negative speed           
-    }
-  }
   if (stateEstimator.stateLocalizationMode == LOC_GUIDANCE_SHEET){
       if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
       angular = 0;
   }
-  #ifdef DOCK_LED_STRIP
-  if (stateEstimator.stateLocalizationMode == LOC_LED_STRIP){
+  #ifdef DOCK_REFLECTOR_STRIPS
+  if (stateEstimator.stateLocalizationMode == LOC_REFLECTOR_STRIPS){
     mow = false;
-    const bool ledFound = cameraLedStripFound();
-    const float imageError = cameraLedStripHorizontalError();
-    const float confidence = cameraLedStripConfidence();
-    if (!ledFound) {
+    const bool reflectorFound = cameraReflectorStripsFound();
+    const float imageError = cameraReflectorStripsHorizontalError();
+    const float confidence = cameraReflectorStripsConfidence();
+    if (!reflectorFound || !stateEstimator.reflectorDockingGate.mayDrive()) {
+      if (runControl) motor.stopImmediately(false);
       // Never continue on stale pixels. The detector applies the configured
       // timeout, so a short camera hiccup causes a controlled stop.
       linear = 0;
       angular = 0;
     } else {
       if (!buzzer.isPlaying()) buzzer.sound(SND_WARNING, true);
-      angular = -DOCK_LED_STRIP_ANGULAR_P * imageError;
-      angular = max(-DOCK_LED_STRIP_MAX_ANGULAR,
-                    min(DOCK_LED_STRIP_MAX_ANGULAR, angular));
+      angular = -DOCK_REFLECTOR_STRIPS_ANGULAR_P * imageError;
+      angular = max(-DOCK_REFLECTOR_STRIPS_MAX_ANGULAR,
+                    min(DOCK_REFLECTOR_STRIPS_MAX_ANGULAR, angular));
       const float absError = fabs(imageError);
-      if (absError > DOCK_LED_STRIP_MAX_ERROR_FOR_DRIVE) {
+      if (absError > DOCK_REFLECTOR_STRIPS_MAX_ERROR_FOR_DRIVE) {
         linear = 0; // rotate until the strip is safely in the field of view
       } else {
         const float speedScale = max(0.35f, 1.0f - absError);
         linear = abs(DOCK_LINEAR_SPEED) * speedScale;
-        if (maps.trackReverse) linear *= -1;
+        // Keep the camera facing the marker throughout the whole dock path.
+        const bool reverse = maps.isUndocking() ? DOCK_FRONT_SIDE : !DOCK_FRONT_SIDE;
+        if (reverse) linear *= -1;
       }
     }
 
-    static unsigned long nextLedStatusTime = 0;
-    if (millis() >= nextLedStatusTime) {
-      nextLedStatusTime = millis() + 1000;
-      CONSOLE.print("dock LED: found="); CONSOLE.print(ledFound);
-      CONSOLE.print(" leds="); CONSOLE.print(cameraLedStripLedCount());
+    static unsigned long nextReflectorStatusTime = 0;
+    if (millis() >= nextReflectorStatusTime) {
+      nextReflectorStatusTime = millis() + 1000;
+      CONSOLE.print("dock reflectors: found="); CONSOLE.print(reflectorFound);
+      CONSOLE.print(" strips="); CONSOLE.print(cameraReflectorStripsStripCount());
       CONSOLE.print(" confidence="); CONSOLE.print(confidence);
       CONSOLE.print(" error="); CONSOLE.print(imageError);
-      CONSOLE.print(" age="); CONSOLE.print(cameraLedStripAgeMs());
+      CONSOLE.print(" age="); CONSOLE.print(cameraReflectorStripsAgeMs());
       CONSOLE.print(" lin="); CONSOLE.print(linear);
       CONSOLE.print(" ang="); CONSOLE.println(angular);
     }
@@ -349,52 +338,13 @@ void LineTracker::trackLine(bool runControl){
         langleToTargetFits = angleToTargetFits;
     }
 
-    #ifdef DOCK_REFLECTOR_TAG
-      if (stateEstimator.stateLocalizationMode == LOC_REFLECTOR_TAG){             
-        CONSOLE.print("loc=");
-        if (stateEstimator.stateLocalizationMode == LOC_APRIL_TAG) CONSOLE.print("april");
-        if (stateEstimator.stateLocalizationMode == LOC_GPS) CONSOLE.print("gps");
-        if (stateEstimator.stateLocalizationMode == LOC_GUIDANCE_SHEET) CONSOLE.print("guide");    
-        if (stateEstimator.stateLocalizationMode == LOC_REFLECTOR_TAG) CONSOLE.print("reflector");        
-        CONSOLE.print(" tagFound=");
-        CONSOLE.print(stateEstimator.stateReflectorTagFound);
-        CONSOLE.print(" tagOut=");
-        CONSOLE.print(stateEstimator.stateReflectorTagOutsideFound);      
-        CONSOLE.print(" reflX=");
-        CONSOLE.print(stateEstimator.stateXReflectorTag);
-        CONSOLE.print(" reflY=");
-        CONSOLE.print(stateEstimator.stateYReflectorTag);
-        CONSOLE.print(" mow=");
-        CONSOLE.print(mow);      
-        CONSOLE.print(" shouldDock=");
-        CONSOLE.print(maps.shouldDock);      
-        CONSOLE.print(" trackRev=");
-        CONSOLE.print(maps.trackReverse);
-        CONSOLE.print(" lin=");
-        CONSOLE.print(linear);
-        CONSOLE.print(" ang=");
-        CONSOLE.print(angular);    
-        CONSOLE.print(" isBetwLNTLDockPt=");
-        CONSOLE.print(maps.isBetweenLastAndNextToLastDockPoint());
-        CONSOLE.print(" dockPtIdx=");
-        CONSOLE.print(maps.dockPointsIdx);
-        CONSOLE.print(" freePtIdx=");
-        CONSOLE.print(maps.freePointsIdx);
-        CONSOLE.print(" wayMode=");
-        if (maps.wayMode == WAY_DOCK) CONSOLE.print("WAY_DOCK");
-        if (maps.wayMode == WAY_MOW) CONSOLE.print("WAY_MOW");
-        if (maps.wayMode == WAY_FREE) CONSOLE.print("WAY_FREE");
-        CONSOLE.println();
-      }
-    #endif
 
     motor.setLinearAngularSpeed(linear, angular);      
     motor.setMowState(mow);    
   }
 
   //if (!maps.isTargetingLastDockPoint()){
-  if ((stateEstimator.stateLocalizationMode != LOC_REFLECTOR_TAG) &&
-      !((stateEstimator.stateLocalizationMode == LOC_LED_STRIP) && maps.isDocking())){
+  if (stateEstimator.stateLocalizationMode != LOC_REFLECTOR_STRIPS){
     if (targetReached){
       rotateLeft = false;
       rotateRight = false;

@@ -51,11 +51,6 @@ float stateYAprilTagLP = 0;
 float stateZAprilTagLP = 0;
 float stateYawAprilTagLP = 0;
 
-double reflectorTagTimeout = 0;
-float stateXReflectorTagLP = 0;
-float stateYReflectorTagLP = 0;
-float stateZReflectorTagLP = 0;
-float stateYawReflectorTagLP = 0;
 
 
 void obstacleStateCallback(const std_msgs::Int8 &msg)
@@ -218,79 +213,7 @@ void aprilTagLocalization(){
 
 
 
-// LiDAR (reflector tag) localization
-void reflectorTagLocalization(){
-  #ifdef DOCK_REFLECTOR_TAG
-    
-    double tim = ros::Time::now().toSec();
-    if ((stateEstimator.stateReflectorTagFound) && (tim > reflectorTagTimeout)) {
-      stateEstimator.stateReflectorTagFound = false;
-    }     
 
-    float x = 0;
-    float y = 0;
-    float z = 0;
-    
-    double roll, pitch, yaw;
-
-    // lookup ROS localization (mathematically, a frame transformation) 
-    tf::StampedTransform transform;
-    try{
-        //  http://wiki.ros.org/tf/Tutorials/Time%20travel%20with%20tf%20%28C%2B%2B%29
-        //tfListener->lookupTransform("robot/odom", "gps_link",  ros::Time(0), transform); // target_frame, source_frame
-        tfListener->lookupTransform("dock", "base_link",  ros::Time(0), transform); // target_frame, source_frame
-
-        x = transform.getOrigin().x();
-        y = transform.getOrigin().y();
-        z = transform.getOrigin().z();
-
-        // https://gist.github.com/LimHyungTae/2499a68ea8ee4d8a876a149858a5b08e
-        tf::Quaternion q = transform.getRotation(); 
-        
-        //float yaw = tf::getYaw(q); 
-        
-        tf::Matrix3x3 m;  
-        m.setRotation(q);  //  quaternion -> rotation Matrix 
-        
-        // rotation Matrix -> rpy 
-        m.getRPY(roll, pitch, yaw);
-        yaw += 3.1415;
-
-        double deltaTime = tim - transform.stamp_.toSec(); 
-        
-        // detect false positives with invalid position
-        if ( (deltaTime < 0.2) && (abs(x) < 4.0) && (abs(y) < 4.0) && (abs(z) < 2.0) ){
-
-          // detect false positives with jumps from low-pass-filtered past
-          float deltaX = abs(stateXReflectorTagLP - x);
-          float deltaY = abs(stateYReflectorTagLP - y);
-          float deltaZ = abs(stateZReflectorTagLP - z);
-          float deltaYaw = abs(stateYawReflectorTagLP - yaw);
-
-          stateXReflectorTagLP = 0.995 * stateXReflectorTagLP + 0.005 * x;
-          stateYReflectorTagLP = 0.995 * stateYReflectorTagLP + 0.005 * y;
-          stateZReflectorTagLP = 0.995 * stateZReflectorTagLP + 0.005 * z;
-          stateYawReflectorTagLP = 0.995 * stateYawReflectorTagLP + 0.005 * yaw;
-
-          if ((deltaX < 0.2) && (deltaY < 0.2) && (deltaZ < 0.2) && (deltaYaw < 0.6)){
-            //ROS_WARN("REFLECTOR_TAG: x=%.2f  y=%.2f  z=%.2f yaw=%.2f deltaT=%.2f", x, y, z, yaw/3.1415*180.0, deltaTime);        
-            stateEstimator.stateXReflectorTag = x;
-            stateEstimator.stateYReflectorTag = y;
-            stateEstimator.stateDeltaReflectorTag = yaw;
-            stateEstimator.stateReflectorTagFound = true;
-            reflectorTagTimeout = tim + 0.2;
-          }
-        }      
-    }
-    catch (tf::TransformException ex){
-        if (tim > nextErrorTime){
-          nextErrorTime = tim + 10.0;
-          //ROS_ERROR("%s",ex.what());
-          //ros::Duration(0.2).sleep();
-        }
-    }
-  #endif
-}
 
 
 void lidarLocalization(){
@@ -403,7 +326,6 @@ void loop(){
   if (ros::ok()) {
   
     aprilTagLocalization();   
-    reflectorTagLocalization();    
     lidarLocalization();
 
     // https://stackoverflow.com/questions/23227024/difference-between-spin-and-rate-sleep-in-ros

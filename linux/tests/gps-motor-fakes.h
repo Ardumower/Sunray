@@ -16,3 +16,9 @@ extern TestMotorDriver motorDriver;
 struct TestRobotDriver { void run(){} };
 extern TestRobotDriver robotDriver;
 void watchdogReset();
+
+#include "types.h"
+struct TestStateEstimator { OperationType stateOp=OP_IDLE; };
+extern TestStateEstimator stateEstimator;
+struct TestMaps { bool undocking=false; bool isUndocking(){return undocking;} };
+extern TestMaps maps;

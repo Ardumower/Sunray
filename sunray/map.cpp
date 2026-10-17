@@ -910,15 +910,23 @@ bool Map::nextPointIsStraight(){
 bool Map::getDockingPos(float &x, float &y, float &delta, int idx){
   if (idx == -1) idx = dockPoints.numPoints-1; 
   if ((idx < 0) || (idx >= dockPoints.numPoints) || (dockPoints.numPoints < 2)) return false;
-  Point dockFinalPt;
-  Point dockPrevPt;
-  dockFinalPt.assign(dockPoints.points[ idx]);  
-  if (idx > 0) dockPrevPt.assign(dockPoints.points[ idx-1]);
-    else dockPrevPt.assign(dockPoints.points[ 1 ]);
-  x = dockFinalPt.x();
-  y = dockFinalPt.y();
-  delta = pointsAngle(dockPrevPt.x(), dockPrevPt.y(), dockFinalPt.x(), dockFinalPt.y());  
-  return true;
+  Point &dockFinalPt = dockPoints.points[idx];
+  // Repeated endpoints are common after recording/uploading a docking route.
+  // Ignore segments shorter than 5 cm: their heading is undefined or noisy.
+  // For idx == 0 preserve the existing direction from the next point to it.
+  const int step = idx > 0 ? -1 : 1;
+  for (int previous = idx + step; previous >= 0 && previous < dockPoints.numPoints; previous += step) {
+    Point &dockPrevPt = dockPoints.points[previous];
+    const float dx = dockFinalPt.x() - dockPrevPt.x();
+    const float dy = dockFinalPt.y() - dockPrevPt.y();
+    if (dx*dx + dy*dy < 0.05f*0.05f) continue;
+    x = dockFinalPt.x();
+    y = dockFinalPt.y();
+    delta = pointsAngle(dockPrevPt.x(), dockPrevPt.y(), x, y);
+    return true;
+  }
+  // No usable direction: leave the caller's position and heading unchanged.
+  return false;
 }             
 
 // mower has been docked

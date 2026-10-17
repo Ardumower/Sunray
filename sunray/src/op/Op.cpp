@@ -46,7 +46,9 @@ String Op::name(){
 }
 
 
-void Op::changeOp(Op &anOp, bool returnBackOnExit){    
+void Op::changeOp(Op &anOp, bool returnBackOnExit){
+    // A docking obstacle is latched even across charger/IMU/timetable events.
+    if (this == &errorOp && errorOp.dockingObstacleStop) return;
     if (&anOp == NULL){
         CONSOLE.println("==> ERROR Op::changeOp: invalid op=NULL!");        
     }
@@ -72,6 +74,9 @@ void Op::changeOperationTypeByOperator(OperationType op){
     CONSOLE.println("ERROR Op::changeOperationType - activeOp=NULL");
     return;
   }  
+  if (op != OP_DOCK) dockOp.cameraEntryRequested = false;
+  if (op == OP_IDLE || op == OP_DOCK || op == OP_MOW || op == OP_CHARGE || op == OP_ERROR)
+    errorOp.dockingObstacleStop = false;
   switch (op){
     case OP_IDLE:      
       Logger.event(EVT_USER_STOP);
@@ -248,7 +253,10 @@ void Op::onRelocalization(){
     changeOp(relocalizationOp, true);
 }
 
-void Op::onChargerConnected(){    
+void Op::onChargerConnected(){
+  // During mowing/undocking, contact bounce must not cancel the operation
+  // or enter Charge, where contact recovery could push back towards the dock.
+  if (stateEstimator.stateOp == OP_MOW) return;
   battery.setIsDocked(true);    
   changeOp(chargeOp);        
 }
@@ -272,4 +280,17 @@ void Op::onImuTilt(){
 }
 
 void Op::onImuError(){
+}
+
+// Separate from generic avoidance: applies to reverse motion and standstill,
+// ignores the normal bumper dead time and the final-dock obstacle exception.
+bool Op::stopOnDockingObstacle(Sensor sensor){
+    if (!DOCK_STOP_ON_OBSTACLE || !(stateEstimator.stateOp == OP_DOCK || (stateEstimator.stateOp == OP_MOW && maps.isUndocking()))) return false;
+    motor.stopImmediately(true);
+    stateEstimator.stateSensor = sensor;
+    if (sensor == SENS_BUMPER) Logger.event(EVT_BUMPER_OBSTACLE);
+    errorOp.nextOp = NULL;
+    errorOp.dockingObstacleStop = true;
+    changeOp(errorOp, false);
+    return true;
 }

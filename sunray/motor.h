@@ -88,8 +88,9 @@ class Motor {
     float motorLeftRpmLast;
     float motorRightRpmLast;
     float motorMowPWMSet;  
-    int motorLeftPWMCurr;
-    int motorRightPWMCurr;    
+    // Preserve sub-unit PID increments; quantize only at the driver boundary.
+    float motorLeftPWMCurr;
+    float motorRightPWMCurr;
     float motorMowPWMCurrLP; 
     float motorLeftPWMCurrLP;
     float motorRightPWMCurrLP;    

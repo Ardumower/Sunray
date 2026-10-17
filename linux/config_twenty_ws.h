@@ -466,21 +466,22 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 //#define DOCK_APRIL_TAG 1         // use visual (april-tag) docking/undocking?
 //#define DOCK_GUIDANCE_SHEET  1   // use guidance sheet for docking/undocking?
-//#define DOCK_REFLECTOR_TAG  1   // use reflector tag for docking/undocking?
-#define DOCK_LED_STRIP 1         // native V4L2 camera LED-strip docking/undocking (no ROS)
-#define DOCK_LED_STRIP_SWITCH_DISTANCE 1.5
-#define DOCK_LED_STRIP_CAMERA_INDEX 0
-#define DOCK_LED_STRIP_DETECTION_FPS 10
-#define DOCK_LED_STRIP_MIN_BRIGHTNESS 220
-#define DOCK_LED_STRIP_MAX_COLOR_SPREAD 60
-#define DOCK_LED_STRIP_MIN_LEDS 5
-#define DOCK_LED_STRIP_MIN_VERTICAL_SPAN 0.18
-#define DOCK_LED_STRIP_MAX_SLOPE 0.12
-#define DOCK_LED_STRIP_ACQUIRE_FRAMES 3
-#define DOCK_LED_STRIP_LOST_TIMEOUT_MS 500
-#define DOCK_LED_STRIP_ANGULAR_P 0.7
-#define DOCK_LED_STRIP_MAX_ANGULAR 0.35
-#define DOCK_LED_STRIP_MAX_ERROR_FOR_DRIVE 0.65
+#define DOCK_REFLECTOR_STRIPS 1         // native V4L2 camera three-reflector docking/undocking (no ROS)
+#define DOCK_REFLECTOR_STRIPS_FIRST_POINT_RADIUS 0.25 // stop/handoff near first dock point (m)
+#define DOCK_REFLECTOR_STRIPS_UNDOCK_EXIT_RADIUS 2.0 // hand back to GPS within 2 m of first dock point
+#define DOCK_REFLECTOR_STRIPS_STOP_MS 500 // mandatory standstill before camera tracking
+#define DOCK_REFLECTOR_STRIPS_CAMERA_INDEX 0
+#define DOCK_REFLECTOR_STRIPS_DETECTION_FPS 10
+#define DOCK_REFLECTOR_STRIPS_ROI_TOP 0.40 // lower-image anchor; full strips may extend above this
+#define DOCK_REFLECTOR_STRIPS_MIN_VERTICAL_SPAN 0.055 // each strip: fraction of image height
+#define DOCK_REFLECTOR_STRIPS_MAX_SLOPE 0.25 // tolerate modest camera roll
+#define DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO 1.6 // longest/shortest and widest/narrowest
+#define DOCK_REFLECTOR_STRIPS_MAX_SPACING_RATIO 1.45 // perspective tolerance
+#define DOCK_REFLECTOR_STRIPS_ACQUIRE_FRAMES 3
+#define DOCK_REFLECTOR_STRIPS_LOST_TIMEOUT_MS 500
+#define DOCK_REFLECTOR_STRIPS_ANGULAR_P 0.7
+#define DOCK_REFLECTOR_STRIPS_MAX_ANGULAR 0.35
+#define DOCK_REFLECTOR_STRIPS_MAX_ERROR_FOR_DRIVE 0.65
 #define DOCK_LINEAR_SPEED 0.08   // linear speed for docking
 
 #define DOCK_DETECT_OBSTACLE_IN_DOCK true   // enable obstacle detection in dock?

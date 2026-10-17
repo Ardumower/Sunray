@@ -2,8 +2,9 @@
 #include "CameraStreamer.h"
 #include "MediaStream.h"
 #include "CameraRegistry.h"
-#include "LedStripDetector.h"
+#include "ReflectorStripsDetector.h"
 #include "SafeJpeg.h"
+#include "ReflectorFailureRecorder.h"
 #include "Console.h"
 // Access motor speed setpoints via C-accessors (to avoid Arduino header conflicts)
 extern "C" float cameraGetLinearSet();
@@ -66,7 +67,7 @@ CameraStreamer& CameraStreamer::instance() { static CameraStreamer inst; return 
 CameraStreamer::CameraStreamer() {}
 CameraStreamer::~CameraStreamer() {
   streamingRequested_.store(false);
-  ledDetectionRequested_.store(false);
+  reflectorDetectionRequested_.store(false);
   running_.store(false);
   try { if (worker_.joinable()) worker_.join(); } catch (...) {}
 }
@@ -93,19 +94,19 @@ void CameraStreamer::stop() {
   stopWorkerIfUnused();
 }
 
-void CameraStreamer::enableLedStripDetection(int index, int fps) {
-  ledCamIndex_.store(index);
-  ledFps_.store((fps <= 0) ? 10 : fps);
-  ledDetectionRequested_.store(true);
-  CONSOLE.print("CAM LED detector start idx="); CONSOLE.print(index);
+void CameraStreamer::enableReflectorStripsDetection(int index, int fps) {
+  reflectorCamIndex_.store(index);
+  reflectorFps_.store((fps <= 0) ? 10 : fps);
+  reflectorDetectionRequested_.store(true);
+  CONSOLE.print("CAM reflectors detector start idx="); CONSOLE.print(index);
   CONSOLE.print(" @"); CONSOLE.println((fps <= 0) ? 10 : fps);
   ensureWorkerRunning();
 }
 
-void CameraStreamer::disableLedStripDetection() {
-  ledDetectionRequested_.store(false);
-  LedStripDetector::instance().clear();
-  CONSOLE.println("CAM LED detector stop");
+void CameraStreamer::disableReflectorStripsDetection() {
+  reflectorDetectionRequested_.store(false);
+  ReflectorStripsDetector::instance().clear();
+  CONSOLE.println("CAM reflectors detector stop");
   stopWorkerIfUnused();
 }
 
@@ -116,7 +117,7 @@ void CameraStreamer::ensureWorkerRunning() {
 }
 
 void CameraStreamer::stopWorkerIfUnused() {
-  if (streamingRequested_.load() || ledDetectionRequested_.load()) return;
+  if (streamingRequested_.load() || reflectorDetectionRequested_.load()) return;
   running_.store(false);
   try { if (worker_.joinable()) worker_.join(); } catch (...) {}
   CONSOLE.println("CAM capture stop");
@@ -193,12 +194,12 @@ static void drawChar5x7(uint8_t* img, int w, int h, int x, int y, char c, int sc
 // rest of the firmware can link without pulling in Linux-only camera code.
 extern "C" void cameraStreamerStart(int, int, int, int, int) {}
 extern "C" void cameraStreamerStop() {}
-extern "C" void cameraLedStripEnable(int, int) {}
-extern "C" bool cameraLedStripFound() { return false; }
-extern "C" float cameraLedStripHorizontalError() { return 0.0f; }
-extern "C" float cameraLedStripConfidence() { return 0.0f; }
-extern "C" int cameraLedStripLedCount() { return 0; }
-extern "C" unsigned long cameraLedStripAgeMs() { return (unsigned long)-1; }
+extern "C" void cameraReflectorStripsEnable(int, int) {}
+extern "C" bool cameraReflectorStripsFound() { return false; }
+extern "C" float cameraReflectorStripsHorizontalError() { return 0.0f; }
+extern "C" float cameraReflectorStripsConfidence() { return 0.0f; }
+extern "C" int cameraReflectorStripsStripCount() { return 0; }
+extern "C" unsigned long cameraReflectorStripsAgeMs() { return (unsigned long)-1; }
 
 #endif // __linux__
 
@@ -296,7 +297,7 @@ static bool jpegEncodeRGB(const uint8_t* rgb, int w, int h, int quality, std::ve
 void CameraStreamer::runLoop() {
   using namespace std::chrono;
   // Open V4L2 device
-  int index = ledDetectionRequested_.load() ? ledCamIndex_.load() : camIndex_.load();
+  int index = reflectorDetectionRequested_.load() ? reflectorCamIndex_.load() : camIndex_.load();
   int outW = reqW_.load(); int outH = reqH_.load(); int fps = reqFps_.load();
   CameraRegistry::refresh();
   std::string devPathStr = CameraRegistry::pathForIndex(index);
@@ -307,7 +308,7 @@ void CameraStreamer::runLoop() {
     auto next = steady_clock::now();
     while (running_.load()) {
       // break if index changed to a valid device
-      const int requestedIndex = ledDetectionRequested_.load() ? ledCamIndex_.load() : camIndex_.load();
+      const int requestedIndex = reflectorDetectionRequested_.load() ? reflectorCamIndex_.load() : camIndex_.load();
       if (requestedIndex != index) break;
       if (streamingRequested_.load()) buildAndSendFrame();
       next += period;
@@ -323,7 +324,7 @@ void CameraStreamer::runLoop() {
     auto period = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
     auto next = steady_clock::now();
     while (running_.load()) {
-      const int requestedIndex = ledDetectionRequested_.load() ? ledCamIndex_.load() : camIndex_.load();
+      const int requestedIndex = reflectorDetectionRequested_.load() ? reflectorCamIndex_.load() : camIndex_.load();
       if (requestedIndex != index) break;
       if (streamingRequested_.load()) buildAndSendFrame();
       next += period;
@@ -347,7 +348,7 @@ void CameraStreamer::runLoop() {
     auto period = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
     auto next = steady_clock::now();
     while (running_.load()) {
-      const int requestedIndex = ledDetectionRequested_.load() ? ledCamIndex_.load() : camIndex_.load();
+      const int requestedIndex = reflectorDetectionRequested_.load() ? reflectorCamIndex_.load() : camIndex_.load();
       if (requestedIndex != index) break;
       if (streamingRequested_.load()) buildAndSendFrame();
       next += period;
@@ -385,14 +386,15 @@ void CameraStreamer::runLoop() {
 
   auto lastSend = steady_clock::now() - milliseconds(1000);
   auto lastDetection = steady_clock::now() - milliseconds(1000);
-  bool ledStatusInitialized = false;
-  bool lastLedFound = false;
+  bool reflectorStatusInitialized = false;
+  bool lastReflectorFound = false;
+  ReflectorFailureRecorder failureRecorder;
   auto lastBadFrameLog = steady_clock::now() - seconds(5);
   auto minPeriod = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
   CONSOLE.print("CAM out req="); CONSOLE.print(outW); CONSOLE.print("x"); CONSOLE.print(outH); CONSOLE.print(" @"); CONSOLE.println((int)fps);
 
   while (running_.load()) {
-    int nIndex = ledDetectionRequested_.load() ? ledCamIndex_.load() : camIndex_.load();
+    int nIndex = reflectorDetectionRequested_.load() ? reflectorCamIndex_.load() : camIndex_.load();
     int nW = reqW_.load(), nH = reqH_.load(), nF = reqFps_.load();
     if (nIndex != index) { CONSOLE.println("CAM index changed, reopening"); break; }
     outW = nW; outH = nH; if (nF != fps) { fps = nF; minPeriod = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200); }
@@ -410,24 +412,25 @@ void CameraStreamer::runLoop() {
     const uint8_t* mjpeg = (const uint8_t*)bufs[b.index].start; size_t mjpegLen = b.bytesused;
     auto now = steady_clock::now();
     const bool shouldSend = streamingRequested_.load() && (now - lastSend) >= minPeriod;
-    const int detectorFps = std::max(1, ledFps_.load());
+    const int detectorFps = std::max(1, reflectorFps_.load());
     const auto detectorPeriod = milliseconds(1000 / detectorFps);
-    const bool shouldDetect = ledDetectionRequested_.load() && (now - lastDetection) >= detectorPeriod;
+    const bool shouldDetect = reflectorDetectionRequested_.load() && (now - lastDetection) >= detectorPeriod;
     if (shouldSend || shouldDetect) {
       std::vector<uint8_t> rgb; int srcW = 0, srcH = 0;
       if (jpegDecodeToRGB(mjpeg, mjpegLen, rgb, srcW, srcH)) {
         const unsigned long timestampMs = (unsigned long)duration_cast<milliseconds>(now.time_since_epoch()).count();
         if (shouldDetect) {
-          LedStripDetector::instance().processRgb(rgb.data(), srcW, srcH, timestampMs);
-          const LedStripObservation led = LedStripDetector::instance().observation(timestampMs);
-          if (!ledStatusInitialized || led.found != lastLedFound) {
-            ledStatusInitialized = true;
-            lastLedFound = led.found;
-            CONSOLE.print("CAM LED found="); CONSOLE.print(led.found);
-            CONSOLE.print(" leds="); CONSOLE.print(led.ledCount);
-            CONSOLE.print(" mode="); CONSOLE.print(led.found ? (led.ledCount ? "points" : "solid") : "none");
-            CONSOLE.print(" confidence="); CONSOLE.print(led.confidence);
-            CONSOLE.print(" error="); CONSOLE.println(led.horizontalError);
+          ReflectorStripsDetector::instance().processRgb(rgb.data(), srcW, srcH, timestampMs);
+          const ReflectorStripsObservation marker = ReflectorStripsDetector::instance().observation(timestampMs);
+          failureRecorder.observe(mjpeg, mjpegLen, srcW, srcH, timestampMs, marker, cameraGetLinearSet(), cameraGetAngularSet());
+          if (!reflectorStatusInitialized || marker.found != lastReflectorFound) {
+            reflectorStatusInitialized = true;
+            lastReflectorFound = marker.found;
+            CONSOLE.print("CAM reflectors found="); CONSOLE.print(marker.found);
+            CONSOLE.print(" strips="); CONSOLE.print(marker.stripCount);
+            CONSOLE.print(" mode="); CONSOLE.print(marker.found ? "triple" : "none");
+            CONSOLE.print(" confidence="); CONSOLE.print(marker.confidence);
+            CONSOLE.print(" error="); CONSOLE.println(marker.horizontalError);
           }
           lastDetection = now;
         }
@@ -436,14 +439,14 @@ void CameraStreamer::runLoop() {
           resizeNearestRGB(rgb.data(), srcW, srcH, outRGB.data(), outW, outH);
           // Overlay: time and joystick arrows
           drawOverlay(outRGB.data(), outW, outH);
-          if (ledDetectionRequested_.load()) {
-            const LedStripObservation led = LedStripDetector::instance().observation(timestampMs);
+          if (reflectorDetectionRequested_.load()) {
+            const ReflectorStripsObservation marker = ReflectorStripsDetector::instance().observation(timestampMs);
             const int centreX = outW / 2;
             fillRect(outRGB.data(), outW, outH, centreX - 1, 0, centreX + 1, outH - 1,
                      0, 120, 255, 150);
-            if (led.found) {
-              const int ledX = (int)((led.horizontalError * 0.5f + 0.5f) * outW);
-              fillRect(outRGB.data(), outW, outH, ledX - 2, 0, ledX + 2, outH - 1,
+            if (marker.found) {
+              const int reflectorX = (int)((marker.horizontalError * 0.5f + 0.5f) * outW);
+              fillRect(outRGB.data(), outW, outH, reflectorX - 2, 0, reflectorX + 2, outH - 1,
                        0, 255, 0, 190);
             }
           }
@@ -473,21 +476,21 @@ void CameraStreamer::runLoop() {
 
 extern "C" void cameraStreamerStart(int index, int width, int height, int fps, int quality) { CameraStreamer::instance().start(index, width, height, fps, quality); }
 extern "C" void cameraStreamerStop() { CameraStreamer::instance().stop(); }
-extern "C" void cameraLedStripEnable(int index, int fps) { CameraStreamer::instance().enableLedStripDetection(index, fps); }
-extern "C" bool cameraLedStripFound() {
-  return LedStripDetector::instance().observation((unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()).found;
+extern "C" void cameraReflectorStripsEnable(int index, int fps) { CameraStreamer::instance().enableReflectorStripsDetection(index, fps); }
+extern "C" bool cameraReflectorStripsFound() {
+  return ReflectorStripsDetector::instance().observation((unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()).found;
 }
-extern "C" float cameraLedStripHorizontalError() {
-  return LedStripDetector::instance().observation((unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()).horizontalError;
+extern "C" float cameraReflectorStripsHorizontalError() {
+  return ReflectorStripsDetector::instance().observation((unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()).horizontalError;
 }
-extern "C" float cameraLedStripConfidence() {
-  return LedStripDetector::instance().observation((unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()).confidence;
+extern "C" float cameraReflectorStripsConfidence() {
+  return ReflectorStripsDetector::instance().observation((unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()).confidence;
 }
-extern "C" int cameraLedStripLedCount() {
-  return LedStripDetector::instance().observation((unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()).ledCount;
+extern "C" int cameraReflectorStripsStripCount() {
+  return ReflectorStripsDetector::instance().observation((unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()).stripCount;
 }
-extern "C" unsigned long cameraLedStripAgeMs() {
-  return LedStripDetector::instance().observation((unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()).ageMs;
+extern "C" unsigned long cameraReflectorStripsAgeMs() {
+  return ReflectorStripsDetector::instance().observation((unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()).ageMs;
 }
 
 void CameraStreamer::buildAndSendFrame() {

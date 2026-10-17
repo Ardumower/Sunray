@@ -44,8 +44,8 @@
 #include "mqtt.h"
 #include "events.h"
 
-#ifdef DOCK_LED_STRIP
-extern "C" void cameraLedStripEnable(int index, int fps);
+#ifdef DOCK_REFLECTOR_STRIPS
+extern "C" void cameraReflectorStripsEnable(int index, int fps);
 #endif
 
 // #define I2C_SPEED  10000
@@ -557,12 +557,18 @@ void outputConfig(){
     CONSOLE.print("DOCK_CONTACT_ADVANCE_DISTANCE: ");
     CONSOLE.println(DOCK_CONTACT_ADVANCE_DISTANCE);
   #endif
-  #ifdef DOCK_LED_STRIP
-    CONSOLE.println("DOCK_LED_STRIP: native V4L2 (no ROS)");
-    CONSOLE.print("DOCK_LED_STRIP_SWITCH_DISTANCE: ");
-    CONSOLE.println(DOCK_LED_STRIP_SWITCH_DISTANCE);
-    CONSOLE.print("DOCK_LED_STRIP_CAMERA_INDEX: ");
-    CONSOLE.println(DOCK_LED_STRIP_CAMERA_INDEX);
+  #ifdef DOCK_REFLECTOR_STRIPS
+    CONSOLE.println("DOCK_REFLECTOR_STRIPS: native V4L2 (no ROS)");
+    CONSOLE.print("DOCK_REFLECTOR_STRIPS_FIRST_POINT_RADIUS: ");
+    CONSOLE.println(DOCK_REFLECTOR_STRIPS_FIRST_POINT_RADIUS);
+    CONSOLE.print("DOCK_REFLECTOR_STRIPS_UNDOCK_EXIT_RADIUS: ");
+    CONSOLE.println(DOCK_REFLECTOR_STRIPS_UNDOCK_EXIT_RADIUS);
+    CONSOLE.print("DOCK_REFLECTOR_STRIPS_STOP_MS: ");
+    CONSOLE.println(DOCK_REFLECTOR_STRIPS_STOP_MS);
+    CONSOLE.print("DOCK_STOP_ON_OBSTACLE: ");
+    CONSOLE.println(DOCK_STOP_ON_OBSTACLE);
+    CONSOLE.print("DOCK_REFLECTOR_STRIPS_CAMERA_INDEX: ");
+    CONSOLE.println(DOCK_REFLECTOR_STRIPS_CAMERA_INDEX);
   #endif
   CONSOLE.print("DOCK_AUTO_START: ");
   CONSOLE.println(DOCK_AUTO_START);
@@ -660,8 +666,8 @@ void start(){
 
   outputConfig();
 
-  #ifdef DOCK_LED_STRIP
-    cameraLedStripEnable(DOCK_LED_STRIP_CAMERA_INDEX, DOCK_LED_STRIP_DETECTION_FPS);
+  #ifdef DOCK_REFLECTOR_STRIPS
+    cameraReflectorStripsEnable(DOCK_REFLECTOR_STRIPS_CAMERA_INDEX, DOCK_REFLECTOR_STRIPS_DETECTION_FPS);
   #endif
 
   if (TOF_ENABLE){
@@ -1163,6 +1169,9 @@ void run(){
 
     //CONSOLE.print("active:");
     //CONSOLE.println(activeOp->name());
+    if (DOCK_STOP_ON_OBSTACLE && bumper.obstacle() && activeOp != &errorOp) {
+      activeOp->stopOnDockingObstacle(SENS_BUMPER);
+    }
     activeOp->checkStop();
     activeOp->run();     
       
