@@ -271,7 +271,8 @@ void StateEstimator::computeRobotState(){
     reflectorDockingGate.update(reflectorDocking, reflectorUndocking, routeValid,
         stateX, stateY, handoffX, handoffY, travel,
         cameraReflectorStripsFound(), millis(), DOCK_REFLECTOR_STRIPS_HANDOFF_RADIUS,
-        DOCK_REFLECTOR_STRIPS_HANDOFF_RADIUS, DOCK_REFLECTOR_STRIPS_STOP_MS);
+        DOCK_REFLECTOR_STRIPS_HANDOFF_RADIUS, DOCK_REFLECTOR_STRIPS_STOP_MS,
+        maps.dockPointsIdx >= handoffIndex);
     dockReflectorStripsActive = reflectorDockingGate.active();
     dockReflectorStripsUndockCompleted = reflectorDockingGate.complete();
     if (oldPhase != reflectorDockingGate.phase) {

@@ -13,6 +13,7 @@
 #include "../../events.h"
 #ifdef DOCK_REFLECTOR_STRIPS
 extern "C" bool cameraReflectorStripsFound();
+extern "C" float cameraReflectorStripsHorizontalError();
 #endif
 
 
@@ -59,12 +60,12 @@ void MowOp::begin(){
         const bool markerEntry = ReflectorDockingGate::cameraEntryAllowed(
             cameraReflectorStripsFound(),ReflectorDockingGate::nearCameraPath(x,y,
                 maps.dockPoints.points[handoffIndex].x(),maps.dockPoints.points[handoffIndex].y(),
-                dockX,dockY),facing);
+                dockX,dockY),cameraReflectorStripsHorizontalError());
         // Keep the existing narrow-corridor recovery: with no marker it waits
         // in acquisition instead of falling through to GPS/mowing movement.
         inCorridor |= markerEntry;
         resumeCamera = ReflectorDockingGate::resumeUndocking(std::sqrt(dx*dx+dy*dy),
-            DOCK_REFLECTOR_STRIPS_HANDOFF_RADIUS,inCorridor,knownDockPath,facing);
+            DOCK_REFLECTOR_STRIPS_HANDOFF_RADIUS,inCorridor,knownDockPath || markerEntry,facing);
     }
     if (resumeCamera){
         maps.wayMode=WAY_DOCK;

@@ -188,8 +188,16 @@ void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRam
    }
    angularSpeedSet = angular;
 #ifdef DOCK_MAX_WHEEL_SPEED
-   if (stateEstimator.stateOp == OP_DOCK || (stateEstimator.stateOp == OP_MOW && maps.isUndocking()))
-     limitDockWheelSpeed(linearSpeedSet, angularSpeedSet, wheelBaseCm/100.0f, DOCK_MAX_WHEEL_SPEED);
+   if (stateEstimator.stateOp == OP_DOCK || (stateEstimator.stateOp == OP_MOW && maps.isUndocking())) {
+     float wheelLimit=DOCK_MAX_WHEEL_SPEED;
+#ifdef DOCK_APPROACH_MAX_WHEEL_SPEED
+     // GPS routing must not inherit the camera experiment's 2 cm/s wheel cap.
+     // Search commands already apply the smaller camera cap before this call.
+     if (stateEstimator.stateLocalizationMode != LOC_REFLECTOR_STRIPS)
+       wheelLimit=DOCK_APPROACH_MAX_WHEEL_SPEED;
+#endif
+     limitDockWheelSpeed(linearSpeedSet, angularSpeedSet, wheelBaseCm/100.0f, wheelLimit);
+   }
 #endif
    float rspeed = linearSpeedSet + angularSpeedSet * (wheelBaseCm /100.0 /2);          
    float lspeed = linearSpeedSet - angularSpeedSet * (wheelBaseCm /100.0 /2);          

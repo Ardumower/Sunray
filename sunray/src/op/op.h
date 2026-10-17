@@ -10,6 +10,7 @@
 #include <Arduino.h>
 #include "../../robot.h"
 #include "../../map.h"
+#include "../navigation/DockMarkerSearch.h"
 
 #ifndef DOCK_STOP_ON_OBSTACLE
 #define DOCK_STOP_ON_OBSTACLE false
@@ -149,6 +150,11 @@ class DockOp: public Op {
   public:
     bool cameraEntryRequested = false;
     bool requestCameraDocking();
+    bool tryCameraEntry(bool confirmedCameraEntry);
+    bool startCameraSearch(bool atHandoff=false);
+    bool cameraSearchAvailable = true;
+    bool runCameraSearch();
+    DockMarkerSearch cameraSearch;
     bool dockReasonRainTriggered;
     unsigned long dockReasonRainAutoStartTime;
     bool lastMapRoutingFailed;

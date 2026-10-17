@@ -13,6 +13,10 @@ public:
 
   static int handoffIndex(int count) { return count >= 2 ? count-2 : -1; }
 
+  static bool shouldSearch(Phase phase,bool available,bool markerFound){
+    return phase==AcquireDock && available && !markerFound;
+  }
+
   void reset(){phase=Inactive;wasDocking=wasUndocking=false;}
   void confirmDockEntry(unsigned long now){reset();phase=AcquireDock;wasDocking=true;stoppedAt=now;}
   bool active() const {return phase==AcquireDock || phase==Dock || phase==AcquireUndock || phase==Undock || phase==Blocked;}
@@ -42,8 +46,8 @@ public:
     const float ex=x-ax-t*dx,ey=y-ay-t*dy;
     return ex*ex+ey*ey<=2.0f*2.0f;
   }
-  static bool cameraEntryAllowed(bool markerFound,bool nearPath,float facing){
-    return markerFound && nearPath && std::isfinite(facing) && facing>0.7071f;
+  static bool cameraEntryAllowed(bool markerFound,bool nearPath,float imageError){
+    return markerFound && nearPath && std::isfinite(imageError) && std::fabs(imageError)<=1.0f;
   }
   // Unsigned counters decrement in reverse. Compute the shorter modular
   // displacement before converting to float, including across counter wrap.
@@ -54,7 +58,7 @@ public:
 
   void update(bool docking,bool undocking,bool routeValid,
               float x,float y,float handoffX,float handoffY,float travel,
-              bool markerFound,unsigned long now,float entryRadius,float exitRadius,unsigned long stopMs){
+              bool markerFound,unsigned long now,float entryRadius,float exitRadius,unsigned long stopMs,bool dockingRouteReady=true){
     if(!docking && !undocking){reset();return;}
     const bool newDock=docking&&!wasDocking,newUndock=undocking&&!wasUndocking;
     wasDocking=docking;wasUndocking=undocking;
@@ -68,7 +72,7 @@ public:
       // A missed exit must stop, never cause unlimited reverse travel.
       undockLimit=distance*1.5f+1.0f;
     }
-    if(docking && phase==Approach && distance<=entryRadius){
+    if(docking && phase==Approach && dockingRouteReady && distance<=entryRadius){
       phase=AcquireDock;stoppedAt=now;
     }
     if(undocking && phase!=Complete && phase!=Blocked){

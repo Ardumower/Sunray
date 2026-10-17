@@ -39,9 +39,31 @@ s=Path('sunray/src/op/MowOp.cpp').read_text()
 a=s.index('    float dockX,dockY,dockHeading;')
 b=s.index('    if (resumeCamera)',a)
 out.joinpath('undock-entry-production.inc').write_text(s[a:b])
+s=Path('sunray/robot.cpp').read_text()
+a=s.index('  // Pure rotation need not change GPS position.')
+b=s.index('  return false;',a)
+out.joinpath('gps-motion-production.inc').write_text(s[a:b])
+out.joinpath('dock-search-production.inc').write_text(method('sunray/src/op/DockOp.cpp','bool DockOp::runCameraSearch('))
+s=Path('sunray/src/op/DockOp.cpp').read_text()
+a=s.index('    if (bumper.obstacle()')
+b=s.index('#ifdef DOCK_REFLECTOR_STRIPS',a)
+out.joinpath('dock-search-prefix.inc').write_text(s[a:b])
+s=Path('sunray/motor.cpp').read_text()
+a=s.index('#ifdef DOCK_MAX_WHEEL_SPEED')
+b=s.index('   float rspeed',a)
+out.joinpath('dock-speed-production.inc').write_text(s[a:b])
 PY
 "${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -I"$work" -Isunray linux/tests/reflector-docking-safety-test.cpp -o "$work/safety"
 "$work/safety"
 
 "${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -I"$work" -Isunray linux/tests/camera-entry-test.cpp -o "$work/entry"
 "$work/entry"
+
+"${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -I"$work" linux/tests/gps-rotation-motion-test.cpp -o "$work/rotation"
+"$work/rotation"
+
+"${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -I"$work" -Isunray linux/tests/dock-marker-search-test.cpp -o "$work/search"
+"$work/search"
+
+"${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -I"$work" -Isunray linux/tests/dock-speed-policy-test.cpp -o "$work/speed"
+"$work/speed"

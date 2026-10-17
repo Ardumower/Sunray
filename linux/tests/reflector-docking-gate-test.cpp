@@ -80,5 +80,18 @@ int main(){
  handoff(false,true,5.01f,1600); assert(!g.complete());
  handoff(false,true,5,1700); assert(g.complete());
  handoff(false,true,5.2f,1800); assert(g.complete()); // no oscillation
+ // Nearby earlier route points must not trigger acquisition simply because
+ // their 1m circles overlap. The route must be targeting the handoff point.
+ g.reset();
+ g.update(true,false,true,12.64f,-1.55f,11.73f,-1.31f,0,false,100,1,1,500,false);
+ assert(g.phase==g.Approach);
+ g.update(true,false,true,12.31f,-1.44f,11.73f,-1.31f,0,false,200,1,1,500,false);
+ assert(g.phase==g.Approach);
+ g.update(true,false,true,12.31f,-1.44f,11.73f,-1.31f,0,false,300,1,1,500,true);
+ assert(g.phase==g.AcquireDock);
+ assert(g.shouldSearch(g.phase,true,false));
+ assert(!g.shouldSearch(g.phase,false,false)); // scan already used / later marker loss
+ assert(!g.shouldSearch(g.phase,true,true));
+ assert(!g.shouldSearch(g.Blocked,true,false));
  std::puts("PASS penultimate-point 1m handoff in both directions, reacquisition, reset, blocked route/travel, timer wrap");
 }

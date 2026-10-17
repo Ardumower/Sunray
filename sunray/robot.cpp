@@ -881,7 +881,15 @@ bool detectObstacle(){
       return true;
     }        
   }  
-  // check if GPS motion (obstacle detection)  
+  // Pure rotation need not change GPS position. Refresh the translation
+  // baseline so the next forward movement gets a full observation interval.
+  if (robotShouldRotate()) {
+    updateGPSMotionCheckTime();
+    resetOverallMotionTimeout();
+    lastGPSMotionX = stateEstimator.stateX;
+    lastGPSMotionY = stateEstimator.stateY;
+  }
+  // check if GPS motion (obstacle detection)
   if ((millis() > nextGPSMotionCheckTime) || (millis() > overallMotionTimeout)) {        
     updateGPSMotionCheckTime();
     resetOverallMotionTimeout(); // this resets overall motion timeout (overall motion timeout happens if e.g. 

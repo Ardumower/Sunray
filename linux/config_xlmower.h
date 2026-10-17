@@ -456,9 +456,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DOCK_REFLECTOR_STRIPS_MAX_ANGULAR 0.35     // steering limit (rad/s)
 #define DOCK_REFLECTOR_STRIPS_MAX_ERROR_FOR_DRIVE 0.65 // rotate only outside this normalized image error
 
-#define DOCK_MAX_WHEEL_SPEED 0.02 // supervised slow docking test: max commanded speed of either wheel (m/s)
-#define DOCK_TEST_TIMEOUT_MS 300000UL // local 5-minute docking-test stop, independent of network
-#define UNDOCK_TEST_TIMEOUT_MS 300000UL // temporary undock-only test: blade off, stop at camera exit or timeout
+#define DOCK_APPROACH_MAX_WHEEL_SPEED 0.10 // GPS approach/exit wheel limit (m/s)
+#define DOCK_MAX_WHEEL_SPEED 0.02 // max commanded speed of either wheel during camera docking/undocking (m/s)
+#define DOCK_TEST_TIMEOUT_MS 0UL // normal docking: no temporary test deadline
+#define UNDOCK_TEST_TIMEOUT_MS 0UL // normal operation: continue via RTK to mowing after camera exit
 #define DOCK_LINEAR_SPEED 0.02   // linear speed for docking
 
 #define DOCK_STOP_ON_OBSTACLE true // stop and latch Error during docking/undocking; no escape/retry

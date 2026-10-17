@@ -19,6 +19,8 @@ int idleOp,otherOp,imuCalibrationOp;
 bool initiatedByOperator=true;
 int* previousOp=&idleOp;
 bool marker=true;
+float imageError=0;
+float cameraReflectorStripsHorizontalError(){return imageError;}
 bool cameraReflectorStripsFound(){return marker;}
 bool dock(){
 #include "dock-entry-production.inc"
@@ -35,33 +37,32 @@ int main(){
  stateEstimator.stateY=2;assert(dock());assert(undock());
  stateEstimator.stateY=2.01f;assert(!dock());assert(!undock());
  stateEstimator.stateY=1.5f;marker=false;assert(!dock());assert(!undock());
- marker=true;stateEstimator.stateDelta=PI;assert(!dock());assert(!undock());
- stateEstimator.stateDelta=.79f;assert(!dock());assert(!undock());
- stateEstimator.stateDelta=.78f;assert(dock());assert(undock());
- stateEstimator.stateDelta=0;stateEstimator.stateX=-3;stateEstimator.stateY=0;
- assert(!dock());assert(!undock());
- stateEstimator.stateX=2;previousOp=&otherOp;assert(!dock());previousOp=&idleOp;
- // Dock pressed during startup calibration must use the same camera entry.
- previousOp=&imuCalibrationOp;assert(dock());
- initiatedByOperator=false;assert(!dock());
- initiatedByOperator=true;marker=false;assert(!dock());marker=true;
+ marker=true;stateEstimator.stateDelta=PI;assert(dock());assert(undock());
+ // Marker orientation takes precedence over drifting map yaw, even at edge.
+ imageError=-.88f;assert(dock());assert(undock());
+ imageError=1.01f;assert(!dock());assert(!undock());
+ imageError=std::numeric_limits<float>::quiet_NaN();assert(!dock());assert(!undock());
+ imageError=0;stateEstimator.stateDelta=0;stateEstimator.stateX=-3;stateEstimator.stateY=0;
+ assert(!dock());assert(!undock());stateEstimator.stateX=2;
+ // Same production decision is used after Idle, Error, calibration and during approach.
+ previousOp=&otherOp;assert(dock());previousOp=&imuCalibrationOp;assert(dock());
  previousOp=&idleOp;
  maps.valid=false;assert(!dock());assert(!undock());maps.valid=true;
  maps.dockPoints.numPoints=1;assert(!dock());assert(!undock());maps.dockPoints.numPoints=3;
  stateEstimator.stateX=std::numeric_limits<float>::quiet_NaN();assert(!dock());assert(!undock());
- stateEstimator.stateX=2;stateEstimator.stateDelta=std::numeric_limits<float>::quiet_NaN();assert(!dock());assert(!undock());
+ stateEstimator.stateX=2;stateEstimator.stateDelta=std::numeric_limits<float>::quiet_NaN();assert(dock());assert(undock());
  stateEstimator.stateDelta=0;stateEstimator.stateX=1;
  assert(dock());assert(!undock()); // already at 1 m handoff: do not restart camera exit
  stateEstimator.stateX=1.01f;assert(undock());
  marker=false;assert(!dock());assert(undock()); // narrow corridor still acquires while stopped
  marker=true;frontDock=false;stateEstimator.stateDelta=PI;
  assert(dock());assert(undock());
- stateEstimator.stateDelta=0;assert(!dock());assert(!undock());
+ stateEstimator.stateDelta=0;assert(dock());assert(undock());
  frontDock=true;
  // Automatic entry uses the same standstill and loss gate as explicit entry.
  ReflectorDockingGate gate;gate.confirmDockEntry(100);
  gate.update(true,false,true,2,0,0,0,0,true,599,1,1,500);assert(!gate.mayDrive());
  gate.update(true,false,true,2,0,0,0,0,true,600,1,1,500);assert(gate.mayDrive());
  gate.update(true,false,true,2,0,0,0,0,false,620,1,1,500);assert(!gate.mayDrive());
- std::puts("PASS production Dock/Mow camera entry: 2m path distance, facing, stable marker, Idle, handoff and stop gate");
+ std::puts("PASS production Dock/Mow camera entry: 2m path distance, image orientation, stable marker, reentry, handoff and stop gate");
 }

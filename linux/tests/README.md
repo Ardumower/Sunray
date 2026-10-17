@@ -441,26 +441,60 @@ only image error; GPS yaw is not fed into that control law. At charge contacts,
 the final dock-segment heading remains authoritative. Offline tests cover the
 observed wrong initial heading, reverse travel, angle wrap and rejection cases.
 
-### Automatic camera entry from Idle
+### Automatic camera entry during docking
 
-An ordinary Dock command from Idle (including an operator command deferred until
-startup IMU calibration finishes) can now select the existing camera acquisition
-path without routing back through the approach points. It requires a fresh,
-stable three-strip detection, a position within 2 m of the finite final dock
-segment (penultimate to last point), and a heading within 45 degrees of the dock
-orientation. The detector applies its normal consecutive-frame and freshness
-checks; entry still stops for the configured acquisition interval. Invalid maps,
-positions, headings or missing markers do not select this shortcut.
+An ordinary Dock command, including retries from Error and commands deferred
+until startup calibration finishes, can select camera acquisition without
+routing back through the approach points. The same decision is checked every
+Dock approach cycle, after the bumper stop check. It requires a fresh, stable
+three-strip detection and a position within 2 m of the finite final dock segment
+(penultimate to last point). Image position supplies the orientation reference;
+drifting map yaw must not reject a visible marker. Entry stops immediately and
+retains the configured acquisition interval. At the image edge, the existing
+camera controller rotates without translating until the marker is centered.
+An active acquisition/loss gate or blocked state is never reset by this check.
 
-Mow/undock accepts the same 2 m marker-based corridor, provided the robot is still
-outside the 1 m handoff radius around the penultimate point. Existing narrow
-0.75 m corridor recovery remains available without a visible marker: it waits
-for camera acquisition instead of starting GPS/mowing movement. Charging exits
-retain their existing camera acquisition. Neither shortcut changes marker-loss,
-bumper stops, the handoff radius or the configured motion/test limits.
+Mow/undock accepts the same 2 m marker-based corridor outside the 1 m handoff
+radius around the penultimate point. Existing narrow 0.75 m corridor recovery
+without a visible marker waits for camera acquisition. Camera losses and bumper
+stops remain unchanged. The XL configuration now disables both temporary test
+timeouts; normal RTK/mowing continuation is enabled, with camera speed still
+limited to 0.02 m/s.
 
-`run-reflector-docking-tests.sh` extracts the production Dock/Mow entry decisions
-and tests lateral distance boundaries, finite-segment distance, facing in both
-docking directions, marker absence, invalid geometry, Idle-only Dock entry,
-the undock handoff boundary and the mandatory stop/loss gate. These tests do not
-command real robot movement.
+The GPS translation watchdog refreshes its baseline during commanded pure
+rotation, which does not require GPS displacement. Forward travel still has a
+full observation interval and triggers on insufficient motion. The separate
+rotation detector configuration is unchanged (disabled on XL).
+
+`run-reflector-docking-tests.sh` exercises the production entry decisions and GPS
+motion watchdog, including 2 m boundaries, late marker acquisition, image-edge
+and invalid observations, map-yaw disagreement, undock handoff, stop/loss gates,
+three minutes of pure rotation and subsequent blocked/moving translation.
+No test sends real robot movement commands.
+
+### Marker search versus GPS approach
+
+Without a visible marker, Dock starts an in-place scan only when the position
+projects onto the final segment between handoff and station and is within 2 m
+laterally. Otherwise it plans the ordinary route to the first dock point. Search
+has zero commanded translation, a 500 ms initial stop, and a 2 cm/s wheel cap.
+A fresh stable marker stops the scan and enters the existing camera acquisition.
+It stops in Idle after one measured positive turn, 15 seconds without angular
+progress, a yaw discontinuity, or a five-minute upper bound. Bumper and physical
+obstacle checks precede scanning; no automatic retry occurs after a failed scan.
+The scan is not restarted on camera tracking loss.
+
+XL uses `DOCK_APPROACH_MAX_WHEEL_SPEED=0.10` m/s for GPS approach/exit and retains
+`DOCK_MAX_WHEEL_SPEED=0.02` m/s for camera guidance/search. Previously the camera
+wheel cap unintentionally applied to the entire GPS approach, reducing forward
+progress especially during strong steering. This change keeps the GPS no-motion
+watchdog enabled for translation. Tests execute the production search path and
+wheel-limit selection in addition to the search angle/time/geometry policy.
+
+The automatic 1 m handoff also requires the route to have reached the
+penultimate target index. Earlier docking points inside the same circle do not
+trigger camera acquisition. At this route handoff, a missing marker starts one
+bounded search even on the approach side within the tolerance circle. Search
+availability is consumed by a scan or valid camera acquisition, so subsequent
+tracking loss only stops/reacquires. Regression coordinates reproduce the XL
+first/second points overlapping the penultimate point's 1 m radius.
