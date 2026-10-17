@@ -64,6 +64,7 @@
 #define RELAIS_2_NODE_ID   2
 
 #define RECEIVER_PUSHBOX_NODE_ID    3 // owlReceiver PCB 
+#define RECEIVER_UPDATE_NODE_ID    1 // Receiver firmware management on OWL_RECEIVER_MSG_ID (100)
 
 
 typedef union canNodeType_t {
