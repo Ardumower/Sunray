@@ -72,7 +72,24 @@ void DockOp::begin(){
   CONSOLE.println(dockReasonRainTriggered);
 
 #ifdef DOCK_REFLECTOR_STRIPS
-  if (confirmedCameraEntry){
+  bool automaticCameraEntry = false;
+  float dockX,dockY,dockHeading;
+  // An operator command during startup calibration is deferred until it ends.
+  // That transition has ImuCalibration, not Idle, as its immediate predecessor.
+  const bool stoppedEntry = previousOp == &idleOp ||
+      (previousOp == &imuCalibrationOp && initiatedByOperator);
+  if (stoppedEntry && maps.dockPoints.numPoints >= 2 &&
+      maps.getDockingPos(dockX,dockY,dockHeading)) {
+    const int handoff = ReflectorDockingGate::handoffIndex(maps.dockPoints.numPoints);
+    const bool nearPath = ReflectorDockingGate::nearCameraPath(
+        stateEstimator.stateX,stateEstimator.stateY,
+        maps.dockPoints.points[handoff].x(),maps.dockPoints.points[handoff].y(),dockX,dockY);
+    const float facing = std::cos(stateEstimator.stateDelta-dockHeading-(DOCK_FRONT_SIDE?0:PI));
+    // Found already includes consecutive-frame stability and freshness checks.
+    automaticCameraEntry = ReflectorDockingGate::cameraEntryAllowed(
+        cameraReflectorStripsFound(),nearPath,facing);
+  }
+  if (confirmedCameraEntry || automaticCameraEntry){
     maps.shouldDock = true;
     maps.shouldMow = false;
     maps.shouldRetryDock = false;
@@ -88,7 +105,9 @@ void DockOp::begin(){
     motor.stopImmediately(true);
     lastMapRoutingFailed = false;
     mapRoutingFailedCounter = 0;
-    CONSOLE.println("dock: operator confirmed entry, acquiring camera marker without GPS approach");
+    CONSOLE.println(automaticCameraEntry
+        ? "dock: stable marker within 2m of final dock path, acquiring camera without GPS approach"
+        : "dock: operator confirmed entry, acquiring camera marker without GPS approach");
     return;
   }
 #endif

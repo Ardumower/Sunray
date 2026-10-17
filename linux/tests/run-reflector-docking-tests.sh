@@ -31,6 +31,17 @@ s=Path('sunray/src/op/MowOp.cpp').read_text()
 a=s.index('#if defined(UNDOCK_TEST_TIMEOUT_MS)')
 b=s.index('\n#ifdef DOCK_REFLECTOR_STRIPS\n    if (maps.isUndocking()',a)
 out.joinpath('undock-test-production.inc').write_text(s[a:b])
+s=Path('sunray/src/op/DockOp.cpp').read_text()
+a=s.index('  bool automaticCameraEntry = false;')
+b=s.index('  if (confirmedCameraEntry || automaticCameraEntry)',a)
+out.joinpath('dock-entry-production.inc').write_text(s[a:b])
+s=Path('sunray/src/op/MowOp.cpp').read_text()
+a=s.index('    float dockX,dockY,dockHeading;')
+b=s.index('    if (resumeCamera)',a)
+out.joinpath('undock-entry-production.inc').write_text(s[a:b])
 PY
 "${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -I"$work" -Isunray linux/tests/reflector-docking-safety-test.cpp -o "$work/safety"
 "$work/safety"
+
+"${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -I"$work" -Isunray linux/tests/camera-entry-test.cpp -o "$work/entry"
+"$work/entry"

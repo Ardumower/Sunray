@@ -30,6 +30,21 @@ public:
     const float ex=x-ax-t*dx,ey=y-ay-t*dy;
     return ex*ex+ey*ey<=radius*radius;
   }
+  // Distance to the finite final dock segment, including its endpoints.
+  // This wider entry corridor does not change the 1 m RTK/camera handoff.
+  static bool nearCameraPath(float x,float y,float ax,float ay,float bx,float by){
+    if(!std::isfinite(x)||!std::isfinite(y)||!std::isfinite(ax)||!std::isfinite(ay)||
+       !std::isfinite(bx)||!std::isfinite(by))return false;
+    const float dx=bx-ax,dy=by-ay,length2=dx*dx+dy*dy;
+    if(!std::isfinite(length2)||length2<0.0025f)return false;
+    float t=((x-ax)*dx+(y-ay)*dy)/length2;
+    t=t<0?0:(t>1?1:t);
+    const float ex=x-ax-t*dx,ey=y-ay-t*dy;
+    return ex*ex+ey*ey<=2.0f*2.0f;
+  }
+  static bool cameraEntryAllowed(bool markerFound,bool nearPath,float facing){
+    return markerFound && nearPath && std::isfinite(facing) && facing>0.7071f;
+  }
   // Unsigned counters decrement in reverse. Compute the shorter modular
   // displacement before converting to float, including across counter wrap.
   static float tickDisplacement(unsigned long current,unsigned long start){

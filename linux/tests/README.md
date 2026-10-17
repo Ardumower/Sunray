@@ -440,3 +440,27 @@ turns, GPS jumps and stale data reset acquisition. Camera steering still uses
 only image error; GPS yaw is not fed into that control law. At charge contacts,
 the final dock-segment heading remains authoritative. Offline tests cover the
 observed wrong initial heading, reverse travel, angle wrap and rejection cases.
+
+### Automatic camera entry from Idle
+
+An ordinary Dock command from Idle (including an operator command deferred until
+startup IMU calibration finishes) can now select the existing camera acquisition
+path without routing back through the approach points. It requires a fresh,
+stable three-strip detection, a position within 2 m of the finite final dock
+segment (penultimate to last point), and a heading within 45 degrees of the dock
+orientation. The detector applies its normal consecutive-frame and freshness
+checks; entry still stops for the configured acquisition interval. Invalid maps,
+positions, headings or missing markers do not select this shortcut.
+
+Mow/undock accepts the same 2 m marker-based corridor, provided the robot is still
+outside the 1 m handoff radius around the penultimate point. Existing narrow
+0.75 m corridor recovery remains available without a visible marker: it waits
+for camera acquisition instead of starting GPS/mowing movement. Charging exits
+retain their existing camera acquisition. Neither shortcut changes marker-loss,
+bumper stops, the handoff radius or the configured motion/test limits.
+
+`run-reflector-docking-tests.sh` extracts the production Dock/Mow entry decisions
+and tests lateral distance boundaries, finite-segment distance, facing in both
+docking directions, marker absence, invalid geometry, Idle-only Dock entry,
+the undock handoff boundary and the mandatory stop/loss gate. These tests do not
+command real robot movement.
