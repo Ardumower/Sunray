@@ -145,11 +145,12 @@ motion; three consistent frames are needed to reacquire. The detector recognizes
 the visual pattern, not the physical reflectivity of a material.
 
 Configure `DOCK_REFLECTOR_STRIPS` and its camera, ROI, geometry and steering
-settings in the robot configuration. Docking stops at the first dock point
-(`DOCK_REFLECTOR_STRIPS_FIRST_POINT_RADIUS=0.25 m`), waits at least 500 ms and
+settings in the robot configuration. Docking stops within 1 m of the penultimate
+dock point (`DOCK_REFLECTOR_STRIPS_HANDOFF_RADIUS`), waits at least 500 ms and
 requires a stable marker before moving. There is no rotating search when absent.
-Undocking keeps the camera facing the marker until within 2 m of the first dock
-point, then latches back to GPS. IMU/odometry track position during camera control;
+Undocking keeps the camera facing the marker until within the same 1 m radius,
+then latches back to GPS at the penultimate point and retains the preceding route.
+RTK fix and lower-weight float correct position during camera control;
 a travel limit stops an undock that misses its exit. Loss/jumps stop both drive
 and rotation, including contact advance; reacquisition requires three frames
 and at least 500 ms since stopping. The 500 ms stale-image limit still applies.
@@ -161,7 +162,7 @@ command can. The option defaults to false for other configurations.
 
 `sh linux/tests/run-reflector-docking-tests.sh` exercises the pure handoff policy
 and extracts the production camera-motion and obstacle/operation methods into
-hardware-free fixtures. Tests cover stop/reacquisition, direction, the 2 m exit,
+hardware-free fixtures. Tests cover stop/reacquisition, direction, the penultimate-point 1 m entry/exit,
 invalid routes, travel limit, timer wrap, charger events, explicit release and
 option-disabled behavior. No robot commands are sent by these tests.
 
@@ -241,8 +242,8 @@ before conversion to float. Subtracting a larger starting count previously
 underflowed and immediately tripped the undock distance bound. The gate fixture
 covers forward/reverse one-tick motion, no motion and wrap in both directions.
 
-An ordinary Mow start resumes camera undocking beyond the 2 m exit radius when
-the robot is within 0.75 m of a nondegenerate dock-route segment and either has
+An ordinary Mow start resumes camera undocking beyond the 1 m exit radius when
+the robot is within 0.75 m of the final nondegenerate dock-route segment and either has
 the dock route retained or faces the station within 45 degrees. Idle preserves
 an unfinished undock route. Geometry allows recovery after a restart without a
 special command. Missing markers never select GPS as a fallback: the normal
@@ -394,3 +395,48 @@ Validated on mscmower (2026-10-17): a full re-upload of the active 376-point
 mowing route retained index 165 (43.9%). Operation remained Charge, wheel PWM
 stayed zero and encoder counts stayed unchanged. The build and offline tests
 also passed with AddressSanitizer/UndefinedBehaviorSanitizer.
+
+### GPS position during camera guidance
+
+`run-reflector-docking-tests.sh` also tests `CameraGpsPosition`: three consecutive
+fresh solutions of the same quality are required; invalid values, gaps over one second
+and implausible successive jumps restart acquisition. Fixes more than 2 m from
+the estimated position are rejected. Accepted fixes correct XY at up to 0.1 m/s (maximum 2.5 cm per sample).
+Float corrects at up to 0.05 m/s, with a one-second smoothing time constant.
+Both are independent of camera steering and IMU yaw. Quality changes restart
+three-sample acquisition; float does not refresh the last-fix timer.
+Without accepted fixes, encoder/IMU localization continues. The penultimate-point
+undocking exit uses this corrected position. Charging-contact localization is
+unchanged. Logs report `gpsPos=0/1/2` for inactive/float/fix correction.
+
+Live mscmower validation before the penultimate-point and float changes (2026-10-17,
+2 cm/s): undock stopped at the 2 m
+first-point radius after 158.5 s, without the former decimetre-scale position
+jump at handoff. Camera docking reached Charge after 158.3 s. Logs contain 307
+marker samples, no detection losses or Error transitions, and 249 samples with
+RTK correction active. Float disabled RTK correction near the station. Fixed
+docking telemetry agreed with the reported GPS XY within 1 cm (this is fusion
+agreement, not a measurement of physical accuracy). Contact remained present
+after the 10 cm advance; wheel PWM returned to zero. Mowing index stayed 165.
+One excessive encoder delta was rejected by the existing odometry check.
+
+### Penultimate docking handoff
+
+Both automatic handoffs now use point `dockPoints.numPoints-2` and the shared
+`DOCK_REFLECTOR_STRIPS_HANDOFF_RADIUS=1.0` m setting. Passing an earlier waypoint
+no longer forces camera entry. After camera undocking, GPS resumes at that point
+and follows preceding docking points. Explicit operator-confirmed camera entry
+remains available. The supervised undock test still stops at handoff instead of
+continuing into GPS driving/mowing. Offline tests cover entry/exit boundaries,
+two-point routes, ignoring the first point, stable transitions and marker loss.
+
+### Camera heading correction
+
+Camera-mode yaw is no longer permanently isolated from GPS. A separate estimator
+uses fresh, accepted RTK fixes only, at least 25 cm GPS displacement and 20 cm
+encoder travel, consistent forward/reverse direction, and a straight track.
+Each independent track corrects yaw by at most 30 degrees. Float, standstill,
+turns, GPS jumps and stale data reset acquisition. Camera steering still uses
+only image error; GPS yaw is not fed into that control law. At charge contacts,
+the final dock-segment heading remains authoritative. Offline tests cover the
+observed wrong initial heading, reverse travel, angle wrap and rejection cases.

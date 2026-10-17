@@ -441,8 +441,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DOCK_RELEASE_BRAKES false   // robot will not release electrical brakes in dock
 
 //#define DOCK_REFLECTOR_STRIPS 1         // Linux only: native camera three-reflector docking/undocking
-#define DOCK_REFLECTOR_STRIPS_FIRST_POINT_RADIUS 0.25 // stop/handoff near first dock point (m)
-#define DOCK_REFLECTOR_STRIPS_UNDOCK_EXIT_RADIUS 2.0 // hand back to GPS within 2 m of first dock point
+#define DOCK_REFLECTOR_STRIPS_HANDOFF_RADIUS 1.0 // GPS/camera transition within 1 m of penultimate dock point
 #define DOCK_REFLECTOR_STRIPS_STOP_MS 500 // mandatory standstill before camera tracking
 #define DOCK_REFLECTOR_STRIPS_CAMERA_INDEX 0      // logical CameraRegistry index
 #define DOCK_REFLECTOR_STRIPS_DETECTION_FPS 10

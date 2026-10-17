@@ -249,16 +249,17 @@ void StateEstimator::computeRobotState(){
     }
   #endif
 
-  // Camera guidance starts at the FIRST dock point, after a complete stop.
-  // During camera guidance only IMU/odometry update position; GPS cannot jump
-  // the mower out of this mode. The same physical point ends camera undocking.
+  // Camera guidance starts near the penultimate dock point, after a complete stop.
+  // Camera guidance owns steering. GPS corrects map position independently;
+  // verified straight RTK tracks also correct heading without changing steering.
   #ifdef DOCK_REFLECTOR_STRIPS
     const bool reflectorDocking = stateOp == OP_DOCK && maps.isDocking();
     const bool reflectorUndocking = stateOp == OP_MOW && maps.isUndocking();
     float routeX, routeY, routeHeading;
     const bool routeValid = maps.dockPoints.numPoints >= 2 && maps.getDockingPos(routeX, routeY, routeHeading);
-    const float firstX = routeValid ? maps.dockPoints.points[0].x() : 0;
-    const float firstY = routeValid ? maps.dockPoints.points[0].y() : 0;
+    const int handoffIndex = ReflectorDockingGate::handoffIndex(maps.dockPoints.numPoints);
+    const float handoffX = routeValid ? maps.dockPoints.points[handoffIndex].x() : 0;
+    const float handoffY = routeValid ? maps.dockPoints.points[handoffIndex].y() : 0;
     if (reflectorUndocking && !reflectorDockingGate.wasUndocking) {
       dockReflectorStripsStartLeftTicks = motor.motorLeftTicks;
       dockReflectorStripsStartRightTicks = motor.motorRightTicks;
@@ -268,19 +269,18 @@ void StateEstimator::computeRobotState(){
                           ReflectorDockingGate::tickDisplacement(motor.motorRightTicks, dockReflectorStripsStartRightTicks)) / (200.0f*ticksPerCm);
     const auto oldPhase = reflectorDockingGate.phase;
     reflectorDockingGate.update(reflectorDocking, reflectorUndocking, routeValid,
-        maps.dockPointsIdx, stateX, stateY, firstX, firstY, travel,
-        cameraReflectorStripsFound(), millis(), DOCK_REFLECTOR_STRIPS_FIRST_POINT_RADIUS,
-        DOCK_REFLECTOR_STRIPS_UNDOCK_EXIT_RADIUS, DOCK_REFLECTOR_STRIPS_STOP_MS);
+        stateX, stateY, handoffX, handoffY, travel,
+        cameraReflectorStripsFound(), millis(), DOCK_REFLECTOR_STRIPS_HANDOFF_RADIUS,
+        DOCK_REFLECTOR_STRIPS_HANDOFF_RADIUS, DOCK_REFLECTOR_STRIPS_STOP_MS);
     dockReflectorStripsActive = reflectorDockingGate.active();
     dockReflectorStripsUndockCompleted = reflectorDockingGate.complete();
     if (oldPhase != reflectorDockingGate.phase) {
       CONSOLE.print("dock reflectors: phase="); CONSOLE.println((int)reflectorDockingGate.phase);
       if ((reflectorDockingGate.active() && !reflectorDockingGate.mayDrive()) || reflectorDockingGate.complete()) motor.stopImmediately(false);
       if (reflectorDockingGate.complete()) {
-        // Skip intermediate undocking targets only after reaching the entry
-        // point. Normal GPS tracking then finishes this point and the free path.
-        maps.dockPointsIdx = 0;
-        maps.targetPoint.assign(maps.dockPoints.points[0]);
+        // Resume the normal reverse dock route at the penultimate point.
+        maps.dockPointsIdx = handoffIndex;
+        maps.targetPoint.assign(maps.dockPoints.points[handoffIndex]);
         maps.setLastTargetPoint(stateX, stateY);
         maps.trackReverse = DOCK_FRONT_SIDE;
         maps.useGPSfixForPosEstimation = true;
@@ -293,6 +293,13 @@ void StateEstimator::computeRobotState(){
       stateLocalizationMode = LOC_REFLECTOR_STRIPS;
       useGPSposition = false;
       useGPSdelta = false;
+    }
+    if (!dockReflectorStripsActive || (gps.solution != SOL_FIXED && gps.solution != SOL_FLOAT)) cameraGpsPosition.reset();
+    if (!dockReflectorStripsActive || gps.solution != SOL_FIXED ||
+        !reflectorDockingGate.mayDrive() || std::fabs(motor.linearSpeedSet)<0.005f ||
+        std::fabs(motor.angularSpeedSet)>0.08f) {
+      cameraGpsHeading.reset();
+      cameraHeadingTravel=0;
     }
   #endif
 
@@ -314,6 +321,7 @@ void StateEstimator::computeRobotState(){
   }  
   float distOdometry = (distLeft + distRight) / 2.0;  
   float deltaOdometry = -(distLeft - distRight) / motor.wheelBaseCm;    
+  if (dockReflectorStripsActive) cameraHeadingTravel += std::fabs(distOdometry)/100.0f;
 
   // ---------- GPS relative/absolute position source -----------------
   float posN = 0;
@@ -381,6 +389,21 @@ void StateEstimator::computeRobotState(){
       lastPosDelta = stateDelta;
     } 
     
+    #ifdef DOCK_REFLECTOR_STRIPS
+    if (dockReflectorStripsActive) {
+      const bool accepted = cameraGpsPosition.update(
+          gps.solution == SOL_FIXED ? CameraGpsPosition::Fixed : CameraGpsPosition::Float,
+          posE, posN, millis(), stateX, stateY);
+      if (accepted && gps.solution == SOL_FIXED) lastFixTime = millis();
+      if (cameraGpsHeading.update(accepted && gps.solution == SOL_FIXED && reflectorDockingGate.mayDrive(),
+          posE, posN, cameraHeadingTravel, motor.linearSpeedSet, motor.angularSpeedSet, millis(), stateDelta)) {
+        // Do not interpret the estimator correction as physical angular speed.
+        stateDeltaLast = stateDelta;
+        lastPosDelta = stateDelta;
+        CONSOLE.print("camera GPS heading corrected: "); CONSOLE.println(stateDelta);
+      }
+    } else
+    #endif
     if (useGPSposition){
       if (gps.solution == SOL_FIXED) {
         // fix

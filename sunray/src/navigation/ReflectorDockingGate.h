@@ -11,6 +11,8 @@ public:
   float undockLimit = 0;
   bool wasDocking = false, wasUndocking = false;
 
+  static int handoffIndex(int count) { return count >= 2 ? count-2 : -1; }
+
   void reset(){phase=Inactive;wasDocking=wasUndocking=false;}
   void confirmDockEntry(unsigned long now){reset();phase=AcquireDock;wasDocking=true;stoppedAt=now;}
   bool active() const {return phase==AcquireDock || phase==Dock || phase==AcquireUndock || phase==Undock || phase==Blocked;}
@@ -35,23 +37,23 @@ public:
     return float(forward<reverse?forward:reverse);
   }
 
-  void update(bool docking,bool undocking,bool routeValid,int targetIndex,
-              float x,float y,float firstX,float firstY,float travel,
+  void update(bool docking,bool undocking,bool routeValid,
+              float x,float y,float handoffX,float handoffY,float travel,
               bool markerFound,unsigned long now,float entryRadius,float exitRadius,unsigned long stopMs){
     if(!docking && !undocking){reset();return;}
     const bool newDock=docking&&!wasDocking,newUndock=undocking&&!wasUndocking;
     wasDocking=docking;wasUndocking=undocking;
-    if(!routeValid || !std::isfinite(travel) || travel<0 || entryRadius<=0 || exitRadius<=0 || !std::isfinite(x) || !std::isfinite(y) || !std::isfinite(firstX) || !std::isfinite(firstY)){
+    if(!routeValid || !std::isfinite(travel) || travel<0 || entryRadius<=0 || exitRadius<=0 || !std::isfinite(x) || !std::isfinite(y) || !std::isfinite(handoffX) || !std::isfinite(handoffY)){
       phase=Blocked;return;
     }
-    const float dx=x-firstX,dy=y-firstY,distance=std::sqrt(dx*dx+dy*dy);
+    const float dx=x-handoffX,dy=y-handoffY,distance=std::sqrt(dx*dx+dy*dy);
     if(newDock)phase=Approach;
     if(newUndock){
       phase=AcquireUndock;stoppedAt=now;
       // A missed exit must stop, never cause unlimited reverse travel.
       undockLimit=distance*1.5f+1.0f;
     }
-    if(docking && phase==Approach && (distance<=entryRadius || targetIndex>0)){
+    if(docking && phase==Approach && distance<=entryRadius){
       phase=AcquireDock;stoppedAt=now;
     }
     if(undocking && phase!=Complete && phase!=Blocked){

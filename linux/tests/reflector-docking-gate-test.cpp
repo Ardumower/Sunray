@@ -28,7 +28,7 @@ int main(){
   assert(std::fabs(v*a-w*l)<.00001f);
  }
  ReflectorDockingGate g;
- auto update=[&](bool dock,bool undock,float x,bool found,unsigned long t,float travel=0,int idx=0,bool valid=true){g.update(dock,undock,valid,idx,x,0,0,0,travel,found,t,.25f,2.f,500);};
+ auto update=[&](bool dock,bool undock,float x,bool found,unsigned long t,float travel=0,int /*unused*/=0,bool valid=true){g.update(dock,undock,valid,x,0,0,0,travel,found,t,.25f,2.f,500);};
  update(true,false,4,true,100);assert(g.phase==g.Approach&&!g.active());
  update(true,false,.2,true,200);assert(g.phase==g.AcquireDock&&!g.mayDrive());
  update(true,false,.2,true,699);assert(!g.mayDrive());
@@ -38,7 +38,7 @@ int main(){
  update(true,false,1,true,3020);assert(g.mayDrive());
  update(true,false,1,false,3040);update(true,false,1,true,3060);assert(!g.mayDrive());
  update(false,false,0,false,3100);assert(!g.active());
- update(true,false,3,false,3200,0,1);assert(g.phase==g.AcquireDock);
+ update(true,false,3,false,3200,0,1);assert(g.phase==g.Approach);
  update(false,false,0,false,3300);
  update(false,true,6,true,3400);assert(g.phase==g.AcquireUndock);
  update(false,true,6,true,3899);assert(!g.mayDrive());
@@ -60,5 +60,25 @@ int main(){
  update(true,false,1.55,true,600);assert(g.phase==g.Dock);
  update(true,false,1.55,false,620);assert(!g.mayDrive());
  update(false,false,0,false,700);update(true,false,1.55,true,800);assert(g.phase==g.Approach);
- std::puts("PASS first-point stop, reacquisition, undock 2m handoff, reset, blocked route/travel, timer wrap");
+ // Both directions use the same 1 m circle around point count-2, not point 0.
+ assert(ReflectorDockingGate::handoffIndex(4)==2);
+ assert(ReflectorDockingGate::handoffIndex(2)==0);
+ assert(ReflectorDockingGate::handoffIndex(1)==-1);
+ g.reset();
+ auto handoff=[&](bool dock,bool undock,float x,unsigned long t){
+   g.update(dock,undock,true,x,0,4,0,0,true,t,1,1,500);
+ };
+ handoff(true,false,0,100); assert(g.phase==g.Approach); // first point ignored
+ handoff(true,false,2.99f,200); assert(g.phase==g.Approach);
+ handoff(true,false,3,300); assert(g.phase==g.AcquireDock);
+ handoff(true,false,3,799); assert(!g.mayDrive());
+ handoff(true,false,3,800); assert(g.phase==g.Dock);
+ handoff(true,false,6,900); assert(g.phase==g.Dock); // latched beyond circle
+ g.reset();
+ handoff(false,true,7,1000); assert(g.phase==g.AcquireUndock);
+ handoff(false,true,7,1500); assert(g.phase==g.Undock);
+ handoff(false,true,5.01f,1600); assert(!g.complete());
+ handoff(false,true,5,1700); assert(g.complete());
+ handoff(false,true,5.2f,1800); assert(g.complete()); // no oscillation
+ std::puts("PASS penultimate-point 1m handoff in both directions, reacquisition, reset, blocked route/travel, timer wrap");
 }

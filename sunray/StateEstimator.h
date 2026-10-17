@@ -11,6 +11,8 @@
 #include <Arduino.h>
 #include "types.h"
 #include "src/navigation/ReflectorDockingGate.h"
+#include "src/navigation/CameraGpsPosition.h"
+#include "src/navigation/CameraGpsHeading.h"
 
 // localization modes
 enum LocalizationMode {
@@ -49,6 +51,9 @@ public:
   bool gpsJump = false;
   bool dockGpsIgnored = false; // latched IMU/odometry-only mode near final dock point
   ReflectorDockingGate reflectorDockingGate;
+  CameraGpsPosition cameraGpsPosition;
+  CameraGpsHeading cameraGpsHeading;
+  float cameraHeadingTravel = 0;
   bool dockReflectorStripsActive = false;
   bool dockReflectorStripsUndockCompleted = false;
   unsigned long dockReflectorStripsStartLeftTicks = 0;

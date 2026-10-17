@@ -39,26 +39,27 @@ void MowOp::begin(){
 #ifdef DOCK_REFLECTOR_STRIPS
     // Recover an interrupted camera exit through the normal Mow command.
     // After a restart, require route geometry and facing the station;
-    // distance to the first point alone cannot distinguish the mowing field.
+    // distance to the handoff point alone cannot distinguish the mowing field.
     float dockX,dockY,dockHeading;
     bool resumeCamera = false;
     if (maps.dockPoints.numPoints >= 2 && maps.getDockingPos(dockX,dockY,dockHeading)) {
         const float x=stateEstimator.stateX,y=stateEstimator.stateY;
-        const float dx=x-maps.dockPoints.points[0].x(),dy=y-maps.dockPoints.points[0].y();
+        const int handoffIndex=ReflectorDockingGate::handoffIndex(maps.dockPoints.numPoints);
+        const float dx=x-maps.dockPoints.points[handoffIndex].x(),dy=y-maps.dockPoints.points[handoffIndex].y();
         bool inCorridor=false;
-        for(int i=1;i<maps.dockPoints.numPoints;++i)
+        for(int i=handoffIndex+1;i<maps.dockPoints.numPoints;++i)
             inCorridor |= ReflectorDockingGate::nearSegment(x,y,
                 maps.dockPoints.points[i-1].x(),maps.dockPoints.points[i-1].y(),
                 maps.dockPoints.points[i].x(),maps.dockPoints.points[i].y(),0.75f);
         const float facing=std::cos(stateEstimator.stateDelta-dockHeading-(DOCK_FRONT_SIDE?0:PI));
         const bool knownDockPath=maps.wayMode==WAY_DOCK;
         resumeCamera = ReflectorDockingGate::resumeUndocking(std::sqrt(dx*dx+dy*dy),
-            DOCK_REFLECTOR_STRIPS_UNDOCK_EXIT_RADIUS,inCorridor,knownDockPath,facing);
+            DOCK_REFLECTOR_STRIPS_HANDOFF_RADIUS,inCorridor,knownDockPath,facing);
     }
     if (resumeCamera){
         maps.wayMode=WAY_DOCK;
-        // startMowing plans the normal continuation; nextPoint selects index 0.
-        maps.dockPointsIdx=1;
+        // nextPoint selects the penultimate point for camera undocking.
+        maps.dockPointsIdx=ReflectorDockingGate::handoffIndex(maps.dockPoints.numPoints)+1;
         stateEstimator.reflectorDockingGate.reset();
         stateEstimator.dockReflectorStripsActive=false;
         stateEstimator.dockReflectorStripsUndockCompleted=false;

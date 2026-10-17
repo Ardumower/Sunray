@@ -3,6 +3,10 @@ set -eu
 cd "$(dirname "$0")/../.."
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT HUP INT TERM
+"${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -Isunray linux/tests/camera-gps-position-test.cpp -o "$work/gps"
+"$work/gps"
+"${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -Isunray linux/tests/camera-gps-heading-test.cpp -o "$work/heading"
+"$work/heading"
 "${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -Isunray linux/tests/reflector-docking-gate-test.cpp -o "$work/gate"
 "$work/gate"
 python3 - "$work" <<'PY'

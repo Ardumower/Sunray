@@ -77,8 +77,8 @@ void DockOp::begin(){
     maps.shouldMow = false;
     maps.shouldRetryDock = false;
     maps.wayMode = WAY_DOCK;
-    maps.dockPointsIdx = 0;
-    maps.targetPoint.assign(maps.dockPoints.points[0]);
+    maps.dockPointsIdx = ReflectorDockingGate::handoffIndex(maps.dockPoints.numPoints);
+    maps.targetPoint.assign(maps.dockPoints.points[maps.dockPointsIdx]);
     maps.setLastTargetPoint(stateEstimator.stateX,stateEstimator.stateY);
     maps.trackReverse = !DOCK_FRONT_SIDE;
     stateEstimator.reflectorDockingGate.confirmDockEntry(millis());

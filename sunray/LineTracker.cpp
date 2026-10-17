@@ -262,6 +262,7 @@ void LineTracker::trackLine(bool runControl){
       CONSOLE.print(" confidence="); CONSOLE.print(confidence);
       CONSOLE.print(" error="); CONSOLE.print(imageError);
       CONSOLE.print(" age="); CONSOLE.print(cameraReflectorStripsAgeMs());
+      CONSOLE.print(" gpsPos="); CONSOLE.print((int)stateEstimator.cameraGpsPosition.activeQuality(millis()));
       CONSOLE.print(" lin="); CONSOLE.print(linear);
       CONSOLE.print(" ang="); CONSOLE.println(angular);
     }
