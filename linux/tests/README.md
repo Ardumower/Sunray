@@ -292,13 +292,15 @@ motion blur and actual reflector illumination.
 `CameraStreamer` records original camera JPEGs (before resize/overlay) in
 `linux/camera_failures/`. Each image has JSON metadata with wall/monotonic time,
 source dimensions, detection result and requested linear/angular velocity.
-A loss stores the preceding good frame too; persistent failure is sampled at
-1 Hz (new loss transitions at most 4 Hz). A separate writer thread uses a
+A found-to-missing transition stores one failure image (at most 4 Hz).
+Startup without a marker and persistent loss/night darkness write no images.
+A separate writer thread uses a
 four-frame queue, dropping diagnostics rather than blocking detection. There
 are 128 fixed slots, at most 2 MiB per JPEG (256 MiB plus small metadata), reused
 across restarts. No upload occurs. Missing/unwritable storage does not interrupt
 camera processing. `sh linux/tests/run-reflector-failure-recorder-tests.sh`
-checks original bytes, pre-loss context, metadata, sampling, rotation and errors.
+checks original bytes, transition-only recording, startup/night silence, metadata,
+rotation, restart and errors.
 The 60-frame stationary capture after the 2026-10-17 contact flicker passes
 60/60; the moving failure itself needs this recorder to establish its cause.
 
@@ -547,3 +549,47 @@ handoff gate may switch to camera; the marker-visible shortcut is excluded.
 
 Passive light telemetry: see [CAMERA_LIGHT_LOGGING.md](CAMERA_LIGHT_LOGGING.md)
 for storage, field definitions, limits and the Linux logger test command.
+
+
+### Shaded reflectors at dawn (2026-10-18)
+
+Bright scenery beside the charging station pushed the old minimum threshold
+(25% of the brightest neutral pixel) above the shaded strips. A third pass
+tries 5%, 7.5%, 10%, 15% and 20% only when both existing passes find no marker.
+The absolute brightness/contrast floors, colour-neutrality, triple geometry,
+ambiguity handling, three-frame acquisition and immediate stop-on-loss remain.
+Existing or ambiguous ordinary detections never enter the new fallback.
+
+The saved morning ring improves from 0/127 to 127/127 readable images. One
+additional JPEG was truncated while copying the live ring and is excluded;
+metadata pairing across the live overwrite is not assumed atomic. A replay of
+440 older JPEGs improves 291 to 294 detections with zero previous detections
+lost. Synthetic tests include dim strips next to a bright patch, incomplete or
+ambiguous triples, coloured objects and darkness/noise; docking safety tests
+also pass. This is offline image replay, not a physical docking test.
+
+Morning originals and replay results are retained outside version control in
+`diagnostics/reflector-dawn-20261018/` with a provenance manifest. The independent
+camera light logger remains disabled on MSCMower.
+
+
+### Dawn chroma fragmentation while undocking (2026-10-18)
+
+The next 46 loss-event JPEGs show a blue cast and chroma noise splitting the
+middle reflector. The low-light fallback additionally classifies the pooled
+RGB sample, permitting up to 50% channel spread only below intensity 128.
+The two ordinary passes retain their per-pixel 35% neutrality rule. The fallback
+checks all exposure levels and requires side-clipped triples to span both image
+boundaries vertically, preventing bright edge scenery from creating a second
+triple. No missing stripe is inferred; ordinary ambiguity remains a rejection.
+
+All 46 saved loss images change from no detection to a valid triple in offline
+replay. Synthetic tests cover blue-cast triples with two/three/four strips and
+strongly coloured distractors. Originals and results are stored separately in
+`diagnostics/reflector-dawn-20261018/moving-loss/`. These are copied image/metadata
+pairs checked for unchanged metadata during the copy, not annotated screenshots.
+
+The final fallback keeps all previous detections across 568 archived/initial
+morning images (one known corrupt file excluded) and detects one additional
+older distant view. On the Orange Pi, replaying the 1920x1080 loss frame takes
+127.4 ms per detection on average, below the unchanged 500 ms freshness limit.

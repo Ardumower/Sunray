@@ -46,17 +46,25 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
   const int w=std::min(width,640),h=height*w/width;
   if(h<16){clear();return;}
   const int roi=std::max(0,std::min(h-1,int(h*DOCK_REFLECTOR_STRIPS_ROI_TOP)));
-  std::vector<float> light(w*h),neutral(w*h);
+  std::vector<float> light(w*h),neutral(w*h),dawnNeutral(w*h);
   float maximum=0;
   // Average pooling prevents individual hot pixels from becoming strips.
   for(int y=0;y<h;++y)for(int x=0;x<w;++x){
-    float sum=0,white=0;int n=0;
+    float sum=0,white=0,channels[3]={0,0,0};int n=0;
     for(int yy=y*height/h;yy<(y+1)*height/h;++yy)for(int xx=x*width/w;xx<(x+1)*width/w;++xx){
       const auto* p=rgb+((size_t)yy*width+xx)*3;
       const int lo=std::min(p[0],std::min(p[1],p[2])),hi=std::max(p[0],std::max(p[1],p[2]));
-      sum+=lo;if(hi-lo<=hi*.35f)white+=lo;++n;
+      sum+=lo;if(hi-lo<=hi*.35f)white+=lo;
+      for(int c=0;c<3;++c)channels[c]+=p[c];++n;
     }
     light[y*w+x]=sum/n;neutral[y*w+x]=white/n;
+    // In shaded low-light areas, chroma noise and a blue cast can fragment
+    // white reflectors. Classify the pooled RGB sample, with a bounded colour
+    // allowance only for dark pixels; normal passes keep strict per-pixel white.
+    const float pooledLo=std::min(channels[0],std::min(channels[1],channels[2]))/n;
+    const float pooledHi=std::max(channels[0],std::max(channels[1],channels[2]))/n;
+    dawnNeutral[y*w+x]=(pooledHi<=128 && pooledHi-pooledLo<=pooledHi*.5f)
+      ?std::max(neutral[y*w+x],pooledLo):neutral[y*w+x];
     if(y>=roi)maximum=std::max(maximum,neutral[y*w+x]);
   }
   // Small absolute floors reject darkness without excluding dim reflectors;
@@ -70,19 +78,24 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
   // For distant markers, a 4%-height bridge can merge a short strip with
   // scenery. Retry with only a 2-pixel gap if the ordinary pass has no marker.
   // Never resolve an ambiguous ordinary result by silently discarding candidates.
-  for(int gapPass=0;gapPass<2 && markers.empty();++gapPass){
-  for(float fraction : {.25f,.30f,.35f,.40f,.45f,.50f,.55f,.60f,.70f,.85f}){
+  // Bright scenery can set a maximum far above shaded reflectors at dawn.
+  // Only after both ordinary passes fail, inspect lower exposure fractions;
+  // never replace a found/ambiguous marker or relax geometry/contrast checks.
+  for(int gapPass=0;gapPass<3 && markers.empty();++gapPass){
+  const auto& maskLight=gapPass==2?dawnNeutral:neutral;
+  for(float fraction : {.05f,.075f,.10f,.15f,.20f,.25f,.30f,.35f,.40f,.45f,.50f,.55f,.60f,.70f,.85f}){
+    if(gapPass!=2 && fraction<.25f)continue;
     const float threshold=std::max(6.0f,maximum*fraction);
     // Search complete components, including their portion above the lower-image
     // anchor. A close marker may extend upwards while still standing below it.
     // Bridge only short vertical interruptions (e.g. a cable); never bridge the
     // horizontal dark gaps separating the three strips.
     std::vector<uint8_t> mask(w*h,0);
-    for(int i=0;i<w*h;++i)mask[i]=neutral[i]>=threshold;
-    const int maxGap=gapPass==0?std::max(1,int(h*.04f)):2;
+    for(int i=0;i<w*h;++i)mask[i]=maskLight[i]>=threshold;
+    const int maxGap=gapPass!=1?std::max(1,int(h*.04f)):2;
     for(int x=0;x<w;++x){
       int previous=-1;
-      for(int y=0;y<h;++y)if(neutral[y*w+x]>=threshold){
+      for(int y=0;y<h;++y)if(maskLight[y*w+x]>=threshold){
         if(previous>=0 && y-previous-1<=maxGap)
           for(int yy=previous+1;yy<y;++yy)mask[yy*w+x]=1;
         previous=y;
@@ -159,6 +172,11 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
       const bool sideCut=a[0]->leftCut || a[2]->rightCut;
       float effectiveW[3]={a[0]->width,a[1]->width,a[2]->width};
       if(sideCut){
+        // Relaxed low-light colour must not join a reflector to bright scenery
+        // at an image edge. In that fallback, accept side clipping only when
+        // all three measured strips span both vertical image boundaries.
+        if(gapPass==2 && (a[0]->top>0 || a[1]->top>0 || a[2]->top>0 ||
+           a[0]->bottom<h-1 || a[1]->bottom<h-1 || a[2]->bottom<h-1))continue;
         // Side clipping is a special case for a marker filling the frame.
         // All three strips must also reach a vertical image edge. Otherwise
         // bright scenery at a side border plus two real strips can form a

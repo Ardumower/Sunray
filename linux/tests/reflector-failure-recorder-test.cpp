@@ -11,29 +11,35 @@ static void waitFor(const std::string& path,const std::string& text){
 int main(){
  char name[]="/tmp/reflector-recorder-XXXXXX";assert(mkdtemp(name));std::string dir=name;
  uint8_t good[]={0xff,0xd8,1,0xff,0xd9},bad[]={0xff,0xd8,2,0xff,0xd9};
- ReflectorStripsObservation o;o.found=true;o.stripCount=3;
+ ReflectorStripsObservation o;
  {
   ReflectorFailureRecorder recorder(dir,3);
-  recorder.observe(good,sizeof(good),640,360,1000,o,.02f,.01f);
-  o.found=false;o.stripCount=0;
-  recorder.observe(bad,sizeof(bad),640,360,1100,o,.02f,.01f);
-  waitFor(dir+"/frame-001.json","\"monotonic_ms\":1100");
-  assert(read(dir+"/frame-000.jpg")==std::string((char*)good,sizeof(good)));
-  assert(read(dir+"/frame-001.jpg")==std::string((char*)bad,sizeof(bad)));
-  assert(read(dir+"/frame-000.json").find("\"before_loss\":true")!=std::string::npos);
-  recorder.observe(bad,sizeof(bad),640,360,1200,o,0,0);
-  recorder.observe(bad,sizeof(bad),640,360,2200,o,0,0);
-  waitFor(dir+"/frame-002.json","\"monotonic_ms\":2200");
-  recorder.observe(bad,sizeof(bad),640,360,3300,o,0,0);
-  waitFor(dir+"/frame-000.json","\"monotonic_ms\":3300");
+  // Startup darkness and a whole night without a marker cause no image writes.
+  for(int i=0;i<100;++i)recorder.observe(bad,sizeof(bad),640,360,1000+i*60000,o,0,0);
  }
+ assert(read(dir+"/frame-000.jpg").empty());
  {
   ReflectorFailureRecorder recorder(dir,3);
-  recorder.observe(bad,sizeof(bad),640,360,4400,o,0,0);
+  for(int i=0;i<4;++i){
+   o.found=true;o.stripCount=3;recorder.observe(good,sizeof(good),640,360,1000+i*1000,o,0,0);
+   o.found=false;o.stripCount=0;recorder.observe(bad,sizeof(bad),640,360,1100+i*1000,o,.02f,.01f);
+   char file[64];std::snprintf(file,sizeof(file),"/frame-%03d",i%3);
+   waitFor(dir+file+".json","\"monotonic_ms\":"+std::to_string(1100+i*1000));
+   assert(read(dir+file+".jpg")==std::string((char*)bad,sizeof(bad)));
+   assert(read(dir+file+".json").find("\"before_loss\":false")!=std::string::npos);
+  }
+  // Persistent failure does not advance/overwrite the ring.
+  for(int i=0;i<100;++i)recorder.observe(bad,sizeof(bad),640,360,5000+i*60000,o,0,0);
  }
+ assert(read(dir+"/frame-000.json").find("\"monotonic_ms\":4100")!=std::string::npos);
+ {
+  ReflectorFailureRecorder recorder(dir,3);
+  // Restart while still missing is not a detection-loss event.
+  recorder.observe(bad,sizeof(bad),640,360,10000000,o,0,0);
+ }
+ assert(read(dir+"/frame-000.json").find("\"monotonic_ms\":4100")!=std::string::npos);
  for(int i=0;i<3;++i){char f[64];std::snprintf(f,sizeof(f),"/frame-%03d",i);unlink((dir+f+".jpg").c_str());unlink((dir+f+".json").c_str());}
  assert(rmdir(dir.c_str())==0);
- // An unavailable directory must not interrupt or block camera processing.
- {ReflectorFailureRecorder recorder(dir+"/missing");for(int i=0;i<20;++i)recorder.observe(bad,sizeof(bad),640,360,1000+i*1100,o,0,0);}
- std::puts("PASS original JPEG, pre-loss frame, metadata, throttle, bounded rotation, restart, unavailable storage");
+ {ReflectorFailureRecorder recorder(dir+"/missing");o.found=true;recorder.observe(good,sizeof(good),640,360,1000,o,0,0);o.found=false;recorder.observe(bad,sizeof(bad),640,360,1100,o,0,0);}
+ std::puts("PASS transition-only original JPEG, metadata, bounded rotation, startup/night silence, restart, unavailable storage");
 }

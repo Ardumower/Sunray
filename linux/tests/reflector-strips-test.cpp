@@ -38,6 +38,27 @@ int main(int argc,char**argv){
   check("dark sensor noise rejected",noiseImage,false);
  }
  check("below usable light rejected",scene(3,.03f),false);
+ // Dawn: a bright patch outside the marker must not set its minimum brightness.
+ for(int count:{1,2,3,4}){
+  Image dawn=scene(count,.15f);
+  for(int y=150;y<170;++y)for(int x=40;x<65;++x)for(int c=0;c<3;++c)dawn[(y*W+x)*3+c]=240;
+  check("dawn shaded strips beside bright scenery",dawn,count==3);
+ }
+ // The low-threshold fallback must still reject coloured objects and noise.
+ Image coloured=scene(3,.15f);
+ for(int y=150;y<170;++y)for(int x=40;x<65;++x)for(int c=0;c<3;++c)coloured[(y*W+x)*3+c]=240;
+ for(int y=210;y<290;++y)for(int x=316;x<324;++x)coloured[(y*W+x)*3]=180;
+ check("dawn coloured centre is not a reflector",coloured,false);
+ // Blue cast at dawn can fail the per-pixel whiteness gate even when the
+ // three-strip geometry is intact. Keep strong colour and missing strips out.
+ for(int count:{2,3,4}){
+  Image cast=scene(count,.25f);
+  for(size_t i=0;i<cast.size();i+=3)if(cast[i]>30){cast[i]=52;cast[i+1]=65;cast[i+2]=95;}
+  for(int y=150;y<170;++y)for(int x=40;x<65;++x)for(int c=0;c<3;++c)cast[(y*W+x)*3+c]=240;
+  check("dawn blue cast triple geometry",cast,count==3);
+ }
+
+
  check("left",scene(3,1,180),true,(180-320.f)/320);
  check("right",scene(3,1,460),true,(460-320.f)/320);
  check("camera roll",scene(3,1,320,.15),true,.02);

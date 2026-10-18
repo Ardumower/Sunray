@@ -13,7 +13,7 @@
 
 // Bounded asynchronous original-JPEG recorder. No disk I/O on the camera thread.
 // Fixed slots bound disk usage across restarts; a full queue drops diagnostics,
-// never camera frames. One failed image per second, plus the preceding good one.
+// never camera frames. One image on found -> missing, no periodic failure writes.
 class ReflectorFailureRecorder {
   struct Frame {
     std::vector<uint8_t> jpeg;
@@ -31,7 +31,6 @@ class ReflectorFailureRecorder {
   std::deque<Frame> queue_;
   bool stopping_=false;
   std::thread writer_;
-  Frame previousGood_;
   bool previousFound_=false,haveSaved_=false;
   unsigned long lastSaved_=0;
   static constexpr size_t maxJpegBytes=2*1024*1024;
@@ -89,16 +88,12 @@ public:
     if(!jpeg || !size || size>maxJpegBytes)return;
     const bool lost=previousFound_ && !observation.found;
     previousFound_=observation.found;
-    if(!observation.found && haveSaved_ && now-lastSaved_<(lost?250UL:1000UL))return;
+    if(!lost || (haveSaved_ && now-lastSaved_<250UL))return;
     Frame f;f.jpeg.assign(jpeg,jpeg+size);f.width=width;f.height=height;f.monotonicMs=now;
     f.unixMs=std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     f.observation=observation;f.linear=linear;f.angular=angular;
-    if(observation.found){previousGood_=std::move(f);return;}
     std::unique_lock<std::mutex> lock(mutex_,std::try_to_lock);
-    if(!lock.owns_lock() || queue_.size()+(lost?2:1)>4)return;
-    if(lost && !previousGood_.jpeg.empty()){
-      previousGood_.beforeLoss=true;queue_.push_back(std::move(previousGood_));
-    }
+    if(!lock.owns_lock() || queue_.size()>=4)return;
     queue_.push_back(std::move(f));lastSaved_=now;haveSaved_=true;wake_.notify_one();
   }
 };
