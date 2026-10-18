@@ -1,4 +1,5 @@
 #include "camera/GrassOverlay.h"
+#include "camera/GrassObstacle.h"
 #include <fstream>
 #include <iostream>
 #include <thread>
@@ -13,9 +14,11 @@ int main(int argc,char**argv){
  for(int n=0;n<500;n++){if(overlay.latest(result,stamp,ms)&&stamp==50)break;std::this_thread::sleep_for(std::chrono::milliseconds(10));}
  if(stamp!=50||result.size()!=input.size())return 5;
  const uint8_t colors[5][3]={{235,65,65},{45,210,65},{160,90,220},{230,155,40},{70,130,230}};
+ uint8_t labels[3600];for(int i=0;i<3600;i++){int best=0;for(int c=1;c<5;c++)if(ref[c*3600+i]>ref[best*3600+i])best=c;labels[i]=best;}
+ bool blocked=GrassObstacle::detect(labels);
  for(int y=0;y<360;y++)for(int x=0;x<640;x++){
    int cell=(y/8)*80+x/8,best=0;for(int c=1;c<5;c++)if(ref[c*3600+cell]>ref[best*3600+cell])best=c;
-   for(int c=0;c<3;c++){int i=(y*640+x)*3+c;if(result[i]!=(input[i]*20+colors[best][c]*80)/100)return 6;}
+   for(int c=0;c<3;c++){int i=(y*640+x)*3+c;int expected=(input[i]*20+colors[best][c]*80)/100; if(GrassObstacle::border(x,y))expected=blocked?(c==0?255:0):(c==1?255:0);if(result[i]!=expected)return 6;}
  }
  std::cout<<"PASS latest frame 50, exact overlay matches independent RKNN reference; inference "<<ms<<" ms\n";
 }

@@ -1,3 +1,7 @@
+#ifdef __linux__
+#include "src/camera/GrassOverlay.h"
+#include "src/camera/GrassObstacle.h"
+#endif
 // Ardumower Sunray 
 // Copyright (c) 2013-2020 by Alexander Grau, Grau GmbH
 // Licensed GPLv3 for open source use
@@ -161,6 +165,11 @@ void LineTracker::trackLine(bool runControl){
         //CONSOLE.println("SLOW: sonar");      
       }
     }      
+#ifdef __linux__
+    linear = GrassObstacle::limit(linear, sonar.enabled,
+        (stateEstimator.stateOp==OP_MOW || stateEstimator.stateOp==OP_DOCK) && stateEstimator.stateLocalizationMode==LOC_GPS,
+        maps.trackReverse, GrassOverlay::obstaclePresent(), true);
+#endif
     // slow down speed in case of overload and overwrite all prior speed 
     if ( (motor.motorLeftOverload) || (motor.motorRightOverload) || (motor.motorMowOverload) ){
       if (!printmotoroverload) {

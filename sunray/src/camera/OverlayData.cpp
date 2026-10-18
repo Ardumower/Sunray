@@ -4,6 +4,7 @@
 #endif
 // Small accessor shims to avoid including Arduino/robot headers in CameraStreamer
 #include "../../robot.h"
+#include "../../map.h"
 #ifdef __linux__
 #include "../op/op.h"
 #endif
@@ -18,6 +19,7 @@ extern "C" float cameraGetAngularSet() {
 
 
 #ifdef __linux__
+extern "C" void cameraSetGrassMonitoring(bool enabled);
 namespace { std::atomic<int> navigationMode{NavigationOverlay::Hidden}; }
 extern "C" int cameraGetNavigationMode() {
   return navigationMode.load(std::memory_order_relaxed);
@@ -37,6 +39,8 @@ extern "C" void cameraUpdateNavigationOverlay() {
     else if (stateEstimator.stateLocalizationMode == LOC_GUIDANCE_SHEET) mode = Guidance;
     else mode = gps.solution == SOL_FIXED ? RtkFix : (gps.solution == SOL_FLOAT ? RtkFloat : GpsWait);
   }
+  cameraSetGrassMonitoring(sonar.enabled && (op==OP_MOW || op==OP_DOCK) &&
+      stateEstimator.stateLocalizationMode==LOC_GPS && !maps.trackReverse);
   navigationMode.store(mode, std::memory_order_relaxed);
 }
 #endif

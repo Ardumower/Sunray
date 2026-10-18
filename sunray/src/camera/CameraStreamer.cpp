@@ -1,6 +1,7 @@
 #ifdef __linux__
 #include "CameraStreamer.h"
 #include "GrassOverlay.h"
+#include "GrassObstacle.h"
 #include "NavigationOverlay.h"
 #include "MediaStream.h"
 #include "CameraRegistry.h"
@@ -73,6 +74,7 @@ CameraStreamer::CameraStreamer() {}
 CameraStreamer::~CameraStreamer() {
   streamingRequested_.store(false);
   reflectorDetectionRequested_.store(false);
+  grassMonitoringRequested_.store(false);
   running_.store(false);
   try { if (worker_.joinable()) worker_.join(); } catch (...) {}
 }
@@ -115,6 +117,16 @@ void CameraStreamer::disableReflectorStripsDetection() {
   stopWorkerIfUnused();
 }
 
+int CameraStreamer::captureIndex() const {
+  if(reflectorDetectionRequested_.load())return reflectorCamIndex_.load();
+  if(grassMonitoringRequested_.load() || camIndex_.load()==100)return 0;
+  return camIndex_.load();
+}
+void CameraStreamer::setGrassMonitoring(bool enabled) {
+  if(grassMonitoringRequested_.exchange(enabled)==enabled)return;
+  if(enabled)ensureWorkerRunning();else stopWorkerIfUnused();
+}
+extern "C" void cameraSetGrassMonitoring(bool enabled){CameraStreamer::instance().setGrassMonitoring(enabled);}
 void CameraStreamer::ensureWorkerRunning() {
   if (running_.exchange(true)) return;
   try { if (worker_.joinable()) worker_.join(); } catch (...) {}
@@ -122,7 +134,7 @@ void CameraStreamer::ensureWorkerRunning() {
 }
 
 void CameraStreamer::stopWorkerIfUnused() {
-  if (streamingRequested_.load() || reflectorDetectionRequested_.load()) return;
+  if (streamingRequested_.load() || reflectorDetectionRequested_.load() || grassMonitoringRequested_.load()) return;
   running_.store(false);
   try { if (worker_.joinable()) worker_.join(); } catch (...) {}
   CONSOLE.println("CAM capture stop");
@@ -353,7 +365,7 @@ static bool jpegEncodeRGB(const uint8_t* rgb, int w, int h, int quality, std::ve
 void CameraStreamer::runLoop() {
   using namespace std::chrono;
   // Open V4L2 device
-  int index = reflectorDetectionRequested_.load() ? reflectorCamIndex_.load() : (camIndex_.load() == 100 ? 0 : camIndex_.load());
+  int index = captureIndex();
   int outW = reqW_.load(); int outH = reqH_.load(); int fps = reqFps_.load();
   CameraRegistry::refresh();
   std::string devPathStr = CameraRegistry::pathForIndex(index);
@@ -364,7 +376,7 @@ void CameraStreamer::runLoop() {
     auto next = steady_clock::now();
     while (running_.load()) {
       // break if index changed to a valid device
-      const int requestedIndex = reflectorDetectionRequested_.load() ? reflectorCamIndex_.load() : (camIndex_.load() == 100 ? 0 : camIndex_.load());
+      const int requestedIndex = captureIndex();
       if (requestedIndex != index) break;
       if (streamingRequested_.load()) buildAndSendFrame();
       next += period;
@@ -380,7 +392,7 @@ void CameraStreamer::runLoop() {
     auto period = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
     auto next = steady_clock::now();
     while (running_.load()) {
-      const int requestedIndex = reflectorDetectionRequested_.load() ? reflectorCamIndex_.load() : (camIndex_.load() == 100 ? 0 : camIndex_.load());
+      const int requestedIndex = captureIndex();
       if (requestedIndex != index) break;
       if (streamingRequested_.load()) buildAndSendFrame();
       next += period;
@@ -404,7 +416,7 @@ void CameraStreamer::runLoop() {
     auto period = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
     auto next = steady_clock::now();
     while (running_.load()) {
-      const int requestedIndex = reflectorDetectionRequested_.load() ? reflectorCamIndex_.load() : (camIndex_.load() == 100 ? 0 : camIndex_.load());
+      const int requestedIndex = captureIndex();
       if (requestedIndex != index) break;
       if (streamingRequested_.load()) buildAndSendFrame();
       next += period;
@@ -421,7 +433,7 @@ void CameraStreamer::runLoop() {
     auto period = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
     auto next = steady_clock::now();
     while (running_.load()) {
-      if ((camIndex_.load() == 100 ? 0 : camIndex_.load()) != index) break;
+      if (captureIndex() != index) break;
       buildAndSendFrame();
       next += period;
       std::this_thread::sleep_until(next);
@@ -448,13 +460,14 @@ void CameraStreamer::runLoop() {
   CameraLightLogger lightLogger;
   ImageDarkness darkness;
   GrassOverlay grass;
+  auto lastGrass=steady_clock::now()-seconds(1);
   auto lastLightMeasurement=steady_clock::now()-seconds(1);
   auto lastBadFrameLog = steady_clock::now() - seconds(5);
   auto minPeriod = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
   CONSOLE.print("CAM out req="); CONSOLE.print(outW); CONSOLE.print("x"); CONSOLE.print(outH); CONSOLE.print(" @"); CONSOLE.println((int)fps);
 
   while (running_.load()) {
-    int nIndex = reflectorDetectionRequested_.load() ? reflectorCamIndex_.load() : (camIndex_.load() == 100 ? 0 : camIndex_.load());
+    int nIndex = captureIndex();
     int nW = reqW_.load(), nH = reqH_.load(), nF = reqFps_.load();
     if (nIndex != index) { CONSOLE.println("CAM index changed, reopening"); break; }
     outW = nW; outH = nH; if (nF != fps) { fps = nF; minPeriod = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200); }
@@ -478,8 +491,9 @@ void CameraStreamer::runLoop() {
     const int detectorFps = std::max(1, reflectorFps_.load());
     const auto detectorPeriod = milliseconds(1000 / detectorFps);
     const bool shouldDetect = reflectorDetectionRequested_.load() && (now - lastDetection) >= detectorPeriod;
+    const bool shouldGrass=(grassMonitoringRequested_.load() || streamingRequested_.load()) && now-lastGrass>=milliseconds(100);
     const bool shouldMeasureLight=now-lastLightMeasurement>=seconds(1);
-    if (shouldSend || shouldDetect || lightLogger.due() || shouldMeasureLight) {
+    if (shouldSend || shouldDetect || shouldGrass || lightLogger.due() || shouldMeasureLight) {
       std::vector<uint8_t> rgb; int srcW = 0, srcH = 0;
       if (jpegDecodeToRGB(mjpeg, mjpegLen, rgb, srcW, srcH)) {
         lightLogger.decoded();
@@ -489,6 +503,7 @@ void CameraStreamer::runLoop() {
           lastLightMeasurement=now;
         }
         const unsigned long timestampMs = (unsigned long)duration_cast<milliseconds>(now.time_since_epoch()).count();
+        if(shouldGrass){grass.submit(rgb.data(),srcW,srcH,timestampMs);lastGrass=now;}
         if (shouldDetect) {
           ReflectorStripsDetector::instance().processRgb(rgb.data(), srcW, srcH, timestampMs);
           const ReflectorStripsObservation marker = ReflectorStripsDetector::instance().observation(timestampMs);
@@ -512,7 +527,6 @@ void CameraStreamer::runLoop() {
           resizeNearestRGB(rgb.data(), srcW, srcH, outRGB.data(), outW, outH);
           uint32_t frameTimestamp = timestampMs;
           if (camIndex_.load() == 100) {
-            grass.submit(rgb.data(), srcW, srcH, timestampMs);
             std::vector<uint8_t> classified; uint64_t stamp=0; double ms=0;
             if (grass.latest(classified, stamp, ms) && timestampMs >= stamp && timestampMs-stamp < 1000) {
               resizeNearestRGB(classified.data(),640,360,outRGB.data(),outW,outH);
@@ -523,6 +537,9 @@ void CameraStreamer::runLoop() {
               // Clearly mark missing/stale output, never present it as a classification.
               drawText(outRGB.data(),outW,outH,4,20,"GRASS WAIT",1,255,180,0);
             }
+          }
+          if (camIndex_.load() != 100) {
+            GrassObstacle::drawContour(outRGB.data(),outW,outH,GrassOverlay::obstacleState());
           }
           // Overlay: time and joystick arrows
           drawOverlay(outRGB.data(), outW, outH);

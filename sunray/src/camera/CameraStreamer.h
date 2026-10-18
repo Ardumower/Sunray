@@ -23,6 +23,7 @@ public:
   void setSender(Sender s);
   void start(int index, int width, int height, int fps, int quality = 70);
   void stop();
+  void setGrassMonitoring(bool enabled);
   void enableReflectorStripsDetection(int index, int fps);
   void disableReflectorStripsDetection();
   bool running() const { return running_.load(); }
@@ -34,12 +35,14 @@ private:
   CameraStreamer& operator=(const CameraStreamer&) = delete;
 
   void runLoop();
+  int captureIndex() const;
   void buildAndSendFrame();
   void ensureWorkerRunning();
   void stopWorkerIfUnused();
 
   std::atomic<bool> running_{false};
   std::atomic<bool> streamingRequested_{false};
+  std::atomic<bool> grassMonitoringRequested_{false};
   std::atomic<bool> reflectorDetectionRequested_{false};
   std::thread worker_;
   std::mutex mtx_;

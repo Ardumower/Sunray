@@ -1,5 +1,7 @@
 #ifdef __linux__
 #include "GrassOverlay.h"
+#include "GrassObstacle.h"
+#include <atomic>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -11,6 +13,15 @@
 #ifdef SUNRAY_RKNN
 #include <rknn_api.h>
 #endif
+namespace {
+std::atomic<uint64_t> observation{0}; // capture timestamp * 2 + blocked bit
+uint64_t monotonicMs(){return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();}
+}
+int GrassOverlay::obstacleState(){
+  const uint64_t value=observation.load(), stamp=value>>1, now=monotonicMs();
+  return GrassObstacle::fresh(stamp,now) ? int(value&1) : -1;
+}
+bool GrassOverlay::obstaclePresent(){return obstacleState()==1;}
 struct GrassOverlay::Impl {
   std::mutex mutex;
   std::condition_variable ready;
@@ -19,7 +30,7 @@ struct GrassOverlay::Impl {
   std::vector<uint8_t> pending, result;
   uint64_t pendingTime=0,resultTime=0;
   double ms=0;
-  ~Impl(){ {std::lock_guard<std::mutex> lock(mutex);stop=true;}ready.notify_one();if(worker.joinable())worker.join(); }
+  ~Impl(){ {std::lock_guard<std::mutex> lock(mutex);stop=true;}ready.notify_one();if(worker.joinable())worker.join();observation.store(0); }
   void run(){
 #ifdef SUNRAY_RKNN
     char exe[4096];const auto len=readlink("/proc/self/exe",exe,sizeof(exe)-1);
@@ -35,7 +46,7 @@ struct GrassOverlay::Impl {
        attr.fmt!=RKNN_TENSOR_NCHW||attr.dims[0]!=1||attr.dims[1]!=5||attr.dims[2]!=45||attr.dims[3]!=80||
        rknn_set_core_mask(ctx,RKNN_NPU_CORE_0)<0){fprintf(stderr,"GRASS unsupported model\n");rknn_destroy(ctx);return;}
     fprintf(stderr,"GRASS ready: %s\n",path.c_str());
-    unsigned frames=0;
+    unsigned frames=0; bool blocked=false; uint64_t lastStamp=0;
     while(true){
       std::vector<uint8_t> frame;uint64_t stamp;
       {std::unique_lock<std::mutex> lock(mutex);ready.wait(lock,[this]{return stop||!pending.empty();});if(stop)break;frame.swap(pending);stamp=pendingTime;}
@@ -50,10 +61,14 @@ struct GrassOverlay::Impl {
       uint8_t labels[45*80];
       for(int i=0;i<45*80;i++){int best=0;for(int c=1;c<5;c++)if(scores[c*45*80+i]>scores[best*45*80+i])best=c;labels[i]=best;}
       rknn_outputs_release(ctx,1,&out);
+      if(stamp<lastStamp || stamp-lastStamp>=GrassObstacle::FreshMs)blocked=false;
+      blocked=GrassObstacle::detect(labels,blocked);lastStamp=stamp;
+      observation.store((stamp<<1)|(blocked?1:0));
       // Obstacle, grass, excluded region, non-grass, restricted region.
       const uint8_t colors[5][3]={{235,65,65},{45,210,65},{160,90,220},{230,155,40},{70,130,230}};
       for(int y=0;y<360;y++)for(int x=0;x<640;x++)for(int c=0;c<3;c++){
         const auto i=(y*640+x)*3+c;frame[i]=(frame[i]*20+colors[labels[(y/8)*80+x/8]][c]*80)/100;
+        if(GrassObstacle::border(x,y)) frame[i]=blocked?(c==0?255:0):(c==1?255:0);
       }
       {std::lock_guard<std::mutex> lock(mutex);result.swap(frame);resultTime=stamp;ms=elapsed;}
       if (++frames == 1) fprintf(stderr,"GRASS first live overlay complete: %.1f ms, timestamp %llu\n",elapsed,(unsigned long long)stamp);

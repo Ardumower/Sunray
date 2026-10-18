@@ -3,10 +3,12 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
-// Camera-only visualization. No connection to motion/navigation decisions.
+// Asynchronous segmentation and optional front-camera slowdown observation.
 // One pending frame and one completed frame; inference never blocks capture.
 class GrassOverlay {
 public:
+  static bool obstaclePresent();
+  static int obstacleState(); // -1 unavailable/stale, 0 clear, 1 obstacle
   GrassOverlay();
   ~GrassOverlay();
   void submit(const uint8_t* rgb, int width, int height, uint64_t timestamp);
