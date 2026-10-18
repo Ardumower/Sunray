@@ -105,6 +105,12 @@ void LineTracker::trackLine(bool runControl){
     // line control (stanley)    
     bool straight = maps.nextPointIsStraight();
     bool trackslow_allowed = true;
+    bool rtkDockApproach = false;
+    float desiredSpeed = stateEstimator.setSpeed;
+#ifdef DOCK_RTK_SPEED
+    rtkDockApproach = stateEstimator.stateOp == OP_DOCK && stateEstimator.stateLocalizationMode == LOC_GPS;
+    if (rtkDockApproach) desiredSpeed = DOCK_RTK_SPEED;
+#endif
 
     rotateLeft = false;
     rotateRight = false;
@@ -122,10 +128,10 @@ void LineTracker::trackLine(bool runControl){
         }
     }
 
-    if (maps.trackSlow && trackslow_allowed) {
+    if (maps.trackSlow && trackslow_allowed && !rtkDockApproach) {
       // planner forces slow tracking (e.g. docking etc)
       linear = DOCK_LINEAR_SPEED; // 0.1           
-    } else if (     ((stateEstimator.setSpeed > 0.2) && (maps.distanceToTargetPoint(stateEstimator.stateX, stateEstimator.stateY) < 0.5) && (!straight))   // approaching
+    } else if (     ((desiredSpeed > 0.2) && (maps.distanceToTargetPoint(stateEstimator.stateX, stateEstimator.stateY) < 0.5) && (!straight))   // approaching
           || ((stateEstimator.linearMotionStartTime != 0) && (millis() < stateEstimator.linearMotionStartTime + 3000))                      // leaving  
        ) 
     {
@@ -134,10 +140,10 @@ void LineTracker::trackLine(bool runControl){
     } 
     else {
       if ((stateEstimator.stateLocalizationMode == LOC_GPS) && (gps.solution == SOL_FLOAT)){        
-        linear = min(stateEstimator.setSpeed, 0.1); // reduce speed for float solution
+        linear = min(desiredSpeed, 0.1); // reduce speed for float solution
         //CONSOLE.println("SLOW: float");
       } else
-        linear = stateEstimator.setSpeed;         // desired speed
+        linear = desiredSpeed;         // desired speed
       #ifdef DRV_CAN_ROBOT
         CanRobotDriver::UltrasonicMotionDirection ultrasonicDirection = CanRobotDriver::ultrasonic_motion_any;
         if (fabs(linear) > 0.001) {
@@ -171,7 +177,7 @@ void LineTracker::trackLine(bool runControl){
     //angula                                    r = 3.0 * trackerDiffDelta + 3.0 * lateralError;       // correct for path errors 
     float k = stanleyTrackingNormalK; // STANLEY_CONTROL_K_NORMAL;
     float p = stanleyTrackingNormalP; // STANLEY_CONTROL_P_NORMAL;    
-    if (maps.trackSlow && trackslow_allowed) {
+    if (maps.trackSlow && trackslow_allowed && !rtkDockApproach) {
       k = stanleyTrackingSlowK; //STANLEY_CONTROL_K_SLOW;   
       p = stanleyTrackingSlowP; //STANLEY_CONTROL_P_SLOW;          
     }

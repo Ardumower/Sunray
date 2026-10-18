@@ -455,6 +455,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DOCK_REFLECTOR_STRIPS_MAX_ANGULAR 0.35     // steering limit (rad/s)
 #define DOCK_REFLECTOR_STRIPS_MAX_ERROR_FOR_DRIVE 0.65 // rotate only outside this normalized image error
 
+#define DOCK_RTK_SPEED 0.5 // RTK docking cruise and maximum wheel speed (m/s); camera approach unchanged
 #define DOCK_APPROACH_MAX_WHEEL_SPEED 0.10 // GPS approach/exit wheel limit (m/s)
 #define DOCK_MAX_WHEEL_SPEED 0.02 // max commanded speed of either wheel during camera docking/undocking (m/s)
 #define DOCK_TEST_TIMEOUT_MS 0UL // normal docking: no temporary test deadline

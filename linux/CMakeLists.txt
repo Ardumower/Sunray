@@ -139,3 +139,15 @@ endif()
 
 
 
+
+# Optional Rockchip grass overlay (virtual camera index 100).
+find_path(RKNN_INCLUDE_DIR rknn_api.h PATH_SUFFIXES rknn)
+find_library(RKNN_LIBRARY rknnrt)
+if(RKNN_INCLUDE_DIR AND RKNN_LIBRARY)
+  target_compile_definitions(sunray PRIVATE SUNRAY_RKNN=1)
+  target_include_directories(sunray PRIVATE ${RKNN_INCLUDE_DIR})
+  target_link_libraries(sunray ${RKNN_LIBRARY})
+  set_source_files_properties(${FIRMWARE_PATH}/src/camera/GrassOverlay.cpp PROPERTIES COMPILE_FLAGS "-O2")
+  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/models)
+  configure_file(models/grass.rknn ${CMAKE_BINARY_DIR}/models/grass.rknn COPYONLY)
+endif()

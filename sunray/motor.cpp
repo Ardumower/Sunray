@@ -196,6 +196,10 @@ void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRam
      if (stateEstimator.stateLocalizationMode != LOC_REFLECTOR_STRIPS)
        wheelLimit=DOCK_APPROACH_MAX_WHEEL_SPEED;
 #endif
+#ifdef DOCK_RTK_SPEED
+     if (stateEstimator.stateOp == OP_DOCK && stateEstimator.stateLocalizationMode == LOC_GPS)
+       wheelLimit=DOCK_RTK_SPEED;
+#endif
      limitDockWheelSpeed(linearSpeedSet, angularSpeedSet, wheelBaseCm/100.0f, wheelLimit);
    }
 #endif
