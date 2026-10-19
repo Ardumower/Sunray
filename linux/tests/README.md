@@ -593,3 +593,17 @@ The final fallback keeps all previous detections across 568 archived/initial
 morning images (one known corrupt file excluded) and detects one additional
 older distant view. On the Orange Pi, replaying the 1920x1080 loss frame takes
 127.4 ms per detection on average, below the unchanged 500 ms freshness limit.
+
+### u-blox signal diagnostics
+
+Run `sh linux/tests/run-ublox-signal-tests.sh` for NAV-SIG C/N0 statistics,
+strongest-signal selection, no-reception and malformed-message checks.
+The existing `run-gps-startup-tests.sh` builds the full UBLOX parser.
+
+Periodic MON-COMMS output now includes `UBX-SIGNAL C/N0[dB-Hz]`:
+`nonzero` counts signal entries with C/N0 > 0 (not unique satellites),
+`used` counts pseudorange-used entries, and `avgNonzero` excludes zero entries.
+`top8[gnss:sv/sig=cno]` lists at most eight strongest satellite/frequency signals.
+`ageMs` describes the last valid NAV-SIG reception; age > 10000 ms is marked
+`STALE`. Missing NAV-SIG is explicitly unavailable. No navigation thresholds
+are changed. Statistics are reset on receiver initialization/configuration.

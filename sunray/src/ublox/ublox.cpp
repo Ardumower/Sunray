@@ -34,6 +34,7 @@ UBLOX::UBLOX()
 }
 
 void UBLOX::begin(){
+  signalDiagnostics = UbloxSignalDiagnostics();
   CONSOLE.println("using gps driver: UBLOX");
   this->state    = GOT_NONE;
   this->msgclass = -1;
@@ -166,6 +167,7 @@ void UBLOX::begin(HardwareSerial& bus,uint32_t baud)
 // Configuration is cooperative: begin() schedules work, run() advances it.
 // Only this parser reads the UART, including configuration replies.
 bool UBLOX::configure(){
+  signalDiagnostics = UbloxSignalDiagnostics();
   if (!_bus || useTCP) return false;
   solution = SOL_INVALID;
   solutionAvail = true;
@@ -778,6 +780,7 @@ void UBLOX::dispatchMessage() {
             break;            
           case 0x43:
             { // UBX-NAV-SIG
+              if (!signalDiagnostics.update(payload, msglen, millis())) break;
               if (verbose) CONSOLE.print("UBX-NAV-SIG ");
               iTOW = (unsigned long)this->unpack_int32(0);
               int numSigs = this->unpack_int8(5);              
@@ -820,7 +823,7 @@ void UBLOX::dispatchMessage() {
                   }
                 }                
               }
-              ravg = rsum/((float)crcnt);
+              ravg = crcnt ? rsum/((float)crcnt) : 0;
               numSVdgps = crcnt;
               numSV = healthycnt;                            
               if (verbose){
@@ -907,10 +910,12 @@ void UBLOX::dispatchMessage() {
           case 0x36:
             {
               // UBX-MON-COMMS
+              if (msglen < 8) break;
               byte version = (unsigned char)this->unpack_int8(0); 
               CONSOLE.print("UBX-MON-COMMS v");
               CONSOLE.println(version);
-              if (version == 0){
+              if (version == 0 && msglen >= 8 + 40 * (unsigned char)payload[1]){
+                logSignalDiagnostics();
                 byte nPorts = (unsigned char)this->unpack_int8(1);
                 byte protIds[4];
                 for (int i=0; i < 4; i++){
@@ -972,6 +977,45 @@ void UBLOX::dispatchMessage() {
         break;
     }    
     if (verbose) CONSOLE.println();
+}
+
+void UBLOX::logSignalDiagnostics() {
+  CONSOLE.print("UBX-SIGNAL C/N0[dB-Hz] ");
+  if (!signalDiagnostics.available) {
+    CONSOLE.println("unavailable (no valid NAV-SIG)");
+    return;
+  }
+  const UbloxSignalDiagnostics& d = signalDiagnostics;
+  uint32_t age = (uint32_t)millis() - d.receivedAt;
+  CONSOLE.print("ageMs="); CONSOLE.print((unsigned long)age);
+  if (age > 10000) CONSOLE.print(" STALE");
+  CONSOLE.print(" nonzero="); CONSOLE.print(d.nonzero);
+  CONSOLE.print("/"); CONSOLE.print(d.reported);
+  CONSOLE.print(" used="); CONSOLE.print(d.used);
+  CONSOLE.print(" avgNonzero=");
+  CONSOLE.print(d.nonzero ? (float)d.sum / d.nonzero : 0.0f, 1);
+  CONSOLE.print(" max="); CONSOLE.print(d.maximum);
+  CONSOLE.print(" top8[gnss:sv/sig=cno]=");
+  if (!d.topCount) CONSOLE.print("none");
+  for (unsigned i = 0; i < d.topCount; ++i) {
+    if (i) CONSOLE.print(",");
+    const UbloxSignalDiagnostics::Signal& s = d.top[i];
+    switch (s.gnss) {
+      case 0: CONSOLE.print("GPS"); break;
+      case 1: CONSOLE.print("SBAS"); break;
+      case 2: CONSOLE.print("GAL"); break;
+      case 3: CONSOLE.print("BDS"); break;
+      case 4: CONSOLE.print("IMES"); break;
+      case 5: CONSOLE.print("QZSS"); break;
+      case 6: CONSOLE.print("GLO"); break;
+      case 7: CONSOLE.print("NAVIC"); break;
+      default: CONSOLE.print(s.gnss); break;
+    }
+    CONSOLE.print(":"); CONSOLE.print(s.sv);
+    CONSOLE.print("/"); CONSOLE.print(s.signal);
+    CONSOLE.print("="); CONSOLE.print(s.cno);
+  }
+  CONSOLE.println();
 }
 
 long UBLOX::unpack_int32(int offset) {

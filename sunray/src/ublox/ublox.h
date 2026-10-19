@@ -21,6 +21,7 @@
 
 #include "Arduino.h"				
 #include "../../gps.h"
+#include "SignalDiagnostics.h"
 #include "../driver/RobotDriver.h"
 
 #define UBX_SYNC1  0xB5
@@ -52,6 +53,8 @@ class UBLOX : public GpsDriver {
     bool configure() override;  
     void reboot() override;
   private:
+    UbloxSignalDiagnostics signalDiagnostics;
+    void logSignalDiagnostics();
     enum ConfigPhase { CFG_DISABLED, CFG_PROBE_TARGET, CFG_PROBE_FALLBACK,
       CFG_SWITCH_BAUD, CFG_PROBE_VERIFY, CFG_VERSION, CFG_APPLY, CFG_PAUSE,
       CFG_RETRY, CFG_READY };
