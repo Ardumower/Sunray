@@ -607,3 +607,10 @@ Periodic MON-COMMS output now includes `UBX-SIGNAL C/N0[dB-Hz]`:
 `ageMs` describes the last valid NAV-SIG reception; age > 10000 ms is marked
 `STALE`. Missing NAV-SIG is explicitly unavailable. No navigation thresholds
 are changed. Statistics are reset on receiver initialization/configuration.
+
+On Linux, the same interval also logs `WLAN-SIGNAL iface=... rssi[dBm]=...`
+for each interface in `/proc/net/wireless`, using read-only driver statistics
+(`SIOCGIWSTATS`). Noise is included when valid. Missing interfaces, disconnected
+links and unsupported/invalid statistics are explicitly unavailable. No Wi-Fi
+scan, external command or additional library is needed; driver-reported values
+may be averaged or cached by the driver.

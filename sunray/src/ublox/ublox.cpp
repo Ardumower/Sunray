@@ -7,6 +7,9 @@
 #include "ublox.h"
 #include "../../config.h"
 #include "../../events.h"
+#ifdef __linux__
+#include "../linux/WifiDiagnostics.h"
+#endif
 
 
 
@@ -916,6 +919,9 @@ void UBLOX::dispatchMessage() {
               CONSOLE.println(version);
               if (version == 0 && msglen >= 8 + 40 * (unsigned char)payload[1]){
                 logSignalDiagnostics();
+#ifdef __linux__
+                logWifiDiagnostics(CONSOLE);
+#endif
                 byte nPorts = (unsigned char)this->unpack_int8(1);
                 byte protIds[4];
                 for (int i=0; i < 4; i++){
