@@ -9,6 +9,7 @@
 #include "comm.h"
 #ifdef __linux__
 #include "camera/CameraStreamer.h"
+#include "src/net/TextureRpc.h"
 #endif
 
 #include "timetable.h"
@@ -255,6 +256,7 @@ void HttpServer::processWifiWSClient() {
 #ifdef __linux__
   if (!wsWorker) {
     CloudWorker::Transport io;
+    io.auxiliary = textureRpc;
     io.connect = [this]{ return wsClient.connect(); };
     io.connected = [this]{ return wsClient.connected(); };
     io.close = [this]{ wsClient.close(); };

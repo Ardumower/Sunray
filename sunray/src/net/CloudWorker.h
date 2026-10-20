@@ -2,6 +2,7 @@
 #ifdef __linux__
 // Include before Arduino's min/max macros, or temporarily undefine them.
 #include <atomic>
+#include <array>
 #include <chrono>
 #include <condition_variable>
 #include <functional>
@@ -23,6 +24,7 @@ public:
     std::function<bool(std::string&)> receive;
     std::function<bool(const std::string&)> send;
     std::function<bool(const unsigned char*, size_t)> binary;
+    std::function<bool(const std::string&, std::string&)> auxiliary;
   };
   struct Request { std::string text; unsigned long long session=0; };
   explicit CloudWorker(Transport t, unsigned retryMs=2000): transport(std::move(t)), retryMs(retryMs) {}
@@ -45,7 +47,11 @@ public:
   void camera(const unsigned char* data,size_t length){
     if(length>1024*1024 || !online.load()) return;
     std::unique_lock<std::mutex> lock(mutex,std::try_to_lock);
-    if(lock && online.load()) frame.assign(data,data+length); // latest frame only
+    // Keep one latest frame per normal/texture view, so back-to-back views
+    // cannot overwrite one another while the network thread is busy.
+    const bool texture=length>=16 && data[0]=='S' && data[1]=='R' &&
+        data[2]=='B' && data[3]=='X' && (data[6]&0x80) && data[7]==101;
+    if(lock && online.load()) frames[texture?1:0].assign(data,data+length);
   }
   bool connected() const {return online.load();}
 private:
@@ -59,12 +65,12 @@ private:
   unsigned long long generation=0;
   bool pending=false,taken=false,replyReady=false;
   std::string incoming,response;
-  std::vector<unsigned char> frame;
+  std::array<std::vector<unsigned char>,2> frames;
   Clock::time_point receivedAt;
   void clear(){
     online.store(false);
     std::lock_guard<std::mutex> lock(mutex);
-    ++generation;pending=taken=replyReady=false;incoming.clear();response.clear();frame.clear();
+    ++generation;pending=taken=replyReady=false;incoming.clear();response.clear();for(auto& frame:frames)frame.clear();
   }
   void wait(unsigned ms){std::unique_lock<std::mutex> lock(mutex);wake.wait_for(lock,std::chrono::milliseconds(ms),[this]{return stop.load();});}
   void run(){
@@ -82,6 +88,10 @@ private:
           if(message.size()>65536) break;
           lastReceive=Clock::now();
           std::string answer;
+          if(transport.auxiliary && transport.auxiliary(message,answer)){
+            if(!answer.empty() && !transport.send(answer)) break;
+            continue;
+          }
           {
             std::unique_lock<std::mutex> lock(mutex);
             incoming=std::move(message);receivedAt=Clock::now();pending=true;taken=false;replyReady=false;
@@ -91,9 +101,12 @@ private:
           }
           if(!answer.empty() && !transport.send(answer)) break;
         }
-        std::vector<unsigned char> image;
-        {std::lock_guard<std::mutex> lock(mutex);image.swap(frame);}
-        if(!image.empty() && !transport.binary(image.data(),image.size())) break;
+        std::array<std::vector<unsigned char>,2> images;
+        {std::lock_guard<std::mutex> lock(mutex);images.swap(frames);}
+        bool failed=false;
+        for(const auto& image:images)
+          if(!image.empty() && !transport.binary(image.data(),image.size())){failed=true;break;}
+        if(failed)break;
         if(Clock::now()-lastReceive>std::chrono::seconds(15)) break;
         wait(5);
       }

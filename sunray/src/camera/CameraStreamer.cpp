@@ -1,6 +1,7 @@
 #ifdef __linux__
 #include "CameraStreamer.h"
 #include "GrassOverlay.h"
+#include "TextureFiles.h"
 #include "GrassObstacle.h"
 #include "NavigationOverlay.h"
 #include "MediaStream.h"
@@ -10,6 +11,7 @@
 #include "ReflectorFailureRecorder.h"
 #include "CameraLightLogger.h"
 #include "ImageDarkness.h"
+#include "LatestFrameWorker.h"
 #include "Console.h"
 // Access motor speed setpoints via C-accessors (to avoid Arduino header conflicts)
 extern "C" float cameraGetLinearSet();
@@ -119,7 +121,7 @@ void CameraStreamer::disableReflectorStripsDetection() {
 
 int CameraStreamer::captureIndex() const {
   if(reflectorDetectionRequested_.load())return reflectorCamIndex_.load();
-  if(grassMonitoringRequested_.load() || camIndex_.load()==100)return 0;
+  if(grassMonitoringRequested_.load() || (camIndex_.load()==100 || camIndex_.load()==101))return 0;
   return camIndex_.load();
 }
 void CameraStreamer::setGrassMonitoring(bool enabled) {
@@ -458,15 +460,65 @@ void CameraStreamer::runLoop() {
   bool lastReflectorFound = false;
   ReflectorFailureRecorder failureRecorder;
   CameraLightLogger lightLogger;
+  struct ReflectorFrame {
+    std::vector<uint8_t> rgb,jpeg;
+    int width=0,height=0;
+    unsigned long timestampMs=0;
+    float linear=0,angular=0;
+  };
+  std::atomic<unsigned> detectionsFound{0},detectionsMissing{0};
+  LatestFrameWorker<ReflectorFrame> reflectorWorker([&](const ReflectorFrame& frame){
+    if(!reflectorDetectionRequested_.load())return;
+    const auto nowMs=duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+    // Never refresh navigation with a queued image that has already expired.
+    if(nowMs-frame.timestampMs>500)return;
+    ReflectorStripsDetector::instance().processRgb(frame.rgb.data(), frame.width, frame.height, frame.timestampMs);
+    const ReflectorStripsObservation marker = ReflectorStripsDetector::instance().observation(frame.timestampMs);
+    if(marker.found)++detectionsFound;else ++detectionsMissing;
+    failureRecorder.observe(frame.jpeg.data(), frame.jpeg.size(), frame.width, frame.height, frame.timestampMs, marker, frame.linear, frame.angular);
+    if (!reflectorStatusInitialized || marker.found != lastReflectorFound) {
+      reflectorStatusInitialized = true;
+      lastReflectorFound = marker.found;
+      CONSOLE.print("CAM reflectors found="); CONSOLE.print(marker.found);
+      CONSOLE.print(" strips="); CONSOLE.print(marker.stripCount);
+      CONSOLE.print(" mode="); CONSOLE.print(marker.found ? "triple" : "none");
+      CONSOLE.print(" confidence="); CONSOLE.print(marker.confidence);
+      CONSOLE.print(" error="); CONSOLE.println(marker.horizontalError);
+    }
+  });
+  auto lastFreshnessReport=steady_clock::now();
+  unsigned long maximumMarkerAge=0;
+  unsigned markerSamples=0,staleMarkerSamples=0;
   ImageDarkness darkness;
   GrassOverlay grass;
   auto lastGrass=steady_clock::now()-seconds(1);
+  auto lastTexture=steady_clock::now()-seconds(1);
+  uint64_t lastTextureView=0;
   auto lastLightMeasurement=steady_clock::now()-seconds(1);
   auto lastBadFrameLog = steady_clock::now() - seconds(5);
   auto minPeriod = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
   CONSOLE.print("CAM out req="); CONSOLE.print(outW); CONSOLE.print("x"); CONSOLE.print(outH); CONSOLE.print(" @"); CONSOLE.println((int)fps);
 
   while (running_.load()) {
+    // Drain completed-result counters on the capture thread: the logger is not
+    // shared with the detector thread, and counts analyses rather than frames.
+    for(unsigned n=detectionsFound.exchange(0);n;--n)lightLogger.detection(true);
+    for(unsigned n=detectionsMissing.exchange(0);n;--n)lightLogger.detection(false);
+    const auto freshnessNow=steady_clock::now();
+    if(reflectorDetectionRequested_.load()){
+      const auto marker=ReflectorStripsDetector::instance().observation(
+          (unsigned long)duration_cast<milliseconds>(freshnessNow.time_since_epoch()).count());
+      if(marker.ageMs!=(unsigned long)-1){
+        maximumMarkerAge=std::max(maximumMarkerAge,marker.ageMs);
+      }
+      ++markerSamples;if(!marker.found)++staleMarkerSamples;
+      if(freshnessNow-lastFreshnessReport>=seconds(5)){
+        CONSOLE.print("CAM reflectors freshness maxAge=");CONSOLE.print(maximumMarkerAge);
+        CONSOLE.print(" unavailable=");CONSOLE.print(staleMarkerSamples);
+        CONSOLE.print(" samples=");CONSOLE.println(markerSamples);
+        maximumMarkerAge=0;markerSamples=staleMarkerSamples=0;lastFreshnessReport=freshnessNow;
+      }
+    }
     int nIndex = captureIndex();
     int nW = reqW_.load(), nH = reqH_.load(), nF = reqFps_.load();
     if (nIndex != index) { CONSOLE.println("CAM index changed, reopening"); break; }
@@ -505,28 +557,30 @@ void CameraStreamer::runLoop() {
         const unsigned long timestampMs = (unsigned long)duration_cast<milliseconds>(now.time_since_epoch()).count();
         if(shouldGrass){grass.submit(rgb.data(),srcW,srcH,timestampMs);lastGrass=now;}
         if (shouldDetect) {
-          ReflectorStripsDetector::instance().processRgb(rgb.data(), srcW, srcH, timestampMs);
-          const ReflectorStripsObservation marker = ReflectorStripsDetector::instance().observation(timestampMs);
-          lightLogger.detection(marker.found);
-          failureRecorder.observe(mjpeg, mjpegLen, srcW, srcH, timestampMs, marker, cameraGetLinearSet(), cameraGetAngularSet());
-          if (!reflectorStatusInitialized || marker.found != lastReflectorFound) {
-            reflectorStatusInitialized = true;
-            lastReflectorFound = marker.found;
-            CONSOLE.print("CAM reflectors found="); CONSOLE.print(marker.found);
-            CONSOLE.print(" strips="); CONSOLE.print(marker.stripCount);
-            CONSOLE.print(" mode="); CONSOLE.print(marker.found ? "triple" : "none");
-            CONSOLE.print(" confidence="); CONSOLE.print(marker.confidence);
-            CONSOLE.print(" error="); CONSOLE.println(marker.horizontalError);
-          }
+          ReflectorFrame frame;
+          frame.rgb=rgb;frame.jpeg.assign(mjpeg,mjpeg+mjpegLen);
+          frame.width=srcW;frame.height=srcH;frame.timestampMs=timestampMs;
+          frame.linear=cameraGetLinearSet();frame.angular=cameraGetAngularSet();
+          reflectorWorker.submit(std::move(frame));
           lastDetection = now;
         }
         lightLogger.sample(fd,index,cameraGetNavigationMode(),rgb.data(),srcW,srcH,mjpeg,mjpegLen,
             reflectorDetectionRequested_.load()?ReflectorStripsDetector::instance().observation(timestampMs).confidence:0);
+        // Share clean, fixed-resolution frames only while a viewer requests video.
+        if (streamingRequested_.load() && now-lastTexture>=milliseconds(500)) {
+          std::vector<uint8_t> clean(640*360*3), encoded;
+          resizeNearestRGB(rgb.data(),srcW,srcH,clean.data(),640,360);
+          if(jpegEncodeRGB(clean.data(),640,360,90,encoded))TextureFiles::publish(encoded,timestampMs);
+          lastTexture=now;
+        }
         if (shouldSend) {
+          const int outputIndex=camIndex_.load();
           std::vector<uint8_t> outRGB((size_t)outW * (size_t)outH * 3);
           resizeNearestRGB(rgb.data(), srcW, srcH, outRGB.data(), outW, outH);
+          std::vector<uint8_t> rawView;
+          if(outputIndex==101)rawView=outRGB;
           uint32_t frameTimestamp = timestampMs;
-          if (camIndex_.load() == 100) {
+          if (outputIndex == 100) {
             std::vector<uint8_t> classified; uint64_t stamp=0; double ms=0;
             if (grass.latest(classified, stamp, ms) && timestampMs >= stamp && timestampMs-stamp < 1000) {
               resizeNearestRGB(classified.data(),640,360,outRGB.data(),outW,outH);
@@ -538,32 +592,61 @@ void CameraStreamer::runLoop() {
               drawText(outRGB.data(),outW,outH,4,20,"GRASS WAIT",1,255,180,0);
             }
           }
-          if (camIndex_.load() != 100) {
+          if (outputIndex == 101) {
+            std::vector<uint8_t> jpeg, classified; uint64_t stamp=0; int w=0,h=0;
+            if(TextureFiles::overlay(jpeg,timestampMs,stamp) && jpegDecodeToRGB(jpeg.data(),jpeg.size(),classified,w,h)){
+              resizeNearestRGB(classified.data(),w,h,outRGB.data(),outW,outH);frameTimestamp=stamp;
+            }else drawText(outRGB.data(),outW,outH,4,20,"TRAIN WAIT - NO RESULT",1,255,180,0);
+          }
+          if (outputIndex != 100 && outputIndex != 101) {
             GrassObstacle::drawContour(outRGB.data(),outW,outH,GrassOverlay::obstacleState());
           }
+          auto overlayView = [&](std::vector<uint8_t>& pixels) {
           // Overlay: time and joystick arrows
-          drawOverlay(outRGB.data(), outW, outH);
+          drawOverlay(pixels.data(), outW, outH);
           if (reflectorDetectionRequested_.load()) {
             const ReflectorStripsObservation marker = ReflectorStripsDetector::instance().observation(timestampMs);
             const int centreX = outW / 2;
-            fillRect(outRGB.data(), outW, outH, centreX - 1, 0, centreX + 1, outH - 1,
+            fillRect(pixels.data(), outW, outH, centreX - 1, 0, centreX + 1, outH - 1,
                      0, 120, 255, 150);
             if (marker.found) {
               const int reflectorX = (int)((marker.horizontalError * 0.5f + 0.5f) * outW);
-              fillRect(outRGB.data(), outW, outH, reflectorX - 2, 0, reflectorX + 2, outH - 1,
+              fillRect(pixels.data(), outW, outH, reflectorX - 2, 0, reflectorX + 2, outH - 1,
                        0, 255, 0, 190);
             }
           }
-          drawNavigationOverlay(outRGB.data(), outW, outH);
-          drawDarknessOverlay(outRGB.data(), outW, outH,darkness.dark());
-          const int q = reqQ_.load();
-          std::vector<uint8_t> outJpeg; jpegEncodeRGB(outRGB.data(), outW, outH, (q > 0 ? q : 70), outJpeg);
-          Sender s; { std::lock_guard<std::mutex> lk(mtx_); s = sender_; }
-          if (s) {
-            uint8_t hdr[16]; uint32_t ts = frameTimestamp;
-            buildMediaHeader(hdr, 1, (uint16_t)outW, (uint16_t)outH, ts, 0);
-            std::vector<uint8_t> buf(sizeof(hdr) + outJpeg.size()); std::memcpy(buf.data(), hdr, sizeof(hdr)); std::memcpy(buf.data() + sizeof(hdr), outJpeg.data(), outJpeg.size());
-            s(buf.data(), buf.size());
+          drawNavigationOverlay(pixels.data(), outW, outH);
+          drawDarknessOverlay(pixels.data(), outW, outH,darkness.dark());
+          };
+          Sender sender; { std::lock_guard<std::mutex> lk(mtx_); sender=sender_; }
+          const int q=reqQ_.load();
+          auto sendView = [&](std::vector<uint8_t>& pixels,uint32_t stamp,int view) {
+            if(!sender)return;
+            overlayView(pixels);
+            std::vector<uint8_t> jpeg;
+            if(!jpegEncodeRGB(pixels.data(),outW,outH,q>0?q:70,jpeg))return;
+            uint8_t hdr[16];
+            buildMediaHeader(hdr,1,(uint16_t)outW,(uint16_t)outH,stamp,uint16_t(0x8000|(view&0xff)));
+            std::vector<uint8_t> packet(sizeof(hdr)+jpeg.size());
+            std::memcpy(packet.data(),hdr,sizeof(hdr));
+            std::memcpy(packet.data()+sizeof(hdr),jpeg.data(),jpeg.size());
+            sender(packet.data(),packet.size());
+          };
+          sendView(outRGB,frameTimestamp,outputIndex);
+          // Normal and texture views share one physical capture. Tag and send
+          // them separately so concurrent browsers cannot receive each other's
+          // overlay. An auxiliary texture frame is sent only when it is new.
+          if(outputIndex==101){
+            GrassObstacle::drawContour(rawView.data(),outW,outH,GrassOverlay::obstacleState());
+            sendView(rawView,timestampMs,0);
+          }else if(outputIndex==0){
+            std::vector<uint8_t> jpeg,classified;uint64_t stamp=0;int w=0,h=0;
+            if(TextureFiles::overlay(jpeg,timestampMs,stamp) && stamp!=lastTextureView &&
+               jpegDecodeToRGB(jpeg.data(),jpeg.size(),classified,w,h)){
+              std::vector<uint8_t> texture((size_t)outW*outH*3);
+              resizeNearestRGB(classified.data(),w,h,texture.data(),outW,outH);
+              sendView(texture,stamp,101);lastTextureView=stamp;
+            }
           }
           lastSend = now;
         }
@@ -578,6 +661,7 @@ void CameraStreamer::runLoop() {
     }
     ioctl(fd, VIDIOC_QBUF, &b);
   }
+  reflectorWorker.stop();
   ioctl(fd, VIDIOC_STREAMOFF, &type);
   for (auto& mb : bufs) { if (mb.start && mb.length) munmap(mb.start, mb.length); }
   ::close(fd);
@@ -622,7 +706,7 @@ void CameraStreamer::buildAndSendFrame() {
   // Build header + send
   uint8_t hdr[16];
   uint32_t ts = (uint32_t)(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() & 0xFFFFFFFFu);
-  buildMediaHeader(hdr, 1, (uint16_t)w, (uint16_t)h, ts, 0);
+  buildMediaHeader(hdr, 1, (uint16_t)w, (uint16_t)h, ts, uint16_t(0x8000 | (camIndex_.load() & 0xff)));
   std::vector<uint8_t> buf(sizeof(hdr) + jpeg.size());
   std::memcpy(buf.data(), hdr, sizeof(hdr));
   if (!jpeg.empty()) std::memcpy(buf.data() + sizeof(hdr), jpeg.data(), jpeg.size());

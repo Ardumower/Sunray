@@ -3,7 +3,7 @@
 //  0..3   magic 'SRBX'
 //  4      version (1)
 //  5      mediaType (1=camera_jpeg)
-//  6..7   flags (uint16)
+//  6..7   flags (uint16; bit 15 = camera index present, low 8 bits = index)
 //  8..9   width (uint16)
 // 10..11  height (uint16)
 // 12..15  timestampMs (uint32)
@@ -15,7 +15,7 @@ struct MediaHeader {
   uint32_t magic;      // 'SRBX'
   uint8_t version;     // 1
   uint8_t type;        // 1 = camera_jpeg
-  uint16_t flags;      // reserved
+  uint16_t flags;      // bit 15: indexed camera frame; low byte: camera index
   uint16_t width;      // pixels
   uint16_t height;     // pixels
   uint32_t timestamp;  // ms

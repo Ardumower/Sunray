@@ -27,6 +27,19 @@ int main(){
    if(phase==5){unsigned char frame=1;w.camera(&frame,1);}}
   until([&]{return f.entered==phase;});controlProbe(w);f.gate=0;
  }
+ // Auxiliary training RPCs stay on the network thread, even if local I/O stalls.
+ {Fake f;auto io=f.io();std::atomic<bool> entered{false},release{false};
+  io.auxiliary=[&](const std::string&,std::string& answer){entered=true;while(!release.load())std::this_thread::sleep_for(std::chrono::milliseconds(1));answer="TRAIN:reply";return true;};
+  CloudWorker w(io,5);w.start();until([&]{return entered.load();});controlProbe(w);
+  CloudWorker::Request r;assert(!w.take(r));release=true;until([&]{return f.sends==1;});}
+ // Distinct camera views retain their own newest frame under stalled I/O.
+ {Fake f;f.receives=1;f.gate=2;auto io=f.io();std::atomic<int> seen{0};
+  io.binary=[&](const unsigned char* data,size_t length){assert(length==17);assert(data[16]==2);seen.fetch_or(data[7]==101?2:1);return true;};
+  CloudWorker w(io,5);w.start();until([&]{return f.entered==2;});
+  unsigned char raw[17]={'S','R','B','X',1,1,0x80,0},texture[17]={'S','R','B','X',1,1,0x80,101};
+  raw[16]=1;w.camera(raw,17);texture[16]=1;w.camera(texture,17);
+  raw[16]=2;w.camera(raw,17);texture[16]=2;w.camera(texture,17);
+  f.gate=0;until([&]{return seen.load()==3;});}
  // Expired commands are never executed after a control pause.
  {Fake f;CloudWorker w(f.io(),5);w.start();until([&]{return f.receives>0;});std::this_thread::sleep_for(std::chrono::milliseconds(550));CloudWorker::Request r;assert(!w.take(r));}
  // Disconnect/reconnect clears session state, rejects old replies.

@@ -59,6 +59,100 @@ int main(int argc,char**argv){
  }
 
 
+ // Sunlit backing joins the tops; the shadowed lower segments remain separate.
+ for(int count:{2,3,4}){
+  Image shadow(W*H*3,20);
+  for(int y=0;y<190;y++)for(int x=0;x<W;x++)for(int c=0;c<3;c++)shadow[(y*W+x)*3+c]=220;
+  for(int i=0;i<count;i++)strip(shadow,int(320+(i-(count-1)*.5f)*170),20,60,335,1.3f);
+  for(int y=190;y<H;y++)for(int x=0;x<W;x++)for(int c=0;c<3;c++)if(shadow[(y*W+x)*3+c]>100)shadow[(y*W+x)*3+c]=80;
+  check("sunlit backing and shadowed marker",shadow,count==3);
+ }
+ // Edge fallback must not depend on which half is bright or where a shadow falls.
+ for(int boundary:{90,180,270})for(bool brightTop:{false,true})for(float gain:{.3f,.6f,1.f}){
+  Image varied(W*H*3);
+  for(int y=0;y<H;++y)for(int x=0;x<W;++x){
+   bool bright=(y<boundary)==brightTop;
+   bool marker=y>=20 && y<355 && (std::abs(x-150)<30 || std::abs(x-320)<30 || std::abs(x-490)<30);
+   uint8_t value=uint8_t((marker?(bright?255:80):(bright?220:20))*gain);
+   for(int c=0;c<3;c++)varied[(y*W+x)*3+c]=value;
+  }
+  check("gradient marker independent of shadow position and exposure",varied,true);
+ }
+ // A shadow may split a reflector vertically: its centre can be darker than
+ // the sunny gap beside it while both physical outer edges remain measurable.
+ for(int count:{2,3,4})for(float gain:{.3f,1.f})for(bool mirror:{false,true}){
+  Image split(W*H*3);
+  const int first=int(320-(count-1)*.5f*125);
+  for(int y=0;y<H;++y)for(int x=0;x<W;++x){
+   const int xx=mirror?W-1-x:x;
+   bool marker=false;
+   for(int n=0;n<count;++n)if(std::abs(xx-(first+n*125))<30)marker=true;
+   marker=marker && y>=25 && y<345;
+   const bool shade=y<140 || xx<first+5;
+   const uint8_t value=uint8_t((marker?(shade?80:255):(shade?20:220))*gain);
+   for(int c=0;c<3;++c)split[(y*W+x)*3+c]=value;
+  }
+  char label[120];
+  std::snprintf(label,sizeof(label),"shadow through strip centre count=%d gain=%.1f mirror=%d",count,gain,mirror);
+  check(label,split,count==3);
+ }
+ // A shorter neighbouring object must not make a complete triple ambiguous.
+ for(float gain:{.3f,1.f})for(bool mirror:{false,true}){
+  Image backing(W*H*3,uint8_t(230*gain));
+  for(int y=140;y<320;++y)for(int x=0;x<W;++x){
+   const int xx=mirror?W-1-x:x;
+   bool marker=std::abs(xx-200)<15 || std::abs(xx-320)<15 || std::abs(xx-440)<15;
+   bool shorterBackground=y>=200 && std::abs(xx-80)<15;
+   if(marker || shorterBackground)for(int c=0;c<3;++c)backing[(y*W+x)*3+c]=uint8_t(255*gain);
+  }
+  check("short background edge cannot form competing triple",backing,true);
+ }
+ // On undocking the complete marker shrinks below 70% of image height.
+ // Keep three-strip discrimination through that transition, also in dim light.
+ for(int length:{185,215,250,280})for(int count:{2,3,4})for(float gain:{.3f,1.f}){
+  Image receding(W*H*3);
+  for(int y=0;y<H;++y)for(int x=0;x<W;++x){
+   bool marker=false;
+   for(int n=0;n<count;++n)if(std::abs(x-int(320+(n-(count-1)*.5f)*125))<20)marker=true;
+   marker=marker && y>=50 && y<50+length;
+   const bool bright=y<170;
+   const uint8_t value=uint8_t((marker?(bright?255:80):(bright?220:20))*gain);
+   for(int c=0;c<3;++c)receding[(y*W+x)*3+c]=value;
+  }
+  check("receding gradient marker below seventy percent height",receding,count==3);
+ }
+ // Scale the same low-contrast geometry across the camera approach/exit.
+ // Both light levels defeat the ordinary 15% contrast gate, forcing edges.
+ for(int length:{60,90,120,150,175,220,300})for(int count:{2,3,4})for(float gain:{.3f,1.f}){
+  const int width=length/6,spacing=width*3,top=320-length;
+  Image scaled(W*H*3);
+  for(int y=0;y<H;++y)for(int x=0;x<W;++x){
+   bool marker=false;
+   for(int n=0;n<count;++n)if(std::abs(x-int(320+(n-(count-1)*.5f)*spacing))<width/2)marker=true;
+   marker=marker && y>=top && y<320;
+   const bool bright=y<top+length/2;
+   const uint8_t value=uint8_t((marker?(bright?255:90):(bright?220:75))*gain);
+   for(int c=0;c<3;c++)scaled[(y*W+x)*3+c]=value;
+  }
+  check("scaled low-contrast gradient triple",scaled,count==3);
+ }
+ // Numerous long non-neutral background edges must not evict the shorter
+ // true marker from a global top-N Hough list.
+ for(int count:{2,3,4}){
+  Image clutter(W*H*3);
+  for(int y=0;y<H;++y)for(int x=0;x<W;++x){
+   bool marker=false;
+   for(int n=0;n<count;++n)if(std::abs(x-int(320+(n-(count-1)*.5f)*60))<10)marker=true;
+   marker=marker && y>=180 && y<300;
+   uint8_t value=marker?(y<240?255:90):(y<240?220:75);
+   for(int c=0;c<3;++c)clutter[(y*W+x)*3+c]=value;
+   if(x<200 || x>440){
+    clutter[(y*W+x)*3]=(x/3)%2?70:30;
+    clutter[(y*W+x)*3+1]=clutter[(y*W+x)*3+2]=200;
+   }
+  }
+  check("small gradient marker among long background edges",clutter,count==3);
+ }
  check("left",scene(3,1,180),true,(180-320.f)/320);
  check("right",scene(3,1,460),true,(460-320.f)/320);
  check("camera roll",scene(3,1,320,.15),true,.02);
@@ -234,5 +328,18 @@ int main(int argc,char**argv){
  d.clear();a=scene();for(int i=0;i<3;++i)d.processRgb(a.data(),W,H,1000+i*100);
  a=scene(2);d.processRgb(a.data(),W,H,1300);require(!d.observation(1300).found,"missing strip stops immediately");
  d.clear();a=scene();d.processRgb(a.data(),W,H,1000);d.processRgb(a.data(),W,H,1100);d.processRgb(a.data(),W,H,2000);require(!d.observation(2000).found,"stale acquisition");
+ // A newly visible fourth edge cannot hijack an already acquired marker.
+ // Association still requires all three measured strips and expires normally.
+ d.clear();a=scene();
+ for(int i=0;i<3;++i)d.processRgb(a.data(),W,H,1000+i*100);
+ auto four=scene(4);
+ d.processRgb(four.data(),W,H,1300);
+ require(d.observation(1300).found && std::fabs(d.observation(1300).horizontalError)<.01f,"fresh full-triple association");
+ d.processRgb(four.data(),W,H,2000);
+ require(!d.observation(2000).found,"ambiguous association cannot survive expiry");
+ d.clear();a=scene();
+ for(int i=0;i<3;++i)d.processRgb(a.data(),W,H,1000+i*100);
+ a=scene(2);d.processRgb(a.data(),W,H,1300);
+ require(!d.observation(1300).found,"association cannot invent a missing third strip");
  std::puts("PASS acquisition, loss, ambiguity and stale frames");
 }

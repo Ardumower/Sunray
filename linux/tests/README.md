@@ -614,3 +614,104 @@ for each interface in `/proc/net/wireless`, using read-only driver statistics
 links and unsupported/invalid statistics are explicitly unavailable. No Wi-Fi
 scan, external command or additional library is needed; driver-reported values
 may be averaged or cached by the driver.
+
+### Gradient fallback and full-image darkness (2026-10-20)
+
+At charge, bright backing and shadow can defeat global threshold components.
+When the ordinary component pass finds no marker, a gradient fallback tracks positive
+and negative horizontal gradients along near-vertical lines. It pairs two real
+edges per strip with consistent width and slope, requires long supported spans,
+neutral cores and local contrast, then applies the existing triple geometry,
+spacing, ambiguity and temporal-acquisition checks. It assumes no particular
+sun/shadow distribution. Ordinary ambiguous results remain a rejection. The
+near-field fallback never invents missing strips or modifies motion/stop gates.
+
+Synthetic tests cover shadow boundaries at 25/50/75% height, both bright-top
+and bright-bottom scenes at 30/60/100% exposure, two/three/four strips and all
+former negative cases. Replay: 177 valid images, 174 -> 177 detections, zero
+regressions; one previously corrupt JPEG excluded. Current original and later
+shadow frames initially took 271/255 ms per evaluation. That allowed observation
+age between results to exceed 500 ms after separating the capture/detection
+threads, despite every frame having a marker. Moving the gradient pass before
+the short-gap/dawn fallbacks reduces these to 106/98 ms on MSCMower. The ordinary
+pass stays first to reject ambiguous clipped fourth strips. The 500 ms capture-age
+limit remains unchanged; freshness logging now reports maximum age and unavailable
+samples every five seconds, independently of per-image detection success. Original images and replay results are in
+`diagnostics/reflector-20261020/`. No physical docking test was performed.
+
+The TOO DARK warning now uses a trimmed mean across all six 2x3 image regions,
+removing the darkest and brightest region. This counts broad daylight above
+station shadow but excludes a single bright reflector or dark corner. Existing
+85/115 thresholds, smoothing and 20/45-second persistence remain. The old
+lower-half-only twilight calibration is superseded by this full-image measure.
+`image-darkness-test.cpp` covers the current sun/shadow measurements, night,
+bright outlier, dark corner, invalid samples and hysteresis.
+
+Marker processing runs in a separate `LatestFrameWorker` from camera capture and
+streaming. Its single pending frame is replaced by the newest capture; original
+capture timestamps still control navigation freshness. Failure snapshots keep the
+matching original JPEG and capture-time motor setpoints. On camera reopen the
+worker is joined before starting another detector. The mailbox regression blocks
+analysis deliberately and checks that capture can continue submitting, only the
+newest pending frame is processed, and shutdown joins cleanly:
+
+```
+c++ -std=c++11 -pthread -I sunray linux/tests/latest-frame-worker-test.cpp -o /tmp/latest-frame-worker-test
+/tmp/latest-frame-worker-test
+```
+
+Undock regressions (2026-10-20, 09:27 and 09:36): fixed 70% and later 50%
+image-height requirements failed as the visible marker shrank. Gradient strips
+now require an aspect ratio of at least 3, 65% supported rows in their measured
+span and a small 10%-image-height noise floor. Hough candidates are bounded spatially to three per 16-pixel column and
+polarity (at most 120 each at 640-pixel analysis width). Long background edges
+cannot crowd a shorter marker out of another image region. Isolated background matches are removed by retaining the
+longest supported segment with gaps no larger than one strip width. Triplets
+must share at least 80% of the shortest span and still satisfy width, length,
+spacing, slope, contrast and ambiguity checks. Ordinary-pass ambiguity rejection
+runs first. Multiple clipped ends retain the stricter long-span check.
+
+Synthetic tests cover scale transitions from 60 to 300 pixels at 30/100%
+exposure, with two/three/four stripes. Replay: all 213 expected-positive images,
+including both 16-frame sequences of new native losses, are detected. A chronological
+sequence test feeds each image only once (without resetting or repeating frames)
+and verifies uninterrupted acquisition after the first three frames:
+
+```
+sh linux/tests/run-reflector-sequence-tests.sh < /path/to/chronological-jpeg-paths.txt
+```
+
+It requires libjpeg headers/library; `CXXFLAGS`/`LDFLAGS` can specify their paths.
+The original capture-age stop timeout remains 500 ms.
+
+Camera view isolation: SRBX bit 15 marks a camera-index tag in the flags' low
+byte. Views 0 and 101 are generated separately from the same capture and use
+separate bounded latest-frame slots in `CloudWorker`. The cloud routes each view
+only to browsers requesting its index. Ordinary renewal does not reclaim an old
+selection; an explicit selection does. No user-wide selection synchronization.
+Cloud-worker tests cover both slots during blocked network I/O; the cloud has
+subscription, index-routing and browser-renewal regressions.
+
+### Final marker regression update (2026-10-20)
+
+The final gradient implementation supersedes the intermediate bounds above:
+it retains up to 12 edge hypotheses per 16-pixel column and polarity, uses an
+8%-height noise floor, and allows up to 128 gradient strip candidates. Shared
+edge sampling supports both centre and local boundary contrast, including a
+vertical shadow through a reflector. Fitted edges and fragment suppression
+preserve the complete strip geometry.
+
+Ambiguous candidates can be associated with a previously acquired triple only
+while it is fresh (at most 500 ms) and all three measured strips match. A
+dominant geometric candidate can resolve alternatives sharing two strips;
+independent markers remain ambiguous. Missing strips are never extrapolated.
+
+All 34 new loss images captured at 10:31–10:34 are detected individually.
+Chronological 24-frame undock and 16-frame stopped sequences have no losses
+after acquisition. Two older stopped images (068 and 075) still abstain when
+initialized independently; their chronological sequence passes using fresh
+association. Synthetic tests cover missing strips, fourth strips, expired
+association, shadows and reduced exposure.
+
+The final firmware was built on MSCMower, but activation and a driving test
+were still pending when these results were recorded.

@@ -1,0 +1,20 @@
+[Unit]
+Description=Sunray local texture training and display-only evaluation
+After=local-fs.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/orangepi/Sunray/linux/texture
+ExecStart=/usr/bin/python3 /home/orangepi/Sunray/linux/texture/service.py
+Restart=on-failure
+RestartSec=5
+Nice=10
+Environment=OPENBLAS_NUM_THREADS=1
+Environment=OMP_NUM_THREADS=1
+MemoryMax=800M
+CPUQuota=100%
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

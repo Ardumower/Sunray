@@ -4,6 +4,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <mutex>
 
 struct ReflectorStripsObservation {
   bool found{false};
@@ -25,7 +26,12 @@ public:
 private:
   ReflectorStripsDetector() = default;
 
-  int acquireCount_{0}; // written only by the camera capture thread
+  void clearUnlocked();
+  std::mutex writerMutex_;
+  int acquireCount_{0}; // protected by writerMutex_
+  float previousStripX_[3]{0,0,0}; // normalized; protected by writerMutex_
+  float previousStripWidth_{0};
+  float previousStripSpan_{0};
   std::atomic<bool> found_{false};
   std::atomic<float> horizontalError_{0.0f};
   std::atomic<float> confidence_{0.0f};
