@@ -737,3 +737,23 @@ Suppressed transitions are discarded, not saved later; continuously missing
 markers still cause no periodic writes. The recorder test exercises repeated
 transitions, rejection at 59.999 seconds, acceptance at 60 seconds and ring
 rotation. Each saved image retains its JSON metadata.
+
+### Dawn latency follow-up (2026-10-21)
+
+The next loss capture requires a 35% minimum/maximum pooled channel ratio
+(still restricted to a strongest channel <=128). Synthetic mixed-cast cases
+include this stronger tint, noise and two/three/four strips. Saturated colours
+and bright coloured objects remain negative cases.
+
+When more than 2% of analysis pixels have intensity >=12 and the dawn colour
+gate recovers over twice the ordinary neutral intensity, run the full-image
+dawn pass before gradient/Hough search. The ordinary pass still runs first to
+preserve clipped-fourth-strip rejection; the geometric/acquisition/freshness
+conditions are unchanged. This is search-order selection, not ROI tracking.
+
+On MSCMower, offline replay of the current 640x360 stream frame falls from
+205.9 to 88.7 ms per evaluation. The new native loss image changes from missing
+at 181.1 ms to found at 105.3 ms. The previous 102 dawn captures remain detected;
+the 315-file older set retains 311 detections, two ambiguous and two invalid
+images, with no >0.04 normalized centre shifts. Captures are stored locally in
+`diagnostics/reflector-20261021-undock/`.

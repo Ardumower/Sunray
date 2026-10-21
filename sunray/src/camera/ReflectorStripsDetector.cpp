@@ -219,7 +219,7 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
   if(h<16){clearUnlocked();return;}
   const int roi=std::max(0,std::min(h-1,int(h*DOCK_REFLECTOR_STRIPS_ROI_TOP)));
   std::vector<float> light(w*h),neutral(w*h),dawnNeutral(w*h);
-  float maximum=0;
+  float maximum=0;int dawnPixels=0;
   // Average pooling prevents individual hot pixels from becoming strips.
   for(int y=0;y<h;++y)for(int x=0;x<w;++x){
     float sum=0,white=0,channels[3]={0,0,0};int n=0;
@@ -233,12 +233,13 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
     // In shaded low-light areas, chroma noise and a blue cast can fragment
     // white reflectors. Classify the pooled RGB sample, with a bounded colour
     // allowance only for dark pixels; normal passes keep strict per-pixel white.
-    // Dawn captures have red/blue casts with min/max channel ratios near 0.45.
-    // Keep at least 40% in every pooled channel; saturated colours stay excluded.
+    // Dawn captures have red/blue casts with min/max channel ratios down to 0.38.
+    // Keep at least 35% in every pooled channel; saturated colours stay excluded.
     const float pooledLo=std::min(channels[0],std::min(channels[1],channels[2]))/n;
     const float pooledHi=std::max(channels[0],std::max(channels[1],channels[2]))/n;
-    dawnNeutral[y*w+x]=(pooledHi<=128 && pooledHi-pooledLo<=pooledHi*.6f)
+    dawnNeutral[y*w+x]=(pooledHi<=128 && pooledHi-pooledLo<=pooledHi*.65f)
       ?std::max(neutral[y*w+x],pooledLo):neutral[y*w+x];
+    if(dawnNeutral[y*w+x]>=12 && dawnNeutral[y*w+x]>neutral[y*w+x]*2)++dawnPixels;
     if(y>=roi)maximum=std::max(maximum,neutral[y*w+x]);
   }
   // Small absolute floors reject darkness without excluding dim reflectors;
@@ -246,10 +247,25 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
   if(maximum<12){clearUnlocked();return;}
   std::vector<Marker> markers;
   GradientData gradientData;
+  // Future optimization if measured runtime again exceeds the freshness budget:
+  // separate full-image SEARCH from TRACK of a freshly acquired triple. TRACK
+  // could validate edges near the previous positions, widths and slopes before
+  // doing full Hough voting. Require all three strips in the current frame;
+  // retain contrast, geometry, ambiguity and capture-age checks. Missing strips,
+  // excessive change or expiry must invalidate tracking and return to SEARCH,
+  // preserving the existing navigation stop gate (no predicted/held detections).
+  // Periodic full-image validation and fourth-strip/distractor regressions are
+  // needed so an ROI cannot hide competing markers. This is not implemented;
+  // the search-order selection below still evaluates the full image.
   // Preserve ordinary-pass ambiguity rejection (including clipped fourth strips),
   // then try local edges before the costly short-gap and dawn fallback scans.
-  // The shaded docking marker no longer waits for every brightness fallback.
-  for(int gapPass : {0,3,4,1,2}){
+  // Broad low-light chroma rejection predicts that the dawn pass will be useful.
+  // Try it before Hough voting in that case. The ordinary pass stays first for
+  // clipped fourth-strip ambiguity, and all passes still examine the full image.
+  const bool preferDawn=dawnPixels>w*h/50;
+  const int normalOrder[]={0,3,4,1,2},dawnOrder[]={0,2,3,4,1};
+  for(int passIndex=0;passIndex<5;++passIndex){
+  const int gapPass=(preferDawn?dawnOrder:normalOrder)[passIndex];
   // Both edge contrast models must agree on a unique triple. A shadowed
   // fourth strip found by the local model must invalidate a three-strip subset.
   if(!markers.empty() && gapPass!=4)break;

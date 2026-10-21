@@ -59,12 +59,12 @@ int main(int argc,char**argv){
  }
  // Mixed red/blue dawn casts and chroma noise must not erase a real strip.
  // The same allowance must still reject missing/fourth strips and saturation.
- for(int count:{2,3,4})for(int seed=0;seed<3;++seed){
+ for(int count:{2,3,4})for(int seed=0;seed<3;++seed)for(int green:{32,38}){
   Image cast=scene(count,.25f);std::mt19937 rng(seed);
   std::uniform_int_distribution<int> noise(-3,3);
   for(int y=0;y<H;++y)for(int x=0;x<W;++x){
    auto* p=&cast[(y*W+x)*3];if(p[0]<=30)continue;
-   p[0]=(x<320?80:55)+noise(rng);p[1]=38+noise(rng);p[2]=(x<320?60:80)+noise(rng);
+   p[0]=(x<320?80:55)+noise(rng);p[1]=green+noise(rng);p[2]=(x<320?60:80)+noise(rng);
   }
   for(int y=150;y<170;++y)for(int x=40;x<65;++x)for(int c=0;c<3;++c)cast[(y*W+x)*3+c]=240;
   check("mixed dawn casts with chroma noise",cast,count==3);
