@@ -57,7 +57,23 @@ int main(int argc,char**argv){
   for(int y=150;y<170;++y)for(int x=40;x<65;++x)for(int c=0;c<3;++c)cast[(y*W+x)*3+c]=240;
   check("dawn blue cast triple geometry",cast,count==3);
  }
-
+ // Mixed red/blue dawn casts and chroma noise must not erase a real strip.
+ // The same allowance must still reject missing/fourth strips and saturation.
+ for(int count:{2,3,4})for(int seed=0;seed<3;++seed){
+  Image cast=scene(count,.25f);std::mt19937 rng(seed);
+  std::uniform_int_distribution<int> noise(-3,3);
+  for(int y=0;y<H;++y)for(int x=0;x<W;++x){
+   auto* p=&cast[(y*W+x)*3];if(p[0]<=30)continue;
+   p[0]=(x<320?80:55)+noise(rng);p[1]=38+noise(rng);p[2]=(x<320?60:80)+noise(rng);
+  }
+  for(int y=150;y<170;++y)for(int x=40;x<65;++x)for(int c=0;c<3;++c)cast[(y*W+x)*3+c]=240;
+  check("mixed dawn casts with chroma noise",cast,count==3);
+ }
+ for(bool bright:{false,true}){
+  Image cast=scene(3,.25f);
+  for(size_t i=0;i<cast.size();i+=3)if(cast[i]>30){cast[i]=bright?200:80;cast[i+1]=bright?90:20;cast[i+2]=bright?130:55;}
+  check("saturated or bright coloured strips rejected",cast,false);
+ }
 
  // Sunlit backing joins the tops; the shadowed lower segments remain separate.
  for(int count:{2,3,4}){

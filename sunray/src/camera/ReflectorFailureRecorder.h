@@ -13,7 +13,8 @@
 
 // Bounded asynchronous original-JPEG recorder. No disk I/O on the camera thread.
 // Fixed slots bound disk usage across restarts; a full queue drops diagnostics,
-// never camera frames. One image on found -> missing, no periodic failure writes.
+// never camera frames. At most one image per 60 seconds on found -> missing,
+// no periodic failure writes or deferred snapshots of suppressed transitions.
 class ReflectorFailureRecorder {
   struct Frame {
     std::vector<uint8_t> jpeg;
@@ -88,7 +89,7 @@ public:
     if(!jpeg || !size || size>maxJpegBytes)return;
     const bool lost=previousFound_ && !observation.found;
     previousFound_=observation.found;
-    if(!lost || (haveSaved_ && now-lastSaved_<250UL))return;
+    if(!lost || (haveSaved_ && now-lastSaved_<60000UL))return;
     Frame f;f.jpeg.assign(jpeg,jpeg+size);f.width=width;f.height=height;f.monotonicMs=now;
     f.unixMs=std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     f.observation=observation;f.linear=linear;f.angular=angular;

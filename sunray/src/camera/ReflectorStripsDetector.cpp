@@ -233,9 +233,11 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
     // In shaded low-light areas, chroma noise and a blue cast can fragment
     // white reflectors. Classify the pooled RGB sample, with a bounded colour
     // allowance only for dark pixels; normal passes keep strict per-pixel white.
+    // Dawn captures have red/blue casts with min/max channel ratios near 0.45.
+    // Keep at least 40% in every pooled channel; saturated colours stay excluded.
     const float pooledLo=std::min(channels[0],std::min(channels[1],channels[2]))/n;
     const float pooledHi=std::max(channels[0],std::max(channels[1],channels[2]))/n;
-    dawnNeutral[y*w+x]=(pooledHi<=128 && pooledHi-pooledLo<=pooledHi*.5f)
+    dawnNeutral[y*w+x]=(pooledHi<=128 && pooledHi-pooledLo<=pooledHi*.6f)
       ?std::max(neutral[y*w+x],pooledLo):neutral[y*w+x];
     if(y>=roi)maximum=std::max(maximum,neutral[y*w+x]);
   }

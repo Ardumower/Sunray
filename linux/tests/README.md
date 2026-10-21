@@ -715,3 +715,25 @@ association, shadows and reduced exposure.
 
 The final firmware was built on MSCMower, but activation and a driving test
 were still pending when these results were recorded.
+
+### Dawn colour noise and snapshot throttling (2026-10-21)
+
+Current dock captures show mixed red/blue casts: the weakest pooled colour
+channel is sometimes only 45% of the strongest. The bounded dawn allowance
+now accepts a minimum/maximum ratio of 40% (previously 50%), only when the
+strongest pooled channel is at most 128. Normal brightness passes, gradient
+contrast, three-strip geometry, acquisition and the 500 ms expiry are unchanged.
+
+Offline replay detects all 102 readable current loss images (previously 0/102
+when initialized independently). Their chronological replay has no losses after
+acquisition. One downloaded JPEG is unreadable and excluded. The older 315-file
+regression set remains at 311 detections, two ambiguous images and two invalid
+JPEGs; no detected centre changes by more than 0.04 normalized units. New
+synthetic tests cover noisy mixed casts, two/three/four strips, saturation and
+bright coloured objects. Images and replay outputs remain local in diagnostics.
+
+Failure snapshots are throttled to one accepted loss transition per 60 seconds.
+Suppressed transitions are discarded, not saved later; continuously missing
+markers still cause no periodic writes. The recorder test exercises repeated
+transitions, rejection at 59.999 seconds, acceptance at 60 seconds and ring
+rotation. Each saved image retains its JSON metadata.
