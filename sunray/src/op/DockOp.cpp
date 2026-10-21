@@ -244,24 +244,8 @@ void DockOp::run(){
     }
 #endif
     if (bumper.obstacle() && stopOnDockingObstacle(SENS_BUMPER)) return;
-    if (runCameraSearch()) return;
-#ifdef DOCK_REFLECTOR_STRIPS
-    const auto cameraPhase=stateEstimator.reflectorDockingGate.phase;
-    const bool markerFound=cameraReflectorStripsFound();
-    if (ReflectorDockingGate::shouldSearch(cameraPhase,cameraSearchAvailable,markerFound) &&
-        startCameraSearch(true)) return;
-    // A later tracking loss waits for reacquisition; it must not start a new scan.
-    if ((cameraPhase==ReflectorDockingGate::AcquireDock || cameraPhase==ReflectorDockingGate::Dock) && markerFound)
-        cameraSearchAvailable=false;
-    // Once GPS approach has begun, only the route-aware StateEstimator gate
-    // may hand over at the penultimate dock point (with configured tolerance).
-    // Seeing a marker near the final segment must not skip earlier dock points.
-    // begin() can change maps after this cycle's state estimation.
-    if (maps.isDocking() && stateEstimator.reflectorDockingGate.phase == ReflectorDockingGate::Inactive) {
-        motor.stopImmediately(false);
-        return;
-    }
-#endif
+    // First electrical contact starts a bounded straight odometry advance.
+    // It must precede camera search/handoff and must not require a visible marker.
 #ifdef DOCK_CONTACT_ADVANCE_DISTANCE
     if (dockContactAdvanceActive){
         long leftTicks = (long)(motor.motorLeftTicks - dockContactAdvanceStartLeftTicks);
@@ -280,12 +264,6 @@ void DockOp::run(){
             return;
         }
 
-#ifdef DOCK_REFLECTOR_STRIPS
-        if (!stateEstimator.reflectorDockingGate.mayDrive() || !cameraReflectorStripsFound()) {
-            motor.stopImmediately(false);
-            return;
-        }
-#endif
         float speed = DOCK_FRONT_SIDE ? DOCK_LINEAR_SPEED : -DOCK_LINEAR_SPEED;
         motor.enableTractionMotors(true);
         motor.setLinearAngularSpeed(speed, 0, false);
@@ -294,6 +272,25 @@ void DockOp::run(){
         return;
     }
 #endif
+    if (runCameraSearch()) return;
+#ifdef DOCK_REFLECTOR_STRIPS
+    const auto cameraPhase=stateEstimator.reflectorDockingGate.phase;
+    const bool markerFound=cameraReflectorStripsFound();
+    if (ReflectorDockingGate::shouldSearch(cameraPhase,cameraSearchAvailable,markerFound) &&
+        startCameraSearch(true)) return;
+    // A later tracking loss waits for reacquisition; it must not start a new scan.
+    if ((cameraPhase==ReflectorDockingGate::AcquireDock || cameraPhase==ReflectorDockingGate::Dock) && markerFound)
+        cameraSearchAvailable=false;
+    // Once GPS approach has begun, only the route-aware StateEstimator gate
+    // may hand over at the penultimate dock point (with configured tolerance).
+    // Seeing a marker near the final segment must not skip earlier dock points.
+    // begin() can change maps after this cycle's state estimation.
+    if (maps.isDocking() && stateEstimator.reflectorDockingGate.phase == ReflectorDockingGate::Inactive) {
+        motor.stopImmediately(false);
+        return;
+    }
+#endif
+
 
     if (!detectObstacle()){
         detectObstacleRotation();                              
@@ -309,6 +306,8 @@ void DockOp::run(){
 void DockOp::onChargerConnected(){
 #ifdef DOCK_CONTACT_ADVANCE_DISTANCE
     if (DOCK_CONTACT_ADVANCE_DISTANCE > 0){
+        // Contact bounce must not restart the distance or extend the deadline.
+        if (dockContactAdvanceActive) return;
         dockContactAdvanceStartLeftTicks = motor.motorLeftTicks;
         dockContactAdvanceStartRightTicks = motor.motorRightTicks;
 

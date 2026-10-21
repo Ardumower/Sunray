@@ -15,6 +15,16 @@ int main(int argc,char**){
  for(int t=180;t<240;++t)d.update(darkCorner,t);assert(!d.dark());
  darkCorner[0]=std::numeric_limits<double>::quiet_NaN();d.update(darkCorner,241);assert(!d.dark());
  ImageDarkness gap;for(int i=0;i<6;i++)r[i]=0;gap.update(r,0);gap.update(r,100);assert(!gap.dark());
+ // Current daylight dock: dark backing lowers the mean despite bright detail.
+ ImageDarkness dock;double means[6]={88.4,82.7,74.1,97.7,74.6,79.7};
+ double upper[6]={170,166,148,181,172,177},night[6]={30,30,30,30,30,30};
+ for(int t=0;t<60;++t)dock.update(night,t,night);assert(dock.dark());
+ for(int t=60;t<160;++t)dock.update(means,t,upper);assert(!dock.dark());
+ for(int t=160;t<220;++t)dock.update(night,t,night);assert(dock.dark());
+ double oneLamp[6]={255,30,30,30,30,30};
+ for(int t=220;t<320;++t)dock.update(night,t,oneLamp);assert(dock.dark());
+ double threeBright[6]={200,200,200,30,30,30};
+ for(int t=320;t<420;++t)dock.update(night,t,threeBright);assert(dock.dark());
  if(argc>1){ImageDarkness replay;double t;bool old=false;
   while(std::cin>>t>>r[0]>>r[1]>>r[2]>>r[3]>>r[4]>>r[5]){replay.update(r,t);if(old!=replay.dark()){std::cout<<std::fixed<<t<<" "<<replay.dark()<<"\n";old=replay.dark();}}
  }else std::cout<<"PASS full-image darkness: sunny dock shadow, night, highlight, dark corner, hysteresis and missing frames\n";

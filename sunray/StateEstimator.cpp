@@ -277,7 +277,10 @@ void StateEstimator::computeRobotState(){
     dockReflectorStripsUndockCompleted = reflectorDockingGate.complete();
     if (oldPhase != reflectorDockingGate.phase) {
       CONSOLE.print("dock reflectors: phase="); CONSOLE.println((int)reflectorDockingGate.phase);
-      if ((reflectorDockingGate.active() && !reflectorDockingGate.mayDrive()) || reflectorDockingGate.complete()) motor.stopImmediately(false);
+      // First-contact seating is bounded by DockOp odometry/time, not visibility.
+      // Keep pose/gate updates, but do not interrupt that straight contact advance.
+      const bool contactAdvance = stateOp == OP_DOCK && dockOp.dockContactAdvanceActive;
+      if (!contactAdvance && ((reflectorDockingGate.active() && !reflectorDockingGate.mayDrive()) || reflectorDockingGate.complete())) motor.stopImmediately(false);
       if (reflectorDockingGate.complete()) {
         // Resume the normal reverse dock route at the penultimate point.
         maps.dockPointsIdx = handoffIndex;

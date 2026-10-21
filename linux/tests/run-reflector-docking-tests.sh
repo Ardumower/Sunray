@@ -44,6 +44,11 @@ a=s.index('  // Pure rotation need not change GPS position.')
 b=s.index('  return false;',a)
 out.joinpath('gps-motion-production.inc').write_text(s[a:b])
 out.joinpath('dock-search-production.inc').write_text(method('sunray/src/op/DockOp.cpp','bool DockOp::runCameraSearch('))
+out.joinpath('dock-contact-production.inc').write_text('\n'.join(method('sunray/src/op/DockOp.cpp', sig) for sig in ['void DockOp::run(', 'void DockOp::onChargerConnected(']))
+s=Path('sunray/StateEstimator.cpp').read_text()
+a=s.index('      const bool contactAdvance =');b=s.index('\n',s.index('motor.stopImmediately(false);',a))
+out.joinpath('dock-contact-estimator.inc').write_text(s[a:b])
+
 # Running RTK approach must use StateEstimator's route-aware handoff gate.
 assert 'tryCameraEntry(' not in method('sunray/src/op/DockOp.cpp','void DockOp::run(')
 assert 'tryCameraEntry(' in method('sunray/src/op/DockOp.cpp','void DockOp::begin(')
@@ -70,3 +75,6 @@ PY
 
 "${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -I"$work" -Isunray linux/tests/dock-speed-policy-test.cpp -o "$work/speed"
 "$work/speed"
+
+"${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -I"$work" -Isunray linux/tests/dock-contact-advance-test.cpp -o "$work/contact"
+"$work/contact"

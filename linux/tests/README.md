@@ -757,3 +757,24 @@ at 181.1 ms to found at 105.3 ms. The previous 102 dawn captures remain detected
 the 315-file older set retains 311 detections, two ambiguous and two invalid
 images, with no >0.04 normalized centre shifts. Captures are stored locally in
 `diagnostics/reflector-20261021-undock/`.
+
+### First contact and shaded dock warning (2026-10-21)
+
+Once DockOp receives the first charging-contact event, the configured straight
+odometry advance runs before marker search/handoff checks. Marker visibility
+and camera-gate phase no longer interrupt this bounded seating movement.
+StateEstimator retains its pose/gate updates but suppresses its camera-phase
+stop only while DockOp's contact advance is active. Bumper priority, odometry
+distance, timeout and sensor-fault handling remain. Repeated contact events do
+not reset the starting ticks or extend the deadline. The docking test suite
+executes production DockOp methods with missing markers/inactive camera gate,
+bumper, contact bounce, distance completion and stalled-odometry timeout.
+
+TOO DARK now also measures the 80th brightness percentile separately in each
+of the six image regions. The third-lowest regional percentile, scaled by 0.75,
+can raise the original trimmed-mean score: bright detail must be distributed
+across at least four regions. Single highlights do not clear night. Existing
+85/115 thresholds, filtering and persistence remain. The daylight dock example
+has a mean near 83 because of the black backing, but sufficient distributed
+detail to clear the warning. Saved evening/dawn images remain below threshold.
+Tests cover daylight recovery, night, isolated highlights and regional sampling.

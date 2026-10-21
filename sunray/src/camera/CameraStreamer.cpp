@@ -551,7 +551,7 @@ void CameraStreamer::runLoop() {
         lightLogger.decoded();
         if(shouldMeasureLight){
           const auto light=CameraLightLogger::measure(rgb.data(),srcW,srcH);
-          darkness.update(light.region,duration<double>(now.time_since_epoch()).count());
+          darkness.update(light.region,duration<double>(now.time_since_epoch()).count(),light.regionP80);
           lastLightMeasurement=now;
         }
         const unsigned long timestampMs = (unsigned long)duration_cast<milliseconds>(now.time_since_epoch()).count();

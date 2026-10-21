@@ -75,21 +75,25 @@ class CameraLightLogger {
   }
 public:
   struct Light {
-    double mean=0,dark=0,bright=0,p10=0,p50=0,p90=0,region[6]={};
+    double mean=0,dark=0,bright=0,p10=0,p50=0,p90=0,region[6]={},regionP80[6]={};
   };
   static Light measure(const uint8_t* rgb,int w,int h){
     Light out;if(!rgb || w<=0 || h<=0)return out;
-    unsigned histogram[256]={},counts[6]={};unsigned n=0;
+    unsigned histogram[256]={},counts[6]={},regionHistogram[6][256]={};unsigned n=0;
     const int step=std::max(1,std::min(w,h)/120);
     for(int y=0;y<h;y+=step)for(int x=0;x<w;x+=step){
       const auto* p=rgb+((size_t)y*w+x)*3;
       const int l=(77*p[0]+150*p[1]+29*p[2])>>8;
       ++histogram[l];++n;out.mean+=l;out.dark+=l<24;out.bright+=l>239;
-      int region=std::min(1,y*2/h)*3+std::min(2,x*3/w);out.region[region]+=l;++counts[region];
+      int region=std::min(1,y*2/h)*3+std::min(2,x*3/w);out.region[region]+=l;++counts[region];++regionHistogram[region][l];
     }
     if(!n)return out;
     out.mean/=n;out.dark/=n;out.bright/=n;
     for(int i=0;i<6;++i)if(counts[i])out.region[i]/=counts[i];
+    for(int r=0;r<6;++r)if(counts[r]){
+      unsigned total=0;
+      for(int i=0;i<256;++i){total+=regionHistogram[r][i];if(total>=counts[r]*.8){out.regionP80[r]=i;break;}}
+    }
     unsigned sum=0;bool a=false,b=false,c=false;
     for(int i=0;i<256;++i){sum+=histogram[i];if(!a&&sum>=n*.1){out.p10=i;a=true;}if(!b&&sum>=n*.5){out.p50=i;b=true;}if(!c&&sum>=n*.9){out.p90=i;c=true;}}
     return out;

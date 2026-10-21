@@ -12,7 +12,7 @@ int main(){
   assert(bright.mean==255 && bright.bright==1 && bright.p50==255);
   for(int y=0;y<8;++y)for(int x=0;x<12;++x)for(int c=0;c<3;++c)image[(y*12+x)*3+c]=((y/4)*3+x/4)*40;
   auto grid=CameraLightLogger::measure(image.data(),12,8);
-  for(int i=0;i<6;++i)assert(grid.region[i]==i*40);
+  for(int i=0;i<6;++i)assert(grid.region[i]==i*40 && grid.regionP80[i]==i*40);
   assert(grid.mean==100 && grid.p10==0 && grid.p90==200);
   char tmp[]="/tmp/camera-light-test-XXXXXX";assert(mkdtemp(tmp));assert(chdir(tmp)==0);
   {
