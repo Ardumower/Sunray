@@ -358,4 +358,5 @@ int main(int argc,char**argv){
  a=scene(2);d.processRgb(a.data(),W,H,1300);
  require(!d.observation(1300).found,"association cannot invent a missing third strip");
  std::puts("PASS acquisition, loss, ambiguity and stale frames");
+ return 0;
 }

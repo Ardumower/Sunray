@@ -268,7 +268,7 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
   const int gapPass=(preferDawn?dawnOrder:normalOrder)[passIndex];
   // Both edge contrast models must agree on a unique triple. A shadowed
   // fourth strip found by the local model must invalidate a three-strip subset.
-  if(!markers.empty() && gapPass!=4)break;
+  if(!markers.empty() && gapPass!=3 && gapPass!=4)continue;
   const bool edgePass=gapPass==3 || gapPass==4;
   const auto& maskLight=gapPass>=2?dawnNeutral:neutral;
   for(float fraction : {.05f,.075f,.10f,.15f,.20f,.25f,.30f,.35f,.40f,.45f,.50f,.55f,.60f,.70f,.85f}){
@@ -411,7 +411,12 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
       const int clippedEnds=int(a[0]->cropped)+int(a[1]->cropped)+int(a[2]->cropped);
       // A single paired edge may continue into background above a real strip.
       // Keep the long-span rule when multiple strips actually leave the frame.
-      if(clippedEnds && minH<h*.70f && (!edgePass || clippedEnds!=1))continue;
+      // Sunlight can erase unequal upper sections while the three physical
+      // lower ends still line up. Accept only a long shared measured segment.
+      const float endSpread=std::max(a[0]->bottom,std::max(a[1]->bottom,a[2]->bottom))-bottom;
+      const bool alignedLowerEdges=edgePass && endSpread<=minW*.25f &&
+        bottom-top>=minW*3 && minH>=h*.45f && bottom>=h*.85f;
+      if(clippedEnds && minH<h*.70f && (!edgePass || clippedEnds!=1) && !alignedLowerEdges)continue;
       // In the extreme near field, perspective/lens distortion can make the
       // centre wider than both outer strips. Compare it to their mean, while
       // still requiring the outer pair to agree. This rule applies equally
@@ -424,8 +429,8 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
       // agreement of the three measured sizes in this additional model.
       if(edgePass && !similar(minW,maxW,1.3f))continue;
       if(gapPass==4 && !similar(minH,maxH,1.3f))continue;
-      if(!similar(minH,maxH,DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO) ||
-         (!similar(minW,maxW,DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO) && !nearWidths) || bottom-top<(edgePass?std::max(minH*.80f,maxH*.70f):maxH*.70f))continue;
+      if(!similar(minH,maxH,alignedLowerEdges?1.8f:DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO) ||
+         (!similar(minW,maxW,DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO) && !nearWidths) || bottom-top<(edgePass?std::max(minH*.80f,(alignedLowerEdges?maxH*.55f:maxH*.70f-3.f)):maxH*.70f))continue;
       // At full-height, side-clipped contact range the wide-angle image
       // bends outer strips away from the centre. Keep the stricter parallel
       // check everywhere else; all individual slope/contrast checks remain.
@@ -446,7 +451,7 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
       // Require dark gaps over most of the common height, not three highlights
       // on one white object. This also excludes four aligned stripes: they
       // produce multiple different plausible triplets and remain ambiguous.
-      int dark=0,total=0;
+      int dark=0,darkLocal=0,total=0;
       for(int yy=int(top);yy<=int(bottom);++yy){
         // Contrast must sample visible strip cores, not reconstructed centres
         // which may legitimately lie outside the frame after side clipping.
@@ -454,8 +459,20 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
         ++total;
         if(xs[0]<0 || xs[1]<0 || xs[2]<0 || xs[0]>=w || xs[1]>=w || xs[2]>=w)continue;
         const float core=std::min(light[yy*w+int(xs[0])],std::min(light[yy*w+int(xs[1])],light[yy*w+int(xs[2])]));
-        bool gapsDark=true;
+        bool gapsDark=true,localGapsDark=true;
         for(int gap=0;gap<2;++gap){
+          if(edgePass){
+            // A sun/shadow boundary may cross the gap itself. Compare each
+            // facing edge to its own neighbouring background, never a shaded
+            // strip to unrelated sunlit pixels halfway across the gap.
+            const int leftEdge=int(xs[gap]+a[gap]->width*.5f);
+            const int rightEdge=int(xs[gap+1]-a[gap+1]->width*.5f);
+            const int offset=std::max(1,std::min(5,int(minW/3)));
+            if(leftEdge-offset<0 || rightEdge+offset>=w || leftEdge+5>=w || rightEdge-5<0){localGapsDark=false;continue;}
+            const float lc=light[yy*w+leftEdge-offset],rc=light[yy*w+rightEdge+offset];
+            if(lc-light[yy*w+leftEdge+5]<std::max(4.f,lc*.03f) ||
+               rc-light[yy*w+rightEdge-5]<std::max(4.f,rc*.03f))localGapsDark=false;
+          }
           float reference=core;
           if(gapPass==4){
             // Compare a gap to the facing inner edges, not to shaded centres
@@ -468,9 +485,13 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
           if(light[yy*w+int((xs[gap]+xs[gap+1])*.5f)]>=limit)gapsDark=false;
         }
         if(gapsDark)++dark;
+        if(edgePass && localGapsDark)++darkLocal;
       }
-      if(dark<total*.8f)continue;
+      if(dark<total*.8f && darkLocal<total*.8f)continue;
       m.width=minW;m.span=minH/h;m.quality=(minH/maxH+minW/maxW+std::min(d1,d2)/std::max(d1,d2))/3;
+      // Unequal visible ends provide weaker evidence than a complete triple.
+      // Do not let an overlap-tolerant background hypothesis displace it.
+      if(edgePass && bottom-top<maxH*.70f)m.quality-=.05f;
       bool duplicate=false;
       for(auto& old:markers){
         bool same=true;for(int n=0;n<3;++n)if(std::fabs(old.x[n]-m.x[n])>std::max(2.0f,std::min(old.width,m.width)*.5f))same=false;
