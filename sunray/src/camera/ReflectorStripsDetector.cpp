@@ -104,19 +104,47 @@ static std::vector<Strip> gradientStrips(const std::vector<float>& light,const s
     }
   }
   } // cached gradients and line votes
+  // Each line hypothesis participates in many pairs. Measure its row positions
+  // and local gradient once, rather than repeating rounding/peak lookup for
+  // every possible partner. This preserves all candidates and thresholds.
+  struct EdgeRow { int predicted,actual; float strength; };
+  std::vector<std::vector<EdgeRow>> edgeRows[2];
+  std::vector<std::vector<uint64_t>> strongRows[2];
+  for(int side=0;side<2;++side){
+    edgeRows[side].resize(edges[side].size());
+    strongRows[side].resize(edges[side].size(),std::vector<uint64_t>((h+63)/64,0));
+    for(size_t i=0;i<edges[side].size();++i){
+      const auto& edge=edges[side][i];auto& rows=edgeRows[side][i];rows.resize(h);
+      for(int y=0;y<h;++y){
+        const int x=std::lround(edge.x+edge.slope*(y-centreY));
+        if(x<6 || x>=w-6){rows[y]={x,-1,0};continue;}
+        const int actual=side?data.negativePeak[y*w+x]:data.positivePeak[y*w+x];
+        rows[y]={x,actual,std::max(0.f,(side?-1.f:1.f)*gradient[y*w+actual])};
+        if(rows[y].strength>=4)strongRows[side][i][y/64]|=uint64_t(1)<<(y%64);
+      }
+    }
+  }
   std::vector<float> supportScores[2];
-  for(const auto&left:edges[0])for(const auto&right:edges[1]){
+  for(size_t li=0;li<edges[0].size();++li)for(size_t ri=0;ri<edges[1].size();++ri){
+    const auto& left=edges[0][li];const auto& right=edges[1][ri];
     const float width=right.x-left.x;
     if(width<std::max(3.f,w*.008f) || width>w*.16f || std::fabs(left.slope-right.slope)>.075f)continue;
+    // A valid strip needs both edges on at least 65% of its minimum height.
+    // The bitset intersection is an upper bound on that support: skip only
+    // pairs that cannot possibly pass the unchanged detailed row checks.
+    unsigned possibleRows=0;
+    for(size_t word=0;word<strongRows[0][li].size();++word)
+      possibleRows+=__builtin_popcountll(strongRows[0][li][word]&strongRows[1][ri][word]);
+    const float minimumHeight=std::max(std::max(h*.08f,h*float(DOCK_REFLECTOR_STRIPS_MIN_VERTICAL_SPAN)),width*3);
+    if(possibleRows<minimumHeight*.65f)continue;
     std::vector<int> supported[2];
     std::vector<float> rowX(h),rowWidth(h);
     for(int y=0;y<h;++y){
-      const int l=std::lround(left.x+left.slope*(y-centreY)),r=std::lround(right.x+right.slope*(y-centreY));
-      if(l<6 || r>=w-6 || r-l<width*.7f || r-l>width*1.3f)continue;
-      // Refine each proposal to the measured local gradient peak.
-      const int actualL=data.positivePeak[y*w+l],actualR=data.negativePeak[y*w+r];
-      const float positive=std::max(0.f,gradient[y*w+actualL]);
-      const float negative=std::max(0.f,-gradient[y*w+actualR]);
+      const auto& leftRow=edgeRows[0][li][y];const auto& rightRow=edgeRows[1][ri][y];
+      const int l=leftRow.predicted,r=rightRow.predicted;
+      if(leftRow.actual<0 || rightRow.actual<0 || r-l<width*.7f || r-l>width*1.3f)continue;
+      const int actualL=leftRow.actual,actualR=rightRow.actual;
+      const float positive=leftRow.strength,negative=rightRow.strength;
       if(actualL<5 || actualR>=w-5 || actualR-actualL<width*.7f || actualR-actualL>width*1.3f)continue;
       const int centre=(actualL+actualR)/2;
       const float core=light[y*w+centre];

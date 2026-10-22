@@ -467,12 +467,24 @@ void CameraStreamer::runLoop() {
     float linear=0,angular=0;
   };
   std::atomic<unsigned> detectionsFound{0},detectionsMissing{0};
+  auto lastDetectorTiming=steady_clock::now();
+  unsigned long maxDetectorProcessMs=0,maxDetectorQueueMs=0;
+
   LatestFrameWorker<ReflectorFrame> reflectorWorker([&](const ReflectorFrame& frame){
     if(!reflectorDetectionRequested_.load())return;
     const auto nowMs=duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
     // Never refresh navigation with a queued image that has already expired.
     if(nowMs-frame.timestampMs>500)return;
+    const auto processStart=steady_clock::now();
     ReflectorStripsDetector::instance().processRgb(frame.rgb.data(), frame.width, frame.height, frame.timestampMs);
+    const auto processEnd=steady_clock::now();
+    maxDetectorQueueMs=std::max(maxDetectorQueueMs,(unsigned long)(nowMs-frame.timestampMs));
+    maxDetectorProcessMs=std::max(maxDetectorProcessMs,(unsigned long)duration_cast<milliseconds>(processEnd-processStart).count());
+    if(processEnd-lastDetectorTiming>=seconds(5)){
+      CONSOLE.print("CAM reflectors timing maxProcessMs=");CONSOLE.print(maxDetectorProcessMs);
+      CONSOLE.print(" maxQueueMs=");CONSOLE.println(maxDetectorQueueMs);
+      maxDetectorProcessMs=maxDetectorQueueMs=0;lastDetectorTiming=processEnd;
+    }
     const ReflectorStripsObservation marker = ReflectorStripsDetector::instance().observation(frame.timestampMs);
     if(marker.found)++detectionsFound;else ++detectionsMissing;
     failureRecorder.observe(frame.jpeg.data(), frame.jpeg.size(), frame.width, frame.height, frame.timestampMs, marker, frame.linear, frame.angular);
