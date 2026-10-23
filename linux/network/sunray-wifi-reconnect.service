@@ -1,0 +1,10 @@
+[Unit]
+Description=Retry disconnected robot WLAN using its saved profile
+After=NetworkManager.service
+Wants=NetworkManager.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/default/sunray-wifi-reconnect
+ExecStart=/usr/local/sbin/sunray-wifi-reconnect
+TimeoutStartSec=45

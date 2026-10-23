@@ -1,0 +1,11 @@
+[Unit]
+Description=Check robot WLAN every two minutes
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=2min
+AccuracySec=5s
+Unit=sunray-wifi-reconnect.service
+
+[Install]
+WantedBy=timers.target
