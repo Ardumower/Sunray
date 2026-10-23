@@ -76,6 +76,11 @@ class Motor {
     void setMowMaxPwm( int val );
     void setMowHeightMillimeter( int val );
     void stopImmediately(bool includeMowerMotor);
+    // measured mow motor speed (low-pass filtered); the rpm signal is counted anyway but was
+    // never reported, so the only way to judge the speed curve was by ear
+    float getMowRpm(){ return motorMowRpmCurrLP; }
+    float getLeftRpm(){ return motorLeftRpmCurrLP; }
+    float getRightRpm(){ return motorRightRpmCurrLP; }
   protected: 
     float motorLeftRpmSet; // set speed
     float motorRightRpmSet;   

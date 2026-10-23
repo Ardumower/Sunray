@@ -648,6 +648,28 @@ void Comm::cmdToggleGPSSolution(){
 }
 
 
+// request motor speeds, currents and the mow PWM actually sent to the driver.
+// Kept separate from AT+S and AT+S2 so a client can poll motor telemetry at its own rate
+// without inflating the hot status message. Speed and current belong together: either alone
+// says little about what a motor is doing.
+void Comm::cmdMotorRpm(){
+  String s = F("S5,");
+  s += String(motor.getLeftRpm(), 1);
+  s += ",";
+  s += String(motor.getRightRpm(), 1);
+  s += ",";
+  s += String(motor.getMowRpm(), 1);
+  s += ",";
+  s += motor.pwmMowOut;
+  s += ",";
+  s += String(motor.motorLeftSenseLP, 2);
+  s += ",";
+  s += String(motor.motorRightSenseLP, 2);
+  s += ",";
+  s += String(motor.motorMowSenseLP, 2);
+  cmdAnswer(s);
+}
+
 // request obstacles
 void Comm::cmdObstacles(){
   String s = F("S2,");
@@ -990,6 +1012,7 @@ void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose)
       if (cmd[4] == '2') cmdObstacles();      
     }
   }
+  if ((cmd[3] == 'S') && (cmd.length() > 4) && (cmd[4] == '5')) cmdMotorRpm();  // motor telemetry
   if (cmd[3] == 'M') cmdMotor();
   if (cmd[3] == 'C'){
     // Special cases under 'C'
@@ -1181,6 +1204,8 @@ void Comm::outputConsole(){
     CONSOLE.print(battery.chargingVoltBatteryVoltDiff, 3);
     CONSOLE.print(" mow=");
     CONSOLE.print(motor.pwmMowOut);
+    CONSOLE.print("/");
+    CONSOLE.print(motor.getMowRpm(), 0);
     CONSOLE.print(" tg=");
     CONSOLE.print(maps.targetPoint.x());
     CONSOLE.print(",");
