@@ -9,6 +9,7 @@
 #include "../../events.h"
 #ifdef __linux__
 #include "../linux/WifiDiagnostics.h"
+#include "../linux/CpuTemperatureDiagnostics.h"
 #endif
 
 
@@ -38,6 +39,7 @@ UBLOX::UBLOX()
 
 void UBLOX::begin(){
   signalDiagnostics = UbloxSignalDiagnostics();
+  temperatureDiagnostics = UbloxTemperatureDiagnostics();
   CONSOLE.println("using gps driver: UBLOX");
   this->state    = GOT_NONE;
   this->msgclass = -1;
@@ -171,6 +173,7 @@ void UBLOX::begin(HardwareSerial& bus,uint32_t baud)
 // Only this parser reads the UART, including configuration replies.
 bool UBLOX::configure(){
   signalDiagnostics = UbloxSignalDiagnostics();
+  temperatureDiagnostics = UbloxTemperatureDiagnostics();
   if (!_bus || useTCP) return false;
   solution = SOL_INVALID;
   solutionAvail = true;
@@ -910,6 +913,9 @@ void UBLOX::dispatchMessage() {
 
       case 0x0a:
         switch (this->msgid){   
+          case 0x39: // UBX-MON-SYS (temperature; optional on older firmware)
+            temperatureDiagnostics.update(payload, msglen, (uint32_t)millis());
+            break;
           case 0x36:
             {
               // UBX-MON-COMMS
@@ -919,8 +925,17 @@ void UBLOX::dispatchMessage() {
               CONSOLE.println(version);
               if (version == 0 && msglen >= 8 + 40 * (unsigned char)payload[1]){
                 logSignalDiagnostics();
+                temperatureDiagnostics.log(CONSOLE, (uint32_t)millis());
+                // Poll once per diagnostics cycle without changing receiver configuration.
+                // Log the cached response next cycle; unsupported firmware stays unavailable.
+                // Do not interleave with configuration packets or write to replay/TCP inputs.
+                if (!useTCP && !isConfiguring()) {
+                  const uint8_t pollSys[] = {0xb5, 0x62, 0x0a, 0x39, 0, 0, 0x43, 0xd3};
+                  send(pollSys, sizeof(pollSys));
+                }
 #ifdef __linux__
                 logWifiDiagnostics(CONSOLE);
+                logCpuTemperatureDiagnostics(CONSOLE);
 #endif
                 byte nPorts = (unsigned char)this->unpack_int8(1);
                 byte protIds[4];
