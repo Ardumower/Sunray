@@ -25,6 +25,7 @@ extern "C" __attribute__((weak)) int cameraGetNavigationMode() { return Navigati
 #define CONSOLE Console
 #endif
 #include <chrono>
+#include <cerrno>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
@@ -366,6 +367,27 @@ static bool jpegEncodeRGB(const uint8_t* rgb, int w, int h, int quality, std::ve
 
 void CameraStreamer::runLoop() {
   using namespace std::chrono;
+  while(running_.load()) {
+    const int index=captureIndex();
+    runCaptureSession();
+    // The session has joined its detector before returning. No pending frame
+    // can republish a marker after this clear, including after USB removal.
+    ReflectorStripsDetector::instance().clear();
+    const auto retryAt=steady_clock::now()+seconds(2);
+    auto nextFrame=steady_clock::now();
+    while(running_.load() && captureIndex()==index && steady_clock::now()<retryAt) {
+      const auto now=steady_clock::now();
+      if(streamingRequested_.load() && now>=nextFrame) {
+        buildAndSendFrame();
+        nextFrame=now+milliseconds(std::max(1,1000/std::max(1,reqFps_.load())));
+      }
+      std::this_thread::sleep_for(milliseconds(50));
+    }
+  }
+}
+
+void CameraStreamer::runCaptureSession() {
+  using namespace std::chrono;
   // Open V4L2 device
   int index = captureIndex();
   int outW = reqW_.load(); int outH = reqH_.load(); int fps = reqFps_.load();
@@ -374,85 +396,56 @@ void CameraStreamer::runLoop() {
   char devPath[64];
   if (devPathStr.empty()) {
     CONSOLE.print("CAM index invalid: "); CONSOLE.println(index);
-    auto period = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
-    auto next = steady_clock::now();
-    while (running_.load()) {
-      // break if index changed to a valid device
-      const int requestedIndex = captureIndex();
-      if (requestedIndex != index) break;
-      if (streamingRequested_.load()) buildAndSendFrame();
-      next += period;
-      std::this_thread::sleep_until(next);
-    }
-    if (running_.load()) { runLoop(); }
     return;
   }
   std::snprintf(devPath, sizeof(devPath), "%s", devPathStr.c_str());
-  int fd = ::open(devPath, O_RDWR);
+  int fd = ::open(devPath, O_RDWR | O_NONBLOCK);
   if (fd < 0) {
     CONSOLE.print("CAM open failed: "); CONSOLE.println(devPath);
-    auto period = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
-    auto next = steady_clock::now();
-    while (running_.load()) {
-      const int requestedIndex = captureIndex();
-      if (requestedIndex != index) break;
-      if (streamingRequested_.load()) buildAndSendFrame();
-      next += period;
-      std::this_thread::sleep_until(next);
-    }
-    if (running_.load()) { runLoop(); }
     return;
   }
+  struct CaptureResources {
+    int fd; bool streaming=false;
+    std::vector<MMapBuffer> buffers;
+    explicit CaptureResources(int value):fd(value){}
+    ~CaptureResources(){
+      if(streaming){int type=V4L2_BUF_TYPE_VIDEO_CAPTURE;ioctl(fd,VIDIOC_STREAMOFF,&type);}
+      for(auto& b:buffers)if(b.start && b.length)munmap(b.start,b.length);
+      ::close(fd);
+    }
+  } capture(fd);
   CONSOLE.print("CAM opened "); CONSOLE.println(devPath);
   // Try to set format to MJPEG
   v4l2_format fmt; memset(&fmt, 0, sizeof(fmt)); fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  if (ioctl(fd, VIDIOC_G_FMT, &fmt) == 0) {
-    fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
-    ioctl(fd, VIDIOC_S_FMT, &fmt);
-    ioctl(fd, VIDIOC_G_FMT, &fmt);
+  if(ioctl(fd,VIDIOC_G_FMT,&fmt)<0){CONSOLE.println("CAM get format failed");return;}
+  fmt.fmt.pix.pixelformat=V4L2_PIX_FMT_MJPEG;
+  if(ioctl(fd,VIDIOC_S_FMT,&fmt)<0 || ioctl(fd,VIDIOC_G_FMT,&fmt)<0){
+    CONSOLE.println("CAM set format failed");return;
   }
   CONSOLE.print("CAM source "); CONSOLE.print((int)fmt.fmt.pix.width); CONSOLE.print("x"); CONSOLE.println((int)fmt.fmt.pix.height);
-  if ((int)fmt.fmt.pix.width <= 0 || (int)fmt.fmt.pix.height <= 0) {
+  if (fmt.fmt.pix.pixelformat != V4L2_PIX_FMT_MJPEG || (int)fmt.fmt.pix.width <= 0 || (int)fmt.fmt.pix.height <= 0) {
     CONSOLE.println("CAM invalid source format, fallback red frames");
-    ::close(fd);
-    auto period = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
-    auto next = steady_clock::now();
-    while (running_.load()) {
-      const int requestedIndex = captureIndex();
-      if (requestedIndex != index) break;
-      if (streamingRequested_.load()) buildAndSendFrame();
-      next += period;
-      std::this_thread::sleep_until(next);
-    }
-    if (running_.load()) { runLoop(); }
     return;
   }
   // Request MMAP
   v4l2_requestbuffers req; memset(&req, 0, sizeof(req)); req.count = 4; req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; req.memory = V4L2_MEMORY_MMAP;
   if (ioctl(fd, VIDIOC_REQBUFS, &req) < 0 || req.count < 2) {
     CONSOLE.println("CAM reqbufs failed");
-    ::close(fd);
-    auto period = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200);
-    auto next = steady_clock::now();
-    while (running_.load()) {
-      if (captureIndex() != index) break;
-      buildAndSendFrame();
-      next += period;
-      std::this_thread::sleep_until(next);
-    }
-    if (running_.load()) { runLoop(); }
     return;
   }
-  std::vector<MMapBuffer> bufs(req.count);
+  capture.buffers.resize(req.count);
+  auto& bufs=capture.buffers;
   for (unsigned i = 0; i < req.count; i++) {
     v4l2_buffer b; memset(&b, 0, sizeof(b)); b.type = req.type; b.memory = V4L2_MEMORY_MMAP; b.index = i;
-    if (ioctl(fd, VIDIOC_QUERYBUF, &b) < 0) { CONSOLE.println("CAM querybuf failed"); ::close(fd); return; }
+    if (ioctl(fd, VIDIOC_QUERYBUF, &b) < 0) { CONSOLE.println("CAM querybuf failed"); return; }
     void* start = mmap(NULL, b.length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, b.m.offset);
-    if (start == MAP_FAILED) { CONSOLE.println("CAM mmap failed"); ::close(fd); return; }
+    if (start == MAP_FAILED) { CONSOLE.println("CAM mmap failed"); return; }
     bufs[i].start = start; bufs[i].length = b.length;
   }
-  for (unsigned i = 0; i < req.count; i++) { v4l2_buffer b; memset(&b, 0, sizeof(b)); b.type = req.type; b.memory = V4L2_MEMORY_MMAP; b.index = i; ioctl(fd, VIDIOC_QBUF, &b); }
-  int type = req.type; ioctl(fd, VIDIOC_STREAMON, &type);
+  for (unsigned i = 0; i < req.count; i++) { v4l2_buffer b; memset(&b, 0, sizeof(b)); b.type = req.type; b.memory = V4L2_MEMORY_MMAP; b.index = i; if(ioctl(fd, VIDIOC_QBUF, &b)<0){CONSOLE.println("CAM initial qbuf failed");return;} }
+  int type = req.type;
+  if(ioctl(fd,VIDIOC_STREAMON,&type)<0){CONSOLE.println("CAM streamon failed");return;}
+  capture.streaming=true;
 
   auto lastSend = steady_clock::now() - milliseconds(1000);
   auto lastDetection = steady_clock::now() - milliseconds(1000);
@@ -536,8 +529,21 @@ void CameraStreamer::runLoop() {
     if (nIndex != index) { CONSOLE.println("CAM index changed, reopening"); break; }
     outW = nW; outH = nH; if (nF != fps) { fps = nF; minPeriod = (fps > 0) ? milliseconds(1000 / fps) : milliseconds(200); }
 
-    fd_set fds; FD_ZERO(&fds); FD_SET(fd, &fds); timeval tv; tv.tv_sec = 1; tv.tv_usec = 0; int r = select(fd + 1, &fds, NULL, NULL, &tv); if (r <= 0) { if(r==0)lightLogger.timeout(); lightLogger.sample(fd,index,cameraGetNavigationMode()); continue; }
-    v4l2_buffer b; memset(&b, 0, sizeof(b)); b.type = req.type; b.memory = V4L2_MEMORY_MMAP; if (ioctl(fd, VIDIOC_DQBUF, &b) < 0) continue;
+    // A disconnected or stalled camera must leave this session, rather than
+    // retrying the same broken fd forever. DQBUF cannot block after select.
+    fd_set fds;FD_ZERO(&fds);FD_SET(fd,&fds);
+    timeval tv;tv.tv_sec=2;tv.tv_usec=0;
+    const int r=select(fd+1,&fds,NULL,NULL,&tv);
+    if(r<0 && errno==EINTR)continue;
+    if(r<=0){
+      if(r==0)lightLogger.timeout();
+      CONSOLE.println("CAM capture timeout/error, reopening");break;
+    }
+    v4l2_buffer b;memset(&b,0,sizeof(b));b.type=req.type;b.memory=V4L2_MEMORY_MMAP;
+    if(ioctl(fd,VIDIOC_DQBUF,&b)<0){
+      if(errno==EAGAIN || errno==EINTR)continue;
+      CONSOLE.println("CAM dequeue failed, reopening");break;
+    }
     lightLogger.capture(b);
     if (b.index >= bufs.size()) { CONSOLE.println("CAM invalid buffer index, reopening"); break; }
     if ((b.flags & V4L2_BUF_FLAG_ERROR) || !b.bytesused || b.bytesused > bufs[b.index].length) {
@@ -546,7 +552,7 @@ void CameraStreamer::runLoop() {
       }
       lightLogger.invalid();
       lightLogger.sample(fd,index,cameraGetNavigationMode());
-      ioctl(fd, VIDIOC_QBUF, &b);
+      if(ioctl(fd,VIDIOC_QBUF,&b)<0){CONSOLE.println("CAM requeue failed, reopening");break;}
       continue;
     }
     const uint8_t* mjpeg = (const uint8_t*)bufs[b.index].start; size_t mjpegLen = b.bytesused;
@@ -671,13 +677,9 @@ void CameraStreamer::runLoop() {
         }
       }
     }
-    ioctl(fd, VIDIOC_QBUF, &b);
+    if(ioctl(fd,VIDIOC_QBUF,&b)<0){CONSOLE.println("CAM requeue failed, reopening");break;}
   }
   reflectorWorker.stop();
-  ioctl(fd, VIDIOC_STREAMOFF, &type);
-  for (auto& mb : bufs) { if (mb.start && mb.length) munmap(mb.start, mb.length); }
-  ::close(fd);
-  if (running_.load()) { runLoop(); }
 }
 
 extern "C" void cameraStreamerStart(int index, int width, int height, int fps, int quality) { CameraStreamer::instance().start(index, width, height, fps, quality); }

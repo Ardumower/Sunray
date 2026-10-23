@@ -35,6 +35,7 @@ private:
   CameraStreamer& operator=(const CameraStreamer&) = delete;
 
   void runLoop();
+  void runCaptureSession();
   int captureIndex() const;
   void buildAndSendFrame();
   void ensureWorkerRunning();
