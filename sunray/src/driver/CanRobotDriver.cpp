@@ -181,6 +181,7 @@ void CanRobotDriver::begin(){
   triggeredRain = false;
   triggeredStopButton = false;
   triggeredPushboxStopButton = false;
+  lastPushboxButtons = 0;
   triggeredLift = false;
   triggeredSlowDown = false;
   triggeredExternalSlowDown = false;
@@ -1336,20 +1337,24 @@ void CanRobotDriver::processResponse(){
           case OWL_RECEIVER_MSG_ID:
             if (cmd == can_cmd_info){
               switch (val){
-                case owlrecv::can_val_button_state:                  
-                  if (data.intValue != 0){
-                    CONSOLE.print("PUSHBOX: ");                   
-                    CONSOLE.println(data.intValue, BIN);                                      
-                    if (data.intValue == 1) setOperation(OP_MOW, false);
-                    if (data.intValue == 2) Logger.event(EVT_AUDIO_SHEEP);                    
-                    if (data.intValue == 4) setOperation(OP_DOCK, false);                                                          
-                    if (data.intValue == 8) setOperation(OP_IDLE, false);
-                    //if (data.intValue != 4){    // do not play any buzzer sound for pushbox STOP button
-                      buzzer.sound(SND_READY, true);
-                    //}
-                  }  
-                  //triggeredPushboxStopButton = (data.intValue == 4); // classic STOP button handling (pushbox STOP button simulates robot button)
+                case owlrecv::can_val_button_state: {
+                  if (frame.can_dlc < 8 || node.sourceAndDest.sourceNodeID != RECEIVER_PUSHBOX_NODE_ID ||
+                      node.sourceAndDest.destNodeID != MY_NODE_ID) break;
+                  // CAN reports a state, not a new press on every 300 ms poll.
+                  const uint8_t buttons = data.byteVal[0] & 0x0f;
+                  const uint8_t pressed = buttons & ~lastPushboxButtons;
+                  lastPushboxButtons = buttons;
+                  if (pressed != 0){
+                    CONSOLE.print("PUSHBOX: ");
+                    CONSOLE.println(pressed, BIN);
+                    if (pressed == 1) setOperation(OP_MOW, false);
+                    if (pressed == 2) Logger.event(EVT_AUDIO_SHEEP);
+                    if (pressed == 4) setOperation(OP_DOCK, false);
+                    if (pressed == 8) setOperation(OP_IDLE, false);
+                    buzzer.sound(SND_READY, true);
+                  }
                   break;
+                }
               }
             }              
             break;

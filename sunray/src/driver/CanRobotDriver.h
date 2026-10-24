@@ -294,6 +294,7 @@ class CanRobotDriver: public RobotDriver {
     bool ultrasonicLeftSentValid;
     bool ultrasonicRightSentValid;
     bool triggeredPushboxStopButton;
+    uint8_t lastPushboxButtons = 0;
     unsigned long nextDisplayStateTime;
     OperationType lastDisplayOpSent;
     String lastIpSent;
