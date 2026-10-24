@@ -238,7 +238,7 @@ void ReflectorStripsDetector::clear(){
 }
 void ReflectorStripsDetector::clearUnlocked(){
   acquireCount_=0;found_.store(false,std::memory_order_release);
-  confidence_.store(0);stripCount_.store(0);verticalSpan_.store(0);timestampMs_.store(0);
+  confidence_.store(0);stripCount_.store(0);verticalSpan_.store(0);horizontalSpan_.store(0);timestampMs_.store(0);
 }
 void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height,unsigned long timestampMs){
   std::lock_guard<std::mutex> lock(writerMutex_);
@@ -569,14 +569,14 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
   if(acquireCount_<DOCK_REFLECTOR_STRIPS_ACQUIRE_FRAMES)++acquireCount_;
   for(int n=0;n<3;++n)previousStripX_[n]=marker.x[n]/w;
   previousStripWidth_=marker.width/w;previousStripSpan_=marker.span;
-  horizontalError_.store(error);confidence_.store(marker.quality);stripCount_.store(3);verticalSpan_.store(marker.span);timestampMs_.store(timestampMs);
+  horizontalError_.store(error);confidence_.store(marker.quality);stripCount_.store(3);verticalSpan_.store(marker.span);horizontalSpan_.store((marker.x[2]-marker.x[0])/w);timestampMs_.store(timestampMs);
   found_.store(acquireCount_>=DOCK_REFLECTOR_STRIPS_ACQUIRE_FRAMES,std::memory_order_release);
 }
 ReflectorStripsObservation ReflectorStripsDetector::observation(unsigned long nowMs)const{
   ReflectorStripsObservation r;
   const unsigned long timestamp=timestampMs_.load();
   r.ageMs=timestamp?nowMs-timestamp:(unsigned long)-1;
-  r.horizontalError=horizontalError_.load();r.confidence=confidence_.load();r.stripCount=stripCount_.load();r.verticalSpan=verticalSpan_.load();
+  r.horizontalError=horizontalError_.load();r.confidence=confidence_.load();r.stripCount=stripCount_.load();r.verticalSpan=verticalSpan_.load();r.horizontalSpan=horizontalSpan_.load();
   r.found=found_.load(std::memory_order_acquire)&&timestamp&&r.ageMs<=DOCK_REFLECTOR_STRIPS_LOST_TIMEOUT_MS;
   return r;
 }

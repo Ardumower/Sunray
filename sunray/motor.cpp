@@ -11,6 +11,15 @@
 #include "src/navigation/DockMotionLimit.h"
 
 
+// Camera docking/undocking obtains its motion permission from the marker gate
+// and bumper checks, not the GNSS receiver. GPS approaches remain interlocked.
+static bool gpsBlocksTraction() {
+  const bool cameraMotion = stateEstimator.stateLocalizationMode == LOC_REFLECTOR_STRIPS &&
+      (stateEstimator.stateOp == OP_DOCK ||
+       (stateEstimator.stateOp == OP_MOW && maps.isUndocking()));
+  return gps.isConfiguring() && !cameraMotion;
+}
+
 void Motor::begin() {
 	pwmMax = MOTOR_PID_LIMIT;
  
@@ -139,7 +148,8 @@ void Motor::setMowHeightMillimeter( int val )
 
 void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
 {
-  if (gps.isConfiguring()) pwmLeft = pwmRight = pwmMow = 0;
+  if (gpsBlocksTraction()) pwmLeft = pwmRight = 0;
+  if (gps.isConfiguring()) pwmMow = 0; // Blades never bypass the GPS startup interlock.
   //Correct Motor Direction
   if (motorLeftSwapDir) pwmLeft *= -1;
   if (motorRightSwapDir) pwmRight *= -1;
@@ -154,7 +164,7 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
   pwmMow = min(pwmMaxMow, max(-pwmMaxMow, pwmMow)); 
   
   bool releaseBrakes = false;  
-  if (releaseBrakesWhenZero && !gps.isConfiguring()){
+  if (releaseBrakesWhenZero && !gpsBlocksTraction()){
     if ((pwmLeft == 0) && (pwmRight == 0)){
       if (millis() > motorReleaseBrakesTime) releaseBrakes = true;
     } else {
@@ -175,7 +185,7 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
 //      V     = (VR + VL) / 2       =>  VR = V + omega * L/2
 //      omega = (VR - VL) / L       =>  VL = V - omega * L/2
 void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRamp){
-   if (gps.isConfiguring()){
+   if (gpsBlocksTraction()){
      linear = angular = 0;
      useLinearRamp = false;
    }
@@ -199,6 +209,13 @@ void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRam
 #ifdef DOCK_RTK_SPEED
      if (stateEstimator.stateOp == OP_DOCK && stateEstimator.stateLocalizationMode == LOC_GPS)
        wheelLimit=DOCK_RTK_SPEED;
+#endif
+#if defined(DOCK_SLIP_RECOVERY) && DOCK_SLIP_RECOVERY
+     // Only the bounded recovery pivot may exceed the normal camera wheel cap.
+     if (stateEstimator.stateOp == OP_DOCK &&
+         stateEstimator.stateLocalizationMode == LOC_REFLECTOR_STRIPS &&
+         lineTracker.dockSlipTurning() && fabs(linearSpeedSet) < 0.0001f)
+       wheelLimit=0.05f; // 0.20 rad/s at 48cm wheelbase needs 4.8cm/s per wheel
 #endif
      limitDockWheelSpeed(linearSpeedSet, angularSpeedSet, wheelBaseCm/100.0f, wheelLimit);
    }
@@ -298,7 +315,7 @@ void Motor::stopImmediately(bool includeMowerMotor){
 
 void Motor::run() {
   if (millis() < lastControlTime + 50) return;
-  if (gps.isConfiguring()){
+  if (gpsBlocksTraction()){
     // Clear old commands/PID state too, so reconnect cannot replay stale output.
     stopImmediately(true);
     lastControlTime = millis();

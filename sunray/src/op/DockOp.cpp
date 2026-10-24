@@ -158,6 +158,7 @@ bool DockOp::runCameraSearch(){
 }
 
 void DockOp::begin(){
+    lineTracker.resetDockSlipRecovery();
   cameraSearch.reset();
   cameraSearchAvailable=true;
   const bool confirmedCameraEntry = cameraEntryRequested;

@@ -30,6 +30,7 @@ TestMotorDriver motorDriver;
 TestRobotDriver robotDriver;
 TestStateEstimator stateEstimator;
 TestMaps maps;
+TestLineTracker lineTracker;
 
 struct Receiver : HardwareSerial {
   std::deque<uint8_t> rx;
@@ -155,9 +156,11 @@ static void testMotorStop(){
 static void testLowSpeedMotor(){
   TestMotor m{};m.begin();m.motorLeftSwapDir=m.motorRightSwapDir=false;
   stateEstimator.stateOp=OP_MOW;maps.undocking=true;
+  stateEstimator.stateLocalizationMode=LOC_REFLECTOR_STRIPS;
   m.setLinearAngularSpeed(-.2f,.3f,false);
   assert(std::abs(m.linearSpeedSet)+std::abs(m.angularSpeedSet)*m.wheelBaseCm/200.f<=.02001f);
   maps.undocking=false;stateEstimator.stateOp=OP_IDLE;
+  stateEstimator.stateLocalizationMode=LOC_GPS;
   for(int sign:{-1,1}){
     m.stopImmediately(true);
     m.motorLeftRpmCurr=m.motorRightRpmCurr=0;
@@ -188,6 +191,26 @@ int main(){
   assert(motor.linearSpeedSet==0 && motor.angularSpeedSet==0 && motor.motorMowPWMSet==0);
   assert(motorDriver.left==0 && motorDriver.right==0 && motorDriver.mow==0 && !motorDriver.release);
   assert(gps.isConfiguring() && gps.solution==SOL_INVALID && uart.writes==0);
+  // Production Motor must permit camera traction while keeping blades blocked.
+  stateEstimator.stateOp=OP_DOCK;
+  stateEstimator.stateLocalizationMode=LOC_REFLECTOR_STRIPS;
+  motor.setLinearAngularSpeed(.02f,0,false);
+  motor.speedPWM(100,100,200);
+  assert(motor.linearSpeedSet>0 && motorDriver.left!=0 && motorDriver.mow==0);
+  now+=50; motor.run();
+  assert(motor.motorLeftRpmSet>0 && motor.motorRightRpmSet>0);
+  stateEstimator.stateOp=OP_MOW; maps.undocking=true;
+  motor.setLinearAngularSpeed(-.02f,0,false);
+  assert(motor.linearSpeedSet<0);
+  maps.undocking=false; // Ordinary mowing cannot use the exception.
+  motor.setLinearAngularSpeed(.02f,0,false);
+  assert(motor.linearSpeedSet==0);
+  stateEstimator.stateOp=OP_DOCK; stateEstimator.stateLocalizationMode=LOC_GPS;
+  motor.setLinearAngularSpeed(.02f,0,false);
+  now+=50; motor.run();
+  assert(motor.linearSpeedSet==0 && motorDriver.left==0 && motorDriver.right==0);
+  stateEstimator.stateOp=OP_IDLE;
+  std::cout<<"PASS camera dock/undock bypasses only traction GPS interlock; GPS approach and blades stay blocked\n";
   // Main/control-side cloud work continues throughout missing hardware.
   std::atomic<bool> connected{false}, delivered{false};
   CloudWorker worker({[&]{connected=true;return true;},[&]{return connected.load();},

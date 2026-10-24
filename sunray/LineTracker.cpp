@@ -20,6 +20,7 @@
 #ifdef DOCK_REFLECTOR_STRIPS
 extern "C" bool cameraReflectorStripsFound();
 extern "C" float cameraReflectorStripsHorizontalError();
+extern "C" float cameraReflectorStripsHorizontalSpan();
 extern "C" float cameraReflectorStripsConfidence();
 extern "C" int cameraReflectorStripsStripCount();
 extern "C" unsigned long cameraReflectorStripsAgeMs();
@@ -269,6 +270,35 @@ void LineTracker::trackLine(bool runControl){
       }
     }
 
+#if defined(DOCK_SLIP_RECOVERY) && DOCK_SLIP_RECOVERY
+    if (runControl && stateEstimator.stateOp == OP_DOCK) {
+      const auto previousPhase = dockSlipRecovery.phase();
+      const float metresPerTick = 0.01f / motor.ticksPerCm;
+      DockSlipRecovery::Input input{uint32_t(millis()),
+        reflectorFound && stateEstimator.reflectorDockingGate.mayDrive(),
+        bumper.obstacle(), stateEstimator.stateDelta, imageError,
+        cameraReflectorStripsHorizontalSpan(),
+        motor.motorLeftTicks * metresPerTick, motor.motorRightTicks * metresPerTick};
+      dockSlipRecovery.update(input, linear, angular);
+      const auto phase = dockSlipRecovery.phase();
+      if (phase != previousPhase) {
+        CONSOLE.print("dock slip recovery phase="); CONSOLE.print(int(phase));
+        CONSOLE.print(" error="); CONSOLE.print(input.imageError,4);
+        CONSOLE.print(" span="); CONSOLE.print(input.imageSpan,4);
+        CONSOLE.print(" yaw="); CONSOLE.print(input.yaw,4);
+        CONSOLE.print(" camera="); CONSOLE.print(input.camera);
+        CONSOLE.print(" bumper="); CONSOLE.println(input.bumper);
+      }
+      if (phase == DockSlipRecovery::Settling || phase == DockSlipRecovery::Failed)
+        motor.stopImmediately(false);
+      if (phase == DockSlipRecovery::Failed) {
+        stateEstimator.stateSensor = input.bumper ? SENS_BUMPER : SENS_OBSTACLE;
+        activeOp->changeOp(errorOp); // no avoidance manoeuvre or automatic retry
+        return;
+      }
+    }
+#endif
+
     static unsigned long nextReflectorStatusTime = 0;
     if (millis() >= nextReflectorStatusTime) {
       nextReflectorStatusTime = millis() + 1000;
@@ -276,6 +306,7 @@ void LineTracker::trackLine(bool runControl){
       CONSOLE.print(" strips="); CONSOLE.print(cameraReflectorStripsStripCount());
       CONSOLE.print(" confidence="); CONSOLE.print(confidence);
       CONSOLE.print(" error="); CONSOLE.print(imageError);
+      CONSOLE.print(" span="); CONSOLE.print(cameraReflectorStripsHorizontalSpan(),4);
       CONSOLE.print(" age="); CONSOLE.print(cameraReflectorStripsAgeMs());
       CONSOLE.print(" gpsPos="); CONSOLE.print((int)stateEstimator.cameraGpsPosition.activeQuality(millis()));
       CONSOLE.print(" lin="); CONSOLE.print(linear);

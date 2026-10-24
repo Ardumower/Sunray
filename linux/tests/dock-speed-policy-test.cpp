@@ -1,6 +1,8 @@
 #include "src/navigation/DockMotionLimit.h"
 #include <cassert>
 #include <cstdio>
+#define DOCK_SLIP_RECOVERY true
+struct {bool turning=false;bool dockSlipTurning()const{return turning;}} lineTracker;
 #define DOCK_RTK_SPEED .5f
 #define DOCK_MAX_WHEEL_SPEED .02f
 #define DOCK_APPROACH_MAX_WHEEL_SPEED .10f
@@ -22,5 +24,11 @@ int main(){
  stateEstimator.stateOp=OP_MOW;maps.exit=true;check(.02f);
  stateEstimator.stateLocalizationMode=LOC_GPS;check(.1f);
  maps.exit=false;check(.84f);stateEstimator.stateOp=OP_IDLE;check(.84f);
- std::puts("PASS production wheel limits: RTK docking 50cm/s, GPS exit 10cm/s, camera 2cm/s, ordinary mowing unchanged");
+ stateEstimator.stateOp=OP_DOCK;stateEstimator.stateLocalizationMode=LOC_REFLECTOR_STRIPS;
+ lineTracker.turning=true;linearSpeedSet=0;angularSpeedSet=.20f;apply();
+ assert(linearSpeedSet==0 && std::fabs(angularSpeedSet-.20f)<.000001f);
+ linearSpeedSet=0;angularSpeedSet=1;apply();assert(std::fabs(angularSpeedSet*.24f-.05f)<.000001f);
+ check(.02f); // translated camera command never gets the higher recovery cap
+ lineTracker.turning=false;linearSpeedSet=0;angularSpeedSet=.20f;apply();assert(std::fabs(angularSpeedSet*.24f-.02f)<.000001f);
+ std::puts("PASS production wheel limits: RTK docking 50cm/s, GPS exit 10cm/s, camera 2cm/s, ordinary mowing unchanged, recovery-only 5cm/s cap");
 }

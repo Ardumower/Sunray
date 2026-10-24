@@ -11,6 +11,7 @@ struct ReflectorStripsObservation {
   float horizontalError{0.0f}; // -1 left, +1 right
   float confidence{0.0f};
   int stripCount{0};
+  float horizontalSpan{0.0f}; // outer strip centre spacing / image width
   float verticalSpan{0.0f};    // fraction of image height
   unsigned long ageMs{0};
 };
@@ -36,6 +37,7 @@ private:
   std::atomic<float> horizontalError_{0.0f};
   std::atomic<float> confidence_{0.0f};
   std::atomic<int> stripCount_{0};
+  std::atomic<float> horizontalSpan_{0.0f};
   std::atomic<float> verticalSpan_{0.0f};
   std::atomic<unsigned long> timestampMs_{0};
 };

@@ -457,6 +457,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 #define DOCK_RTK_SPEED 0.5 // RTK docking cruise and maximum wheel speed (m/s); camera approach unchanged
 #define DOCK_APPROACH_MAX_WHEEL_SPEED 0.10 // GPS approach/exit wheel limit (m/s)
+#define DOCK_SLIP_RECOVERY true // repeat bounded pivots after encoder motion without camera/gyro progress; pause on marker loss (no GPS)
 #define DOCK_MAX_WHEEL_SPEED 0.02 // max commanded speed of either wheel during camera docking/undocking (m/s)
 #define DOCK_TEST_TIMEOUT_MS 0UL // normal docking: no temporary test deadline
 #define UNDOCK_TEST_TIMEOUT_MS 0UL // normal operation: continue via RTK to mowing after camera exit

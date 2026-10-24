@@ -8,6 +8,10 @@
 
 #include "events.h"
 #include "config.h"
+#ifdef TTS_PATH
+#include "StateEstimator.h"
+extern StateEstimator stateEstimator;
+#endif
 
 #ifdef __linux__
   #include <Process.h>
@@ -54,6 +58,12 @@ void EventLogger::event(EventCode evt, const String &additionalData) {
                 evtText = TXT_IMU_CALIBRATING;
                 break;
             case EVT_ERROR_GPS_NOT_CONNECTED:
+                // Background receiver retries are not a failed start in Idle,
+                // Charge, or camera acquisition/tracking. Keep the driver's
+                // diagnostic log and retry behaviour unchanged.
+                if ((stateEstimator.stateOp != OP_MOW && stateEstimator.stateOp != OP_DOCK) ||
+                    stateEstimator.stateLocalizationMode != LOC_GPS ||
+                    stateEstimator.reflectorDockingGate.active()) return;
                 evtText = TXT_ERROR_GPS_NOT_CONNECTED;
                 break; 
             case EVT_ERROR_IMU_NOT_CONNECTED:        

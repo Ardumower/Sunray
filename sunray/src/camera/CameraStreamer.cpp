@@ -246,6 +246,7 @@ extern "C" void cameraStreamerStop() {}
 extern "C" void cameraReflectorStripsEnable(int, int) {}
 extern "C" bool cameraReflectorStripsFound() { return false; }
 extern "C" float cameraReflectorStripsHorizontalError() { return 0.0f; }
+extern "C" float cameraReflectorStripsHorizontalSpan() { return 0.0f; }
 extern "C" float cameraReflectorStripsConfidence() { return 0.0f; }
 extern "C" int cameraReflectorStripsStripCount() { return 0; }
 extern "C" unsigned long cameraReflectorStripsAgeMs() { return (unsigned long)-1; }
@@ -687,6 +688,9 @@ extern "C" void cameraStreamerStop() { CameraStreamer::instance().stop(); }
 extern "C" void cameraReflectorStripsEnable(int index, int fps) { CameraStreamer::instance().enableReflectorStripsDetection(index, fps); }
 extern "C" bool cameraReflectorStripsFound() {
   return ReflectorStripsDetector::instance().observation((unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()).found;
+}
+extern "C" float cameraReflectorStripsHorizontalSpan() {
+  return ReflectorStripsDetector::instance().observation((unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()).horizontalSpan;
 }
 extern "C" float cameraReflectorStripsHorizontalError() {
   return ReflectorStripsDetector::instance().observation((unsigned long)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()).horizontalError;

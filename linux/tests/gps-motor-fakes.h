@@ -18,7 +18,10 @@ extern TestRobotDriver robotDriver;
 void watchdogReset();
 
 #include "types.h"
-struct TestStateEstimator { OperationType stateOp=OP_IDLE; };
+enum { LOC_GPS=0, LOC_REFLECTOR_STRIPS=5 };
+struct TestStateEstimator { OperationType stateOp=OP_IDLE; int stateLocalizationMode=LOC_GPS; };
+struct TestLineTracker { bool dockSlipTurning()const{return false;} };
+extern TestLineTracker lineTracker;
 extern TestStateEstimator stateEstimator;
 struct TestMaps { bool undocking=false; bool isUndocking(){return undocking;} };
 extern TestMaps maps;

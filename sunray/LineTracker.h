@@ -10,6 +10,7 @@
 
 #include <Arduino.h>
 #include "config.h"
+#include "src/navigation/DockSlipRecovery.h"
 
 
 class LineTracker {
@@ -21,8 +22,11 @@ public:
   float stanleyTrackingSlowP = STANLEY_CONTROL_P_SLOW;
 
   void trackLine(bool runControl);
+  bool dockSlipTurning() const { return dockSlipRecovery.phase() == DockSlipRecovery::Turning; }
+  void resetDockSlipRecovery() { dockSlipRecovery.reset(); }
 
 private:
+  DockSlipRecovery dockSlipRecovery;
   bool rotateLeft = false;
   bool rotateRight = false;
   bool angleToTargetFits = false;
