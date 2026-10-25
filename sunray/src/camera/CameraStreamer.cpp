@@ -12,6 +12,7 @@
 #include "CameraLightLogger.h"
 #include "ImageDarkness.h"
 #include "LatestFrameWorker.h"
+#include "FrameTimestamp.h"
 #include "Console.h"
 // Access motor speed setpoints via C-accessors (to avoid Arduino header conflicts)
 extern "C" float cameraGetLinearSet();
@@ -171,19 +172,19 @@ static void fillRect(uint8_t* img, int w, int h, int x0, int y0, int x1, int y1,
   }
 }
 
-// 5x7 pixel font for digits and ':'
+// 5x7 pixel font for digits, stored top row first (bit 6).
 static const uint8_t kFont5x7[][5] = {
   // '0'..'9'
-  {0x7E,0x81,0x81,0x81,0x7E}, // 0
-  {0x00,0x82,0xFF,0x80,0x00}, // 1
-  {0xE2,0x91,0x91,0x91,0x8E}, // 2
-  {0x42,0x81,0x89,0x89,0x76}, // 3
-  {0x1C,0x12,0x11,0xFF,0x10}, // 4
-  {0x4F,0x89,0x89,0x89,0x71}, // 5
-  {0x7E,0x89,0x89,0x89,0x72}, // 6
-  {0x01,0x01,0xF1,0x09,0x07}, // 7
-  {0x76,0x89,0x89,0x89,0x76}, // 8
-  {0x4E,0x91,0x91,0x91,0x7E}, // 9
+  {0x3E,0x45,0x49,0x51,0x3E}, // 0
+  {0x00,0x21,0x7F,0x01,0x00}, // 1
+  {0x23,0x45,0x49,0x49,0x31}, // 2
+  {0x22,0x41,0x49,0x49,0x36}, // 3
+  {0x0C,0x14,0x24,0x7F,0x04}, // 4
+  {0x72,0x51,0x51,0x51,0x4E}, // 5
+  {0x1E,0x29,0x49,0x49,0x06}, // 6
+  {0x40,0x47,0x48,0x50,0x60}, // 7
+  {0x36,0x49,0x49,0x49,0x36}, // 8
+  {0x30,0x49,0x49,0x4A,0x3C}, // 9
 };
 
 static const uint8_t kLetters5x7[][5] = {
@@ -234,6 +235,9 @@ static void drawChar5x7(uint8_t* img, int w, int h, int x, int y, char c, int sc
     int dotSize = scale;
     fillRect(img, w, h, x + 2*scale, y + 2*scale, x + 2*scale + dotSize - 1, y + 2*scale + dotSize - 1, r, g, b);
     fillRect(img, w, h, x + 2*scale, y + 5*scale, x + 2*scale + dotSize - 1, y + 5*scale + dotSize - 1, r, g, b);
+  } else if (c == '.') {
+    fillRect(img, w, h, x + 2*scale, y + 6*scale,
+             x + 3*scale - 1, y + 7*scale - 1, r, g, b);
   }
 }
 
@@ -261,6 +265,16 @@ static void drawText(uint8_t* img, int w, int h, int x, int y, const std::string
     drawChar5x7(img, w, h, cx, y, c, scale, r, g, b);
     cx += (5 + 1) * scale; // 1px space
   }
+}
+
+static void drawFrameTimestamp(uint8_t* img, int w, int h, const std::string& label) {
+  const int scale = std::max(1, w / 320);
+  const int pad = 3 * scale;
+  const int textWidth = int(label.size()) * 6 * scale;
+  const int x = std::max(pad, w - textWidth - pad);
+  const int y = std::max(pad, h - 7 * scale - 2 * pad);
+  fillRect(img, w, h, x - pad, y - pad, w - 1, h - 1, 0, 0, 0, 220);
+  drawText(img, w, h, x, y, label, scale, 255, 255, 255);
 }
 
 static void drawVerticalArrow(uint8_t* img, int w, int h, int cx, int cy, int len, int thickness, bool up, uint8_t r, uint8_t g, uint8_t b) {
@@ -389,6 +403,7 @@ void CameraStreamer::runLoop() {
 
 void CameraStreamer::runCaptureSession() {
   using namespace std::chrono;
+  const CameraFrameClock frameClock;
   // Open V4L2 device
   int index = captureIndex();
   int outW = reqW_.load(); int outH = reqH_.load(); int fps = reqFps_.load();
@@ -598,7 +613,7 @@ void CameraStreamer::runCaptureSession() {
           resizeNearestRGB(rgb.data(), srcW, srcH, outRGB.data(), outW, outH);
           std::vector<uint8_t> rawView;
           if(outputIndex==101)rawView=outRGB;
-          uint32_t frameTimestamp = timestampMs;
+          uint64_t frameTimestamp = timestampMs;
           if (outputIndex == 100) {
             std::vector<uint8_t> classified; uint64_t stamp=0; double ms=0;
             if (grass.latest(classified, stamp, ms) && timestampMs >= stamp && timestampMs-stamp < 1000) {
@@ -639,13 +654,14 @@ void CameraStreamer::runCaptureSession() {
           };
           Sender sender; { std::lock_guard<std::mutex> lk(mtx_); sender=sender_; }
           const int q=reqQ_.load();
-          auto sendView = [&](std::vector<uint8_t>& pixels,uint32_t stamp,int view) {
+          auto sendView = [&](std::vector<uint8_t>& pixels,uint64_t stamp,int view) {
             if(!sender)return;
             overlayView(pixels);
+            drawFrameTimestamp(pixels.data(),outW,outH,frameClock.label(stamp));
             std::vector<uint8_t> jpeg;
             if(!jpegEncodeRGB(pixels.data(),outW,outH,q>0?q:70,jpeg))return;
             uint8_t hdr[16];
-            buildMediaHeader(hdr,1,(uint16_t)outW,(uint16_t)outH,stamp,uint16_t(0x8000|(view&0xff)));
+            buildMediaHeader(hdr,1,(uint16_t)outW,(uint16_t)outH,uint32_t(stamp),uint16_t(0x8000|(view&0xff)));
             std::vector<uint8_t> packet(sizeof(hdr)+jpeg.size());
             std::memcpy(packet.data(),hdr,sizeof(hdr));
             std::memcpy(packet.data()+sizeof(hdr),jpeg.data(),jpeg.size());
@@ -718,12 +734,16 @@ void CameraStreamer::buildAndSendFrame() {
   }
   // Overlay on fallback frame as well
   drawOverlay(rgb.data(), w, h);
+  const CameraFrameClock frameClock;
+  const uint64_t frameTimestamp = CameraFrameClock::monotonicMs();
+  drawText(rgb.data(),w,h,4,4,"CAM ERROR",1,255,255,255);
+  drawFrameTimestamp(rgb.data(),w,h,frameClock.label(frameTimestamp));
   std::vector<uint8_t> jpeg;
   const int q = reqQ_.load();
   jpegEncodeRGB(rgb.data(), w, h, (q > 0 ? q : 70), jpeg);
   // Build header + send
   uint8_t hdr[16];
-  uint32_t ts = (uint32_t)(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count() & 0xFFFFFFFFu);
+  uint32_t ts = uint32_t(frameTimestamp);
   buildMediaHeader(hdr, 1, (uint16_t)w, (uint16_t)h, ts, uint16_t(0x8000 | (camIndex_.load() & 0xff)));
   std::vector<uint8_t> buf(sizeof(hdr) + jpeg.size());
   std::memcpy(buf.data(), hdr, sizeof(hdr));
