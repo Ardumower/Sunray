@@ -19,6 +19,7 @@ assert 'drawFrameTimestamp(' in fallback and 'CAM ERROR' in fallback
 
 harness = r'''
 #include "src/camera/FrameTimestamp.h"
+#include "src/camera/StreamGeometry.h"
 #include <algorithm>
 #include <cassert>
 #include <cstring>
@@ -29,6 +30,16 @@ harness = r'''
 '''
 tests = r'''
 int main(int argc,char** argv){
+ // Widescreen, 4:3 and portrait cameras keep all image edges without
+ // exceeding the requested transport size. No 16:9 -> 4:3 distortion.
+ auto size=CameraStream::fit(640,360,160,120);
+ assert(size.width==160 && size.height==90);
+ size=CameraStream::fit(640,480,160,120);
+ assert(size.width==160 && size.height==120);
+ size=CameraStream::fit(360,640,160,120);
+ assert(size.width==67 && size.height==120);
+ size=CameraStream::fit(1920,1080,320,240);
+ assert(size.width==320 && size.height==180);
  setenv("TZ","UTC",1);tzset();
  using namespace std::chrono;
  CameraFrameClock clock(1000,system_clock::time_point(milliseconds(10000)));

@@ -1,6 +1,6 @@
 #include "comm.h"
 #ifdef __linux__
-extern "C" void cameraStreamerStart(int index, int width, int height, int fps, int quality);
+extern "C" void cameraStreamerStart(int index, int width, int height, int fps, int quality, bool auxiliaryViews);
 extern "C" void cameraStreamerStop();
 #endif
 #include "config.h"
@@ -1056,18 +1056,19 @@ void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose)
   }
 }
 
-// Handle AT+CAM,enable,index,width,height,fps
+// Handle AT+CAM,enable,index,width,height,fps[,quality[,auxiliaryViews]]
 void Comm::cmdCamera() {
   // Parse numeric args from member 'cmd'
-  int commas[6] = {0}; int n = 0;
-  for (int i = 0; i < (int)cmd.length() && n < 6; i++) if (cmd[i] == ',') commas[n++] = i;
+  int commas[7] = {0}; int n = 0;
+  for (int i = 0; i < (int)cmd.length() && n < 7; i++) if (cmd[i] == ',') commas[n++] = i;
   int enable = 0, idx = 0, w = 160, h = 120, fps = 5, quality = 70;
   if (n >= 1) enable = cmd.substring(commas[0]+1, (n>=2?commas[1]:cmd.length())).toInt();
   if (n >= 2) idx = cmd.substring(commas[1]+1, (n>=3?commas[2]:cmd.length())).toInt();
   if (n >= 3) w = cmd.substring(commas[2]+1, (n>=4?commas[3]:cmd.length())).toInt();
   if (n >= 4) h = cmd.substring(commas[3]+1, (n>=5?commas[4]:cmd.length())).toInt();
   if (n >= 5) fps = cmd.substring(commas[4]+1, (n>=6?commas[5]:cmd.length())).toInt();
-  if (n >= 6) quality = cmd.substring(commas[5]+1).toInt();
+  if (n >= 6) quality = cmd.substring(commas[5]+1, (n>=7?commas[6]:cmd.length())).toInt();
+  const bool auxiliaryViews = n < 7 || cmd.substring(commas[6]+1).toInt() != 0;
 #ifdef __linux__
   if (enable) {
     // Clamp to supported range
@@ -1078,14 +1079,15 @@ void Comm::cmdCamera() {
     CONSOLE.print("AT+CAM start idx="); CONSOLE.print(idx);
     CONSOLE.print(" -> "); CONSOLE.print(w); CONSOLE.print("x"); CONSOLE.print(h);
     CONSOLE.print(" @"); CONSOLE.print(fps);
-    CONSOLE.print(" q="); CONSOLE.println(quality);
-    cameraStreamerStart(idx, w, h, fps, quality);
+    CONSOLE.print(" q="); CONSOLE.print(quality);
+    CONSOLE.print(" aux="); CONSOLE.println(auxiliaryViews ? 1 : 0);
+    cameraStreamerStart(idx, w, h, fps, quality, auxiliaryViews);
   } else {
     CONSOLE.println("AT+CAM stop");
     cameraStreamerStop();
   }
 #else
-  (void)enable; (void)idx; (void)w; (void)h; (void)fps;
+  (void)enable; (void)idx; (void)w; (void)h; (void)fps; (void)quality; (void)auxiliaryViews;
 #endif
   cmdAnswer("OK");
 }

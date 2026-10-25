@@ -114,9 +114,12 @@ Firmware Update (Linux targets)
 - `AT+U1,<url>` → Trigger firmware update via installer script. Ack: `U1,0xHH`
 
 Camera (Linux targets)
-- `AT+CAM,<enable>,<index>,<width>,<height>,<fps>[,<quality>]`
+- `AT+CAM,<enable>,<index>,<width>,<height>,<fps>[,<quality>[,<auxiliaryViews>]]`
   - Starts/stops MJPEG streaming via cloud WebSocket when enabled.
   - Defaults and clamps: width 160..640, height 120..480, fps 1..10, quality 10..95.
+  - Width and height bound the transmitted image; its source aspect ratio is retained (e.g. a 16:9 camera requested at 160×120 sends 160×90).
+  - Optional `auxiliaryViews`: 0 sends only the selected view; 1 (default for older clients) also sends raw/texture companion views for indices 101/0. The cloud enables companions only for active subscribers to those views.
+  - Operate and Joystick default to the Slow LTE profile (160×120 bounding box, 1 fps, JPEG quality 25). Balanced and Detail profiles are selectable.
   - Ack: `OK,0xHH`
 
 Diagnostics and Developer Tools

@@ -21,7 +21,7 @@ public:
   static CameraStreamer& instance();
 
   void setSender(Sender s);
-  void start(int index, int width, int height, int fps, int quality = 70);
+  void start(int index, int width, int height, int fps, int quality = 70, bool auxiliaryViews = true);
   void stop();
   void setGrassMonitoring(bool enabled);
   void enableReflectorStripsDetection(int index, int fps);
@@ -53,6 +53,7 @@ private:
   std::atomic<int> reqH_{120};
   std::atomic<int> reqFps_{5};
   std::atomic<int> reqQ_{70};
+  std::atomic<bool> auxiliaryViews_{true};
   std::atomic<int> reflectorCamIndex_{0};
   std::atomic<int> reflectorFps_{10};
 };

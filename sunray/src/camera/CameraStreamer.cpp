@@ -13,6 +13,7 @@
 #include "ImageDarkness.h"
 #include "LatestFrameWorker.h"
 #include "FrameTimestamp.h"
+#include "StreamGeometry.h"
 #include "Console.h"
 // Access motor speed setpoints via C-accessors (to avoid Arduino header conflicts)
 extern "C" float cameraGetLinearSet();
@@ -85,13 +86,14 @@ CameraStreamer::~CameraStreamer() {
 
 void CameraStreamer::setSender(Sender s) { std::lock_guard<std::mutex> lk(mtx_); sender_ = std::move(s); }
 
-void CameraStreamer::start(int index, int width, int height, int fps, int quality) {
+void CameraStreamer::start(int index, int width, int height, int fps, int quality, bool auxiliaryViews) {
   camIndex_.store(index);
   reqW_.store(width);
   reqH_.store(height);
   reqFps_.store((fps <= 0) ? 5 : fps);
   if (quality < 10) quality = 10; if (quality > 95) quality = 95;
   reqQ_.store(quality);
+  auxiliaryViews_.store(auxiliaryViews);
   streamingRequested_.store(true);
   CONSOLE.print("CAM start idx="); CONSOLE.print(index);
   CONSOLE.print(" req="); CONSOLE.print(width); CONSOLE.print("x"); CONSOLE.print(height);
@@ -245,7 +247,7 @@ static void drawChar5x7(uint8_t* img, int w, int h, int x, int y, char c, int sc
 
 // When not building for Linux, provide no-op C hooks so the
 // rest of the firmware can link without pulling in Linux-only camera code.
-extern "C" void cameraStreamerStart(int, int, int, int, int) {}
+extern "C" void cameraStreamerStart(int, int, int, int, int, bool) {}
 extern "C" void cameraStreamerStop() {}
 extern "C" void cameraReflectorStripsEnable(int, int) {}
 extern "C" bool cameraReflectorStripsFound() { return false; }
@@ -609,6 +611,8 @@ void CameraStreamer::runCaptureSession() {
         }
         if (shouldSend) {
           const int outputIndex=camIndex_.load();
+          const auto size=CameraStream::fit(srcW,srcH,outW,outH);
+          outW=size.width; outH=size.height;
           std::vector<uint8_t> outRGB((size_t)outW * (size_t)outH * 3);
           resizeNearestRGB(rgb.data(), srcW, srcH, outRGB.data(), outW, outH);
           std::vector<uint8_t> rawView;
@@ -671,10 +675,10 @@ void CameraStreamer::runCaptureSession() {
           // Normal and texture views share one physical capture. Tag and send
           // them separately so concurrent browsers cannot receive each other's
           // overlay. An auxiliary texture frame is sent only when it is new.
-          if(outputIndex==101){
+          if(auxiliaryViews_.load() && outputIndex==101){
             GrassObstacle::drawContour(rawView.data(),outW,outH,GrassOverlay::obstacleState());
             sendView(rawView,timestampMs,0);
-          }else if(outputIndex==0){
+          }else if(auxiliaryViews_.load() && outputIndex==0){
             std::vector<uint8_t> jpeg,classified;uint64_t stamp=0;int w=0,h=0;
             if(TextureFiles::overlay(jpeg,timestampMs,stamp) && stamp!=lastTextureView &&
                jpegDecodeToRGB(jpeg.data(),jpeg.size(),classified,w,h)){
@@ -699,7 +703,7 @@ void CameraStreamer::runCaptureSession() {
   reflectorWorker.stop();
 }
 
-extern "C" void cameraStreamerStart(int index, int width, int height, int fps, int quality) { CameraStreamer::instance().start(index, width, height, fps, quality); }
+extern "C" void cameraStreamerStart(int index, int width, int height, int fps, int quality, bool auxiliaryViews) { CameraStreamer::instance().start(index, width, height, fps, quality, auxiliaryViews); }
 extern "C" void cameraStreamerStop() { CameraStreamer::instance().stop(); }
 extern "C" void cameraReflectorStripsEnable(int index, int fps) { CameraStreamer::instance().enableReflectorStripsDetection(index, fps); }
 extern "C" bool cameraReflectorStripsFound() {
