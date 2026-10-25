@@ -46,6 +46,7 @@ void MowOp::begin(){
     // distance to the handoff point alone cannot distinguish the mowing field.
     float dockX,dockY,dockHeading;
     bool resumeCamera = false;
+    bool clearStaleDockRoute = false;
     if (maps.dockPoints.numPoints >= 2 && maps.getDockingPos(dockX,dockY,dockHeading)) {
         const float x=stateEstimator.stateX,y=stateEstimator.stateY;
         const int handoffIndex=ReflectorDockingGate::handoffIndex(maps.dockPoints.numPoints);
@@ -57,8 +58,12 @@ void MowOp::begin(){
                 maps.dockPoints.points[i].x(),maps.dockPoints.points[i].y(),0.75f);
         const float facing=std::cos(stateEstimator.stateDelta-dockHeading-(DOCK_FRONT_SIDE?0:PI));
         const bool knownDockPath=maps.wayMode==WAY_DOCK;
+        // Seeing the station from the field does not mean we are inside it.
+        // Apply the same station-side boundary as Dock command entry.
+        const bool stationSide=DockMarkerSearch::eligible(x,y,
+            maps.dockPoints.points[handoffIndex].x(),maps.dockPoints.points[handoffIndex].y(),dockX,dockY);
         const bool markerEntry = ReflectorDockingGate::cameraEntryAllowed(
-            cameraReflectorStripsFound(),ReflectorDockingGate::nearCameraPath(x,y,
+            cameraReflectorStripsFound(),stationSide && ReflectorDockingGate::nearCameraPath(x,y,
                 maps.dockPoints.points[handoffIndex].x(),maps.dockPoints.points[handoffIndex].y(),
                 dockX,dockY),cameraReflectorStripsHorizontalError());
         // Keep the existing narrow-corridor recovery: with no marker it waits
@@ -66,6 +71,14 @@ void MowOp::begin(){
         inCorridor |= markerEntry;
         resumeCamera = ReflectorDockingGate::resumeUndocking(std::sqrt(dx*dx+dy*dy),
             DOCK_REFLECTOR_STRIPS_HANDOFF_RADIUS,inCorridor,knownDockPath || markerEntry,facing);
+        // Idle/restart can retain WAY_DOCK after the robot has left the camera
+        // corridor. A fixed GPS pose before the handoff must start a fresh
+        // route from its real position, rather than acquire markers forever.
+        const float routeDx=dockX-maps.dockPoints.points[handoffIndex].x();
+        const float routeDy=dockY-maps.dockPoints.points[handoffIndex].y();
+        const bool beforeHandoff=dx*routeDx+dy*routeDy<0;
+        clearStaleDockRoute=knownDockPath && !resumeCamera && beforeHandoff &&
+            gps.solution==SOL_FIXED && !battery.chargerConnected();
     }
     if (resumeCamera){
         maps.wayMode=WAY_DOCK;
@@ -76,6 +89,12 @@ void MowOp::begin(){
         stateEstimator.dockReflectorStripsUndockCompleted=false;
         motor.stopImmediately(true);
         CONSOLE.println("undock: Mow resumes dock corridor with camera acquisition");
+    } else if (clearStaleDockRoute) {
+        maps.setIsDocked(false);
+        stateEstimator.reflectorDockingGate.reset();
+        stateEstimator.dockReflectorStripsActive=false;
+        stateEstimator.dockReflectorStripsUndockCompleted=false;
+        CONSOLE.println("Mow: cleared stale dock route before camera handoff; planning from current GPS position");
     }
 #endif
 

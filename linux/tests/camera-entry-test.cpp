@@ -19,6 +19,9 @@ struct Map {
 } maps;
 struct {float stateX=2,stateY=0,stateDelta=0;} stateEstimator;
 int idleOp,otherOp,imuCalibrationOp;
+enum {SOL_INVALID,SOL_FLOAT,SOL_FIXED};
+struct {int solution=SOL_FIXED;} gps;
+struct {bool connected=false;bool chargerConnected(){return connected;}} battery;
 bool initiatedByOperator=true;
 int* previousOp=&idleOp;
 bool marker=true;
@@ -32,6 +35,10 @@ bool dock(){
 bool undock(){
 #include "undock-entry-production.inc"
  return resumeCamera;
+}
+bool clearsStaleRoute(){
+#include "undock-entry-production.inc"
+ return clearStaleDockRoute;
 }
 int main(){
  assert(dock());assert(undock());
@@ -50,7 +57,12 @@ int main(){
  // Regression: the 2 m endpoint circle includes locations before the handoff.
  // Even a stable marker there must not skip the GPS approach at command entry.
  for(float x:{-1.5f,-1.0f,-0.01f}) {
-   stateEstimator.stateX=x;assert(!dock());
+   stateEstimator.stateX=x;assert(!dock());assert(!undock());
+   maps.wayMode=WAY_DOCK;
+   assert(!undock());assert(clearsStaleRoute());
+   gps.solution=SOL_FLOAT;assert(!clearsStaleRoute());gps.solution=SOL_FIXED;
+   battery.connected=true;assert(!clearsStaleRoute());battery.connected=false;
+   maps.wayMode=0;assert(!clearsStaleRoute());
  }
  // A scan authorized by the route gate within the 1 m tolerance can acquire.
  stateEstimator.stateX=-0.5f;cameraSearch.start(0,0);assert(dock());cameraSearch.reset();
@@ -66,6 +78,8 @@ int main(){
  assert(dock());assert(!undock()); // already at 1 m handoff: do not restart camera exit
  stateEstimator.stateX=1.01f;assert(undock());
  marker=false;assert(!dock());assert(undock()); // narrow corridor still acquires while stopped
+ // Genuine station-side exits retain their camera guidance, with stale WAY_DOCK too.
+ maps.wayMode=WAY_DOCK;stateEstimator.stateX=2;assert(undock());assert(!clearsStaleRoute());maps.wayMode=0;
  marker=true;frontDock=false;stateEstimator.stateDelta=PI;
  assert(dock());assert(undock());
  stateEstimator.stateDelta=0;assert(dock());assert(undock());
