@@ -86,7 +86,7 @@ int BridgeSecureClient::connect(const char *host, uint16_t port) {
     sock = ::socket(p->ai_family, p->ai_socktype, p->ai_protocol);
     if (sock < 0) continue;
     // Bound TCP/TLS stalls in the network worker so it can reconnect.
-    timeval timeout={2,0};
+    timeval timeout={15,0};
     setsockopt(sock,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));
     setsockopt(sock,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));
     if (::connect(sock, p->ai_addr, p->ai_addrlen) == 0) break;

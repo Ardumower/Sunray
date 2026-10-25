@@ -107,7 +107,7 @@ private:
         for(const auto& image:images)
           if(!image.empty() && !transport.binary(image.data(),image.size())){failed=true;break;}
         if(failed)break;
-        if(Clock::now()-lastReceive>std::chrono::seconds(15)) break;
+        if(Clock::now()-lastReceive>std::chrono::seconds(180)) break;
         wait(5);
       }
       clear();transport.close();wait(retryMs);

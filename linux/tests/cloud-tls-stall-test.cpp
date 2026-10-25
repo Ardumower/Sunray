@@ -26,7 +26,7 @@ int main(){
  io.receive=[](std::string&){return false;};io.send=[](const std::string&){return true;};io.binary=[](const unsigned char*,size_t){return true;};
  auto started=millis();unsigned polls=0;unsigned long worst=0;
  {CloudWorker worker(io,10000);worker.start();
-  while(!finished.load() && millis()-started<5000){auto a=millis();CloudWorker::Request r;worker.take(r);worker.reply(0,"");worst=std::max(worst,millis()-a);++polls;std::this_thread::sleep_for(std::chrono::milliseconds(5));}
+  while(!finished.load() && millis()-started<20000){auto a=millis();CloudWorker::Request r;worker.take(r);worker.reply(0,"");worst=std::max(worst,millis()-a);++polls;std::this_thread::sleep_for(std::chrono::milliseconds(5));}
   assert(accepted.load());assert(finished.load());assert(polls>100);assert(worst<50);
  }
  release=true;server.join();close(listener);

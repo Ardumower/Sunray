@@ -40,6 +40,9 @@ int main(){
   raw[16]=1;w.camera(raw,17);texture[16]=1;w.camera(texture,17);
   raw[16]=2;w.camera(raw,17);texture[16]=2;w.camera(texture,17);
   f.gate=0;until([&]{return seen.load()==3;});}
+ // A quiet LTE connection survives missing replies beyond the former 15 s limit.
+ {Fake f;f.receives=1;CloudWorker w(f.io(),5);w.start();until([&]{return f.connects==1;});
+  std::this_thread::sleep_for(std::chrono::seconds(16));assert(f.connects==1);assert(w.connected());controlProbe(w);}
  // Expired commands are never executed after a control pause.
  {Fake f;CloudWorker w(f.io(),5);w.start();until([&]{return f.receives>0;});std::this_thread::sleep_for(std::chrono::milliseconds(550));CloudWorker::Request r;assert(!w.take(r));}
  // Disconnect/reconnect clears session state, rejects old replies.

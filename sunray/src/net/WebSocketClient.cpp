@@ -136,7 +136,7 @@ bool WebSocketClient::handshake() {
 
 bool WebSocketClient::readHttpHeaders() {
   // Wait for HTTP response and parse status line + headers until blank line
-  unsigned long timeout = millis() + 5000;
+  unsigned long timeout = millis() + 30000;
   String line;
   bool first = true;
   bool ok = false;
@@ -210,6 +210,8 @@ bool WebSocketClient::readExact(uint8_t* buf, size_t len, unsigned long timeoutM
       int b = _client.read();
       if (b < 0) continue;
       buf[got++] = (uint8_t)b;
+    } else {
+      delay(1);
     }
   }
   return got == len;
@@ -221,17 +223,24 @@ bool WebSocketClient::pollText(String& out) {
   if (!connectedUnlocked()) return false;
   if (!_client.available()) return false;
 
+  // A frame can span several LTE packets with long gaps between them.
+  // Bound the whole frame, rather than losing parser state after 50 ms.
+  const unsigned long frameStarted = millis();
+  auto readFrame = [this, frameStarted](uint8_t* data, size_t count) {
+    const unsigned long elapsed = millis() - frameStarted;
+    return elapsed < 30000 && readExact(data, count, 30000 - elapsed);
+  };
   // Parse a single frame (no fragmentation)
   uint8_t hdr1, hdr2;
-  if (!readExact(&hdr1, 1, 50)) return false;
-  if (!readExact(&hdr2, 1, 50)) return false;
+  if (!readFrame(&hdr1, 1)) { closeUnlocked(); return false; }
+  if (!readFrame(&hdr2, 1)) { closeUnlocked(); return false; }
   uint8_t opcode = hdr1 & 0x0F;
   bool fin = (hdr1 & 0x80) != 0;
   bool masked = (hdr2 & 0x80) != 0;
   uint64_t len = (hdr2 & 0x7F);
   if (len == 126) {
     uint8_t ext[2];
-    if (!readExact(ext, 2, 50)) return false;
+    if (!readFrame(ext, 2)) { closeUnlocked(); return false; }
     len = ((uint16_t)ext[0] << 8) | (uint16_t)ext[1];
   } else if (len == 127) {
     CONSOLE.println("WS: unsupported header len: 127");
@@ -243,18 +252,17 @@ bool WebSocketClient::pollText(String& out) {
   if(len>65536) { closeUnlocked(); return false; }
   uint8_t maskKey[4] = {0,0,0,0};
   if (masked) {
-    if (!readExact(maskKey, 4, 50)) return false;
+    if (!readFrame(maskKey, 4)) { closeUnlocked(); return false; }
   }
   // Control frames (ping/pong/close)
   if (opcode == 0x8) { // close
     uint16_t code = 0;
     String reason;
     if (len >= 2) {
-      uint8_t b[2]; if (!readExact(b, 2, 50)) { closeUnlocked(); return false; }
+      uint8_t b[2]; if (!readFrame(b, 2)) { closeUnlocked(); return false; }
       code = ((uint16_t)b[0] << 8) | (uint16_t)b[1];
       for (uint64_t i = 2; i < len; i++) {
-        int ch = -1; unsigned long t = millis() + 50; while (ch < 0 && millis() < t) { if (_client.available()) ch = _client.read(); }
-        if (ch < 0) break; reason += (char)ch;
+        uint8_t ch; if (!readFrame(&ch, 1)) break; reason += (char)ch;
       }
     } else {
       // consume any remaining bytes just in case
@@ -268,10 +276,8 @@ bool WebSocketClient::pollText(String& out) {
     // Consume payload and reply pong with same payload
     String payload;
     for (uint64_t i = 0; i < len; i++) {
-      int b = -1;
-      unsigned long t = millis() + 50;
-      while (b < 0 && millis() < t) { if (_client.available()) b = _client.read(); }
-      if (b < 0) break;
+      uint8_t b;
+      if (!readFrame(&b, 1)) { closeUnlocked(); return false; }
       char c = masked ? ((uint8_t)b) ^ maskKey[i % 4] : (char)b;
       payload += c;
     }
@@ -293,10 +299,8 @@ bool WebSocketClient::pollText(String& out) {
   }
   // Read text
   for (uint64_t i = 0; i < len; i++) {
-    int b = -1;
-    unsigned long t = millis() + 100;
-    while (b < 0 && millis() < t) { if (_client.available()) b = _client.read(); }
-    if (b < 0) { CONSOLE.println("WS: timeout, closing"); closeUnlocked(); return false; }
+    uint8_t b;
+    if (!readFrame(&b, 1)) { CONSOLE.println("WS: timeout, closing"); closeUnlocked(); return false; }
     char c = masked ? ((uint8_t)b) ^ maskKey[i % 4] : (char)b;
     out += c;
   }
