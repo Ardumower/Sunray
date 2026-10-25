@@ -1004,6 +1004,19 @@ void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose)
   if (cmd[3] == 'N') cmdWayCount();
   if (cmd[3] == 'X') cmdExclusionCount();
   if (cmd[3] == 'V') cmdVersion();  
+  if (cmd == "AT+PB") { cmdAnswer("PB,READY"); return; }
+  if (cmd.startsWith("AT+PB,")) {
+    // One cloud command per physical press; no held-state replay.
+    const String button = cmd.substring(6);
+    CONSOLE.print("PUSHBOX cloud: "); CONSOLE.println(button);
+    if (button == "1") setOperation(OP_MOW, false);
+    else if (button == "2") Logger.event(EVT_AUDIO_SHEEP);
+    else if (button == "4") setOperation(OP_DOCK, false);
+    else if (button == "8") setOperation(OP_IDLE, false);
+    else { cmdAnswer("PB,INVALID"); return; }
+    buzzer.sound(SND_READY, true);
+    cmdAnswer("PB,OK"); return;
+  }
   if (cmd[3] == 'P') cmdPosMode();  
   if (cmd[3] == 'T'){ 
     if ((cmd.length() > 4) && (cmd[4] == 'T')) cmdTimetable();
