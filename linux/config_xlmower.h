@@ -708,3 +708,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
     #include <Console.h>
   #endif
 #endif
+
+// IO extension LED scenes: provisional outer-corner layout approved for initial operation.
+#define IOEXT_LIGHTS_ENABLE true
+#define IOEXT_LIGHTS_BRIGHTNESS 5 // percent; ceiling also for the full-charge marker
+#define IOEXT_LIGHTS_CHARGE_SELECTION 3 // 1=front, 2=rear, 3=both
+#define IOEXT_LIGHTS_EMPTY_VOLTAGE 23.0 // display estimate, not battery protection

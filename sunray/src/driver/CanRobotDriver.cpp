@@ -5,6 +5,7 @@
 
 
 #include "CanRobotDriver.h"
+#include "../../IoLightsPolicy.h"
 #ifdef __linux__
   #include <LinuxWifiStatus.h>
 #endif
@@ -18,6 +19,22 @@
   #include <sys/mman.h>
   #include <signal.h>
 #endif
+
+// Opt in after checking the physical LED layout on this robot.
+#ifndef IOEXT_LIGHTS_ENABLE
+#define IOEXT_LIGHTS_ENABLE false
+#endif
+#ifndef IOEXT_LIGHTS_BRIGHTNESS
+#define IOEXT_LIGHTS_BRIGHTNESS 5
+#endif
+#ifndef IOEXT_LIGHTS_CHARGE_SELECTION
+#define IOEXT_LIGHTS_CHARGE_SELECTION 3
+#endif
+#ifndef IOEXT_LIGHTS_EMPTY_VOLTAGE
+#define IOEXT_LIGHTS_EMPTY_VOLTAGE GO_HOME_VOLTAGE
+#endif
+static_assert(IOEXT_LIGHTS_BRIGHTNESS >= 0 && IOEXT_LIGHTS_BRIGHTNESS <= 100, "LED brightness must be 0..100");
+static_assert(IOEXT_LIGHTS_CHARGE_SELECTION >= 1 && IOEXT_LIGHTS_CHARGE_SELECTION <= 3, "LED charge selection must be 1..3");
 
 //#define COMM  ROBOT
 
@@ -583,7 +600,7 @@ void CanRobotDriver::sendCanData(int msgId, int destNodeId, canCmdType_t cmd, in
     } else {
       frame.can_dlc = 8;
     }
-    canNodeType_t node;
+    canNodeType_t node = {}; // reserved address bits must be zero
     node.sourceAndDest.sourceNodeID = MY_NODE_ID;
     node.sourceAndDest.destNodeID = destNodeId;    
     frame.data[0] = node.byteVal[0];
@@ -1533,6 +1550,30 @@ void CanRobotDriver::processResponse(){
 
 void CanRobotDriver::run(){  
   unsigned long now = millis();
+  if (IOEXT_LIGHTS_ENABLE){
+    static IoLights::Policy lights;
+    IoLights::Input input;
+    input.station = battery.chargerConnected() || stateEstimator.stateOp == OP_CHARGE;
+    input.charging = battery.chargerConnected() && battery.chargingEnabled;
+    input.full = battery.chargerConnected() && battery.chargingHasCompleted();
+    input.driving = stateEstimator.stateOp == OP_MOW || stateEstimator.stateOp == OP_DOCK;
+    input.dockPath = (stateEstimator.stateOp == OP_MOW && maps.isUndocking()) ||
+                     (stateEstimator.stateOp == OP_DOCK && maps.isDocking());
+    input.linear = motor.linearSpeedSet;
+    input.angular = motor.angularSpeedSet;
+    input.voltage = battery.batteryVoltage;
+    input.emptyVoltage = IOEXT_LIGHTS_EMPTY_VOLTAGE;
+    input.fullVoltage = battery.batFullVoltage;
+    input.brightness = IOEXT_LIGHTS_BRIGHTNESS;
+    input.chargeSelection = IOEXT_LIGHTS_CHARGE_SELECTION;
+    const IoLights::State state = lights.select(input, uint32_t(now));
+    if(lights.due(state,uint32_t(now))){
+      canDataType_t data = {};
+      const uint32_t packed = state.pack();
+      for(unsigned i=0;i<4;i++)data.byteVal[i]=packed>>(8*i);
+      sendCanData(IoLights::CanId,IoLights::Node,can_cmd_set,IoLights::StateCommand,data);
+    }
+  }
   if (simulatePowerOffHangCommandPending && now >= simulatePowerOffHangCommandTime){
     simulatePowerOffHangCommandPending = false;
     simulatePowerOffHangCommandTime = 0;
