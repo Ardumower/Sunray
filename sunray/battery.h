@@ -7,6 +7,7 @@
 
 #ifndef BATTERY_H
 #define BATTERY_H
+#include "BatteryVoltageFilter.h"
 
 
 
@@ -21,6 +22,7 @@ class Battery {
     int enableChargingTimeout;
     float batFullCurrent;
 	  float batteryVoltage;   // volts
+    float batteryVoltageGoHome; // separately filtered return-to-dock voltage
     float batteryVoltageLast;
     float chargingVoltBatteryVoltDiff;    
     float batteryVoltageSlope; // slope (volts/minute)	  
@@ -42,6 +44,7 @@ class Battery {
     void resetIdle();
     void switchOff();
   protected:       
+    BatteryVoltageFilter goHomeVoltageFilter;
     int batteryVoltageSlopeLowCounter;
     int startupPhase;    
     unsigned long nextBatteryTime ;

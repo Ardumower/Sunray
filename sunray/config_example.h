@@ -336,6 +336,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define CURRENT_FACTOR 2.941  // PCB1.4 (bridged INA169, max. 5A)
 
 #define GO_HOME_VOLTAGE   21.5  // start going to dock below this voltage
+#define GO_HOME_VOLTAGE_FILTER_TAU_MS 0UL // optional dock-only low-pass; 180000 = 3 min, 0 = existing voltage filter
 // The battery will charge if both battery voltage is below that value and charging current is above that value.
 #define BAT_FULL_VOLTAGE  28.7  // start mowing again at this voltage
 #define BAT_UNDERVOLTAGE  18.9  // battery switch off voltage

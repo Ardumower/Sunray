@@ -11,6 +11,11 @@
 #include "buzzer.h"
 #include <Arduino.h>
 
+// Existing profiles keep their original voltage decision unless enabled.
+#ifndef GO_HOME_VOLTAGE_FILTER_TAU_MS
+#define GO_HOME_VOLTAGE_FILTER_TAU_MS 0UL
+#endif
+
 // lithium akkus sollten bis zu einem bestimmten wert CC also constant current geladen werden 
 // und danach mit CV constant voltage
 // um die lebensdauer zu erhöhen kann man die max spannung herabsetzen
@@ -35,6 +40,8 @@ void Battery::begin()
   chargingVoltage = 0;
   chargingCompletedDelay =0;
   batteryVoltage = 0;
+  batteryVoltageGoHome = 0;
+  goHomeVoltageFilter.reset();
   chargerConnectedState = false;
   badChargerContactState = false;      
   chargingCompleted = false;
@@ -97,7 +104,7 @@ bool Battery::chargingHasCompleted(){
 
 bool Battery::shouldGoHome(){
   if (startupPhase < 2) return false;  
-  return (batteryVoltage < batGoHomeIfBelow);
+  return (batteryVoltageGoHome < batGoHomeIfBelow);
 }
 
 bool Battery::underVoltage(){
@@ -142,6 +149,9 @@ void Battery::run(){
   float w = 0.995;
   if (chargerConnectedState) w = 0.9;
   batteryVoltage = w * batteryVoltage + (1-w) * voltage;  
+  batteryVoltageGoHome = GO_HOME_VOLTAGE_FILTER_TAU_MS > 0
+      ? goHomeVoltageFilter.update(voltage, uint32_t(millis()), GO_HOME_VOLTAGE_FILTER_TAU_MS)
+      : batteryVoltage;
 
   // difference charging voltage and battery voltage
   chargingVoltBatteryVoltDiff = 0.99 * chargingVoltBatteryVoltDiff + 0.01 * (chargingVoltage - batteryVoltage);  
@@ -235,6 +245,9 @@ void Battery::run(){
         DEBUG(F(" bat: "));
         DEBUG(batteryVoltage);
         DEBUG(F(" V  "));    
+        DEBUG("dockV=");
+        DEBUG(batteryVoltageGoHome);
+        DEBUG(" V  ");
         DEBUG(" diffV=");
         DEBUG(chargingVoltBatteryVoltDiff);
         DEBUG(" slope(v/min)=");

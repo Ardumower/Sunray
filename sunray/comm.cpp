@@ -1180,6 +1180,8 @@ void Comm::outputConsole(){
       CONSOLE.print (" sp=");
       CONSOLE.print (*spReg, HEX);
     #endif
+    CONSOLE.print(" dockV=");
+    CONSOLE.print(battery.batteryVoltageGoHome);
     CONSOLE.print(" bat=");
     CONSOLE.print(battery.batteryVoltage);
     CONSOLE.print(",");
