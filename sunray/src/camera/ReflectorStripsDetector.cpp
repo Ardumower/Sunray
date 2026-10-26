@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <vector>
+#include <deque>
 #include "../../config.h"
 #ifdef min
 #undef min
@@ -289,33 +290,77 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
   // then try local edges before the costly short-gap and dawn fallback scans.
   // Broad low-light chroma rejection predicts that the dawn pass will be useful.
   // Try it before Hough voting in that case. The ordinary pass stays first for
-  // clipped fourth-strip ambiguity, and all passes still examine the full image.
+  // clipped fourth-strip ambiguity. Both edge models still examine the full image.
   const bool preferDawn=dawnPixels>w*h/50;
-  const int normalOrder[]={0,3,4,1,2},dawnOrder[]={0,2,3,4,1};
-  for(int passIndex=0;passIndex<5;++passIndex){
+  // At charging contact, sunlight can merge the upper reflector cores with
+  // the backing. A lower-band pass measures the three visible shaded segments
+  // instead. Enable it only for a broad bright upper image over a dark lower
+  // image; ordinary scenes retain the original full-height rules.
+  const int contactTop=h*11/20; // lower 45%, below a shadow crossing mid-frame
+  unsigned upperBright=0;double upperLight=0,lowerLight=0;
+  for(int y=0;y<h/3;++y)for(int x=0;x<w;++x){upperBright+=neutral[y*w+x]>=230;upperLight+=light[y*w+x];}
+  for(int y=h*2/3;y<h;++y)for(int x=0;x<w;++x)lowerLight+=light[y*w+x];
+  const double upperMean=upperLight/(w*(h/3));
+  const double lowerMean=lowerLight/(w*(h-h*2/3));
+  const bool washedOutTop=upperBright>w*(h/3)*.20f && upperMean>lowerMean+40 && lowerMean<140;
+  std::vector<float> contactLight;
+  if(washedOutTop){
+    // Normalize each row against its local dark gap and bright strip. Sunrise
+    // can illuminate the three strips differently and put several horizontal
+    // shadow edges through one strip. A global brightness threshold then bends
+    // its measured outline. Sliding extrema keep this linear in image size.
+    contactLight.assign(w*h,0);
+    const int radius=std::max(8,w/8);
+    for(int y=contactTop;y<h;++y){
+      std::deque<int> minimum,maximum;int next=0;
+      for(int x=0;x<w;++x){
+        const int end=std::min(w-1,x+radius);
+        for(;next<=end;++next){
+          const float value=light[y*w+next];
+          while(!minimum.empty() && light[y*w+minimum.back()]>=value)minimum.pop_back();
+          while(!maximum.empty() && light[y*w+maximum.back()]<=value)maximum.pop_back();
+          minimum.push_back(next);maximum.push_back(next);
+        }
+        while(minimum.front()<x-radius)minimum.pop_front();
+        while(maximum.front()<x-radius)maximum.pop_front();
+        const float low=light[y*w+minimum.front()],high=light[y*w+maximum.front()];
+        const int i=y*w+x;
+        if(high-low>=8 && light[i]>=12 && neutral[i]>=light[i]*.90f)
+          contactLight[i]=255.f*(light[i]-low)/(high-low);
+      }
+    }
+  }
+  const int normalOrder[]={0,5,3,4,1,2},dawnOrder[]={0,5,2,3,4,1};
+  for(int passIndex=0;passIndex<6;++passIndex){
   const int gapPass=(preferDawn?dawnOrder:normalOrder)[passIndex];
+  const bool contactShadow=gapPass==5;
+  if(contactShadow && !washedOutTop)continue;
+  // The contact pass follows the ordinary component pass, and remains subject
+  // to the full-image edge ambiguity checks. It cannot bypass another marker.
   // Both edge contrast models must agree on a unique triple. A shadowed
   // fourth strip found by the local model must invalidate a three-strip subset.
   if(!markers.empty() && gapPass!=3 && gapPass!=4)continue;
   const bool edgePass=gapPass==3 || gapPass==4;
-  const auto& maskLight=gapPass>=2?dawnNeutral:neutral;
+  const auto& maskLight=contactShadow?contactLight:gapPass>=2?dawnNeutral:neutral;
+  std::vector<Strip> contactCandidates;
   for(float fraction : {.05f,.075f,.10f,.15f,.20f,.25f,.30f,.35f,.40f,.45f,.50f,.55f,.60f,.70f,.85f}){
     if(edgePass && fraction!=.25f)continue;
-    if(gapPass!=2 && fraction<.25f)continue;
+    if(gapPass!=2 && !contactShadow && fraction<.25f)continue;
     std::vector<Strip> strips;
     if(edgePass)strips=gradientStrips(light,dawnNeutral,w,h,gapPass==4,gradientData);
     else {
     const float threshold=std::max(6.0f,maximum*fraction);
-    // Search complete components, including their portion above the lower-image
-    // anchor. A close marker may extend upwards while still standing below it.
+    // Normally search complete components above the lower-image anchor too.
+    // For washed-out contact, require every segment to span the entire lower
+    // band, with strong measured contrast and a minimum width on each strip.
     // Bridge only short vertical interruptions (e.g. a cable); never bridge the
     // horizontal dark gaps separating the three strips.
     std::vector<uint8_t> mask(w*h,0);
-    for(int i=0;i<w*h;++i)mask[i]=maskLight[i]>=threshold;
+    for(int i=0;i<w*h;++i)mask[i]=maskLight[i]>=threshold && (!contactShadow || i/w>=contactTop);
     const int maxGap=gapPass!=1?std::max(1,int(h*.04f)):2;
     for(int x=0;x<w;++x){
       int previous=-1;
-      for(int y=0;y<h;++y)if(maskLight[y*w+x]>=threshold){
+      for(int y=contactShadow?contactTop:0;y<h;++y)if(maskLight[y*w+x]>=threshold){
         if(previous>=0 && y-previous-1<=maxGap)
           for(int yy=previous+1;yy<y;++yy)mask[yy*w+x]=1;
         previous=y;
@@ -346,18 +391,21 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
       // three strips to span most of the image. Side clipping has additional
       // outer-strip checks when forming a triple below.
       // Width is bounded separately; the triple geometry and aspect ratio
-      // continue to reject broad bright panels.
+      // continue to reject broad bright panels. The contact pass measures a
+      // deliberately shorter band; its aspect ratio is relative to that band,
+      // and its triple must include an actually clipped outer strip.
       const bool cropped=miny<=0 || maxy>=h-1;
       const bool leftCut=minx<2,rightCut=maxx>=w-2;
-      const bool close=cropped && bh>=h*.85f;
-      if((cropped && bh<h*.70f) || maxy<roi || ((leftCut || rightCut) && !close) ||
+      const bool close=cropped && bh>=h*(contactShadow?.35f:.85f);
+      if(contactShadow && (miny!=contactTop || maxy!=h-1))continue;
+      if((cropped && bh<h*(contactShadow?.35f:.70f)) || maxy<roi || ((leftCut || rightCut) && !close) ||
          bh<h*DOCK_REFLECTOR_STRIPS_MIN_VERTICAL_SPAN || maxy<h*.50f)continue;
       double sx=0,sy=0,sxy=0,syy=0;float widths=0;int rows=0;
       for(int y=miny;y<=maxy;++y)if(count[y]){
         const float x=sumx[y]/count[y];++rows;sx+=x;sy+=y;sxy+=x*y;syy+=y*y;widths+=right[y]-left[y]+1;
       }
       const float bw=widths/rows;
-      if(bw<1.5f || bw>w*(close?.22f:.16f) || bh<bw*(close?2.5f:3.f) || rows<bh*.9f || queue.size()<widths*.55f)continue;
+      if(bw<(contactShadow?w*.06f:1.5f) || bw>w*(close?.22f:.16f) || bh<bw*(contactShadow?1.25f:close?2.5f:3.f) || rows<bh*.9f || queue.size()<widths*.55f)continue;
       const double denominator=rows*syy-sy*sy;
       const float slope=denominator>0?(rows*sxy-sx*sy)/denominator:0;
       const float intercept=(sx-slope*sy)/rows;
@@ -379,6 +427,21 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
       strips.push_back({float(sx/rows),float(sy/rows),bw,bh,slope,float(miny),float(maxy),cropped,leftCut,rightCut});
     }
     } // threshold component pass
+    if(contactShadow){
+      // The three reflectors may have different exposure. Collect measured
+      // segments across thresholds, then validate their shared geometry and
+      // actual inter-strip contrast together. No strip is extrapolated.
+      for(const auto& candidate:strips){
+        bool duplicate=false;
+        for(const auto& old:contactCandidates)
+          if(std::fabs(candidate.x-old.x)<std::min(candidate.width,old.width)*.15f &&
+             similar(candidate.width,old.width,1.15f) &&
+             std::fabs(candidate.slope-old.slope)<.05f)duplicate=true;
+        if(!duplicate && contactCandidates.size()<65)contactCandidates.push_back(candidate);
+      }
+      if(fraction!=.85f)continue;
+      strips=contactCandidates;
+    }
     // Bound combinatorial work in highly textured scenes; abstain at that level.
     // The edge pool combines two bounded models; allow their union rather
     // than dropping an otherwise valid frame just above the single-model cap.
@@ -392,6 +455,9 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
       if(a[0]->rightCut || a[1]->leftCut || a[1]->rightCut || a[2]->leftCut)continue;
       const bool bothSidesCut=a[0]->leftCut && a[2]->rightCut;
       const bool sideCut=a[0]->leftCut || a[2]->rightCut;
+      // Restrict the shorter-band exception to the extreme near field.
+      // It must not turn three short interior objects into a docking marker.
+      if(contactShadow && !sideCut)continue;
       float effectiveW[3]={a[0]->width,a[1]->width,a[2]->width};
       if(sideCut){
         // Relaxed low-light colour must not join a reflector to bright scenery
@@ -404,13 +470,13 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
         // bright scenery at a side border plus two real strips can form a
         // spurious second triple while the actual marker's ends are visible.
         if(!a[0]->cropped || !a[1]->cropped || !a[2]->cropped)continue;
-        if(a[0]->height<h*.85f || a[1]->height<h*.85f || a[2]->height<h*.85f)continue;
+        if(a[0]->height<h*(contactShadow?.35f:.85f) || a[1]->height<h*(contactShadow?.35f:.85f) || a[2]->height<h*(contactShadow?.35f:.85f))continue;
         if(bothSidesCut){
           // No complete outer width is available. Require all three strips
-          // to span BOTH vertical borders and substantial, comparable visible
+          // to span BOTH measured vertical borders and substantial, comparable visible
           // outer segments. Use only a conservative lower bound on full width;
           // the directly measured middle strip remains the steering target.
-          if(a[0]->top>0 || a[1]->top>0 || a[2]->top>0 ||
+          if(a[0]->top>(contactShadow?contactTop:0) || a[1]->top>(contactShadow?contactTop:0) || a[2]->top>(contactShadow?contactTop:0) ||
              a[0]->bottom<h-1 || a[1]->bottom<h-1 || a[2]->bottom<h-1)continue;
           // Unequal clipping does not imply unequal physical strip widths.
           // Keep one substantial outer segment and at least an 18%-width
@@ -444,7 +510,7 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
       const float endSpread=std::max(a[0]->bottom,std::max(a[1]->bottom,a[2]->bottom))-bottom;
       const bool alignedLowerEdges=edgePass && endSpread<=minW*.25f &&
         bottom-top>=minW*3 && minH>=h*.45f && bottom>=h*.85f;
-      if(clippedEnds && minH<h*.70f && (!edgePass || clippedEnds!=1) && !alignedLowerEdges)continue;
+      if(!contactShadow && clippedEnds && minH<h*.70f && (!edgePass || clippedEnds!=1) && !alignedLowerEdges)continue;
       // In the extreme near field, perspective/lens distortion can make the
       // centre wider than both outer strips. Compare it to their mean, while
       // still requiring the outer pair to agree. This rule applies equally
@@ -460,9 +526,11 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
       if(!similar(minH,maxH,alignedLowerEdges?1.8f:DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO) ||
          (!similar(minW,maxW,DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO) && !nearWidths) || bottom-top<(edgePass?std::max(minH*.80f,(alignedLowerEdges?maxH*.55f:maxH*.70f-3.f)):maxH*.70f))continue;
       // At full-height, side-clipped contact range the wide-angle image
-      // bends outer strips away from the centre. Keep the stricter parallel
-      // check everywhere else; all individual slope/contrast checks remain.
-      const float slopeDifference=bothSidesCut?.20f:.12f;
+      // bends outer strips away from the centre. The lower contact band
+      // emphasizes that curvature; allow a small additional difference there.
+      // Keep the stricter parallel check elsewhere and retain individual
+      // slope/contrast checks.
+      const float slopeDifference=(bothSidesCut || contactShadow)?.20f:.12f;
       if(std::fabs(a[0]->slope-a[1]->slope)>slopeDifference ||
          std::fabs(a[2]->slope-a[1]->slope)>slopeDifference)continue;
       const float y=(top+bottom)*.5f;
@@ -489,7 +557,7 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
         const float core=std::min(light[yy*w+int(xs[0])],std::min(light[yy*w+int(xs[1])],light[yy*w+int(xs[2])]));
         bool gapsDark=true,localGapsDark=true;
         for(int gap=0;gap<2;++gap){
-          if(edgePass){
+          if(edgePass || contactShadow){
             // A sun/shadow boundary may cross the gap itself. Compare each
             // facing edge to its own neighbouring background, never a shaded
             // strip to unrelated sunlit pixels halfway across the gap.
@@ -513,13 +581,33 @@ void ReflectorStripsDetector::processRgb(const uint8_t* rgb,int width,int height
           if(light[yy*w+int((xs[gap]+xs[gap+1])*.5f)]>=limit)gapsDark=false;
         }
         if(gapsDark)++dark;
-        if(edgePass && localGapsDark)++darkLocal;
+        if((edgePass || contactShadow) && localGapsDark)++darkLocal;
       }
       if(dark<total*.8f && darkLocal<total*.8f)continue;
       m.width=minW;m.span=minH/h;m.quality=(minH/maxH+minW/maxW+std::min(d1,d2)/std::max(d1,d2))/3;
       // Unequal visible ends provide weaker evidence than a complete triple.
       // Do not let an overlap-tolerant background hypothesis displace it.
       if(edgePass && bottom-top<maxH*.70f)m.quality-=.05f;
+      if(contactShadow){
+        // Local illumination may make only one subset of four stripes pass
+        // the gap test. A measured fourth continuation still makes it
+        // ambiguous, even when that second triplet fails its own contrast.
+        bool fourth=false;
+        for(const auto& extra:contactCandidates){
+          const bool cut=extra.leftCut || extra.rightCut;
+          if(extra.width<m.width*(cut?.5f:1.f/float(DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO)) ||
+             extra.width>m.width*DOCK_REFLECTOR_STRIPS_MAX_SIZE_RATIO ||
+             std::fabs(extra.slope-a[1]->slope)>slopeDifference)continue;
+          float x=extra.x+extra.slope*(y-extra.y);
+          if(extra.leftCut)x-=std::max(0.f,m.width-extra.width)*.5f;
+          if(extra.rightCut)x+=std::max(0.f,m.width-extra.width)*.5f;
+          bool selected=false;
+          for(float centre:m.x)if(std::fabs(x-centre)<std::max(m.width,extra.width)*.6f)selected=true;
+          if(!selected && (std::fabs(x-(m.x[0]-d1))<m.width*.6f ||
+                           std::fabs(x-(m.x[2]+d2))<m.width*.6f)){fourth=true;break;}
+        }
+        if(fourth)continue;
+      }
       bool duplicate=false;
       for(auto& old:markers){
         bool same=true;for(int n=0;n<3;++n)if(std::fabs(old.x[n]-m.x[n])>std::max(2.0f,std::min(old.width,m.width)*.5f))same=false;

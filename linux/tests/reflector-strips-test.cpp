@@ -26,6 +26,60 @@ static void check(const char* name,const Image&a,bool expected,float error=0){
 }
 int main(int argc,char**argv){
  if(argc==4){int w=std::atoi(argv[2]),h=std::atoi(argv[3]);require(w>0&&h>0,"dimensions");Image a(w*h*3);std::ifstream f(argv[1],std::ios::binary);f.read((char*)a.data(),a.size());require(f.gcount()==(long)a.size(),"input");auto&d=ReflectorStripsDetector::instance();for(int i=0;i<3;++i)d.processRgb(a.data(),w,h,1000+i*100);auto o=d.observation(1200);std::printf("found=%d strips=%d error=%.4f confidence=%.3f span=%.3f\n",o.found,o.stripCount,o.horizontalError,o.confidence,o.verticalSpan);return 0;}
+ // At charging contact, sun can wash out the backing in the upper image
+ // while a complete triple remains measurable in the shaded lower band.
+ // Keep all three measured strips, clipped-side geometry and ambiguity gates.
+ for(bool mirror:{false,true})for(int count:{2,3,4})for(bool bothSides:{false,true})for(int backing:{100,140,245}){
+  Image contact(W*H*3);
+  const int centre=bothSides?320:340;
+  for(int y=0;y<H;++y)for(int x=0;x<W;++x){
+   const int xx=mirror?W-1-x:x;
+   bool marker=false;
+   if(count==4){for(int c:{20,220,420,620})marker|=std::abs(xx-c)<50;}
+   else {for(int n=0;n<count;++n){const int c=bothSides?n*320:60+n*280;const int half=bothSides?(n==1?60:70):(n==1?60:50);marker|=std::abs(xx-c)<half;}}
+   const int value=y<H/2?(marker?255:backing):(marker?80:20);
+   for(int c=0;c<3;++c)contact[(y*W+x)*3+c]=value;
+  }
+  char label[120];std::snprintf(label,sizeof(label),"sun-washed contact mirror=%d strips=%d bothSides=%d backing=%d",mirror,count,bothSides,backing);
+  check(label,contact,count==3,((mirror?W-1-centre:centre)-W*.5f)/(W*.5f));
+  if(count==3){
+   auto missing=contact;
+   const int centreX=mirror?W-1-centre:centre;
+   for(int y=H/2;y<H;++y)for(int x=centreX-60;x<=centreX+60;++x)if(x>=0&&x<W){
+    missing[(y*W+x)*3]=160;missing[(y*W+x)*3+1]=20;missing[(y*W+x)*3+2]=60;
+   }
+   check("sun-washed contact cannot replace coloured centre",missing,false);
+  }
+ }
+ // Sunrise thresholding shortens a clipped outer segment while the two
+ // complete strips retain their widths. The original visible-width guard remains; a tiny
+ // remnant or missing outer still cannot form a marker.
+ for(bool mirror:{false,true})for(int visible:{0,20,55,70}){
+  Image contact(W*H*3);
+  for(int y=0;y<H;++y)for(int x=0;x<W;++x){
+   const int xx=mirror?W-1-x:x;
+   const bool marker=std::abs(xx-60)<50 || std::abs(xx-340)<60 || (visible && std::abs(xx-(W+50-visible))<50);
+   const int value=y<H/2?(marker?255:245):(marker?80:20);
+   for(int c=0;c<3;++c)contact[(y*W+x)*3+c]=value;
+  }
+  char label[100];std::snprintf(label,sizeof(label),"sunrise clipped outer mirror=%d visible=%d",mirror,visible);
+  check(label,contact,visible>=70,((mirror?W-1-340:340)-W*.5f)/(W*.5f));
+ }
+ // Different sun/shadow bands can cross each reflector at a different
+ // height. Their physical outlines and dark neighbouring gaps stay intact.
+ for(int count:{2,3,4})for(int phase:{0,30,60})for(bool mirror:{false,true}){
+  Image bands(W*H*3);
+  for(int y=0;y<H;++y)for(int x=0;x<W;++x){
+   const int xx=mirror?W-1-x:x;bool marker=false;
+   if(count==4){for(int c:{20,220,420,620})marker|=std::abs(xx-c)<50;}
+   else for(int n=0;n<count;++n)marker|=std::abs(xx-(60+n*280))<(n==1?60:50);
+   const bool sunny=((y+phase+(xx>200?40:0)+(xx>500?20:0))/60)%2;
+   const int value=y<H/3?(marker?255:245):(marker?(sunny?230:80):(sunny?110:20));
+   for(int c=0;c<3;++c)bands[(y*W+x)*3+c]=value;
+  }
+  char label[100];std::snprintf(label,sizeof(label),"independent sunrise bands strips=%d phase=%d mirror=%d",count,phase,mirror);
+  check(label,bands,count==3,((mirror?W-1-340:340)-W*.5f)/(W*.5f));
+ }
  for(float gain:{.1f,.2f,.4f,.7f,1.f,1.3f})check("exposure",scene(3,gain),true);
  for(float gain:{.08f,.1f,.2f}){
   Image dim=scene(3,gain);std::mt19937 rng(42);std::uniform_int_distribution<int> noise(-2,2);
