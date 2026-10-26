@@ -32,7 +32,7 @@ public:
       }
     }else if(in.driving || wanted!=NoBlink || std::fabs(in.linear)>=0.03f){
       s.mode=Road;s.front=s.rear=true;s.selection=3;
-      s.blink=in.dockPath?Hazard:((uint32_t(now-candidateAt)>=250)?candidate:uint8_t(NoBlink));
+      s.blink=in.dockPath?uint8_t(Hazard):((uint32_t(now-candidateAt)>=250)?candidate:uint8_t(NoBlink));
     }
     return s;
   }
