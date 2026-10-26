@@ -30,5 +30,13 @@ int main(){
  linearSpeedSet=0;angularSpeedSet=1;apply();assert(std::fabs(angularSpeedSet*.24f-.05f)<.000001f);
  check(.02f); // translated camera command never gets the higher recovery cap
  lineTracker.turning=false;linearSpeedSet=0;angularSpeedSet=.20f;apply();assert(std::fabs(angularSpeedSet*.24f-.02f)<.000001f);
+ stateEstimator.stateOp=OP_MOW;maps.exit=true;
+ lineTracker.turning=true;linearSpeedSet=0;angularSpeedSet=-.20f;apply();
+ assert(linearSpeedSet==0 && std::fabs(angularSpeedSet+.20f)<.000001f);
+ linearSpeedSet=0;angularSpeedSet=-1;apply();assert(std::fabs(angularSpeedSet*.24f+.05f)<.000001f);
+ check(.02f); // translated undocking command retains the camera cap too
+ lineTracker.turning=false;linearSpeedSet=0;angularSpeedSet=.20f;apply();assert(std::fabs(angularSpeedSet*.24f-.02f)<.000001f);
+ stateEstimator.stateLocalizationMode=LOC_GPS;lineTracker.turning=true;check(.1f);
+ maps.exit=false;check(.84f);
  std::puts("PASS production wheel limits: RTK docking 50cm/s, GPS exit 10cm/s, camera 2cm/s, ordinary mowing unchanged, recovery-only 5cm/s cap");
 }

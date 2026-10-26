@@ -212,7 +212,8 @@ void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRam
 #endif
 #if defined(DOCK_SLIP_RECOVERY) && DOCK_SLIP_RECOVERY
      // Only the bounded recovery pivot may exceed the normal camera wheel cap.
-     if (stateEstimator.stateOp == OP_DOCK &&
+     if ((stateEstimator.stateOp == OP_DOCK ||
+          (stateEstimator.stateOp == OP_MOW && maps.isUndocking())) &&
          stateEstimator.stateLocalizationMode == LOC_REFLECTOR_STRIPS &&
          lineTracker.dockSlipTurning() && fabs(linearSpeedSet) < 0.0001f)
        wheelLimit=0.05f; // 0.20 rad/s at 48cm wheelbase needs 4.8cm/s per wheel

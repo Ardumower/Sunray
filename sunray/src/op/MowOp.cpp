@@ -31,6 +31,7 @@ void MowOp::begin(){
     bool routingFailed = false;      
 
     CONSOLE.println("OP_MOW");      
+    lineTracker.resetDockSlipRecovery();
     motor.enableTractionMotors(true); // allow traction motors to operate         
     motor.setReleaseBrakesWhenZero(false);
     motor.setLinearAngularSpeed(0,0);      

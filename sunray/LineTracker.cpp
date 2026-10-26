@@ -281,7 +281,8 @@ void LineTracker::trackLine(bool runControl){
     }
 
 #if defined(DOCK_SLIP_RECOVERY) && DOCK_SLIP_RECOVERY
-    if (runControl && stateEstimator.stateOp == OP_DOCK) {
+    if (runControl && (stateEstimator.stateOp == OP_DOCK ||
+        (stateEstimator.stateOp == OP_MOW && maps.isUndocking()))) {
       const auto previousPhase = dockSlipRecovery.phase();
       const float metresPerTick = 0.01f / motor.ticksPerCm;
       DockSlipRecovery::Input input{uint32_t(millis()),

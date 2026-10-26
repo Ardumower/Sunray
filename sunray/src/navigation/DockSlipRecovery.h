@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <cmath>
 
-// Conservative docking-only recovery. Encoder travel alone is never proof
+// Camera docking/undocking recovery. Encoder travel alone is never proof
 // of progress. Detection uses camera geometry and IMU heading, never GPS.
 class DockSlipRecovery {
 public:

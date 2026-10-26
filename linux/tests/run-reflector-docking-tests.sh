@@ -78,3 +78,6 @@ PY
 
 "${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -I"$work" -Isunray linux/tests/dock-contact-advance-test.cpp -o "$work/contact"
 "$work/contact"
+
+"${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -I"$work" -Isunray linux/tests/camera-slip-integration-test.cpp -o "$work/slip-integration"
+"$work/slip-integration"
