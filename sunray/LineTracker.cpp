@@ -16,6 +16,7 @@
 #include "src/op/op.h"
 #include "Stats.h"
 #include "events.h"
+#include "src/navigation/UndockGpsSteering.h"
 
 #ifdef DOCK_REFLECTOR_STRIPS
 extern "C" bool cameraReflectorStripsFound();
@@ -40,6 +41,7 @@ void LineTracker::trackLine(bool runControl){
   bool mow = true;
   if (stateEstimator.stateOp == OP_DOCK) mow = false;
   float angular = 0;      
+  const bool gpsUndocking = maps.isUndocking() && stateEstimator.stateLocalizationMode == LOC_GPS;
   float targetDelta = pointsAngle(stateEstimator.stateX, stateEstimator.stateY, target.x(), target.y());      
   if (maps.trackReverse) targetDelta = scalePI(targetDelta + PI);  
   targetDelta = scalePIangles(targetDelta, stateEstimator.stateDelta);
@@ -136,6 +138,11 @@ void LineTracker::trackLine(bool runControl){
     if (maps.trackSlow && trackslow_allowed && !rtkDockApproach) {
       // planner forces slow tracking (e.g. docking etc)
       linear = DOCK_LINEAR_SPEED; // 0.1           
+#ifdef DOCK_APPROACH_MAX_WHEEL_SPEED
+      // After camera exit use the GPS exit speed, not the camera's 2 cm/s.
+      // Motor::setLinearAngularSpeed still bounds the speed of both wheels.
+      if (gpsUndocking) linear = DOCK_APPROACH_MAX_WHEEL_SPEED;
+#endif
     } else if (     ((desiredSpeed > 0.2) && (maps.distanceToTargetPoint(stateEstimator.stateX, stateEstimator.stateY) < 0.5) && (!straight))   // approaching
           || ((stateEstimator.linearMotionStartTime != 0) && (millis() < stateEstimator.linearMotionStartTime + 3000))                      // leaving  
        ) 
@@ -192,6 +199,9 @@ void LineTracker::trackLine(bool runControl){
       p = stanleyTrackingSlowP; //STANLEY_CONTROL_P_SLOW;          
     }
     angular =  p * trackerDiffDelta + atan2(k * stateEstimator.lateralError, (0.001 + fabs(motor.linearSpeedSet)));       // correct for path errors           
+    if (gpsUndocking)
+      angular = undockGpsSteering(trackerDiffDelta, stateEstimator.lateralError,
+                                 linear, p, k, TARGET_ANGLE_TOLERANCE * PI / 180.f);
     /*pidLine.w = 0;              
     pidLine.x = stateEstimator.lateralError;
     pidLine.max_output = PI;
