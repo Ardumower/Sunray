@@ -702,3 +702,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
     #include <Console.h>
   #endif
 #endif
+
+// Optional Linux WLAN survey: fixed RTK only, no active scans, also logs disconnected points.
+#define WIFI_HEATMAP_ENABLE false
+#define WIFI_HEATMAP_MIN_DISTANCE_M 1.0 // distance from the last successfully written position
+#define WIFI_HEATMAP_MAX_AGE_DAYS 30 // atomic replacement; old dataset is discarded
+#define WIFI_HEATMAP_INTERFACE "wlan0"
+#define WIFI_HEATMAP_FILE "wifi-heatmap.csv" // relative to Sunray working directory

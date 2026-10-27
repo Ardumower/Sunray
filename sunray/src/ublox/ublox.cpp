@@ -54,6 +54,7 @@ void UBLOX::begin(){
   solutionTimeout = (uint32_t)millis() + 3000;
   iTOW = 0;
   lon = lat = height = 0;
+  absolutePositionAvailable = false;absolutePositionMillis = 0;absolutePositionTow = 0;
   relPosN = relPosE = relPosD = heading = groundSpeed = 0;
   hAccuracy = vAccuracy = 0;
   year = month = day = hour = mins = sec = dayOfWeek = 0;
@@ -767,6 +768,7 @@ void UBLOX::dispatchMessage() {
               iTOW = (unsigned long)this->unpack_int32(4);
               lon = 1e-7  * (    ((double)((int32_t)this->unpack_int32(8)))   +  ((double)((int8_t)this->unpack_int8(24))) * 1e-2    );
               lat = 1e-7  *  (   ((double)((int32_t)this->unpack_int32(12)))   +  ((double)((int8_t)this->unpack_int8(25))) * 1e-2   );
+              absolutePositionAvailable = true;absolutePositionMillis = millis();absolutePositionTow = iTOW;
               height = 1e-3 * (  ((double)((int32_t)this->unpack_int32(16))) +  ((double)((int8_t)this->unpack_int8(26))) * 1e-2    ) ; // HAE (WGS84 height)
               //height = (1e-3 * (this->unpack_int32(20) +  (this->unpack_int8(27) * 1e-2))); // MSL height
               hAccuracy = ((double)((unsigned long)this->unpack_int32(28))) * 0.1 / 1000.0;

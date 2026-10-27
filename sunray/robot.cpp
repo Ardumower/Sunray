@@ -38,6 +38,10 @@
 #include "rcmodel.h"
 #include "map.h"
 #include "config.h"
+#include "WifiHeatmapConfig.h"
+#if defined(__linux__) && WIFI_HEATMAP_ENABLE
+#include <WifiHeatmap.h>
+#endif
 #include "reset.h"
 #include "cpu.h"
 #include "i2c.h"
@@ -1067,6 +1071,26 @@ void run(){
   }
 
   gps.run();
+#if defined(__linux__) && WIFI_HEATMAP_ENABLE
+  // Copy raw RTK samples before the estimator consumes solutionAvail. No disk or WLAN I/O here.
+  if(gps.solutionAvail || gps.solution != SOL_FIXED){
+    WifiHeatmap::Position point;
+    point.fixed = gps.solution == SOL_FIXED && !gps.isConfiguring();
+    point.east = gps.relPosE;point.north = gps.relPosN;
+    point.x = point.east;point.y = point.north;
+    point.absolute = stateEstimator.absolutePosSource;
+    point.originLat = point.absolute ? stateEstimator.absolutePosSourceLat : 0;
+    point.originLon = point.absolute ? stateEstimator.absolutePosSourceLon : 0;
+    point.hasLatLon = gps.absolutePositionAvailable && gps.absolutePositionTow == gps.iTOW &&
+        uint32_t(uint32_t(millis())-gps.absolutePositionMillis) <= 1000;
+    if(point.hasLatLon){point.lat=gps.lat;point.lon=gps.lon;}
+    if(point.absolute){
+      if(!point.hasLatLon)point.fixed=false;
+      else {float north=0,east=0;relativeLL(point.originLat,point.originLon,point.lat,point.lon,north,east);point.x=east;point.y=north;}
+    }
+    linuxWifiHeatmapPosition(point);
+  }
+#endif
 
   if (millis() > nextTimetableTime){
     nextTimetableTime = millis() + 30000;

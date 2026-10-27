@@ -1,4 +1,7 @@
 #include "httpserver.h"
+#ifdef __linux__
+#include <WifiHeatmap.h>
+#endif
 #include "config.h"
 #include "robot.h"
 #include "StateEstimator.h"
@@ -256,7 +259,9 @@ void HttpServer::processWifiWSClient() {
 #ifdef __linux__
   if (!wsWorker) {
     CloudWorker::Transport io;
-    io.auxiliary = textureRpc;
+    io.auxiliary = [](const std::string& request,std::string& response){
+      return linuxWifiHeatmapRpc(request,response) || textureRpc(request,response);
+    };
     io.connect = [this]{ return wsClient.connect(); };
     io.connected = [this]{ return wsClient.connected(); };
     io.close = [this]{ wsClient.close(); };

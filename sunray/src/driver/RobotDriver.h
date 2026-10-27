@@ -144,6 +144,9 @@ class GpsDriver {
     double lon;        // deg
     double lat;        // deg
     double height;     // m
+    bool absolutePositionAvailable = false; // timestamped raw absolute fix, if supported by driver
+    uint32_t absolutePositionMillis = 0;
+    unsigned long absolutePositionTow = 0;
     float relPosN;     // m
     float relPosE;     // m
     float relPosD;     // m
