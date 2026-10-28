@@ -1,0 +1,12 @@
+config_version=5
+[application]
+config/name="Sunray 3D simulator"
+run/main_scene="res://world.tscn"
+[display]
+window/size/viewport_width=640
+window/size/viewport_height=360
+window/vsync/vsync_mode=0
+[rendering]
+renderer/rendering_method="gl_compatibility"
+[physics]
+common/physics_ticks_per_second=60

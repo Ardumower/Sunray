@@ -1,0 +1,18 @@
+[Unit]
+Description=Sunray Godot 3D world and virtual camera
+Wants=sunray-sim3d-display.service
+After=sunray-sim3d-display.service
+
+[Service]
+User=orangepi
+WorkingDirectory=/home/orangepi/Sunray-sim3d/tools/sim3d
+Environment=DISPLAY=:88
+Environment=XAUTHORITY=/home/orangepi/godot-camera-test/xauth
+RuntimeDirectory=sunray-sim3d
+ExecStartPre=/usr/bin/timeout 20 /bin/sh -c 'until /usr/bin/xrandr --query >/dev/null 2>&1; do sleep 1; done'
+ExecStart=/home/orangepi/godot-camera-test/Godot_v4.7.2-stable_linux.arm64 --display-driver x11 --rendering-method gl_compatibility --rendering-driver opengl3_es --audio-driver Dummy --max-fps 20 --path /home/orangepi/Sunray-sim3d/tools/sim3d
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

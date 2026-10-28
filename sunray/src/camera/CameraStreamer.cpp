@@ -15,6 +15,7 @@
 #include "FrameTimestamp.h"
 #include "StreamGeometry.h"
 #include "Console.h"
+#include <Sim3D.h>
 // Access motor speed setpoints via C-accessors (to avoid Arduino header conflicts)
 extern "C" float cameraGetLinearSet();
 extern "C" float cameraGetAngularSet();
@@ -409,19 +410,9 @@ void CameraStreamer::runCaptureSession() {
   // Open V4L2 device
   int index = captureIndex();
   int outW = reqW_.load(); int outH = reqH_.load(); int fps = reqFps_.load();
-  CameraRegistry::refresh();
-  std::string devPathStr = CameraRegistry::pathForIndex(index);
-  char devPath[64];
-  if (devPathStr.empty()) {
-    CONSOLE.print("CAM index invalid: "); CONSOLE.println(index);
-    return;
-  }
-  std::snprintf(devPath, sizeof(devPath), "%s", devPathStr.c_str());
-  int fd = ::open(devPath, O_RDWR | O_NONBLOCK);
-  if (fd < 0) {
-    CONSOLE.print("CAM open failed: "); CONSOLE.println(devPath);
-    return;
-  }
+  const bool virtualCamera=Sim3D::enabled();
+  uint64_t virtualSequence=0;
+  int fd=-1;
   struct CaptureResources {
     int fd; bool streaming=false;
     std::vector<MMapBuffer> buffers;
@@ -431,7 +422,26 @@ void CameraStreamer::runCaptureSession() {
       for(auto& b:buffers)if(b.start && b.length)munmap(b.start,b.length);
       ::close(fd);
     }
-  } capture(fd);
+  } capture(-1);
+  auto& bufs=capture.buffers;
+  v4l2_requestbuffers req{};
+  if(!virtualCamera){
+  CameraRegistry::refresh();
+  std::string devPathStr = CameraRegistry::pathForIndex(index);
+  char devPath[64];
+  if (devPathStr.empty()) {
+    CONSOLE.print("CAM index invalid: "); CONSOLE.println(index);
+    return;
+  }
+  std::snprintf(devPath, sizeof(devPath), "%s", devPathStr.c_str());
+  fd = ::open(devPath, O_RDWR | O_NONBLOCK);
+  if (fd < 0) {
+    CONSOLE.print("CAM open failed: "); CONSOLE.println(devPath);
+    return;
+  }
+
+  capture.fd=fd;
+
   CONSOLE.print("CAM opened "); CONSOLE.println(devPath);
   // Try to set format to MJPEG
   v4l2_format fmt; memset(&fmt, 0, sizeof(fmt)); fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -446,13 +456,12 @@ void CameraStreamer::runCaptureSession() {
     return;
   }
   // Request MMAP
-  v4l2_requestbuffers req; memset(&req, 0, sizeof(req)); req.count = 4; req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; req.memory = V4L2_MEMORY_MMAP;
+  memset(&req, 0, sizeof(req)); req.count = 4; req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; req.memory = V4L2_MEMORY_MMAP;
   if (ioctl(fd, VIDIOC_REQBUFS, &req) < 0 || req.count < 2) {
     CONSOLE.println("CAM reqbufs failed");
     return;
   }
   capture.buffers.resize(req.count);
-  auto& bufs=capture.buffers;
   for (unsigned i = 0; i < req.count; i++) {
     v4l2_buffer b; memset(&b, 0, sizeof(b)); b.type = req.type; b.memory = V4L2_MEMORY_MMAP; b.index = i;
     if (ioctl(fd, VIDIOC_QUERYBUF, &b) < 0) { CONSOLE.println("CAM querybuf failed"); return; }
@@ -464,6 +473,7 @@ void CameraStreamer::runCaptureSession() {
   int type = req.type;
   if(ioctl(fd,VIDIOC_STREAMON,&type)<0){CONSOLE.println("CAM streamon failed");return;}
   capture.streaming=true;
+  } else { CONSOLE.println("CAM source: Godot 3D simulator"); }
 
   auto lastSend = steady_clock::now() - milliseconds(1000);
   auto lastDetection = steady_clock::now() - milliseconds(1000);
@@ -549,6 +559,17 @@ void CameraStreamer::runCaptureSession() {
 
     // A disconnected or stalled camera must leave this session, rather than
     // retrying the same broken fd forever. DQBUF cannot block after select.
+    v4l2_buffer b{};
+    std::vector<uint8_t> simulatedJpeg;
+    uint64_t sourceAgeMs=0;
+    const uint8_t* mjpeg=nullptr;size_t mjpegLen=0;
+    if(virtualCamera){
+      const auto deadline=steady_clock::now()+seconds(2);
+      while(running_.load() && !Sim3D::frame(simulatedJpeg,virtualSequence,sourceAgeMs) && steady_clock::now()<deadline)
+        std::this_thread::sleep_for(milliseconds(10));
+      if(!running_.load() || simulatedJpeg.empty()){CONSOLE.println("CAM simulator timeout");break;}
+      mjpeg=simulatedJpeg.data();mjpegLen=simulatedJpeg.size();
+    }else{
     fd_set fds;FD_ZERO(&fds);FD_SET(fd,&fds);
     timeval tv;tv.tv_sec=2;tv.tv_usec=0;
     const int r=select(fd+1,&fds,NULL,NULL,&tv);
@@ -557,7 +578,7 @@ void CameraStreamer::runCaptureSession() {
       if(r==0)lightLogger.timeout();
       CONSOLE.println("CAM capture timeout/error, reopening");break;
     }
-    v4l2_buffer b;memset(&b,0,sizeof(b));b.type=req.type;b.memory=V4L2_MEMORY_MMAP;
+    memset(&b,0,sizeof(b));b.type=req.type;b.memory=V4L2_MEMORY_MMAP;
     if(ioctl(fd,VIDIOC_DQBUF,&b)<0){
       if(errno==EAGAIN || errno==EINTR)continue;
       CONSOLE.println("CAM dequeue failed, reopening");break;
@@ -573,7 +594,8 @@ void CameraStreamer::runCaptureSession() {
       if(ioctl(fd,VIDIOC_QBUF,&b)<0){CONSOLE.println("CAM requeue failed, reopening");break;}
       continue;
     }
-    const uint8_t* mjpeg = (const uint8_t*)bufs[b.index].start; size_t mjpegLen = b.bytesused;
+    mjpeg = (const uint8_t*)bufs[b.index].start; mjpegLen = b.bytesused;
+    }
     auto now = steady_clock::now();
     const bool shouldSend = streamingRequested_.load() && (now - lastSend) >= minPeriod;
     const int detectorFps = std::max(1, reflectorFps_.load());
@@ -590,7 +612,7 @@ void CameraStreamer::runCaptureSession() {
           darkness.update(light.region,duration<double>(now.time_since_epoch()).count(),light.regionP80);
           lastLightMeasurement=now;
         }
-        const unsigned long timestampMs = (unsigned long)duration_cast<milliseconds>(now.time_since_epoch()).count();
+        const unsigned long timestampMs = (unsigned long)duration_cast<milliseconds>(now.time_since_epoch()).count()-sourceAgeMs;
         if(shouldGrass){grass.submit(rgb.data(),srcW,srcH,timestampMs);lastGrass=now;}
         if (shouldDetect) {
           ReflectorFrame frame;
@@ -698,7 +720,7 @@ void CameraStreamer::runCaptureSession() {
         }
       }
     }
-    if(ioctl(fd,VIDIOC_QBUF,&b)<0){CONSOLE.println("CAM requeue failed, reopening");break;}
+    if(!virtualCamera && ioctl(fd,VIDIOC_QBUF,&b)<0){CONSOLE.println("CAM requeue failed, reopening");break;}
   }
   reflectorWorker.stop();
 }

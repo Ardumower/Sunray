@@ -1,0 +1,12 @@
+[Unit]
+Description=Isolated Rockchip Xorg for Sunray simulator
+After=systemd-user-sessions.service
+
+[Service]
+Type=simple
+ExecStart=/home/orangepi/godot-camera-test/rockchip-xserver/usr/lib/xorg/Xorg :88 -modulepath /home/orangepi/godot-camera-test/rockchip-xserver/usr/lib/xorg/modules,/usr/lib/xorg/modules -config /home/orangepi/godot-camera-test/xorg-test.conf -configdir /home/orangepi/godot-camera-test/empty-config -auth /home/orangepi/godot-camera-test/xauth -nolisten tcp -noreset -logfile /home/orangepi/godot-camera-test/Xorg-gpu.88.log
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

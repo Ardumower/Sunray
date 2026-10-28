@@ -27,8 +27,7 @@ void LinuxConsole::end(){
 }
 
 int LinuxConsole::available(){
-    //return 0;     
-    //if (keyboard <= 0) return 0;
+    if (keyboard < 0) return 0;
     struct timeval timeout;
     fd_set readfd;
     timeout.tv_sec = 0;
@@ -51,9 +50,12 @@ int LinuxConsole::read(){
     //return 0;
     //return getchar();          
     //if (keyboard <= 0) return 0;
-    char ch = '\0';
-    ::read(keyboard, &ch, 1);
-    return ch;
+    if (keyboard < 0) return -1;
+    unsigned char ch = 0;
+    const ssize_t count = ::read(keyboard, &ch, 1);
+    // A service has /dev/null stdin: select reports EOF as readable forever.
+    if (count == 0) keyboard = -1;
+    return count == 1 ? ch : -1;
 }
 
 void LinuxConsole::flush(){

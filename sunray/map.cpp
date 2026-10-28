@@ -644,7 +644,7 @@ void Map::finishedUploadingMap(){
   uploadProgress.reset();
   CONSOLE.print("map upload: mowing point index=");
   CONSOLE.println(mowPointsIdx);
-  #ifdef DRV_SIM_ROBOT
+  #if defined(DRV_SIM_ROBOT) && !SIM3D_ENABLE
     float x;
     float y;
     float delta;

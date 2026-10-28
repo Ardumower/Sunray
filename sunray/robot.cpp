@@ -707,7 +707,9 @@ void start(){
   storage.loadState();
 
   #ifdef DRV_SIM_ROBOT
+    #if !SIM3D_ENABLE
     robotDriver.setSimRobotPosState(stateEstimator.stateX, stateEstimator.stateY, stateEstimator.stateDelta);
+    #endif
     tester.begin();
   #endif
   //Logger.event(EVT_SYSTEM_STARTED);

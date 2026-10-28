@@ -15,6 +15,8 @@
 class SimRobotDriver: public RobotDriver {
   public:
     String robotID;
+    bool simConnected=true, simCharging=false, simPoseInitialized=false;
+    float simRoll=0,simPitch=0;
     float simX;  // robot x
     float simY;  // robot y
     float simDelta; // robot yaw        

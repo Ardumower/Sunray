@@ -9,7 +9,7 @@ import sys
 s=Path('sunray/src/camera/CameraStreamer.cpp').read_text()
 a=s.index('void CameraStreamer::runLoop()');b=s.index('void CameraStreamer::runCaptureSession()',a)
 Path(sys.argv[1],'retry.inc').write_text(s[a:b])
-a=s.index('  struct CaptureResources {');b=s.index('  } capture(fd);',a)
+a=s.index('  struct CaptureResources {');b=s.index('  } capture(',a)
 Path(sys.argv[1],'resources.inc').write_text(s[a:b]+'  };\n')
 # No recursive reopen and no unchecked setup failure may terminate the worker.
 session=s[s.index('void CameraStreamer::runCaptureSession()'):s.index('extern "C" void cameraStreamerStart',s.index('void CameraStreamer::runCaptureSession()'))]

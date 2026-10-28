@@ -8,16 +8,22 @@
 #include "../../config.h"
 #include "../../robot.h"
 #include "../../helper.h"
+#ifdef __linux__
+#include <Sim3D.h>
+#endif
 
 
 void SimRobotDriver::begin(){
   CONSOLE.println("using robot driver: SimRobotDriver");
   #ifdef __linux__    
     CONSOLE.println("reading robot ID...");
+    if(Sim3D::enabled()){robotID=Sim3D::robotId().c_str();}
+    else {
     Process p2;
     p2.runShellCommand("ip link show enp3s0 | grep link/ether | awk '{print $2}'");
     robotID = p2.readString();    
     robotID.trim();
+    }
   #endif
   simTicksLeft = simTicksRight = 0;  
   linearSpeed = angularSpeed = 0;
@@ -48,17 +54,35 @@ float SimRobotDriver::getCpuTemperature(){
   return 65.0;
 }  
 
-void SimRobotDriver::run(){  
-  
+void SimRobotDriver::run(){
+#ifdef __linux__
+  if(Sim3D::enabled()){
+    Sim3D::State s;simConnected=Sim3D::poll(s);
+    if(simConnected){simX=s.x;simY=s.y;simDelta=s.yaw;simTicksLeft=(unsigned long)s.leftTicks;simTicksRight=(unsigned long)s.rightTicks;linearSpeed=s.linear;angularSpeed=s.angular;robotIsBumpingIntoObstacle=s.bumper;simCharging=s.charging;simRoll=s.roll;simPitch=s.pitch;
+      // Seed the known spawn pose once; subsequent estimates use normal sensors.
+      if(!simPoseInitialized){
+        stateEstimator.stateX=simX;stateEstimator.stateY=simY;stateEstimator.stateDelta=simDelta;
+        stateEstimator.lastIMUYaw=simDelta;simPoseInitialized=true;
+      }
+    }
+    else {linearSpeed=angularSpeed=0;simCharging=false;}
+  }
+#endif
 }
 
 void SimRobotDriver::setSimRobotPosState(float x, float y, float delta){
+#ifdef __linux__
+  if(Sim3D::enabled()){Sim3D::teleport(x,y,delta);return;}
+#endif
   simX = x;
   simY = y;
   simDelta = delta;
 }
 
 void SimRobotDriver::setObstacle(float x, float y, float radius){
+#ifdef __linux__
+  if(Sim3D::enabled())Sim3D::obstacle(x,y,radius);
+#endif
   simObstacleX = x;
   simObstacleY = y;
   simObstacleRadius = radius;
@@ -125,6 +149,14 @@ void SimMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm, bool rel
   simRobot.mowSpeed = ((float)mowPwm) / 255.0;
 
   
+#ifdef __linux__
+  if(Sim3D::enabled()){
+    unsigned flags=(simNoMotion?1:0)|(simNoRobotYawRotation?2:0);
+    Sim3D::command(simMotorLeftFault?0:simRobot.leftSpeed,simMotorRightFault?0:simRobot.rightSpeed,simRobot.mowSpeed,
+       WHEEL_BASE_CM/100.0,TICKS_PER_REVOLUTION/(PI*WHEEL_DIAMETER/1000.0),flags);
+    return;
+  }
+#endif
   int leftDeltaTicks = simRobot.leftSpeed / (PI * ((float)WHEEL_DIAMETER) / 1000.0) * ((float)TICKS_PER_REVOLUTION) * deltaT;
   int rightDeltaTicks = simRobot.rightSpeed / (PI * ((float)WHEEL_DIAMETER) / 1000.0) * ((float)TICKS_PER_REVOLUTION) * deltaT;
   
@@ -174,8 +206,8 @@ void SimMotorDriver::setMotorPwm(int leftPwm, int rightPwm, int mowPwm, bool rel
 }
 
 void SimMotorDriver::getMotorFaults(bool &leftFault, bool &rightFault, bool &mowFault){
-  leftFault = simMotorLeftFault;
-  rightFault = simMotorRightFault;
+  leftFault = simMotorLeftFault || !simRobot.simConnected;
+  rightFault = simMotorRightFault || !simRobot.simConnected;
   mowFault = simMotorMowFault;  
 }
 
@@ -258,6 +290,9 @@ void SimBatteryDriver::begin(){
 }
 
 void SimBatteryDriver::run(){
+#ifdef __linux__
+  if(Sim3D::enabled()){robotIsAtDockingPoint=simRobot.simCharging;return;}
+#endif
 // docking point reached => connect charger  
   float dockX = 0;
   float dockY = 0;
@@ -469,14 +504,14 @@ void SimImuDriver::run(){
 
 
 bool SimImuDriver::isDataAvail(){
-  if (simNoData) return false;
+  if (simNoData || !simRobot.simConnected) return false;
   if (simDataTimeout) {
     delay(100);    
   }
   if (millis() > nextSampleTime){
     nextSampleTime = millis() + 200; // 5 hz
-    roll = 0;
-    pitch = 0;
+    roll = simRobot.simRoll;
+    pitch = simRobot.simPitch;
     if (simTilt) pitch = PI/180.0 * 90;
     yaw = simRobot.simDelta;        
     return true;
@@ -485,7 +520,11 @@ bool SimImuDriver::isDataAvail(){
   }
 }         
     
-void SimImuDriver::resetData(){  
+void SimImuDriver::resetData(){
+#ifdef __linux__
+  // Calibration must not interpret absolute world heading as a new rotation.
+  if(Sim3D::enabled())stateEstimator.lastIMUYaw=simRobot.simDelta;
+#endif
 }
 
 void SimImuDriver::setSimDataTimeout(bool flag){
@@ -523,10 +562,11 @@ void SimGpsDriver::begin(HardwareSerial& bus,uint32_t baud){
 
     
 void SimGpsDriver::run(){
+  if(!simRobot.simConnected){solution=SOL_INVALID;solutionAvail=false;return;}
   if (true){
     if (millis() > nextSolutionTime){
       nextSolutionTime = millis() + 200; // 5 hz    
-      iTOW += 200 * 100;  // sim has 100 times faster gps time      
+      iTOW += 200;  // real-time sensor clock
       relPosE = simRobot.simX;
       relPosN = simRobot.simY;
       relPosD = 100;

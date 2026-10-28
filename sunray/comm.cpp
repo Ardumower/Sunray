@@ -1098,7 +1098,9 @@ void Comm::processConsole(){
   if (CONSOLE.available()){
     battery.resetIdle();  
     while ( CONSOLE.available() ){               
-      ch = CONSOLE.read();          
+      const int value = CONSOLE.read();
+      if (value < 0) break;
+      ch = static_cast<char>(value);
       if ((ch == '\r') || (ch == '\n')) {        
         CONSOLE.print("CON:");
         CONSOLE.println(cmd);

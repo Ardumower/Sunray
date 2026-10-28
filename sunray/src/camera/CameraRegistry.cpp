@@ -1,6 +1,7 @@
 #ifdef __linux__
 #include "CameraRegistry.h"
 #include "Console.h"
+#include <Sim3D.h>
 #include <time.h>
 #include <linux/videodev2.h>
 #include <sys/ioctl.h>
@@ -25,6 +26,10 @@ namespace CameraRegistry {
     const unsigned long now = millis_linux();
     if (g_lastRefreshMs && (now - g_lastRefreshMs) < 2000) return; // throttle
     g_list.clear();
+    if(Sim3D::enabled()){
+      CameraInfo ci;ci.path="sim3d://camera";ci.width=640;ci.height=360;g_list.push_back(ci);
+      g_lastRefreshMs=now;return;
+    }
     for (int i = 0; i < 32; i++) {
       char dev[64]; std::snprintf(dev, sizeof(dev), "/dev/video%d", i);
       int fd = ::open(dev, O_RDWR);
