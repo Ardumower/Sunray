@@ -49,7 +49,7 @@ struct Bridge {
      std::abs(now()-timestamp)>.25 || std::abs(linear)>.6 || std::abs(angular)>1.0)return;
   const auto command=motorCommand(linear,angular);
   std::lock_guard<std::mutex> lock(mutex);
-  received=now();drive=command;moving=linear!=0||angular!=0;lease=nowMs()+700;
+  received=now();drive=command;moving=linear!=0||angular!=0;lease=nowMs()+DRIVE_TIMEOUT_MS+500;
  }
  void disconnect(){
   connected=false;
@@ -98,10 +98,10 @@ bool takeDrive(std::string& command){
  auto& b=bridge();std::unique_lock<std::mutex> lock(b.mutex,std::try_to_lock);if(!lock)return false;
  if(!b.drive.empty()){
   if(now()-b.received>.25){b.drive.clear();b.moving=false;command=motorCommand(0,0);}
-  else command.swap(b.drive);
+  else {command=std::move(b.drive);b.drive.clear();}
   return true;
  }
- if(b.moving && now()-b.received>.35){b.moving=false;command=motorCommand(0,0);return true;}
+ if(b.moving && now()-b.received>DRIVE_TIMEOUT_MS/1000.0){b.moving=false;command=motorCommand(0,0);return true;}
  return false;
 }
 void camera(const unsigned char* data,size_t length){

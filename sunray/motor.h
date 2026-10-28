@@ -70,7 +70,7 @@ class Motor {
     void test();
     void plot();
     void enableTractionMotors(bool enable);
-    void setLinearAngularSpeed(float linear, float angular, bool useLinearRamp = true);
+    void setLinearAngularSpeed(float linear, float angular, bool useLinearRamp = true, unsigned long timeoutMs = 1000);
     void setReleaseBrakesWhenZero(bool release);
     void setMowState(bool switchOn);   
     void setMowMaxPwm( int val );

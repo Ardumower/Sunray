@@ -66,17 +66,22 @@ Fine-grained queue limits leave room for control/heartbeat traffic.
 ## Control and fallback
 
 - Control and image data use separate unordered data channels without retransmits.
-- Robot-generated heartbeat challenges expire after 300 ms; drive sequence numbers
-  reject reordered/replayed commands. The local bridge also checks monotonic age.
+- Robot-generated heartbeat challenges expire after five seconds to allow the
+  outdoor WLAN round trip; drive sequence numbers reject reordered/replayed commands. The local bridge also checks monotonic age.
 - One direct peer owns the manual drive lease at a time. Camera-only viewers never
-  send a drive command. Expired input stops motion within 350 ms at the Sunray
-  bridge; disconnect also queues zero. Commands execute on the robot control thread
-  through the usual manual-speed/slowdown path.
+  send a drive command. The Sunray bridge stops motion after three seconds without
+  a fresh drive command; disconnect also queues zero. Commands execute on the robot control thread
+  through the usual manual-speed/slowdown path. The motor watchdog uses the same
+  three-second deadline for direct commands; other command paths retain their
+  existing timeout. Local IPC still rejects queued commands older than 250 ms.
 - During a direct manual-control lease, delayed Cloud joystick packets are ignored;
   operation-level Stop and other normal Cloud commands are not filtered.
 - A transport switch while driving requires the joystick to return to neutral;
   a held direction is never silently replayed over the new route.
-- Missing heartbeat, failed ICE, or a stale subscribed camera falls back to Cloud.
+- The camera link tolerates up to six seconds without heartbeat; drive validation
+  and the three-second motor watchdog remain independent. Short ICE interruptions
+  do not force renegotiation, and route changes preserve the last camera image.
+  Failed ICE or a stale subscribed camera falls back to Cloud.
   Direct negotiation retries automatically. Signaling/permission renewals use the
   Cloud; this is not a standalone offline app. Peer authorization expires after
   two minutes without renewal.
@@ -88,7 +93,8 @@ Cloud duplicates, a simultaneous external Cloud viewer, helper shutdown causing
 Cloud fallback, and automatic direct reconnection after helper restart. Tests
 use an isolated bridge port. An additional end-to-end WebRTC test on Twenty
 verified positive and negative rotation and stopping through the helper, AT
-parser and simulated wheels; no physical robot was driven. Direct motor commands
+parser and simulated wheels. A two-second command gap preserved rotation;
+watchdog expiry stopped it. No physical robot was driven. Direct motor commands
 include a validated AT checksum so the parser retains the angular argument.
 
 ```sh

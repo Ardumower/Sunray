@@ -12,6 +12,10 @@ from aiohttp import web
 from aiortc import RTCPeerConnection, RTCConfiguration, RTCSessionDescription
 
 LOG = logging.getLogger('sunray.direct')
+# Outdoor WLAN: tolerate 1–2 s delay, including the heartbeat round trip.
+DRIVE_TIMEOUT = 3.0
+CHALLENGE_MAX_AGE = 5.0
+PEER_TIMEOUT = 8.0
 
 
 class Link:
@@ -99,12 +103,12 @@ class Link:
         while True:
             now = time.monotonic()
             for peer in list(self.peers.values()):
-                if now > peer.expires or (peer.opened and now-peer.last_seen>3):
+                if now > peer.expires or (peer.opened and now-peer.last_seen>PEER_TIMEOUT):
                     await self.remove(peer)
                     continue
                 peer.heartbeat(now)
                 peer.send_frame_parts(now)
-            if self.owner and now-self.last_drive>.3:
+            if self.owner and now-self.last_drive>DRIVE_TIMEOUT:
                 self.stop_drive(self.owner)
             if self.drive and self.writer:
                 stamp, lin, ang = self.drive
@@ -151,7 +155,7 @@ class Peer:
             return
         self.opened = True
         self.last_heartbeat = now
-        self.challenges = {k:v for k,v in self.challenges.items() if now-v<.3}
+        self.challenges = {k:v for k,v in self.challenges.items() if now-v<CHALLENGE_MAX_AGE}
         token = secrets.token_hex(8)
         self.challenges[token] = now
         if self.control.bufferedAmount < 4096:
@@ -164,7 +168,7 @@ class Peer:
             msg = json.loads(value)
             now = time.monotonic()
             challenge = self.challenges.get(msg.get('token'), -100)
-            if now-challenge>.3:
+            if now-challenge>CHALLENGE_MAX_AGE:
                 return
             self.last_seen = now
             if msg.get('type') == 'pong':

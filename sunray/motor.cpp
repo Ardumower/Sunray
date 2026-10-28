@@ -184,12 +184,12 @@ void Motor::speedPWM ( int pwmLeft, int pwmRight, int pwmMow )
 //  omega: rotation speed (rad/s)
 //      V     = (VR + VL) / 2       =>  VR = V + omega * L/2
 //      omega = (VR - VL) / L       =>  VL = V - omega * L/2
-void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRamp){
+void Motor::setLinearAngularSpeed(float linear, float angular, bool useLinearRamp, unsigned long timeoutMs){
    if (gpsBlocksTraction()){
      linear = angular = 0;
      useLinearRamp = false;
    }
-   setLinearAngularSpeedTimeout = millis() + 1000;
+   setLinearAngularSpeedTimeout = millis() + timeoutMs;
    setLinearAngularSpeedTimeoutActive = true;
    if ((activateLinearSpeedRamp) && (useLinearRamp)) {
      linearSpeedSet = 0.9 * linearSpeedSet + 0.1 * linear;

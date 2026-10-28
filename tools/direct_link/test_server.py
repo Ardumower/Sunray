@@ -21,7 +21,7 @@ class Tests(unittest.IsolatedAsyncioTestCase):
         self.peer = Peer(self.link, 'a'*32)
         self.peer.control = Channel()
         self.peer.images = Channel()
-        self.peer.challenges = {'fresh': time.monotonic(), 'old': time.monotonic()-1}
+        self.peer.challenges = {'fresh': time.monotonic(), 'old': time.monotonic()-6}
     async def asyncTearDown(self):
         await self.peer.pc.close()
     def drive(self, seq=1, token='fresh', lin=.2, ang=0):
@@ -32,6 +32,16 @@ class Tests(unittest.IsolatedAsyncioTestCase):
         self.drive(seq=2, lin=float('nan')); self.assertIsNone(self.link.drive)
         self.drive(seq=3); self.assertAlmostEqual(self.link.drive[1], .2)
         self.drive(seq=2,lin=.1); self.assertAlmostEqual(self.link.drive[1], .2)
+    async def test_outdoor_delay_and_reordering(self):
+        self.peer.challenges['delayed'] = time.monotonic()-4.0
+        self.drive(seq=10, token='delayed', lin=0, ang=.4)
+        self.assertAlmostEqual(self.link.drive[2], .4)
+        self.drive(seq=9, token='delayed', lin=0, ang=-.4)
+        self.assertAlmostEqual(self.link.drive[2], .4)
+        self.link.last_drive = time.monotonic()-2.1
+        task=asyncio.create_task(self.link.tick())
+        await asyncio.sleep(.04);task.cancel();await asyncio.gather(task,return_exceptions=True)
+        self.assertIs(self.link.owner, self.peer)
     async def test_one_direct_driver_and_disconnect_stop(self):
         other = object(); self.link.owner = other
         self.drive(); self.assertIsNone(self.link.drive)
@@ -39,7 +49,7 @@ class Tests(unittest.IsolatedAsyncioTestCase):
         self.drive(seq=2); self.assertIs(self.link.owner, self.peer)
         self.link.stop_drive(self.peer); self.assertEqual(self.link.drive[1:],(0,0))
     async def test_expired_drive_is_zeroed_by_watchdog(self):
-        self.drive(); self.link.last_drive = time.monotonic()-1
+        self.drive(); self.link.last_drive = time.monotonic()-3.1
         lines=[]
         self.link.writer=SimpleNamespace(transport=SimpleNamespace(get_write_buffer_size=lambda:0),write=lines.append)
         task=asyncio.create_task(self.link.tick())

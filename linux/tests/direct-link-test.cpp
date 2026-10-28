@@ -32,7 +32,8 @@ int main(){
   sendDrive(now(),values);assert(DirectLink::takeDrive(cmd));
   assert(payload(cmd)==(std::string(values)=="0 1"?"AT+M,0.0000,1.0000":"AT+M,0.0000,-1.0000"));
  }
- wait(370);assert(DirectLink::takeDrive(cmd)&&payload(cmd)=="AT+M,0.0000,0.0000");assert(!DirectLink::takeDrive(cmd));
+ wait(2100);assert(!DirectLink::takeDrive(cmd));assert(DirectLink::ownsDrive());
+ wait(1050);assert(DirectLink::takeDrive(cmd)&&payload(cmd)=="AT+M,0.0000,0.0000");assert(!DirectLink::takeDrive(cmd));
  sendDrive(now(),"0.1 0");wait(260);assert(DirectLink::takeDrive(cmd)&&payload(cmd)=="AT+M,0.0000,0.0000");
  sendDrive(now(),"0.1 0");assert(DirectLink::takeDrive(cmd));close(fd);wait(50);assert(DirectLink::takeDrive(cmd)&&payload(cmd)=="AT+M,0.0000,0.0000");
  DirectLink::setCloudCamera(false);assert(!DirectLink::cloudCamera());DirectLink::setCloudCamera(true);assert(DirectLink::cloudCamera());

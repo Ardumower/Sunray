@@ -253,7 +253,7 @@ void Comm::cmdControl(){
 }
 
 // request motor 
-void Comm::cmdMotor(){
+void Comm::cmdMotor(unsigned long timeoutMs){
   if (cmd.length()<6) return;  
   int counter = 0;
   int lastCommaIdx = 0;
@@ -279,7 +279,7 @@ void Comm::cmdMotor(){
   CONSOLE.print(" angular=");
   CONSOLE.println(angular);*/
   linear = applyManualSlowDown(linear);
-  motor.setLinearAngularSpeed(linear, angular, false);
+  motor.setLinearAngularSpeed(linear, angular, false, timeoutMs);
   String s = F("M");
   cmdAnswer(s);
 }
@@ -999,7 +999,11 @@ void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose)
     // operation commands remain available through the normal command path.
     if(channel == "WS" && DirectLink::ownsDrive()){cmdAnswer("M");return;}
 #endif
+#ifdef __linux__
+    cmdMotor(channel == "DIRECT" ? DirectLink::DRIVE_TIMEOUT_MS : 1000);
+#else
     cmdMotor();
+#endif
   }
   if (cmd[3] == 'C'){
     // Special cases under 'C'

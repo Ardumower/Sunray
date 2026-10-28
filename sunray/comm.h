@@ -47,7 +47,7 @@ private:
   void cmdAnswer(String s);
   void cmdTuneParam();
   void cmdControl();
-  void cmdMotor();
+  void cmdMotor(unsigned long timeoutMs = 1000);
   void cmdMotorTest();
   void cmdMotorPlot();
   void cmdSensorTest();
