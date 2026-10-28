@@ -272,3 +272,10 @@ individual scene nodes, dynamic shadows or collision bodies. Nearby trees retain
 their existing collision geometry. Four cardinal-direction camera previews on
 Twenty each maintained the configured 10 fps preview limit. These are approximate
 background silhouettes; terrain elevations and individual trees are not surveyed.
+
+Parked model aircraft in front of the preparation tables are configured in
+`scene.json` under `model_aircraft`. `right_m` and `front_m` are offsets from the
+marker panel in the table coordinate system (positive front points toward the
+grass). Wingspan, length, heading and accent color can be changed per model.
+These are approximate scene props, with fuselage and wing collisions; the
+central dock approach is kept clear. Remove the entries to hide the aircraft.

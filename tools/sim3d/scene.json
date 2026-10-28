@@ -1099,5 +1099,34 @@
   ],
   "grass": {
     "tile_metres": 1.0
-  }
+  },
+  "model_aircraft": [
+    {
+      "name": "Red trainer",
+      "right_m": 3.4,
+      "front_m": 3.3,
+      "heading_deg": -12,
+      "wingspan_m": 1.8,
+      "length_m": 1.4,
+      "color": "#d43b30"
+    },
+    {
+      "name": "Blue sport plane",
+      "right_m": 7.0,
+      "front_m": 3.4,
+      "heading_deg": 18,
+      "wingspan_m": 1.7,
+      "length_m": 1.3,
+      "color": "#286bd1"
+    },
+    {
+      "name": "Yellow trainer",
+      "right_m": 5.3,
+      "front_m": 5.4,
+      "heading_deg": -28,
+      "wingspan_m": 2.0,
+      "length_m": 1.5,
+      "color": "#efb526"
+    }
+  ]
 }

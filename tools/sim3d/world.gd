@@ -199,6 +199,9 @@ func _ready():
   for side in [-1.0,1.0]:
    for along in [.04,l-.04]:
     box(table,Vector3(side*(w-.08)/2,h/2,along),Vector3(.08,h,.08),Color(.36,.38,.38),true)
+ var aircraft := preload("res://model_aircraft.gd").new()
+ add_child(aircraft)
+ aircraft.build(self,station,cfg.get("model_aircraft",[]))
  # Concrete slabs visible beneath the real charging table.
  box(station,Vector3(0,.015,table_l/2),Vector3(table_w+.6,.03,table_l+.8),Color(.45,.46,.42))
  for x in [-float(cfg.dock.strip_spacing_m),0.0,float(cfg.dock.strip_spacing_m)]:
