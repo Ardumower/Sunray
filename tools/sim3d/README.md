@@ -103,6 +103,12 @@ No background task deliberately interrupts Cloud or local simulator connections.
 Actual loss of local control commands stops simulated motors after 500 ms; stale
 world feedback/camera frames are rejected. Cloud reconnects run independently.
 
+## Direct camera and joystick connection
+
+Simulator setup also installs the optional Linux WebRTC helper. Local browsers
+can receive camera images and send joystick input directly while external clients
+continue through Cloud. See [direct-link setup and behavior](../direct_link/README.md).
+
 ## Everyday operation on Twenty
 
 All simulator operations are available in **`linux/service.sh` → “3D simulator

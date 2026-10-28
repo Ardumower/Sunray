@@ -1,3 +1,6 @@
+#ifdef __linux__
+#include <DirectLink.h>
+#endif
 #include "comm.h"
 #ifdef __linux__
 extern "C" void cameraStreamerStart(int index, int width, int height, int fps, int quality, bool auxiliaryViews);
@@ -990,7 +993,14 @@ void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose)
       if (cmd[4] == '2') cmdObstacles();      
     }
   }
-  if (cmd[3] == 'M') cmdMotor();
+  if (cmd[3] == 'M') {
+#ifdef __linux__
+    // A direct control lease excludes delayed cloud joystick packets. Safety
+    // operation commands remain available through the normal command path.
+    if(channel == "WS" && DirectLink::ownsDrive()){cmdAnswer("M");return;}
+#endif
+    cmdMotor();
+  }
   if (cmd[3] == 'C'){
     // Special cases under 'C'
     if ((cmd.length() > 5) && (cmd[4] == 'A') && (cmd[5] == 'M')) { cmdCamera(); return; }
@@ -1056,11 +1066,11 @@ void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose)
   }
 }
 
-// Handle AT+CAM,enable,index,width,height,fps[,quality[,auxiliaryViews]]
+// Handle AT+CAM,enable,index,width,height,fps[,quality[,auxiliaryViews[,cloudUpload]]]
 void Comm::cmdCamera() {
   // Parse numeric args from member 'cmd'
-  int commas[7] = {0}; int n = 0;
-  for (int i = 0; i < (int)cmd.length() && n < 7; i++) if (cmd[i] == ',') commas[n++] = i;
+  int commas[8] = {0}; int n = 0;
+  for (int i = 0; i < (int)cmd.length() && n < 8; i++) if (cmd[i] == ',') commas[n++] = i;
   int enable = 0, idx = 0, w = 160, h = 120, fps = 5, quality = 70;
   if (n >= 1) enable = cmd.substring(commas[0]+1, (n>=2?commas[1]:cmd.length())).toInt();
   if (n >= 2) idx = cmd.substring(commas[1]+1, (n>=3?commas[2]:cmd.length())).toInt();
@@ -1068,8 +1078,9 @@ void Comm::cmdCamera() {
   if (n >= 4) h = cmd.substring(commas[3]+1, (n>=5?commas[4]:cmd.length())).toInt();
   if (n >= 5) fps = cmd.substring(commas[4]+1, (n>=6?commas[5]:cmd.length())).toInt();
   if (n >= 6) quality = cmd.substring(commas[5]+1, (n>=7?commas[6]:cmd.length())).toInt();
-  const bool auxiliaryViews = n < 7 || cmd.substring(commas[6]+1).toInt() != 0;
+  const bool auxiliaryViews = n < 7 || cmd.substring(commas[6]+1, (n>=8?commas[7]:cmd.length())).toInt() != 0;
 #ifdef __linux__
+  DirectLink::setCloudCamera(n < 8 || cmd.substring(commas[7]+1).toInt() != 0);
   if (enable) {
     // Clamp to supported range
     if (w < 160) w = 160; if (w > 640) w = 640;

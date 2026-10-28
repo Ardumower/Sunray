@@ -176,6 +176,7 @@ XORG
   sudo udevadm trigger --action=change --subsystem-match=drm
   sudo udevadm settle
   export RKNN_INCLUDE_DIR="$SIM_GPU_DIR/rknn/include" RKNN_LIBRARY="$SIM_GPU_DIR/rknn/lib/librknnrt.so"
+  setup_direct_link sunray-sim3d
   simulator_build
   simulator_install
   timeout 180 "$SIM_GPU_DIR/Godot_v4.7.2-stable_linux.arm64" --headless --editor --import --path "$SIM_ROOT/tools/sim3d"
@@ -264,6 +265,49 @@ simulator_action() {
     *) echo "Unknown simulator action: $1"; return 2 ;;
   esac
 }
+
+setup_direct_link() (
+  set -eu
+  local main_unit="${1:-sunray}"
+  case "$main_unit" in sunray|sunray-sim3d) ;; *) echo "Unknown Sunray service"; exit 1;; esac
+  if [ "$(uname -s)" != Linux ]; then echo "Direct-link setup requires Linux."; exit 1; fi
+  sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-upgrade python3-venv
+  local directory="$SIM_ROOT/tools/direct_link"
+  python3 -m venv "$directory/.venv"
+  "$directory/.venv/bin/python" -m pip install --only-binary=:all: -r "$directory/requirements.txt"
+  local staging
+  staging=$(mktemp -d)
+  trap 'rm -rf "$staging"' EXIT
+  case "$SIM_ROOT" in *[!a-zA-Z0-9_./-]*) echo "Unsupported checkout path"; exit 1;; esac
+  cat > "$staging/sunray-direct.service" <<UNIT
+[Unit]
+Description=Sunray encrypted direct camera and joystick connection
+After=network.target
+[Service]
+User=$(id -un)
+WorkingDirectory=$directory
+ExecStart=$directory/.venv/bin/python $directory/server.py
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+UNIT
+  sudo install -m 644 "$staging/sunray-direct.service" /etc/systemd/system/
+  sudo mkdir -p "/etc/systemd/system/$main_unit.service.d"
+  printf '[Unit]\nWants=sunray-direct.service\nAfter=sunray-direct.service\n' > "$staging/direct.conf"
+  sudo install -m 644 "$staging/direct.conf" "/etc/systemd/system/$main_unit.service.d/direct.conf"
+  sudo systemctl daemon-reload
+  sudo systemctl restart sunray-direct.service
+  echo "Direct-link helper installed. The Sunray build must enable DIRECT_LINK_ENABLE."
+)
+
+if [ "${1:-}" = direct-setup ]; then
+  if [ "$EUID" -eq 0 ]; then echo "Please run as non-root (not sudo)"; exit 1; fi
+  setup_direct_link "${2:-sunray}"
+  exit $?
+fi
 
 # Noninteractive entry point, with no unrelated package installation or menu.
 if [ "${1:-}" = simulator ]; then

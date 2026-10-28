@@ -721,3 +721,6 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define WIFI_HEATMAP_MAX_AGE_DAYS 30 // atomic replacement; old dataset is discarded
 #define WIFI_HEATMAP_INTERFACE "wlan0"
 #define WIFI_HEATMAP_FILE "wifi-heatmap.csv" // relative to Sunray working directory
+
+// Optional Linux WebRTC helper for simultaneous local and Cloud viewers.
+#define DIRECT_LINK_ENABLE true

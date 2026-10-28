@@ -1,6 +1,7 @@
 #include "httpserver.h"
 #ifdef __linux__
 #include <WifiHeatmap.h>
+#include <DirectLink.h>
 #endif
 #include "config.h"
 #include "robot.h"
@@ -257,9 +258,21 @@ void HttpServer::processWifiWSClient() {
   if (!ENABLE_WS_CLIENT) return;
 
 #ifdef __linux__
+  #if defined(DIRECT_LINK_ENABLE) && DIRECT_LINK_ENABLE
+  DirectLink::start();
+  std::string directCommand;
+  if(DirectLink::takeDrive(directCommand)){
+    comm.setCmd(String(directCommand.c_str()));
+    comm.processCmd("DIRECT",true,false,false);
+    battery.resetIdle();
+  }
+  #endif
   if (!wsWorker) {
     CloudWorker::Transport io;
     io.auxiliary = [](const std::string& request,std::string& response){
+      #if defined(DIRECT_LINK_ENABLE) && DIRECT_LINK_ENABLE
+      if(DirectLink::rpc(request,response))return true;
+      #endif
       return linuxWifiHeatmapRpc(request,response) || textureRpc(request,response);
     };
     io.connect = [this]{ return wsClient.connect(); };
@@ -275,6 +288,10 @@ void HttpServer::processWifiWSClient() {
     wsWorker = std::make_shared<CloudWorker>(std::move(io));
     std::weak_ptr<CloudWorker> weak=wsWorker;
     CameraStreamer::instance().setSender([weak](const uint8_t* data,size_t length){
+      #if defined(DIRECT_LINK_ENABLE) && DIRECT_LINK_ENABLE
+      DirectLink::camera(data,length);
+      if(!DirectLink::cloudCamera())return;
+      #endif
       if(auto worker=weak.lock()) worker->camera(data,length);
     });
     wsWorker->start();
