@@ -3,6 +3,9 @@
 // Licensed GPLv3 for open source use
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
+#ifdef __linux__
+#include <CameraAvoidanceRuntime.h>
+#endif
 #include "op.h"
 #include <Arduino.h>
 #include "../../robot.h"
@@ -36,6 +39,17 @@ String DockOp::name(){
     return "Dock";
 }
 
+
+bool DockOp::cameraGuidanceActive() const {
+#ifdef DOCK_REFLECTOR_STRIPS
+  return stateEstimator.reflectorDockingGate.active() ||
+      stateEstimator.stateLocalizationMode==LOC_REFLECTOR_STRIPS ||
+      cameraSearch.active() || dockContactAdvanceActive;
+#else
+  // Preserve the existing obstacle stop for non-camera docking configs.
+  return true;
+#endif
+}
 
 bool DockOp::requestCameraDocking(){
 #ifdef DOCK_REFLECTOR_STRIPS
@@ -393,6 +407,9 @@ void DockOp::onKidnapped(bool state){
 
 
 void DockOp::onObstacleRotation(){
+#ifdef __linux__
+    if(CameraAvoidanceRuntime::enabled() && !cameraGuidanceActive() && stateEstimator.stateLocalizationMode==LOC_GPS){onObstacle();return;}
+#endif
     if (stopOnDockingObstacle(SENS_OBSTACLE)) return;
     CONSOLE.println("error: rotation error due to obstacle!");    
     stats.statMowObstacles++;   
@@ -402,6 +419,15 @@ void DockOp::onObstacleRotation(){
 
 void DockOp::onObstacle(){
     if (stopOnDockingObstacle(SENS_OBSTACLE)) return;
+#ifdef __linux__
+    if(CameraAvoidanceRuntime::enabled() && !cameraGuidanceActive() && stateEstimator.stateLocalizationMode==LOC_GPS){
+      motor.stopImmediately(true);
+      ++stats.statMowObstacles;
+      CONSOLE.println("dock approach: obstacle, reverse and replan");
+      changeOp(escapeReverseOp, true);
+      return;
+    }
+#endif
     if (battery.chargerConnected()) {
       CONSOLE.println("triggerObstacle: ignoring, because charger connected");      
       return;

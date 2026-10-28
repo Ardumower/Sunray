@@ -150,6 +150,7 @@ class DockOp: public Op {
   public:
     bool cameraEntryRequested = false;
     bool requestCameraDocking();
+    bool cameraGuidanceActive() const;
     bool tryCameraEntry(bool confirmedCameraEntry);
     bool startCameraSearch(bool atHandoff=false);
     bool cameraSearchAvailable = true;

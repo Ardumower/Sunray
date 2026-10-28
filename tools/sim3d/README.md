@@ -248,8 +248,9 @@ the nominal dimensions.
 In Cloud, open Operate → More controls → **Avoid obstacles using camera**.
 The option defaults to off and is saved only after firmware acknowledgement.
 It is independent of the existing slowdown option. Automatic avoidance operates
-while mowing forward with fixed RTK in GPS mode, not during docking or manual
-joystick operation. Missing or stale segmentation stops motion while enabled.
+while moving forward with fixed RTK in GPS mode: during mowing, the return to
+the station, and the GPS portion of the dock exit. It is disabled during camera
+guidance at the station and manual joystick operation. Missing or stale segmentation stops motion while enabled.
 
 The existing grass model supplies image labels. Confirmed ground-contact contours
 become temporary world-coordinate obstacles, grow as more of an object is seen,
@@ -291,8 +292,14 @@ Shortcuts are accepted only through map-free space. At the dock entrance the
 existing pathfinder's approved entry segment is retained when the robot starts
 just outside the perimeter. Its outside portion is limited by
 `ALLOW_ROUTE_OUTSIDE_PERI_METER` and a 10 cm corridor around that segment;
-camera obstacles still apply. Docking and undocking themselves do not use the
-camera avoidance planner; their existing bumper and docking checks remain active.
+camera obstacles still apply. Camera-guided docking/undocking, marker search,
+acquisition and final contact advance retain the latched bumper/obstacle stop.
+GPS approach/exit contacts use the normal bounded escape and replanning instead.
+A front camera cannot plan a reverse detour: GPS reverse-exit contacts move away
+forward and then plan a new route to mowing. The camera-exit recovery must not
+reacquire the dock marker merely because the short retreat makes it visible again.
+Dock/exit waypoints are never discarded as unreachable mowing targets. The Cloud
+Dock command restores the saved camera-avoidance choice before starting movement.
 If a completed search using fresh perception finds no route to the current
 target, that target is discarded immediately and normal waypoint progression
 checks the next one. There is no additional waiting timer. A stale camera, unsafe current position, or path-deviation stop does

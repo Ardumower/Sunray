@@ -242,9 +242,10 @@ void LineTracker::trackLine(bool runControl){
     //if (!SMOOTH_CURVES) angular = max(-PI/16, min(PI/16, angular)); 
   }
 #ifdef __linux__
-  const bool cameraEligible=CameraAvoidanceRuntime::enabled() &&
-      stateEstimator.stateOp==OP_MOW && stateEstimator.stateLocalizationMode==LOC_GPS &&
-      gps.solution==SOL_FIXED && !maps.trackReverse && !maps.isDocking() && !maps.isUndocking();
+  const bool cameraRoute=(stateEstimator.stateOp==OP_MOW && !maps.isDocking() && (!maps.isUndocking() || !dockOp.cameraGuidanceActive())) ||
+      (stateEstimator.stateOp==OP_DOCK && !dockOp.cameraGuidanceActive());
+  const bool cameraEligible=CameraAvoidanceRuntime::enabled() && cameraRoute &&
+      stateEstimator.stateLocalizationMode==LOC_GPS && gps.solution==SOL_FIXED && !maps.trackReverse;
   if(cameraEligible){
     CameraAvoidance::MapSnapshot cameraMap;
     auto copyPolygon=[](Polygon& source){
@@ -264,7 +265,7 @@ void LineTracker::trackLine(bool runControl){
     CameraAvoidance::Point cameraLineStart{lastTarget.x(),lastTarget.y()};
     // A free route may terminate at a mowing waypoint. Rejoin the original
     // mowing segment there, not the diagonal from the current detour position.
-    if(maps.mowPointsIdx>0 && maps.mowPointsIdx<maps.mowPoints.numPoints){
+    if(stateEstimator.stateOp==OP_MOW && maps.mowPointsIdx>0 && maps.mowPointsIdx<maps.mowPoints.numPoints){
       auto& mowTarget=maps.mowPoints.points[maps.mowPointsIdx];
       if(hypot(target.x()-mowTarget.x(),target.y()-mowTarget.y())<.02){
         auto& mowFrom=maps.mowPoints.points[maps.mowPointsIdx-1];
@@ -278,15 +279,15 @@ void LineTracker::trackLine(bool runControl){
     distToPath=CameraAvoidanceRuntime::deviation();
     // Advance the normal waypoint sequence, including free-route points, when
     // fresh perception repeatedly proves that this target cannot be reached.
-    if(runControl && CameraAvoidanceRuntime::discardTarget()){
+    if(runControl && stateEstimator.stateOp==OP_MOW && !maps.isUndocking() && CameraAvoidanceRuntime::discardTarget()){
       CONSOLE.print("CAM avoidance: discard unreachable target ");
       CONSOLE.print(target.x());CONSOLE.print(",");CONSOLE.println(target.y());
       targetReached=true;
     }
   }else{
     CameraAvoidanceRuntime::idle();
-    if(CameraAvoidanceRuntime::enabled() && stateEstimator.stateOp==OP_MOW &&
-       stateEstimator.stateLocalizationMode==LOC_GPS && !maps.isDocking() && !maps.isUndocking() && gps.solution!=SOL_FIXED){linear=angular=0;}
+    if(CameraAvoidanceRuntime::enabled() && cameraRoute &&
+       stateEstimator.stateLocalizationMode==LOC_GPS && gps.solution!=SOL_FIXED){linear=angular=0;}
   }
 #endif
   // check some pre-conditions that can make linear+angular speed zero

@@ -17,8 +17,8 @@ struct Map {
  bool valid=true;
  bool getDockingPos(float& x,float& y,float& heading){x=4;y=0;heading=0;return valid;}
 } maps;
-struct {float stateX=2,stateY=0,stateDelta=0;} stateEstimator;
-int idleOp,otherOp,imuCalibrationOp;
+struct {float stateX=2,stateY=0,stateDelta=0;bool dockReflectorStripsUndockCompleted=false;} stateEstimator;
+int idleOp,otherOp,imuCalibrationOp,escapeForwardOp,escapeReverseOp;
 enum {SOL_INVALID,SOL_FLOAT,SOL_FIXED};
 struct {int solution=SOL_FIXED;} gps;
 struct {bool connected=false;bool chargerConnected(){return connected;}} battery;
@@ -42,6 +42,9 @@ bool clearsStaleRoute(){
 }
 int main(){
  assert(dock());assert(undock());
+ stateEstimator.dockReflectorStripsUndockCompleted=true;previousOp=&escapeForwardOp;
+ assert(!undock()&&clearsStaleRoute());previousOp=&escapeReverseOp;assert(!undock()&&clearsStaleRoute());
+ previousOp=&idleOp;stateEstimator.dockReflectorStripsUndockCompleted=false;
  // Both commands accept a marker up to 2 m from the final path, not just
  // a circle around a waypoint. The earlier approach segment is excluded.
  stateEstimator.stateY=2;assert(dock());assert(undock());

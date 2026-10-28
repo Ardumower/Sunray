@@ -6,6 +6,7 @@
 #include "op.h"
 #include <Arduino.h>
 #include "../../robot.h"
+#include "../../StateEstimator.h"
 #include "../../map.h"
 
 
@@ -37,6 +38,10 @@ void EscapeForwardOp::run(){
         if (!maps.findObstacleSafeMowPoint(pt)){
         setOperation(OP_DOCK, true); // dock if no more (valid) mowing points
         } else*/ 
+        if(nextOp==&mowOp && maps.isUndocking() && !dockOp.cameraGuidanceActive() &&
+           stateEstimator.stateLocalizationMode==LOC_GPS){
+            maps.addObstacle(stateEstimator.stateX,stateEstimator.stateY);
+        }
         changeOp(*nextOp);    // continue current operation              
     }
 }

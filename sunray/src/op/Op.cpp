@@ -282,7 +282,7 @@ void Op::onImuError(){
 // Separate from generic avoidance: applies to reverse motion and standstill,
 // ignores the normal bumper dead time and the final-dock obstacle exception.
 bool Op::stopOnDockingObstacle(Sensor sensor){
-    if (!DOCK_STOP_ON_OBSTACLE || !(stateEstimator.stateOp == OP_DOCK || (stateEstimator.stateOp == OP_MOW && maps.isUndocking()))) return false;
+    if (!DOCK_STOP_ON_OBSTACLE || !((stateEstimator.stateOp == OP_DOCK && dockOp.cameraGuidanceActive()) || (stateEstimator.stateOp == OP_MOW && maps.isUndocking() && dockOp.cameraGuidanceActive()))) return false;
     motor.stopImmediately(true);
     stateEstimator.stateSensor = sensor;
     if (sensor == SENS_BUMPER) Logger.event(EVT_BUMPER_OBSTACLE);

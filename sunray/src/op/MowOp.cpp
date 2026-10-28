@@ -81,6 +81,12 @@ void MowOp::begin(){
         clearStaleDockRoute=knownDockPath && !resumeCamera && beforeHandoff &&
             gps.solution==SOL_FIXED && !battery.chargerConnected();
     }
+    // A GPS-exit obstacle recovery must not reacquire the station merely
+    // because its short retreat brought the marker back into view.
+    if(stateEstimator.dockReflectorStripsUndockCompleted &&
+       (previousOp==&escapeForwardOp || previousOp==&escapeReverseOp)){
+      resumeCamera=false;clearStaleDockRoute=true;
+    }
     if (resumeCamera){
         maps.wayMode=WAY_DOCK;
         // nextPoint selects the penultimate point for camera undocking.
@@ -240,6 +246,14 @@ void MowOp::onTimetableStartMowing(){
 
 void MowOp::onObstacle(){
     if (stopOnDockingObstacle(SENS_OBSTACLE)) return;
+    if(OBSTACLE_AVOIDANCE && maps.isUndocking() && !dockOp.cameraGuidanceActive() && stateEstimator.stateLocalizationMode==LOC_GPS){
+      motor.stopImmediately(true);
+      ++stats.statMowObstacles;
+      CONSOLE.println("GPS undock: obstacle, move away and replan");
+      if(maps.trackReverse)changeOp(escapeForwardOp,true);
+      else changeOp(escapeReverseOp,true);
+      return;
+    }
     if ((!DOCK_DETECT_OBSTACLE_IN_DOCK) && (maps.isBetweenLastAndNextToLastDockPoint())) {
       //CONSOLE.println("triggerObstacle: ignoring, because in dock");      
       return;
@@ -263,6 +277,7 @@ void MowOp::onObstacle(){
     
 void MowOp::onObstacleRotation(){
     if (stopOnDockingObstacle(SENS_OBSTACLE)) return;
+    if(OBSTACLE_AVOIDANCE && maps.isUndocking() && !dockOp.cameraGuidanceActive() && stateEstimator.stateLocalizationMode==LOC_GPS){onObstacle();return;}
     CONSOLE.println("triggerObstacleRotation");    
     stats.statMowObstacles++;   
     if ((OBSTACLE_AVOIDANCE) && (maps.wayMode != WAY_DOCK)){    

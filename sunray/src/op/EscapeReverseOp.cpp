@@ -3,6 +3,9 @@
 // Licensed GPLv3 for open source use
 // or Grau GmbH Commercial License for commercial use (http://grauonline.de/cms2/?page_id=153)
 
+#ifdef __linux__
+#include <CameraAvoidanceRuntime.h>
+#endif
 #include "op.h"
 #include <Arduino.h>
 #include "../../robot.h"
@@ -40,7 +43,12 @@ void EscapeReverseOp::run(){
             changeOp(errorOp);
             return;
         }
-        if (maps.isDocking()){
+        bool cameraDockApproach=false;
+#ifdef __linux__
+        cameraDockApproach=nextOp==&dockOp && CameraAvoidanceRuntime::enabled() &&
+            !dockOp.cameraGuidanceActive() && stateEstimator.stateLocalizationMode==LOC_GPS;
+#endif
+        if (maps.isDocking() && !cameraDockApproach){
             CONSOLE.println("continue docking");
             // continue without obstacles
             changeOp(*nextOp, false);    // continue current operation

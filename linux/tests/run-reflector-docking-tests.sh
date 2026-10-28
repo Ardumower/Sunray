@@ -18,6 +18,7 @@ def method(file,signature):
  while depth:
   depth+=(s[e]=='{')-(s[e]=='}');e+=1
  return s[a:e]
+out.joinpath('dock-guidance-production.inc').write_text(method('sunray/src/op/DockOp.cpp','bool DockOp::cameraGuidanceActive('))
 out.joinpath('obstacle-production.inc').write_text('\n'.join(method(f,s) for f,s in [
  ('sunray/src/op/Op.cpp','void Op::changeOp('),
  ('sunray/src/op/Op.cpp','void Op::changeOperationTypeByOperator('),
@@ -81,3 +82,6 @@ PY
 
 "${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -I"$work" -Isunray linux/tests/camera-slip-integration-test.cpp -o "$work/slip-integration"
 "$work/slip-integration"
+
+"${CXX:-c++}" -std=c++11 -Wall -Wextra ${CXXFLAGS:-} -I"$work" -Isunray linux/tests/dock-guidance-phase-test.cpp -o "$work/guidance"
+"$work/guidance"
