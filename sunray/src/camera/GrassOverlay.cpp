@@ -2,6 +2,7 @@
 #include "GrassOverlay.h"
 #include "GrassObstacle.h"
 #include <atomic>
+#include <algorithm>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -14,8 +15,17 @@
 #include <rknn_api.h>
 #endif
 namespace {
-std::atomic<uint64_t> observation{0}; // capture timestamp * 2 + blocked bit
+std::atomic<uint64_t> observation{0};
+std::mutex maskMutex;
+std::array<uint8_t,3600> maskLabels{};
+uint64_t maskStamp=0;
+std::atomic<bool> modelReady{false}; // capture timestamp * 2 + blocked bit
 uint64_t monotonicMs(){return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();}
+}
+bool GrassOverlay::available(){return modelReady.load();}
+bool GrassOverlay::mask(std::array<uint8_t,3600>& labels,uint64_t& stamp){
+ std::unique_lock<std::mutex> lock(maskMutex,std::try_to_lock);
+ if(!lock||!maskStamp||maskStamp==stamp)return false;labels=maskLabels;stamp=maskStamp;return true;
 }
 int GrassOverlay::obstacleState(){
   const uint64_t value=observation.load(), stamp=value>>1, now=monotonicMs();
@@ -46,6 +56,7 @@ struct GrassOverlay::Impl {
        attr.fmt!=RKNN_TENSOR_NCHW||attr.dims[0]!=1||attr.dims[1]!=5||attr.dims[2]!=45||attr.dims[3]!=80||
        rknn_set_core_mask(ctx,RKNN_NPU_CORE_0)<0){fprintf(stderr,"GRASS unsupported model\n");rknn_destroy(ctx);return;}
     fprintf(stderr,"GRASS ready: %s\n",path.c_str());
+    modelReady=true;
     unsigned frames=0; bool blocked=false; uint64_t lastStamp=0;
     while(true){
       std::vector<uint8_t> frame;uint64_t stamp;
@@ -62,6 +73,7 @@ struct GrassOverlay::Impl {
       for(int i=0;i<45*80;i++){int best=0;for(int c=1;c<5;c++)if(scores[c*45*80+i]>scores[best*45*80+i])best=c;labels[i]=best;}
       rknn_outputs_release(ctx,1,&out);
       if(stamp<lastStamp || stamp-lastStamp>=GrassObstacle::FreshMs)blocked=false;
+      {std::lock_guard<std::mutex> lock(maskMutex);std::copy(labels,labels+3600,maskLabels.begin());maskStamp=stamp;}
       blocked=GrassObstacle::detect(labels,blocked);lastStamp=stamp;
       observation.store((stamp<<1)|(blocked?1:0));
       // Obstacle, grass, excluded region, non-grass, restricted region.
@@ -73,6 +85,7 @@ struct GrassOverlay::Impl {
       {std::lock_guard<std::mutex> lock(mutex);result.swap(frame);resultTime=stamp;ms=elapsed;}
       if (++frames == 1) fprintf(stderr,"GRASS first live overlay complete: %.1f ms, timestamp %llu\n",elapsed,(unsigned long long)stamp);
     }
+    modelReady=false;
     rknn_destroy(ctx);
 #else
     fprintf(stderr,"GRASS unavailable: build without RKNN\n");

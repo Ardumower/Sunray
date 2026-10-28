@@ -1,5 +1,6 @@
 #ifdef __linux__
 #include <DirectLink.h>
+#include <CameraAvoidanceRuntime.h>
 #endif
 #include "comm.h"
 #ifdef __linux__
@@ -627,6 +628,10 @@ void Comm::cmdToggleGPSSolution(){
   String s = F("G");
   cmdAnswer(s);  
   CONSOLE.println("toggle GPS solution");
+#if defined(SIM_GPS_ALWAYS_FIX) && SIM_GPS_ALWAYS_FIX
+  CONSOLE.println("GPS fault injection disabled in deterministic simulator");
+  return;
+#endif
   switch (gps.solution){
     case SOL_INVALID:  
       gps.solutionAvail = true;
@@ -654,7 +659,11 @@ void Comm::cmdToggleGPSSolution(){
 // request obstacles
 void Comm::cmdObstacles(){
   String s = F("S2,");
+#ifdef __linux__
+  s += maps.obstacles.numPolygons+CameraAvoidanceRuntime::obstacles().size();
+#else
   s += maps.obstacles.numPolygons;
+#endif
   for (int idx=0; idx < maps.obstacles.numPolygons; idx++){
     s += ",0.5,0.5,1,"; // red,green,blue (0-1)    
     s += maps.obstacles.polygons[idx].numPoints;    
@@ -666,6 +675,12 @@ void Comm::cmdObstacles(){
     }    
   }
 
+#ifdef __linux__
+  for(const auto& obstacle:CameraAvoidanceRuntime::obstacles()){
+    s+=",1,0.55,0,";s+=obstacle.points.size();
+    for(const auto& p:obstacle.points){s+=",";s+=String(p.x,3);s+=",";s+=String(p.y,3);}
+  }
+#endif
   cmdAnswer(s);
 }
 
@@ -986,6 +1001,14 @@ void Comm::processCmd(String channel, bool checkCrc, bool decrypt, bool verbose)
   if (cmd[0] != 'A') return;
   if (cmd[1] != 'T') return;
   if (cmd[2] != '+') return;
+#ifdef __linux__
+  if(cmd=="AT+JCA" || cmd.startsWith("AT+JCA,")){
+    if(cmd=="AT+JCA,0")CameraAvoidanceRuntime::setEnabled(false);
+    else if(cmd=="AT+JCA,1")CameraAvoidanceRuntime::setEnabled(true);
+    String answer="JCA,";answer+=int(CameraAvoidanceRuntime::enabled());answer+=",";answer+=int(CameraAvoidanceRuntime::supported());
+    cmdAnswer(answer);return;
+  }
+#endif
   if (cmd[3] == 'S') {
     if (cmd.length() <= 4){
       cmdSummary(); 

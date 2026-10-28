@@ -1095,6 +1095,742 @@
       "radius_m": 0.43,
       "height_m": 0.23,
       "seed": 115
+    },
+    {
+      "id": "molehill_13",
+      "X": 50.57,
+      "Y": 12.44,
+      "radius_m": 0.398,
+      "height_m": 0.195,
+      "seed": 2822
+    },
+    {
+      "id": "molehill_14",
+      "X": 75.81,
+      "Y": 53.43,
+      "radius_m": 0.245,
+      "height_m": 0.198,
+      "seed": 2823
+    },
+    {
+      "id": "molehill_15",
+      "X": 64.06,
+      "Y": 40.84,
+      "radius_m": 0.377,
+      "height_m": 0.234,
+      "seed": 2824
+    },
+    {
+      "id": "molehill_16",
+      "X": 36.18,
+      "Y": 13.29,
+      "radius_m": 0.436,
+      "height_m": 0.148,
+      "seed": 2825
+    },
+    {
+      "id": "molehill_17",
+      "X": 39.6,
+      "Y": -0.99,
+      "radius_m": 0.457,
+      "height_m": 0.161,
+      "seed": 2826
+    },
+    {
+      "id": "molehill_18",
+      "X": 95.82,
+      "Y": 49.77,
+      "radius_m": 0.47,
+      "height_m": 0.162,
+      "seed": 2827
+    },
+    {
+      "id": "molehill_19",
+      "X": 81.0,
+      "Y": 10.91,
+      "radius_m": 0.359,
+      "height_m": 0.233,
+      "seed": 2828
+    },
+    {
+      "id": "molehill_20",
+      "X": 38.67,
+      "Y": -4.11,
+      "radius_m": 0.337,
+      "height_m": 0.225,
+      "seed": 2829
+    },
+    {
+      "id": "molehill_21",
+      "X": 37.5,
+      "Y": 15.17,
+      "radius_m": 0.453,
+      "height_m": 0.229,
+      "seed": 2830
+    },
+    {
+      "id": "molehill_22",
+      "X": 95.38,
+      "Y": 58.11,
+      "radius_m": 0.461,
+      "height_m": 0.238,
+      "seed": 2831
+    },
+    {
+      "id": "molehill_23",
+      "X": 99.28,
+      "Y": 48.9,
+      "radius_m": 0.372,
+      "height_m": 0.231,
+      "seed": 2832
+    },
+    {
+      "id": "molehill_24",
+      "X": 79.09,
+      "Y": 58.14,
+      "radius_m": 0.401,
+      "height_m": 0.148,
+      "seed": 2833
+    },
+    {
+      "id": "molehill_25",
+      "X": 68.19,
+      "Y": -6.17,
+      "radius_m": 0.414,
+      "height_m": 0.226,
+      "seed": 2834
+    },
+    {
+      "id": "molehill_26",
+      "X": 27.53,
+      "Y": -9.5,
+      "radius_m": 0.434,
+      "height_m": 0.24,
+      "seed": 2835
+    },
+    {
+      "id": "molehill_27",
+      "X": 104.59,
+      "Y": 42.23,
+      "radius_m": 0.403,
+      "height_m": 0.227,
+      "seed": 2836
+    },
+    {
+      "id": "molehill_28",
+      "X": 73.26,
+      "Y": 55.81,
+      "radius_m": 0.426,
+      "height_m": 0.189,
+      "seed": 2837
+    },
+    {
+      "id": "molehill_29",
+      "X": 87.51,
+      "Y": 43.58,
+      "radius_m": 0.286,
+      "height_m": 0.122,
+      "seed": 2838
+    },
+    {
+      "id": "molehill_30",
+      "X": 93.38,
+      "Y": 59.84,
+      "radius_m": 0.453,
+      "height_m": 0.237,
+      "seed": 2839
+    },
+    {
+      "id": "molehill_31",
+      "X": 106.52,
+      "Y": 46.1,
+      "radius_m": 0.354,
+      "height_m": 0.219,
+      "seed": 2840
+    },
+    {
+      "id": "molehill_32",
+      "X": 87.88,
+      "Y": 40.5,
+      "radius_m": 0.371,
+      "height_m": 0.25,
+      "seed": 2841
+    },
+    {
+      "id": "molehill_33",
+      "X": 79.06,
+      "Y": 12.66,
+      "radius_m": 0.454,
+      "height_m": 0.236,
+      "seed": 2842
+    },
+    {
+      "id": "molehill_34",
+      "X": 92.24,
+      "Y": 48.01,
+      "radius_m": 0.429,
+      "height_m": 0.219,
+      "seed": 2843
+    },
+    {
+      "id": "molehill_35",
+      "X": 41.17,
+      "Y": 8.6,
+      "radius_m": 0.436,
+      "height_m": 0.247,
+      "seed": 2844
+    },
+    {
+      "id": "molehill_36",
+      "X": 57.36,
+      "Y": 41.58,
+      "radius_m": 0.472,
+      "height_m": 0.212,
+      "seed": 2845
+    },
+    {
+      "id": "molehill_37",
+      "X": 32.82,
+      "Y": -6.77,
+      "radius_m": 0.347,
+      "height_m": 0.148,
+      "seed": 2846
+    },
+    {
+      "id": "molehill_38",
+      "X": 39.71,
+      "Y": 16.84,
+      "radius_m": 0.408,
+      "height_m": 0.151,
+      "seed": 2847
+    },
+    {
+      "id": "molehill_39",
+      "X": 54.37,
+      "Y": 25.12,
+      "radius_m": 0.251,
+      "height_m": 0.142,
+      "seed": 2848
+    },
+    {
+      "id": "molehill_40",
+      "X": 79.59,
+      "Y": 45.96,
+      "radius_m": 0.376,
+      "height_m": 0.245,
+      "seed": 2849
+    },
+    {
+      "id": "molehill_41",
+      "X": 90.51,
+      "Y": 19.71,
+      "radius_m": 0.308,
+      "height_m": 0.14,
+      "seed": 2850
+    },
+    {
+      "id": "molehill_42",
+      "X": 75.09,
+      "Y": 43.07,
+      "radius_m": 0.223,
+      "height_m": 0.121,
+      "seed": 2851
+    },
+    {
+      "id": "molehill_43",
+      "X": 71.73,
+      "Y": 38.69,
+      "radius_m": 0.3,
+      "height_m": 0.191,
+      "seed": 2852
+    },
+    {
+      "id": "molehill_44",
+      "X": 26.51,
+      "Y": -0.39,
+      "radius_m": 0.255,
+      "height_m": 0.206,
+      "seed": 2853
+    },
+    {
+      "id": "molehill_45",
+      "X": 74.53,
+      "Y": 35.24,
+      "radius_m": 0.274,
+      "height_m": 0.2,
+      "seed": 2854
+    },
+    {
+      "id": "molehill_46",
+      "X": 54.17,
+      "Y": 7.95,
+      "radius_m": 0.454,
+      "height_m": 0.133,
+      "seed": 2855
+    },
+    {
+      "id": "molehill_47",
+      "X": 56.17,
+      "Y": 36.79,
+      "radius_m": 0.406,
+      "height_m": 0.213,
+      "seed": 2856
+    },
+    {
+      "id": "molehill_48",
+      "X": 88.66,
+      "Y": 60.03,
+      "radius_m": 0.421,
+      "height_m": 0.181,
+      "seed": 2857
+    },
+    {
+      "id": "molehill_49",
+      "X": 51.16,
+      "Y": 35.7,
+      "radius_m": 0.251,
+      "height_m": 0.153,
+      "seed": 2858
+    },
+    {
+      "id": "molehill_50",
+      "X": 98.24,
+      "Y": 38.21,
+      "radius_m": 0.353,
+      "height_m": 0.211,
+      "seed": 2859
+    },
+    {
+      "id": "molehill_51",
+      "X": 91.58,
+      "Y": 63.61,
+      "radius_m": 0.4,
+      "height_m": 0.257,
+      "seed": 2860
+    },
+    {
+      "id": "molehill_52",
+      "X": 60.89,
+      "Y": -9.28,
+      "radius_m": 0.323,
+      "height_m": 0.138,
+      "seed": 2861
+    },
+    {
+      "id": "molehill_53",
+      "X": 54.28,
+      "Y": -15.82,
+      "radius_m": 0.35,
+      "height_m": 0.159,
+      "seed": 2862
+    },
+    {
+      "id": "molehill_54",
+      "X": 57.42,
+      "Y": -10.37,
+      "radius_m": 0.335,
+      "height_m": 0.19,
+      "seed": 2863
+    },
+    {
+      "id": "molehill_55",
+      "X": 65.91,
+      "Y": 54.49,
+      "radius_m": 0.359,
+      "height_m": 0.245,
+      "seed": 2864
+    },
+    {
+      "id": "molehill_56",
+      "X": 61.04,
+      "Y": 42.36,
+      "radius_m": 0.476,
+      "height_m": 0.143,
+      "seed": 2865
+    },
+    {
+      "id": "molehill_57",
+      "X": 106.01,
+      "Y": 52.13,
+      "radius_m": 0.258,
+      "height_m": 0.242,
+      "seed": 2866
+    },
+    {
+      "id": "molehill_58",
+      "X": 51.84,
+      "Y": 25.47,
+      "radius_m": 0.267,
+      "height_m": 0.16,
+      "seed": 2867
+    },
+    {
+      "id": "molehill_59",
+      "X": 63.59,
+      "Y": -10.02,
+      "radius_m": 0.328,
+      "height_m": 0.148,
+      "seed": 2868
+    },
+    {
+      "id": "molehill_60",
+      "X": 61.27,
+      "Y": 20.61,
+      "radius_m": 0.302,
+      "height_m": 0.18,
+      "seed": 2869
+    },
+    {
+      "id": "molehill_61",
+      "X": 64.06,
+      "Y": 23.26,
+      "radius_m": 0.369,
+      "height_m": 0.223,
+      "seed": 2870
+    },
+    {
+      "id": "molehill_62",
+      "X": 89.98,
+      "Y": 40.42,
+      "radius_m": 0.312,
+      "height_m": 0.223,
+      "seed": 2871
+    },
+    {
+      "id": "molehill_63",
+      "X": 91.31,
+      "Y": 42.24,
+      "radius_m": 0.45,
+      "height_m": 0.213,
+      "seed": 2872
+    },
+    {
+      "id": "molehill_64",
+      "X": 108.03,
+      "Y": 42.26,
+      "radius_m": 0.331,
+      "height_m": 0.231,
+      "seed": 2873
+    },
+    {
+      "id": "long_mound_01",
+      "X": 74.46,
+      "Y": 67.19,
+      "length_m": 7.8,
+      "width_m": 1.07,
+      "heading_deg": 9,
+      "height_m": 0.35,
+      "seed": 281026
+    },
+    {
+      "id": "long_mound_02",
+      "X": 26.71,
+      "Y": 2.86,
+      "length_m": 3.23,
+      "width_m": 0.91,
+      "heading_deg": 152,
+      "height_m": 0.327,
+      "seed": 281027
+    },
+    {
+      "id": "long_mound_03",
+      "X": 93.21,
+      "Y": 36.27,
+      "length_m": 5.26,
+      "width_m": 1.02,
+      "heading_deg": 38,
+      "height_m": 0.28,
+      "seed": 281028
+    },
+    {
+      "id": "long_mound_04",
+      "X": 92.31,
+      "Y": 22.96,
+      "length_m": 4.75,
+      "width_m": 0.91,
+      "heading_deg": 52,
+      "height_m": 0.23,
+      "seed": 281029
+    },
+    {
+      "id": "long_mound_05",
+      "X": 49.77,
+      "Y": -5.16,
+      "length_m": 6.18,
+      "width_m": 1.12,
+      "heading_deg": 148,
+      "height_m": 0.286,
+      "seed": 281030
+    },
+    {
+      "id": "long_mound_06",
+      "X": 57.96,
+      "Y": -18.81,
+      "length_m": 3.8,
+      "width_m": 0.77,
+      "heading_deg": 94,
+      "height_m": 0.217,
+      "seed": 281031
+    },
+    {
+      "id": "long_mound_07",
+      "X": 92.45,
+      "Y": 54.27,
+      "length_m": 6.33,
+      "width_m": 1.03,
+      "heading_deg": 19,
+      "height_m": 0.183,
+      "seed": 281032
+    },
+    {
+      "id": "long_mound_08",
+      "X": 58.38,
+      "Y": 23.03,
+      "length_m": 4.15,
+      "width_m": 0.82,
+      "heading_deg": 24,
+      "height_m": 0.345,
+      "seed": 281033
+    },
+    {
+      "id": "long_mound_09",
+      "X": 43.5,
+      "Y": 13.63,
+      "length_m": 5.1,
+      "width_m": 0.94,
+      "heading_deg": 86,
+      "height_m": 0.185,
+      "seed": 281034
+    },
+    {
+      "id": "long_mound_10",
+      "X": 84.12,
+      "Y": 64.67,
+      "length_m": 7.41,
+      "width_m": 1.17,
+      "heading_deg": 132,
+      "height_m": 0.342,
+      "seed": 281035
+    },
+    {
+      "id": "long_mound_11",
+      "X": 80.33,
+      "Y": 49.99,
+      "length_m": 3.96,
+      "width_m": 0.96,
+      "heading_deg": 30,
+      "height_m": 0.284,
+      "seed": 281036
+    },
+    {
+      "id": "long_mound_12",
+      "X": 97.3,
+      "Y": 44.63,
+      "length_m": 5.81,
+      "width_m": 0.81,
+      "heading_deg": 158,
+      "height_m": 0.2,
+      "seed": 281037
+    },
+    {
+      "id": "long_mound_13",
+      "X": 76.09,
+      "Y": 38.6,
+      "length_m": 4.01,
+      "width_m": 1.08,
+      "heading_deg": 174,
+      "height_m": 0.192,
+      "seed": 281038
+    },
+    {
+      "id": "long_mound_14",
+      "X": 65.36,
+      "Y": 30.09,
+      "length_m": 5.23,
+      "width_m": 0.96,
+      "heading_deg": 77,
+      "height_m": 0.282,
+      "seed": 281039
+    },
+    {
+      "id": "long_mound_15",
+      "X": 17.17,
+      "Y": -9.73,
+      "length_m": 4.25,
+      "width_m": 1.02,
+      "heading_deg": 82,
+      "height_m": 0.253,
+      "seed": 281040
+    },
+    {
+      "id": "long_mound_16",
+      "X": 111.22,
+      "Y": 57.0,
+      "length_m": 6.94,
+      "width_m": 0.95,
+      "heading_deg": 116,
+      "height_m": 0.282,
+      "seed": 281041
+    },
+    {
+      "id": "long_mound_17",
+      "X": 79.78,
+      "Y": 73.67,
+      "length_m": 3.78,
+      "width_m": 0.71,
+      "heading_deg": 105,
+      "height_m": 0.26,
+      "seed": 281042
+    },
+    {
+      "id": "long_mound_18",
+      "X": 28.68,
+      "Y": -5.04,
+      "length_m": 5.18,
+      "width_m": 0.92,
+      "heading_deg": 130,
+      "height_m": 0.321,
+      "seed": 281043
+    },
+    {
+      "id": "long_mound_19",
+      "X": 49.92,
+      "Y": 2.38,
+      "length_m": 5.23,
+      "width_m": 0.86,
+      "heading_deg": 9,
+      "height_m": 0.251,
+      "seed": 281044
+    },
+    {
+      "id": "long_mound_20",
+      "X": 78.05,
+      "Y": 61.55,
+      "length_m": 3.14,
+      "width_m": 0.97,
+      "heading_deg": 136,
+      "height_m": 0.324,
+      "seed": 281045
+    },
+    {
+      "id": "long_mound_21",
+      "X": 58.02,
+      "Y": 16.64,
+      "length_m": 3.35,
+      "width_m": 1.16,
+      "heading_deg": 131,
+      "height_m": 0.277,
+      "seed": 281046
+    },
+    {
+      "id": "long_mound_22",
+      "X": 70.38,
+      "Y": -2.32,
+      "length_m": 5.36,
+      "width_m": 1.11,
+      "heading_deg": 24,
+      "height_m": 0.316,
+      "seed": 281047
+    },
+    {
+      "id": "long_mound_23",
+      "X": 71.44,
+      "Y": 46.65,
+      "length_m": 5.79,
+      "width_m": 0.8,
+      "heading_deg": 95,
+      "height_m": 0.305,
+      "seed": 281048
+    },
+    {
+      "id": "long_mound_24",
+      "X": 62.98,
+      "Y": 50.7,
+      "length_m": 6.61,
+      "width_m": 1.01,
+      "heading_deg": 79,
+      "height_m": 0.224,
+      "seed": 281049
+    },
+    {
+      "id": "long_mound_25",
+      "X": 55.4,
+      "Y": 31.33,
+      "length_m": 5.18,
+      "width_m": 1.1,
+      "heading_deg": 43,
+      "height_m": 0.274,
+      "seed": 281050
+    },
+    {
+      "id": "long_mound_26",
+      "X": 27.24,
+      "Y": -16.44,
+      "length_m": 3.39,
+      "width_m": 0.79,
+      "heading_deg": 57,
+      "height_m": 0.257,
+      "seed": 281051
+    },
+    {
+      "id": "long_mound_27",
+      "X": 71.29,
+      "Y": 3.8,
+      "length_m": 3.98,
+      "width_m": 1.14,
+      "heading_deg": 44,
+      "height_m": 0.209,
+      "seed": 281052
+    },
+    {
+      "id": "long_mound_28",
+      "X": 81.53,
+      "Y": 22.22,
+      "length_m": 3.74,
+      "width_m": 0.7,
+      "heading_deg": 174,
+      "height_m": 0.342,
+      "seed": 281053
+    },
+    {
+      "id": "long_mound_29",
+      "X": 78.28,
+      "Y": 16.23,
+      "length_m": 4.39,
+      "width_m": 0.76,
+      "heading_deg": 109,
+      "height_m": 0.295,
+      "seed": 281054
+    },
+    {
+      "id": "long_mound_30",
+      "X": 81.55,
+      "Y": 37.8,
+      "length_m": 4.66,
+      "width_m": 0.7,
+      "heading_deg": 122,
+      "height_m": 0.328,
+      "seed": 281055
+    },
+    {
+      "id": "long_mound_31",
+      "X": 35.56,
+      "Y": 8.92,
+      "length_m": 4.02,
+      "width_m": 0.82,
+      "heading_deg": 98,
+      "height_m": 0.267,
+      "seed": 281056
+    },
+    {
+      "id": "long_mound_32",
+      "X": 101.91,
+      "Y": 55.15,
+      "length_m": 3.0,
+      "width_m": 1.2,
+      "heading_deg": 56,
+      "height_m": 0.267,
+      "seed": 281057
     }
   ],
   "grass": {

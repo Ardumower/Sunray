@@ -20,6 +20,12 @@ struct Fake {
 void until(const std::function<bool()>& f){auto end=Clock::now()+std::chrono::seconds(3);while(!f()){assert(Clock::now()<end);std::this_thread::sleep_for(std::chrono::milliseconds(1));}}
 void controlProbe(CloudWorker& w){auto a=Clock::now();for(int i=0;i<1000;i++){CloudWorker::Request r;w.take(r);w.reply(0,"");unsigned char b=0;w.camera(&b,1);}auto ms=std::chrono::duration_cast<std::chrono::milliseconds>(Clock::now()-a).count();std::cout<<"1000 control polls under stalled network: "<<ms<<" ms\n";assert(ms<50);}
 int main(){
+ // Waiting for a slow control/status response must not pause camera delivery.
+ {Fake f;CloudWorker w(f.io(),5);w.start();CloudWorker::Request request;
+  until([&]{return w.take(request);});
+  for(int i=1;i<=5;++i){unsigned char frame=static_cast<unsigned char>(i);w.camera(&frame,1);until([&]{return f.binaries>=i;});}
+  assert(f.sends==0); // video arrived before the control response was available
+  until([&]{return w.reply(request.session,"V,delayed");});until([&]{return f.sends==1;});}
  for(int phase:{1,2,3,4,5}){
   Fake f;f.gate=phase;CloudWorker w(f.io(),5);w.start();
   if(phase>=3){CloudWorker::Request r;until([&]{return w.take(r);});assert(r.text=="AT+V");until([&]{return w.reply(r.session,"V,test");});

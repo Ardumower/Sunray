@@ -65,7 +65,12 @@ Fine-grained queue limits leave room for control/heartbeat traffic.
 
 ## Control and fallback
 
-- Control and image data use separate unordered data channels without retransmits.
+- Control and images use separate unordered data channels. Control packets are
+  never retransmitted. Camera fragments may be retransmitted for up to 1000 ms:
+  losing one fragment would otherwise discard the entire JPEG. The browser holds
+  at most four partial images for 1500 ms, accepts interleaved fragments, and
+  never displays an older image after a newer complete image. The helper retains
+  only the newest pending image, so this does not introduce an unbounded backlog.
 - Robot-generated heartbeat challenges expire after five seconds to allow the
   outdoor WLAN round trip; drive sequence numbers reject reordered/replayed commands. The local bridge also checks monotonic age.
 - One direct peer owns the manual drive lease at a time. Camera-only viewers never

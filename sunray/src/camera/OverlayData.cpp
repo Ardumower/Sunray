@@ -1,4 +1,7 @@
 #ifdef __linux__
+#include <CameraAvoidanceRuntime.h>
+#endif
+#ifdef __linux__
 #include <atomic>
 #include "NavigationOverlay.h"
 #endif
@@ -39,7 +42,7 @@ extern "C" void cameraUpdateNavigationOverlay() {
     else if (stateEstimator.stateLocalizationMode == LOC_GUIDANCE_SHEET) mode = Guidance;
     else mode = gps.solution == SOL_FIXED ? RtkFix : (gps.solution == SOL_FLOAT ? RtkFloat : GpsWait);
   }
-  cameraSetGrassMonitoring(sonar.enabled && (op==OP_MOW || op==OP_DOCK) &&
+  cameraSetGrassMonitoring((sonar.enabled || CameraAvoidanceRuntime::enabled()) && (op==OP_MOW || op==OP_DOCK) &&
       stateEstimator.stateLocalizationMode==LOC_GPS && !maps.trackReverse);
   navigationMode.store(mode, std::memory_order_relaxed);
 }

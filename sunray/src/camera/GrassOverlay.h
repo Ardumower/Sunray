@@ -3,10 +3,13 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <array>
 // Asynchronous segmentation and optional front-camera slowdown observation.
 // One pending frame and one completed frame; inference never blocks capture.
 class GrassOverlay {
 public:
+  static bool mask(std::array<uint8_t,3600>& labels, uint64_t& timestamp);
+  static bool available();
   static bool obstaclePresent();
   static int obstacleState(); // -1 unavailable/stale, 0 clear, 1 obstacle
   GrassOverlay();

@@ -1,5 +1,6 @@
 #ifdef __linux__
 #include "src/camera/GrassOverlay.h"
+#include <CameraAvoidanceRuntime.h>
 #include "src/camera/GrassObstacle.h"
 #endif
 // Ardumower Sunray 
@@ -35,6 +36,30 @@ static Polygon circle(8);
 // uses a stanley controller for line tracking
 // https://medium.com/@dingyan7361/three-methods-of-vehicle-lateral-control-pure-pursuit-stanley-and-mpc-db8cc1d32081
 void LineTracker::trackLine(bool runControl){  
+#ifdef __linux__
+  // Shortcut only through known map-free space. Preserve the approved entry
+  // route when starting just outside the perimeter near the dock.
+  if(CameraAvoidanceRuntime::enabled() && stateEstimator.stateOp==OP_MOW &&
+      stateEstimator.stateLocalizationMode==LOC_GPS && !maps.isDocking() && !maps.isUndocking() &&
+      maps.wayMode==WAY_FREE && maps.freePointsIdx+1<maps.freePoints.numPoints){
+    for(int idx=maps.freePoints.numPoints-1;idx>maps.freePointsIdx;--idx){
+      auto& dest=maps.freePoints.points[idx];
+      const double dx=dest.x()-stateEstimator.stateX,dy=dest.y()-stateEstimator.stateY;
+      const int steps=max(1,int(ceil(hypot(dx,dy)/.1)));
+      bool clear=true;
+      for(int n=0;n<=steps && clear;n++){
+        Point q(stateEstimator.stateX+dx*n/steps,stateEstimator.stateY+dy*n/steps);
+        clear=maps.pointIsInsidePolygon(maps.perimeterPoints,q) &&
+            !CameraAvoidanceRuntime::targetBlocked({q.x(),q.y()});
+        for(int i=0;i<maps.exclusions.numPolygons && clear;i++)clear=!maps.pointIsInsidePolygon(maps.exclusions.polygons[i],q);
+        for(int i=0;i<maps.obstacles.numPolygons && clear;i++)clear=!maps.pointIsInsidePolygon(maps.obstacles.polygons[i],q);
+      }
+      if(!clear)continue;
+      maps.freePointsIdx=idx;maps.targetPoint.assign(maps.freePoints.points[idx]);
+      maps.lastTargetPoint.setXY(stateEstimator.stateX,stateEstimator.stateY);break;
+    }
+  }
+#endif
   Point target = maps.targetPoint;
   Point lastTarget = maps.lastTargetPoint;
   float linear = 1.0;  
@@ -216,6 +241,54 @@ void LineTracker::trackLine(bool runControl){
     // restrict steering angle for stanley  (not required anymore after last state estimation bugfix)
     //if (!SMOOTH_CURVES) angular = max(-PI/16, min(PI/16, angular)); 
   }
+#ifdef __linux__
+  const bool cameraEligible=CameraAvoidanceRuntime::enabled() &&
+      stateEstimator.stateOp==OP_MOW && stateEstimator.stateLocalizationMode==LOC_GPS &&
+      gps.solution==SOL_FIXED && !maps.trackReverse && !maps.isDocking() && !maps.isUndocking();
+  if(cameraEligible){
+    CameraAvoidance::MapSnapshot cameraMap;
+    auto copyPolygon=[](Polygon& source){
+      CameraAvoidance::Polygon result;result.reserve(source.numPoints);
+      for(int i=0;i<source.numPoints;++i)result.push_back({source.points[i].x(),source.points[i].y()});
+      return result;
+    };
+    cameraMap.perimeter=copyPolygon(maps.perimeterPoints);
+    for(int i=0;i<maps.exclusions.numPolygons;++i)cameraMap.forbidden.push_back(copyPolygon(maps.exclusions.polygons[i]));
+    for(int i=0;i<maps.obstacles.numPolygons;++i)cameraMap.forbidden.push_back(copyPolygon(maps.obstacles.polygons[i]));
+    cameraMap.entry=maps.wayMode==WAY_FREE;
+    cameraMap.entryStart={lastTarget.x(),lastTarget.y()};cameraMap.entryEnd={target.x(),target.y()};
+    cameraMap.entryLimit=ALLOW_ROUTE_OUTSIDE_PERI_METER;
+    float cameraSpeed=stateEstimator.setSpeed;
+    if(motor.motorLeftOverload || motor.motorRightOverload || motor.motorMowOverload)cameraSpeed=min(cameraSpeed,float(MOTOR_OVERLOAD_SPEED));
+    if(bumperDriver.nearObstacle() || sonar.nearObstacle())cameraSpeed=min(cameraSpeed,0.1f);
+    CameraAvoidance::Point cameraLineStart{lastTarget.x(),lastTarget.y()};
+    // A free route may terminate at a mowing waypoint. Rejoin the original
+    // mowing segment there, not the diagonal from the current detour position.
+    if(maps.mowPointsIdx>0 && maps.mowPointsIdx<maps.mowPoints.numPoints){
+      auto& mowTarget=maps.mowPoints.points[maps.mowPointsIdx];
+      if(hypot(target.x()-mowTarget.x(),target.y()-mowTarget.y())<.02){
+        auto& mowFrom=maps.mowPoints.points[maps.mowPointsIdx-1];
+        cameraLineStart={mowFrom.x(),mowFrom.y()};
+      }
+    }
+    CameraAvoidanceRuntime::update({stateEstimator.stateX,stateEstimator.stateY,stateEstimator.stateDelta},
+        {target.x(),target.y()},cameraSpeed,cameraMap,linear,angular,&cameraLineStart);
+    // The camera planner owns path deviation even while changing targets or
+    // waiting for a route. Falling back to the old mowing line causes false kidnapping.
+    distToPath=CameraAvoidanceRuntime::deviation();
+    // Advance the normal waypoint sequence, including free-route points, when
+    // fresh perception repeatedly proves that this target cannot be reached.
+    if(runControl && CameraAvoidanceRuntime::discardTarget()){
+      CONSOLE.print("CAM avoidance: discard unreachable target ");
+      CONSOLE.print(target.x());CONSOLE.print(",");CONSOLE.println(target.y());
+      targetReached=true;
+    }
+  }else{
+    CameraAvoidanceRuntime::idle();
+    if(CameraAvoidanceRuntime::enabled() && stateEstimator.stateOp==OP_MOW &&
+       stateEstimator.stateLocalizationMode==LOC_GPS && !maps.isDocking() && !maps.isUndocking() && gps.solution!=SOL_FIXED){linear=angular=0;}
+  }
+#endif
   // check some pre-conditions that can make linear+angular speed zero
   if ((stateEstimator.stateLocalizationMode == LOC_GPS) && (stateEstimator.fixTimeout != 0)){
     if (millis() > stateEstimator.lastFixTime + stateEstimator.fixTimeout * 1000.0){

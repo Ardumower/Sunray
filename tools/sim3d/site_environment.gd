@@ -94,8 +94,11 @@ func molehill(spec: Dictionary):
  body.name = str(spec.id)
  body.position=Vector3(spec.X,.028,-spec.Y)
  body.set_meta("kind","molehill")
+ body.rotation.y=deg_to_rad(float(spec.get("heading_deg",0.0)))
  add_child(body)
- var radius: float=spec.radius_m
+ var radius: float=spec.get("radius_m",.35)
+ var half_length: float=float(spec.get("length_m",2.0*radius))/2.0
+ var half_width: float=float(spec.get("width_m",2.0*radius))/2.0
  var height: float=spec.height_m
  var rng := RandomNumberGenerator.new()
  rng.seed=int(spec.get("seed",1))
@@ -108,7 +111,7 @@ func molehill(spec: Dictionary):
    var angle := TAU*float(i)/SIDES
    var r := radius*fraction*rng.randf_range(.88,1.12)
    var h := height*pow(1.0-fraction,1.15)*rng.randf_range(.85,1.10)
-   vertices.append(Vector3(cos(angle)*r,h,sin(angle)*r))
+   vertices.append(Vector3(cos(angle)*r*half_length/radius,h,sin(angle)*r*half_width/radius))
   rings.append(vertices)
  var surface_tool := SurfaceTool.new()
  surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)

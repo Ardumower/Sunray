@@ -19,3 +19,9 @@
 // SimStopButtonDriver reports logical state, not the active-low hardware pin.
 #undef BUTTON_INVERT
 #define BUTTON_INVERT false
+
+// Deterministic navigation sensors: no artificial GPS outages or position jumps.
+#define SIM_GPS_ALWAYS_FIX true
+#define SIM_GPS_ALLOW_JUMPS false
+#undef GPS_REBOOT_RECOVERY
+#define GPS_REBOOT_RECOVERY false

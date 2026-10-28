@@ -229,11 +229,112 @@ remain solid obstacles.
 
 ## Molehills and grass recognition
 
-Twelve deterministic low earth mounds are configured in `scene.json`, inside the
-mowing perimeter and outside the runway exclusion. Heights are 14–23 cm, radii
-28–43 cm. Each has irregular brown geometry and a convex collision shape. They
-are not added to the navigation map: perception-based avoidance remains a future
-step. Collision reports through the existing simulated bumper interface.
+96 deterministic earth mounds are configured in `scene.json`, inside the
+mowing perimeter and outside the runway exclusion. The round mounds have heights of 12–26 cm and radii
+22–48 cm. The additional mounds keep the dock approach clear. Each has irregular
+brown geometry and a convex collision shape. They are not added to the navigation
+map, so avoidance must use camera observations. Collision reports through the
+existing simulated bumper interface.
+
+Of these, 32 are elongated soil piles, 3–8 m long, 0.7–1.2 m wide and
+18–35 cm high, distributed at different headings. Their `length_m`, `width_m`
+and `heading_deg` fields stretch and orient both the visible mesh and its convex
+collision shape. The original 64 round mounds retain `radius_m`. Placement keeps
+the runway and dock approach clear; irregular mesh edges extend up to 12% beyond
+the nominal dimensions.
+
+### Experimental camera avoidance
+
+In Cloud, open Operate → More controls → **Avoid obstacles using camera**.
+The option defaults to off and is saved only after firmware acknowledgement.
+It is independent of the existing slowdown option. Automatic avoidance operates
+while mowing forward with fixed RTK in GPS mode, not during docking or manual
+joystick operation. Missing or stale segmentation stops motion while enabled.
+
+The existing grass model supplies image labels. Confirmed ground-contact contours
+become temporary world-coordinate obstacles, grow as more of an object is seen,
+and expire after 120 seconds without observation. The local planner inflates them
+for robot clearance and shortcuts a route back toward the target; it does not
+trace each contour vertex. Camera contours are also included in map telemetry.
+Valid routes are rechecked against current contours and reused across perception
+updates. A failed or invalidated route is replanned at most twice per second for
+the same target; motion stops while an unsafe route is awaiting replanning.
+Grid collision checks use nearby obstacle bounds to avoid expensive geometry
+tests for distant contours. A dedicated worker searches immutable copies of the
+map and camera contours, with one running and one latest pending request. Old
+results are rejected after target, map or mode changes. The control loop keeps
+checking the accepted route against fresh perception and stops if it is unsafe;
+it never waits for the search worker. Geometry checks and snapshot copies still
+run in the control loop, so this is not a hard real-time guarantee.
+
+Camera transport continues sending the latest image while Cloud commands await
+control-loop replies. Diagnostics distinguish `CAM avoidance async` control and
+search times, `CAM pipeline` image production/encoding gaps, and `CAM cloud`
+queue/send times. These do not measure browser rendering or direct-channel loss;
+measure received fragments and displayed image intervals separately when
+investigating a visible freeze. Compare intervals rather than absolute clocks
+between machines.
+Shortcuts are accepted only through map-free space. At the dock entrance the
+existing pathfinder's approved entry segment is retained when the robot starts
+just outside the perimeter. Its outside portion is limited by
+`ALLOW_ROUTE_OUTSIDE_PERI_METER` and a 10 cm corridor around that segment;
+camera obstacles still apply. Docking and undocking themselves do not use the
+camera avoidance planner; their existing bumper and docking checks remain active.
+If a completed search using fresh perception finds no route to the current
+target, that target is discarded immediately and normal waypoint progression
+checks the next one. There is no additional waiting timer. A stale camera, unsafe current position, or path-deviation stop does
+not discard targets. Rejections are logged as `discard unreachable target`.
+If a camera contour grows over the robot, planning permits movement out of that
+contour (including its clearance buffer), but not deeper into it or into other
+obstacles. Existing bumper and other safety stops remain effective.
+
+Detours rejoin the original mowing segment ahead of the robot, beyond its
+currently observed blocked portion. They no longer simply take a diagonal to a
+distant endpoint. Intermediate re-entry points advance monotonically along that same segment
+if unreachable, with up to three extra searches per worker job. They must
+never reset to the first blocked re-entry point. Only failure at the actual
+endpoint discards the mowing target; waiting for a throttled search is not
+treated as proof that a target is unreachable.
+Close intermediate route vertices trigger replanning instead of trapping the
+controller at a nearly reached corner. Runtime logs include the re-entry aim
+and whether a camera contour currently overlaps the robot's clearance footprint.
+Camera-controlled path deviation also remains authoritative during target
+changes and `KidnapWait` checks; the old mowing line must not falsely flag a
+deliberate detour as a GPS jump.
+
+`config_sim_ws.h` sets `SIM_GPS_ALWAYS_FIX=true`, `SIM_GPS_ALLOW_JUMPS=false`
+and disables GPS reboot recovery. The simulated receiver stays fixed through
+startup and reboot requests, ignores GPS fault injection (`AT+G`) and does not
+apply position-jump offsets. Loss of the Godot connection still stops fresh pose
+updates and retains the existing motor/IMU connection faults; no fresh positions
+are fabricated from a disconnected world. These settings do not change physical
+robot configurations or the legacy simulator defaults.
+The curved collision prediction ends at the current aim instead of extending
+past it. Clear short segments retain cruise speed; only the final control steps
+limit speed to avoid overshooting. Re-entry aims move forward before the robot
+reaches them, avoiding repeated braking on the mowing line. If a predicted arc
+is blocked, a definite corrective pivot avoids yaw commands rounding to zero.
+An enclosing camera contour can also trigger a separate nearby escape aim when
+the original mowing target is itself unreachable. Escape candidates must improve
+clearance and satisfy the same map/obstacle checks.
+This is an experimental monocular estimate: object classification and approximate
+camera calibration limit accuracy, especially for thin posts or raised objects.
+
+Camera geometry can be overridden in the robot config with
+`CAMERA_AVOIDANCE_HEIGHT_M` (0.4), `CAMERA_AVOIDANCE_FORWARD_M` (0.5),
+`CAMERA_AVOIDANCE_HFOV_DEG` (75), `CAMERA_AVOIDANCE_DOWN_PITCH_DEG` (0),
+`CAMERA_AVOIDANCE_WIDTH_M` (0.8) and `CAMERA_AVOIDANCE_LENGTH_M` (1.0).
+Validate these against the physical robot before using the feature there.
+
+Run `sh linux/tests/run-camera-avoidance-tests.sh` from the repository root for
+geometry, simulated motion, and Linux runtime freshness checks. The separate
+`linux/tests/camera-avoidance-world-test.cpp` exercises actual Godot RGB frames,
+RKNN segmentation and wheel physics; it requires the main simulator service to
+be stopped and the original pose supplied for restoration. Its optional
+`--molehill` argument tests an existing scene mound instead of a temporary box.
+On Twenty (2026-10-28), both the box and existing mound tests reached their
+targets without a simulated bumper collision. These individual runs validate
+the perception-to-motion pipeline, not detection of every object in the scene.
 
 The one-metre grass albedo tile is generated with the built-in image_gen tool;
 the complete prompt is in `assets/grass_albedo.prompt.txt`. `grass.gdshader` maps

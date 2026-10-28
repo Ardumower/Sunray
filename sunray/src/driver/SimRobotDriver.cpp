@@ -12,6 +12,13 @@
 #include <Sim3D.h>
 #endif
 
+#ifndef SIM_GPS_ALWAYS_FIX
+#define SIM_GPS_ALWAYS_FIX false
+#endif
+#ifndef SIM_GPS_ALLOW_JUMPS
+#define SIM_GPS_ALLOW_JUMPS true
+#endif
+
 
 void SimRobotDriver::begin(){
   CONSOLE.println("using robot driver: SimRobotDriver");
@@ -562,7 +569,10 @@ void SimGpsDriver::begin(HardwareSerial& bus,uint32_t baud){
 
     
 void SimGpsDriver::run(){
-  if(!simRobot.simConnected){solution=SOL_INVALID;solutionAvail=false;return;}
+  if (SIM_GPS_ALWAYS_FIX) solution=SOL_FIXED;
+  // A disconnected world must not manufacture fresh positions. Its motor/IMU
+  // faults remain active, while the configured simulated GNSS quality stays fixed.
+  if(!simRobot.simConnected){if(!SIM_GPS_ALWAYS_FIX)solution=SOL_INVALID;solutionAvail=false;return;}
   if (true){
     if (millis() > nextSolutionTime){
       nextSolutionTime = millis() + 200; // 5 hz    
@@ -571,7 +581,7 @@ void SimGpsDriver::run(){
       relPosN = simRobot.simY;
       relPosD = 100;
       groundSpeed = 0.3;
-      if (simGpsJump){
+      if (SIM_GPS_ALLOW_JUMPS && simGpsJump){
         relPosE += 3.0;
         relPosN += 3.0; 
       }
@@ -631,17 +641,17 @@ bool SimGpsDriver::configure(){
 void SimGpsDriver::reboot(){
   CONSOLE.println("SimGpsDriver::reboot");
   resetTime = millis();
-  solution = SOL_INVALID;
+  solution = SIM_GPS_ALWAYS_FIX ? SOL_FIXED : SOL_INVALID;
 }
 
 
 void SimGpsDriver::setSimSolution(SolType sol){
-  solution = sol;  
+  solution = SIM_GPS_ALWAYS_FIX ? SOL_FIXED : sol;
 }
 
 
 void SimGpsDriver::setSimGpsJump(bool flag){
-  simGpsJump = flag;
+  simGpsJump = SIM_GPS_ALLOW_JUMPS && flag;
 }
 
 void SimGpsDriver::send(const uint8_t *buffer, size_t size) {  

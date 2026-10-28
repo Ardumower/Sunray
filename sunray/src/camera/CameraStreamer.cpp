@@ -407,6 +407,9 @@ void CameraStreamer::runLoop() {
 void CameraStreamer::runCaptureSession() {
   using namespace std::chrono;
   const CameraFrameClock frameClock;
+  auto videoStatsAt=steady_clock::now(),previousVideoSend=videoStatsAt;
+  unsigned videoFrames=0;int statsIndex=-1;
+  double maxVideoGapMs=0,maxCaptureAgeMs=0,maxEncodeMs=0,maxHandoffMs=0;
   // Open V4L2 device
   int index = captureIndex();
   int outW = reqW_.load(); int outH = reqH_.load(); int fps = reqFps_.load();
@@ -685,13 +688,30 @@ void CameraStreamer::runCaptureSession() {
             overlayView(pixels);
             drawFrameTimestamp(pixels.data(),outW,outH,frameClock.label(stamp));
             std::vector<uint8_t> jpeg;
+            const auto encodeStarted=steady_clock::now();
             if(!jpegEncodeRGB(pixels.data(),outW,outH,q>0?q:70,jpeg))return;
+            const double encodeMs=duration<double,std::milli>(steady_clock::now()-encodeStarted).count();
             uint8_t hdr[16];
             buildMediaHeader(hdr,1,(uint16_t)outW,(uint16_t)outH,uint32_t(stamp),uint16_t(0x8000|(view&0xff)));
             std::vector<uint8_t> packet(sizeof(hdr)+jpeg.size());
             std::memcpy(packet.data(),hdr,sizeof(hdr));
             std::memcpy(packet.data()+sizeof(hdr),jpeg.data(),jpeg.size());
+            const auto handedAt=steady_clock::now();
             sender(packet.data(),packet.size());
+            const double handoffMs=duration<double,std::milli>(steady_clock::now()-handedAt).count();
+            if(view==outputIndex){
+              if(statsIndex!=view){statsIndex=view;videoFrames=0;videoStatsAt=handedAt;maxVideoGapMs=maxCaptureAgeMs=maxEncodeMs=maxHandoffMs=0;}
+              if(videoFrames)maxVideoGapMs=std::max(maxVideoGapMs,duration<double,std::milli>(handedAt-previousVideoSend).count());
+              previousVideoSend=handedAt;++videoFrames;
+              const auto handedMs=duration_cast<milliseconds>(handedAt.time_since_epoch()).count();
+              if(uint64_t(handedMs)>=stamp)maxCaptureAgeMs=std::max(maxCaptureAgeMs,double(handedMs-stamp));
+              maxEncodeMs=std::max(maxEncodeMs,encodeMs);maxHandoffMs=std::max(maxHandoffMs,handoffMs);
+              const double seconds=duration<double>(handedAt-videoStatsAt).count();
+              if(seconds>=10){
+                std::fprintf(stderr,"CAM pipeline idx=%d frames=%u fps=%.2f gapMaxMs=%.1f captureAgeMaxMs=%.1f encodeMaxMs=%.1f handoffMaxMs=%.1f\n",view,videoFrames,videoFrames/seconds,maxVideoGapMs,maxCaptureAgeMs,maxEncodeMs,maxHandoffMs);
+                videoStatsAt=handedAt;videoFrames=0;maxVideoGapMs=maxCaptureAgeMs=maxEncodeMs=maxHandoffMs=0;
+              }
+            }
           };
           sendView(outRGB,frameTimestamp,outputIndex);
           // Normal and texture views share one physical capture. Tag and send
