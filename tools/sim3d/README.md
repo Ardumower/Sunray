@@ -179,6 +179,9 @@ map JSON here and restart both world and Sunray while idle.
 `scene.json` contains editable dimensions: robot 0.8 x 1.0 m, camera position,
 horizontal FOV, dock table, marker strips, and spawn distance. Dock table sides
 are closed and its entrance is open. Ground is flat; the runway exclusion is a flat surface, not a collision wall.
+The runway uses matte grey asphalt (`asphalt.gdshader`) with procedural centimetre-scale
+aggregate and subtle broad weathering. Fine grain fades below pixel size to avoid
+shimmering in the moving camera. It does not use the grass texture.
 These are provisional dimensions, not a surveyed reconstruction. FOV is currently
 75 degrees, explicitly uncalibrated; close-up photographs alone do not uniquely
 determine intrinsics. Camera image is 640x360 at approximately 10 fps. Sunray's

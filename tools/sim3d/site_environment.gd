@@ -11,7 +11,7 @@ func material(color: Color) -> StandardMaterial3D:
   materials[key]=m
  return materials[key]
 
-func surface(points: Array, color: Color, height: float, grass: Material = null):
+func surface(points: Array, color: Color, height: float, ground_material: Material = null):
  var polygon := PackedVector2Array()
  for p in points: polygon.append(Vector2(p.X,-p.Y))
  var indices := Geometry2D.triangulate_polygon(polygon)
@@ -25,7 +25,7 @@ func surface(points: Array, color: Color, height: float, grass: Material = null)
  node.mesh=mesh.commit()
  var m := material(color).duplicate()
  m.cull_mode=BaseMaterial3D.CULL_DISABLED
- node.material_override=grass if grass != null else m
+ node.material_override=ground_material if ground_material != null else m
  add_child(node)
 
 func tree(world: Node3D, p: Vector2, height: float, radius: float, color: Color):
@@ -136,8 +136,22 @@ func molehill(spec: Dictionary):
 func build(world: Node3D, cfg: Dictionary, map_data: Dictionary):
  for mound in cfg.get("molehills",[]): molehill(mound)
  # The large exclusion is the real runway: ground surface, not a raised wall.
+ var asphalt := ShaderMaterial.new()
+ asphalt.shader=preload("res://asphalt.gdshader")
+ var grain := FastNoiseLite.new()
+ grain.seed=1739
+ grain.noise_type=FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+ grain.frequency=.08
+ grain.fractal_octaves=3
+ var aggregate := NoiseTexture2D.new()
+ aggregate.width=512
+ aggregate.height=512
+ aggregate.seamless=true
+ aggregate.generate_mipmaps=true
+ aggregate.noise=grain
+ asphalt.set_shader_parameter("aggregate",aggregate)
  for polygon in map_data.get("exclusions",[]):
-  if polygon.size()>2: surface(polygon,Color(.35,.37,.23),.09,world.grass_material(Color(.85,.83,.61)))
+  if polygon.size()>2: surface(polygon,Color(.42,.43,.44),.09,asphalt)
  for patch in cfg.get("ground_patches",[]):
   var ground_material: Material = null
   if patch.name != "track_south": ground_material=world.grass_material(Color(.89,.94,.81))
