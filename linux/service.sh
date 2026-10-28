@@ -303,6 +303,39 @@ UNIT
   echo "Direct-link helper installed. The Sunray build must enable DIRECT_LINK_ENABLE."
 )
 
+# Evaluate the effective C++ config, including inherited headers and overrides.
+# Return success for disabled configs; install failure must prevent a misleading
+# successful installation/start when the feature is enabled.
+setup_configured_direct_link() {
+  local config="$SIM_ROOT/sunray/config.h" selected result
+  if [ -f "$SCRIPT_DIR/build/CMakeCache.txt" ]; then
+    selected=$(sed -n 's/^CONFIG_FILE:[^=]*=//p' "$SCRIPT_DIR/build/CMakeCache.txt" | head -n 1)
+    if [ -n "$selected" ]; then
+      case "$selected" in /*) config="$selected" ;; *) config="$SCRIPT_DIR/$selected" ;; esac
+    fi
+  fi
+  if [ ! -f "$config" ]; then
+    echo "ERROR: build Sunray with the desired config before installing its service."
+    return 1
+  fi
+  result=$(c++ -E -P -x c++ -I "$SIM_ROOT/sunray" -I "$SCRIPT_DIR/src" -include "$config" - <<'DIRECT_CONFIG'
+#if defined(DIRECT_LINK_ENABLE) && DIRECT_LINK_ENABLE
+SUNRAY_DIRECT_ENABLED
+#else
+SUNRAY_DIRECT_DISABLED
+#endif
+DIRECT_CONFIG
+  ) || { echo "ERROR: could not evaluate direct-link config: $config"; return 1; }
+  case "$result" in
+    *SUNRAY_DIRECT_ENABLED*)
+      # A fresh shell preserves setup's errexit even when the menu caller uses
+      # "|| return" to keep the main service stopped after an install failure.
+      bash "$SCRIPT_DIR/service.sh" direct-setup sunray ;;
+    *SUNRAY_DIRECT_DISABLED*) echo "Direct link is disabled in this Sunray config; skipping helper installation." ;;
+    *) echo "ERROR: unknown direct-link configuration result"; return 1 ;;
+  esac
+}
+
 if [ "${1:-}" = direct-setup ]; then
   if [ "$EUID" -eq 0 ]; then echo "Please run as non-root (not sudo)"; exit 1; fi
   setup_direct_link "${2:-sunray}"
@@ -416,6 +449,7 @@ function rebuild_sunray() {
 
 
 function install_sunray_alfred() {
+  setup_configured_direct_link || return 1
   #if [ "$EUID" -eq 0 ]
   #  then echo "Please run as non-root (not sudo)"
   #  exit
@@ -502,6 +536,7 @@ function stop_cam_service() {
 }
 
 function start_sunray_service() {
+  setup_configured_direct_link || return 1
   #if [ "$EUID" -ne 0 ]
   #  then echo "Please run as root (sudo)"
   #  exit

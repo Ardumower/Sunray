@@ -18,14 +18,23 @@ update. The helper is separate from the RP2040/CAN firmware.
 Use Python 3.10+ on the Linux robot and a Sunray config with
 `#define DIRECT_LINK_ENABLE true` (enabled in `config_xlmower.h`, inherited by the
 Cloud simulator; absent/false in other configs leaves the feature inactive).
-Build that configuration as usual, then as the normal robot user run:
+Build that configuration as usual. The normal `linux/service.sh` menu action
+**Start sunray service (as Linux autostart)** automatically installs the helper
+and its dependencies when the selected build config enables direct links. The
+Alfred executable-install action does the same. Configs with the option absent
+or false skip helper installation. Configuration and installation errors are
+reported before starting/replacing Sunray.
+
+The main simulator setup action also installs the helper automatically.
+For an existing installation, manual repair remains available:
 
 ```sh
 bash linux/service.sh direct-setup sunray
+# Simulator instead:
+bash linux/service.sh direct-setup sunray-sim3d
 ```
 
-For the simulator use `direct-setup sunray-sim3d`; the main simulator setup action
-already does this automatically. All setup remains in `linux/service.sh`.
+All setup remains in `linux/service.sh`.
 The helper installs pinned Python requirements into `tools/direct_link/.venv` and
 creates `sunray-direct.service`. A systemd dependency starts it whenever the chosen
 Sunray service starts. There is no new browser extension or client installation.
