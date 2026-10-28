@@ -7,36 +7,85 @@ runs its normal estimator, path planner, reflector detector, and Cloud interface
 The initial known spawn pose seeds the estimator once; rendering never uses the
 estimated pose. No Cloud connection is required for local simulation to continue.
 
-## Twenty installation
+## Installation and updates through service.sh
 
-The deployed source/build is `/home/orangepi/Sunray-sim3d`, separate from the
-original `/home/orangepi/Sunray` checkout. Build on Linux with the normal Sunray
-dependencies:
+On the Orange Pi, run as the normal user (not with `sudo`):
 
 ```sh
-sh tools/sim3d/build.sh
+cd /home/orangepi/Sunray-sim3d
+bash linux/service.sh
 ```
 
-`systemd/` contains the three units deployed on Twenty. They use the existing
-isolated GPU prerequisites in `/home/orangepi/godot-camera-test`:
-
-- Official Godot 4.7.2 Linux ARM64 executable.
-- Extracted Rockchip Xorg 1.20.11 (`xserver-xorg-core_1.20.11-1_arm64.deb`,
-  Radxa rockchip-xserver release `rk3528_linux_release-linux-5.10-gen-rkr6`).
-  SHA256: `a13593a292a63b6e976ab3b22d60804309acadeeb41a4909b59ef9f773f9dcff`.
-- Modesetting/glamor Xorg config, 1280x720 screen, DRI2, private Xauthority file.
-- Installed Mali userspace driver and connected HDMI dummy.
-
-These are machine-specific service templates, not a generic GPU installer.
-They do not replace the system Xorg packages. Display :88 disables TCP listening.
-The world renders with OpenGL ES on Mali-G610, not Godot's headless dummy renderer.
+Choose **3D simulator menu (Orange Pi)**, then **Set up / update simulator**.
+There are only four actions: setup/update, start, stop, and status/diagnostics.
+The noninteractive equivalent is:
 
 ```sh
-sudo cp tools/sim3d/systemd/*.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now sunray-sim3d-display sunray-sim3d-world sunray-sim3d
-journalctl -u sunray-sim3d -f
-cat /run/sunray-sim3d/status.json
+bash linux/service.sh simulator setup
+```
+
+For a fresh installation, first install the board's **Ubuntu 22.04 ARM64 image
+with vendor kernel 6.1 for Orange Pi RK3588/RK3588S**, create a normal sudo-capable
+user, connect an HDMI dummy or monitor, and clone this repository. For example:
+
+```sh
+sudo apt-get update
+sudo apt-get install -y git
+git clone https://github.com/Ardumower/Sunray.git ~/Sunray-sim3d
+cd ~/Sunray-sim3d
+bash linux/service.sh
+```
+
+Setup checks the architecture, OS, SoC, `/dev/mali0`, and HDMI connection before
+changing the installation. Mainline/Panfrost images and other Orange Pi families
+are not supported by this vendor driver bundle. The base image must provide
+working Mali and RKNPU kernel drivers; setup does not replace the kernel or device
+tree. If missing GPU firmware is installed, a reboot and another setup run are
+required. Internet access is needed to install packages/download components.
+
+Setup automatically:
+
+1. Stops the simulator and installs build/display dependencies (no full OS upgrade).
+2. Downloads pinned Godot 4.7.2 ARM64, Rockchip Xorg 1.20.11, Mali G610 for Linux
+   6.1, RGA, and RKNN 2.3.2 headers/runtime, verifying SHA-256 checksums.
+3. Extracts vendor libraries into `~/godot-camera-test`, separate from the system
+   Xorg/Mesa packages. Configures modesetting/glamor, DRI2, display `:88`, a private
+   Xauthority cookie, and GPU/NPU device permissions. Xorg TCP listening is disabled.
+4. Builds natively with `linux/config_sim_ws.h` and mandatory RKNN grass inference,
+   then imports the Godot project and installs all three systemd services with
+   paths and user adjusted to the current checkout/account.
+5. Starts the world and verifies a fresh JPEG and a Mali-G610 renderer. Runs a
+   grass-model inference on the NPU under the service user and device groups.
+6. Starts Sunray and enables all three services at boot only after successful checks.
+
+Setup/update resets the world to its spawn pose. It rebuilds the **current local
+source**; it does not pull Git changes. Use a separate simulator checkout because
+CMake writes the selected configuration to `sunray/config.h`. Twenty uses
+`/home/orangepi/Sunray-sim3d`; its original `/home/orangepi/Sunray` is separate.
+A different board also needs its own allowed Cloud robot identity/MAC; successful
+local setup does not automatically register a new device in the Cloud.
+
+Downloads are cached and checksum-verified when setup is repeated. Errors stop
+setup instead of reporting success with software rendering or missing NPU support.
+An interrupted/failed setup can be rerun. Consult **Status / diagnostics** for
+service state and recent logs. The HDMI dummy must remain connected after setup.
+
+Vendor sources (versions and full hashes are pinned in `linux/service.sh`):
+
+- [Godot official builds](https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable)
+- [Radxa Rockchip Xorg](https://github.com/radxa-pkg/rockchip-xserver/releases/tag/rk3528_linux_release-linux-5.10-gen-rkr6)
+- [Orange Pi Mali/RGA packages](https://github.com/orangepi-xunlong/rk-rootfs-build/tree/adaf2dc40407566abee889deec7b6a8b5aaab133/common)
+- [Rockchip RKNN runtime](https://github.com/airockchip/rknn-toolkit2/tree/42aa1d426c0a9e0869b6374edba009f7208a1926/rknpu2/runtime/Linux/librknn_api)
+
+The automated setup was tested on Twenty (Orange Pi 5 Pro, Ubuntu 22.04.5,
+vendor kernel 6.1.43) on 2026-10-28: native build, downloaded/extracted GPU stack,
+Mali-G610 rendering, fresh camera frames, NPU inference, and service autostart all
+passed, including a second setup run using the verified download cache. This was
+an existing OS installation, not a freshly flashed SD card.
+Command-routing, build failure, and download-checksum tests pass on Mac and Twenty:
+
+```sh
+python3 linux/tests/test_simulator_service.py
 ```
 
 Stop Sunray before running the independent world integration test, which moves
@@ -54,6 +103,72 @@ No background task deliberately interrupts Cloud or local simulator connections.
 Actual loss of local control commands stops simulated motors after 500 ms; stale
 world feedback/camera frames are rejected. Cloud reconnects run independently.
 
+## Everyday operation on Twenty
+
+All simulator operations are available in **`linux/service.sh` → “3D simulator
+menu (Orange Pi)”**. Launch it on Twenty as the normal `orangepi` user:
+
+```sh
+cd /home/orangepi/Sunray-sim3d
+bash linux/service.sh
+```
+
+The menu's setup action handles the entire build/install/start sequence. For
+advanced scripting, `bash linux/service.sh simulator ACTION` also accepts `build`,
+`start`, `stop`, `restart`, `status`, and `log`. The direct `build` action requires
+Sunray to be stopped (`sudo systemctl stop sunray-sim3d`); the world can remain
+running to preserve its pose. It never restarts services itself.
+`RKNN_INCLUDE_DIR`, `RKNN_LIBRARY`, and `BUILD_JOBS` override build defaults.
+`start`/`stop` leave the boot setting unchanged; the advanced `enable`/`disable`
+actions change boot autostart without starting/stopping services. The entry point
+also works from other working directories when invoked with an absolute path.
+
+After the installation above, start the simulator from a Mac terminal with:
+
+```sh
+ssh twenty.local 'bash /home/orangepi/Sunray-sim3d/linux/service.sh simulator start'
+```
+
+Starting Sunray also starts its world and display dependencies if they are stopped.
+If already logged into Twenty, use `sudo systemctl start sunray-sim3d` directly.
+The enabled services start automatically when the Orange Pi boots; the HDMI
+dummy must remain connected for this GPU setup.
+
+Check all three services and follow the Sunray log:
+
+```sh
+ssh twenty.local 'bash /home/orangepi/Sunray-sim3d/linux/service.sh simulator status'
+ssh twenty.local 'bash /home/orangepi/Sunray-sim3d/linux/service.sh simulator log'
+```
+
+Restart only Sunray (leave the virtual world running):
+
+```sh
+ssh twenty.local 'bash /home/orangepi/Sunray-sim3d/linux/service.sh simulator restart'
+```
+
+Stop the entire simulator, including camera rendering and its dedicated display:
+
+```sh
+ssh twenty.local 'bash /home/orangepi/Sunray-sim3d/linux/service.sh simulator stop'
+```
+
+Stopping only `sunray-sim3d` leaves the world and display running. The world's
+command watchdog stops the simulated motors after 500 ms. An explicit stop does
+not disable autostart at the next boot.
+
+### Position and restart behavior
+
+- Restarting only Sunray preserves the physical virtual pose while the world
+  remains running. Whether navigation resumes depends on Sunray's saved operation
+  and navigation state; a service start is not itself a mowing command.
+- Restarting `sunray-sim3d-world`, or rebooting the Orange Pi, resets the physical
+  pose. It is not automatically saved and restored across world restarts.
+- The current spawn is **2.5 m before the dock, facing the marker**, not inside
+  the dock. Change `spawn.distance_before_dock_m` in `scene.json` to adjust it.
+- Cloud unavailability does not stop the local simulation. Loss of the local
+  Sunray/world connection is handled separately by the watchdog described above.
+
 ## Scene and camera
 
 `map.json` is the selected simulator Cloud map `msc_flugfeld_komplett` (map 5).
@@ -68,7 +183,7 @@ These are provisional dimensions, not a surveyed reconstruction. FOV is currentl
 75 degrees, explicitly uncalibrated; close-up photographs alone do not uniquely
 determine intrinsics. Camera image is 640x360 at approximately 10 fps. Sunray's
 existing output scaling, timestamp overlays, and marker channels remain in use.
-The build helper requires RKNN headers/runtime and copies the included grass model.
+The simulator build action requires RKNN headers/runtime and copies the included grass model.
 
 The final dock waypoint is the robot-center charging pose. The panel is ahead by
 `camera.forward_m + dock.camera_gap_m`; currently the camera remains 0.5 m from it
@@ -118,9 +233,11 @@ are passed to the detector; `GrassOverlay` performs ordinary RKNN inference on
 the rendered RGB images, exactly as with the real camera.
 
 Twenty initially lacked the RKNN include path and its service lacked the render
-group. `build.sh` selects the existing rknpu2 headers (or `RKNN_INCLUDE_DIR`) and
-requires RKNN support; the service has `SupplementaryGroups=render`. The installed
-runtime is `/usr/lib/librknnrt.so` (2.3.2). First live inference measured 28.3 ms.
+group. `service.sh simulator setup` now installs its own pinned RKNN headers/runtime
+in `~/godot-camera-test/rknn` and assigns `SupplementaryGroups=render video`.
+The separate `build` action also accepts `RKNN_INCLUDE_DIR`/`RKNN_LIBRARY`.
+The previous system runtime `/usr/lib/librknnrt.so` remains untouched.
+First live inference in the original setup measured 28.3 ms.
 Cloud camera index 100 was verified to deliver classified images.
 
 Controlled comparison, camera (east=28,height=0.4,north=0) aimed at
