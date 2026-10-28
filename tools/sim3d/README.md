@@ -267,6 +267,19 @@ checking the accepted route against fresh perception and stops if it is unsafe;
 it never waits for the search worker. Geometry checks and snapshot copies still
 run in the control loop, so this is not a hard real-time guarantee.
 
+Video encoding and dispatch run on a separate fixed-deadline worker (200 ms at
+5 fps), consuming only the latest pending captured image. Capture jitter therefore
+does not restart the output interval and reduce a requested 5 fps to roughly 4.
+Missing frames are not repeated, captures older than 500 ms are rejected, and
+missed deadlines are skipped rather than replayed in a burst. An unchanged
+subscription renewal preserves the cadence; changing the requested rate resets it.
+Test this independently with:
+
+```sh
+c++ -std=c++14 -O2 -pthread -I sunray linux/tests/paced-frame-worker-test.cpp -o /tmp/paced-frame-worker-test
+/tmp/paced-frame-worker-test
+```
+
 Camera transport continues sending the latest image while Cloud commands await
 control-loop replies. Diagnostics distinguish `CAM avoidance async` control and
 search times, `CAM pipeline` image production/encoding gaps, and `CAM cloud`
