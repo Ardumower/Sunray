@@ -151,7 +151,7 @@ func _ready():
   grass_image.generate_mipmaps()
   grass_texture=ImageTexture.create_from_image(grass_image)
  # Large simple terrain; exact perimeter/exclusions come from the Cloud map.
- var ground := box(self,Vector3(0,-0.15,0),Vector3(600,0.3,600),Color(.19,.35,.09),true)
+ var ground := box(self,Vector3(0,-0.15,0),Vector3(4000,0.3,4000),Color(.19,.35,.09),true)
  (ground.get_child(0) as MeshInstance3D).material_override=grass_material(Color(.86,.92,.79))
  var perimeter := PackedVector2Array()
  for p in map_data.perimeter: perimeter.append(Vector2(p.X,-p.Y))
@@ -219,7 +219,7 @@ func _ready():
  camera.fov = cfg.camera.horizontal_fov_deg
  camera.rotation.x = deg_to_rad(-float(cfg.camera.downward_pitch_deg))
  camera.near = .1
- camera.far = 350
+ camera.far = float(cfg.camera.get("far_m",1800.0))
  camera.current = true
  yaw = dock_yaw
  var distance: float = cfg.spawn.distance_before_dock_m

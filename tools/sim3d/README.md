@@ -131,3 +131,18 @@ Controlled comparison, camera (east=28,height=0.4,north=0) aimed at
   after texturing; the plain scene incorrectly classified the surrounding lawn
   as obstacle as well.
 These are measurements for one view, not a general detection-accuracy guarantee.
+
+## Distant woods
+
+Additional forest outlines were approximated from the wider satellite view
+(zoom 15, same reference origin and center). Six groups add 6,896 distant trees
+to the west/southwest, north/northwest, south, southeast, northeast and far north.
+The camera far plane is configurable as `camera.far_m` (1800 m); the background
+ground extends 4 km across. Open farmland seen in the aerial reference remains
+open, including gaps toward the east.
+
+Distant woods use two MultiMesh draws per group (crowns and trunks), with no
+individual scene nodes, dynamic shadows or collision bodies. Nearby trees retain
+their existing collision geometry. Four cardinal-direction camera previews on
+Twenty each maintained the configured 10 fps preview limit. These are approximate
+background silhouettes; terrain elevations and individual trees are not surveyed.

@@ -13,7 +13,8 @@
     "height_m": 0.4,
     "forward_m": 0.5,
     "downward_pitch_deg": 0,
-    "calibrated": false
+    "calibrated": false,
+    "far_m": 1800.0
   },
   "dock": {
     "camera_gap_m": 0.5,
@@ -290,6 +291,324 @@
       "spacing_m": 7,
       "min_height_m": 3,
       "max_height_m": 5
+    },
+    {
+      "name": "west_southwest_horizon",
+      "points": [
+        {
+          "X": -883.24,
+          "Y": 59.16
+        },
+        {
+          "X": -686.38,
+          "Y": 146.65
+        },
+        {
+          "X": -620.76,
+          "Y": 88.33
+        },
+        {
+          "X": -504.11,
+          "Y": 175.82
+        },
+        {
+          "X": -183.31,
+          "Y": 234.15
+        },
+        {
+          "X": -81.24,
+          "Y": 219.56
+        },
+        {
+          "X": -66.65,
+          "Y": 161.24
+        },
+        {
+          "X": -132.27,
+          "Y": 73.75
+        },
+        {
+          "X": -227.06,
+          "Y": -203.31
+        },
+        {
+          "X": -518.69,
+          "Y": -276.22
+        },
+        {
+          "X": -883.24,
+          "Y": -57.49
+        }
+      ],
+      "spacing_m": 14.0,
+      "min_height_m": 16.0,
+      "max_height_m": 25.0,
+      "crown_radius_m": 8.0,
+      "distant": true,
+      "source": "Approximate outline from wider satellite reference, zoom 15, 2026-10-28"
+    },
+    {
+      "name": "north_northwest_horizon",
+      "points": [
+        {
+          "X": -693.67,
+          "Y": 613.27
+        },
+        {
+          "X": -504.11,
+          "Y": 605.98
+        },
+        {
+          "X": -387.46,
+          "Y": 547.66
+        },
+        {
+          "X": -285.38,
+          "Y": 525.78
+        },
+        {
+          "X": -168.73,
+          "Y": 518.49
+        },
+        {
+          "X": -139.56,
+          "Y": 737.22
+        },
+        {
+          "X": -59.36,
+          "Y": 700.76
+        },
+        {
+          "X": 6.25,
+          "Y": 759.09
+        },
+        {
+          "X": 195.82,
+          "Y": 613.27
+        },
+        {
+          "X": 122.91,
+          "Y": 416.42
+        },
+        {
+          "X": 20.84,
+          "Y": 438.29
+        },
+        {
+          "X": 6.25,
+          "Y": 277.89
+        },
+        {
+          "X": -81.24,
+          "Y": 204.98
+        },
+        {
+          "X": -183.31,
+          "Y": 248.73
+        },
+        {
+          "X": -693.67,
+          "Y": 190.4
+        }
+      ],
+      "spacing_m": 14.0,
+      "min_height_m": 16.0,
+      "max_height_m": 25.0,
+      "crown_radius_m": 8.0,
+      "distant": true,
+      "source": "Approximate outline from wider satellite reference, zoom 15, 2026-10-28"
+    },
+    {
+      "name": "south_horizon",
+      "points": [
+        {
+          "X": -518.69,
+          "Y": -407.46
+        },
+        {
+          "X": -299.96,
+          "Y": -349.13
+        },
+        {
+          "X": 6.25,
+          "Y": -334.55
+        },
+        {
+          "X": 224.98,
+          "Y": -261.64
+        },
+        {
+          "X": 356.22,
+          "Y": -392.87
+        },
+        {
+          "X": 312.47,
+          "Y": -626.18
+        },
+        {
+          "X": 108.33,
+          "Y": -786.58
+        },
+        {
+          "X": -197.89,
+          "Y": -874.07
+        },
+        {
+          "X": -372.87,
+          "Y": -728.26
+        }
+      ],
+      "spacing_m": 14.0,
+      "min_height_m": 16.0,
+      "max_height_m": 25.0,
+      "crown_radius_m": 8.0,
+      "distant": true,
+      "source": "Approximate outline from wider satellite reference, zoom 15, 2026-10-28"
+    },
+    {
+      "name": "southeast_horizon",
+      "points": [
+        {
+          "X": 327.06,
+          "Y": -640.76
+        },
+        {
+          "X": 399.96,
+          "Y": -538.69
+        },
+        {
+          "X": 516.62,
+          "Y": -422.04
+        },
+        {
+          "X": 618.69,
+          "Y": -349.13
+        },
+        {
+          "X": 662.44,
+          "Y": -407.46
+        },
+        {
+          "X": 764.51,
+          "Y": -349.13
+        },
+        {
+          "X": 895.75,
+          "Y": -640.76
+        },
+        {
+          "X": 866.58,
+          "Y": -903.24
+        },
+        {
+          "X": 560.36,
+          "Y": -903.24
+        }
+      ],
+      "spacing_m": 14.0,
+      "min_height_m": 16.0,
+      "max_height_m": 25.0,
+      "crown_radius_m": 8.0,
+      "distant": true,
+      "source": "Approximate outline from wider satellite reference, zoom 15, 2026-10-28"
+    },
+    {
+      "name": "northeast_horizon",
+      "points": [
+        {
+          "X": 618.69,
+          "Y": 678.89
+        },
+        {
+          "X": 706.18,
+          "Y": 722.64
+        },
+        {
+          "X": 757.22,
+          "Y": 824.71
+        },
+        {
+          "X": 895.75,
+          "Y": 795.55
+        },
+        {
+          "X": 983.24,
+          "Y": 693.47
+        },
+        {
+          "X": 983.24,
+          "Y": 394.55
+        },
+        {
+          "X": 866.58,
+          "Y": 452.87
+        },
+        {
+          "X": 808.26,
+          "Y": 379.96
+        },
+        {
+          "X": 764.51,
+          "Y": 489.33
+        },
+        {
+          "X": 633.27,
+          "Y": 496.62
+        }
+      ],
+      "spacing_m": 14.0,
+      "min_height_m": 16.0,
+      "max_height_m": 25.0,
+      "crown_radius_m": 8.0,
+      "distant": true,
+      "source": "Approximate outline from wider satellite reference, zoom 15, 2026-10-28"
+    },
+    {
+      "name": "far_north_horizon",
+      "points": [
+        {
+          "X": 356.22,
+          "Y": 963.24
+        },
+        {
+          "X": 983.24,
+          "Y": 963.24
+        },
+        {
+          "X": 983.24,
+          "Y": 715.35
+        },
+        {
+          "X": 852.0,
+          "Y": 788.26
+        },
+        {
+          "X": 720.76,
+          "Y": 861.17
+        },
+        {
+          "X": 545.78,
+          "Y": 832.0
+        },
+        {
+          "X": 414.55,
+          "Y": 883.04
+        },
+        {
+          "X": 399.96,
+          "Y": 722.64
+        },
+        {
+          "X": 297.89,
+          "Y": 700.76
+        }
+      ],
+      "spacing_m": 14.0,
+      "min_height_m": 16.0,
+      "max_height_m": 25.0,
+      "crown_radius_m": 8.0,
+      "distant": true,
+      "source": "Approximate outline from wider satellite reference, zoom 15, 2026-10-28"
     }
   ],
   "buildings": [

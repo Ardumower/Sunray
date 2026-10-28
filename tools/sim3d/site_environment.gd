@@ -41,6 +41,54 @@ func tree(world: Node3D, p: Vector2, height: float, radius: float, color: Color)
  crown.material_override=material(color)
  add_child(crown)
 
+# Distant tree silhouettes use two instanced meshes per wood, without thousands
+# of scene nodes, shadow casters or collision bodies outside the test field.
+func distant_wood(area: Dictionary, rng: RandomNumberGenerator):
+ var polygon := PackedVector2Array()
+ var minimum := Vector2(INF,INF)
+ var maximum := Vector2(-INF,-INF)
+ for p in area.points:
+  var v := Vector2(p.X,p.Y)
+  polygon.append(v);minimum=minimum.min(v);maximum=maximum.max(v)
+ var samples: Array[Vector3]=[]
+ var spacing: float=area.get("spacing_m",14.0)
+ var x := minimum.x
+ while x<=maximum.x:
+  var y := minimum.y
+  while y<=maximum.y:
+   var p := Vector2(x+rng.randf_range(-3,3),y+rng.randf_range(-3,3))
+   if Geometry2D.is_point_in_polygon(p,polygon):
+    samples.append(Vector3(p.x,rng.randf_range(area.min_height_m,area.max_height_m),-p.y))
+   y+=spacing
+  x+=spacing
+ if samples.is_empty(): return
+ var crowns := MultiMesh.new()
+ crowns.transform_format=MultiMesh.TRANSFORM_3D
+ crowns.use_colors=true
+ var sphere := SphereMesh.new()
+ sphere.radius=1.0;sphere.height=2.0;sphere.radial_segments=8;sphere.rings=3
+ crowns.mesh=sphere;crowns.instance_count=samples.size()
+ var trunks := MultiMesh.new()
+ trunks.transform_format=MultiMesh.TRANSFORM_3D
+ var trunk := BoxMesh.new()
+ trunk.size=Vector3(.45,1,.45)
+ trunks.mesh=trunk;trunks.instance_count=samples.size()
+ for i in range(samples.size()):
+  var p: Vector3=samples[i]
+  var radius: float=float(area.get("crown_radius_m",8.0))*rng.randf_range(.85,1.15)
+  crowns.set_instance_transform(i,Transform3D(Basis.IDENTITY.scaled(Vector3(radius,p.y*.34,radius)),Vector3(p.x,p.y*.67,p.z)))
+  crowns.set_instance_color(i,Color(rng.randf_range(.80,1.05),rng.randf_range(.85,1.08),rng.randf_range(.8,1.05)))
+  trunks.set_instance_transform(i,Transform3D(Basis.IDENTITY.scaled(Vector3(1,p.y*.55,1)),Vector3(p.x,p.y*.275,p.z)))
+ for entry in [[crowns,Color(.12,.23,.10)],[trunks,Color(.23,.20,.15)]]:
+  var visual := MultiMeshInstance3D.new()
+  visual.multimesh=entry[0]
+  var m := material(entry[1]).duplicate()
+  m.vertex_color_use_as_albedo=true
+  visual.material_override=m
+  visual.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+  add_child(visual)
+ print("SIM3D distant wood ",area.name,": ",samples.size()," trees")
+
 func molehill(spec: Dictionary):
  var body := StaticBody3D.new()
  body.name = str(spec.id)
@@ -110,6 +158,9 @@ func build(world: Node3D, cfg: Dictionary, map_data: Dictionary):
  var rng := RandomNumberGenerator.new()
  rng.seed=10282026
  for area in cfg.get("tree_areas",[]):
+  if area.get("distant",false):
+   distant_wood(area,rng)
+   continue
   var polygon := PackedVector2Array()
   var minimum := Vector2(INF,INF)
   var maximum := Vector2(-INF,-INF)
