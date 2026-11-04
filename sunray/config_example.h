@@ -442,6 +442,9 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 #define DOCK_RELEASE_BRAKES false   // robot will not release electrical brakes in dock
 
 //#define DOCK_REFLECTOR_STRIPS 1         // Linux only: native camera three-reflector docking/undocking
+// Linux USB camera: reset after a rapid brightness drop persists for 60 s.
+// Set false to disable automatic brightness-triggered resets.
+#define CAMERA_BRIGHTNESS_RESET_ENABLE true
 #define DOCK_REFLECTOR_STRIPS_HANDOFF_RADIUS 1.0 // GPS/camera transition within 1 m of penultimate dock point
 #define DOCK_REFLECTOR_STRIPS_STOP_MS 500 // mandatory standstill before camera tracking
 #define DOCK_REFLECTOR_STRIPS_CAMERA_INDEX 0      // logical CameraRegistry index

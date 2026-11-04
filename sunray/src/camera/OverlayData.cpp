@@ -22,6 +22,13 @@ extern "C" float cameraGetAngularSet() {
 
 
 #ifdef __linux__
+// Compile-time opt-out for automatic brightness-triggered USB recovery.
+#ifndef CAMERA_BRIGHTNESS_RESET_ENABLE
+#define CAMERA_BRIGHTNESS_RESET_ENABLE true
+#endif
+extern "C" bool cameraBrightnessResetEnabled() {
+  return CAMERA_BRIGHTNESS_RESET_ENABLE;
+}
 extern "C" void cameraSetGrassMonitoring(bool enabled);
 namespace { std::atomic<int> navigationMode{NavigationOverlay::Hidden}; }
 extern "C" int cameraGetNavigationMode() {

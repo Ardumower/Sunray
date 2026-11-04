@@ -11,6 +11,7 @@
 #include "ReflectorFailureRecorder.h"
 #include "CameraLightLogger.h"
 #include "ImageDarkness.h"
+#include "CameraUsbReset.h"
 #include "LatestFrameWorker.h"
 #include "PacedFrameWorker.h"
 #include "FrameTimestamp.h"
@@ -18,6 +19,7 @@
 #include "Console.h"
 #include <Sim3D.h>
 // Access motor speed setpoints via C-accessors (to avoid Arduino header conflicts)
+extern "C" bool cameraBrightnessResetEnabled();
 extern "C" float cameraGetLinearSet();
 extern "C" float cameraGetAngularSet();
 // Provide weak fallbacks (return 0) in case OverlayData.cpp is not linked
@@ -416,16 +418,23 @@ void CameraStreamer::runCaptureSession() {
   int outW = reqW_.load(); int outH = reqH_.load(); int fps = reqFps_.load();
   const bool virtualCamera=Sim3D::enabled();
   uint64_t virtualSequence=0;
+  const bool brightnessResetEnabled=!virtualCamera && cameraBrightnessResetEnabled();
+  std::fprintf(stderr,"CAM brightness watchdog: %s (startup assumes bright; threshold=30 confirmSeconds=60 cooldownSeconds=60)\n",brightnessResetEnabled?"enabled":"disabled");
+  brightnessWatchdog_.newSession();
+  bool brightnessReset=false;
+  std::string resetDevice;
   int fd=-1;
   struct CaptureResources {
     int fd; bool streaming=false;
     std::vector<MMapBuffer> buffers;
     explicit CaptureResources(int value):fd(value){}
-    ~CaptureResources(){
+    void release(){
       if(streaming){int type=V4L2_BUF_TYPE_VIDEO_CAPTURE;ioctl(fd,VIDIOC_STREAMOFF,&type);}
       for(auto& b:buffers)if(b.start && b.length)munmap(b.start,b.length);
-      ::close(fd);
+      if(fd>=0)::close(fd);
+      fd=-1;streaming=false;buffers.clear();
     }
+    ~CaptureResources(){release();}
   } capture(-1);
   auto& bufs=capture.buffers;
   v4l2_requestbuffers req{};
@@ -721,6 +730,14 @@ void CameraStreamer::runCaptureSession() {
           const auto light=CameraLightLogger::measure(rgb.data(),srcW,srcH);
           darkness.update(light.region,duration<double>(now.time_since_epoch()).count(),light.regionP80);
           lastLightMeasurement=now;
+          if(brightnessResetEnabled && brightnessWatchdog_.update(
+              CameraBrightnessWatchdog::peak(rgb.data(),srcW,srcH),
+              duration<double>(now.time_since_epoch()).count())){
+            resetDevice=CameraUsbReset::deviceFor(fd);
+            std::fprintf(stderr,"CAM brightness reset requested: index=%d previousPeak=%.0f darkPeak60s=%.0f threshold=30 confirmSeconds=60 cooldownSeconds=60 usb=%s\n",
+                index,brightnessWatchdog_.reference(),brightnessWatchdog_.darkPeak(),resetDevice.c_str());
+            brightnessReset=true;break;
+          }
         }
         const unsigned long timestampMs = (unsigned long)duration_cast<milliseconds>(now.time_since_epoch()).count()-sourceAgeMs;
         if(shouldGrass){grass.submit(rgb.data(),srcW,srcH,timestampMs);lastGrass=now;}
@@ -758,6 +775,14 @@ void CameraStreamer::runCaptureSession() {
   }
   videoWorker.stop();
   reflectorWorker.stop();
+  if(brightnessReset){
+    // Stop all frame consumers and release V4L2 buffers before resetting USB.
+    ReflectorStripsDetector::instance().clear();
+    capture.release();
+    const int error=CameraUsbReset::reset(resetDevice);
+    std::fprintf(stderr,"CAM brightness reset result: index=%d usb=%s result=%s errno=%d; reopening\n",
+        index,resetDevice.c_str(),error?std::strerror(error):"success",error);
+  }
 }
 
 extern "C" void cameraStreamerStart(int index, int width, int height, int fps, int quality, bool auxiliaryViews) { CameraStreamer::instance().start(index, width, height, fps, quality, auxiliaryViews); }

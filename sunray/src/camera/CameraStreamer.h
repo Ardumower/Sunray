@@ -14,6 +14,7 @@
 #include <vector>
 #include <functional>
 #include <mutex>
+#include "CameraBrightnessWatchdog.h"
 
 class CameraStreamer {
 public:
@@ -48,6 +49,7 @@ private:
   std::thread worker_;
   std::mutex mtx_;
   Sender sender_;
+  CameraBrightnessWatchdog brightnessWatchdog_;
   std::atomic<int> camIndex_{0};
   std::atomic<int> reqW_{160};
   std::atomic<int> reqH_{120};
