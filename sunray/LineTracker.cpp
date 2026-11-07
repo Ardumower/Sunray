@@ -65,6 +65,7 @@ void LineTracker::trackLine(bool runControl){
   float linear = 1.0;  
   bool mow = true;
   if (stateEstimator.stateOp == OP_DOCK) mow = false;
+  if ((maps.gotoActive) && (!maps.gotoMowMotor)) mow = false;  // AT+R route without cutter
   float angular = 0;      
   const bool gpsUndocking = maps.isUndocking() && stateEstimator.stateLocalizationMode == LOC_GPS;
   float targetDelta = pointsAngle(stateEstimator.stateX, stateEstimator.stateY, target.x(), target.y());      

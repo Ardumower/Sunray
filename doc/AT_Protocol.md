@@ -99,6 +99,17 @@ Map Upload
 Position Source
 - `AT+P,<enable>,<lon>,<lat>` → Configure external absolute position source (e.g. app provides GNSS lat/lon).
   - Ack: `P,0xHH`
+- `AT+R,<x>,<y>` → Navigate to the target position in meters (map coordinates).
+  - The target must be inside the perimeter and outside all exclusions. The route is planned with the path finder (like the route to the first mowing point), so it avoids the perimeter, exclusions and obstacles. Without `ENABLE_PATH_FINDER` the robot drives straight to the target.
+  - The robot drives in `OP_MOW`. The cutter keeps the state it had when the command arrived (running or off). An active mowing job or route is replaced by the new route.
+  - After an obstacle the route is planned again from the current position.
+  - When the target is reached the robot goes to `IDLE` and the cutter stops. Mowing is not resumed automatically.
+  - An active route is cancelled with `AT+M,<linear>,<angular>` or `AT+C` with `<op>`=0 (IDLE). Docking, charging or an error also end it.
+  - Ack: `R,0xHH` (route started), or with an error and no change of the robot state:
+    - `R,ERR_ARGS,0xHH` → missing or invalid coordinates
+    - `R,ERR_DOCKED,0xHH` → robot is charging (undocking is not supported)
+    - `R,ERR_OUTSIDE,0xHH` → no map, or target outside the perimeter or inside an exclusion
+    - `R,ERR_NO_ROUTE,0xHH` → path finder found no route
 
 Statistics
 - `AT+T` → Read statistics.
