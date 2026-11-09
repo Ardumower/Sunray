@@ -112,7 +112,7 @@ void ChargeOp::run(){
                 CONSOLE.print(stateEstimator.dockAfterFinish);
                 CONSOLE.println(")");
             }
-            if (timetable.shouldAutostartNow()){
+            if (!sunsetDockingRequired() && timetable.shouldAutostartNow()){
                 CONSOLE.println("DOCK_AUTO_START: will automatically continue mowing now");
                 changeOp(mowOp); // continue mowing                                                    
             }

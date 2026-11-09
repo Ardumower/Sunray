@@ -38,6 +38,17 @@
 #include "rcmodel.h"
 #include "map.h"
 #include "config.h"
+#include "SunsetDock.h"
+#ifndef SUNSET_DOCK_ENABLE
+#define SUNSET_DOCK_ENABLE false
+#endif
+#ifndef SUNSET_DOCK_LEAD_MINUTES
+#define SUNSET_DOCK_LEAD_MINUTES 30
+#endif
+#if defined(__linux__)
+#include <ctime>
+#include <sys/timex.h>
+#endif
 #include "WifiHeatmapConfig.h"
 #if defined(__linux__) && WIFI_HEATMAP_ENABLE
 #include <WifiHeatmap.h>
@@ -977,6 +988,61 @@ bool detectObstacleRotation(){
 
 
 // robot main loop
+// Local calculation only; a normal absolute GPS fix is sufficient. Cache the
+// last known location so temporary GPS loss cannot postpone evening docking.
+bool sunsetDockingRequired(){
+#if defined(__linux__)
+  if(!SUNSET_DOCK_ENABLE || !DOCKING_STATION)return false;
+  static bool checked=false,night=false,havePosition=false;
+  static uint32_t lastCheck=0;
+  static double latitude=0,longitude=0;
+  static int lastDate=0,lastState=-1;
+  const uint32_t now=uint32_t(millis());
+  if(checked && uint32_t(now-lastCheck)<10000)return night;
+  checked=true;lastCheck=now;
+  if(gps.absolutePositionAvailable && gps.solution!=SOL_INVALID &&
+      uint32_t(now-gps.absolutePositionMillis)<30000 &&
+      std::isfinite(gps.lat) && std::isfinite(gps.lon) &&
+      gps.lat> -90 && gps.lat<90 && gps.lon>=-180 && gps.lon<=180){
+    latitude=gps.lat;longitude=gps.lon;havePosition=true;
+  }
+  struct timex clockState{};
+  const bool synced=adjtimex(&clockState)>=0 && !(clockState.status & STA_UNSYNC);
+  std::time_t wall=std::time(nullptr);std::tm utc{};
+  if(!havePosition || !synced || !gmtime_r(&wall,&utc)){
+    if(lastState!=-2){CONSOLE.println("SUNSET DOCK: waiting for synchronized clock and GPS position");lastState=-2;}
+    return night;
+  }
+  const auto decision=SunsetDock::evaluate({utc.tm_year+1900,utc.tm_mon+1,utc.tm_mday},
+      utc.tm_hour,utc.tm_min,utc.tm_sec,latitude,longitude,SUNSET_DOCK_LEAD_MINUTES);
+  if(!decision.valid){
+    if(lastState!=-3){CONSOLE.println("SUNSET DOCK: unavailable sunrise/sunset or invalid configuration");lastState=-3;}
+    return night;
+  }
+  night=decision.night;
+  const int date=decision.date.year*10000+decision.date.month*100+decision.date.day;
+  if(date!=lastDate || lastState!=int(night)){
+    lastDate=date;lastState=int(night);
+    // Convert unwrapped UTC minutes back to epoch for local log labels.
+    std::time_t midnight=wall-(utc.tm_hour*3600+utc.tm_min*60+utc.tm_sec);
+    const double utcMinutes=utc.tm_hour*60+utc.tm_min+utc.tm_sec/60.0;
+    midnight+=std::time_t(std::llround((utcMinutes-decision.now)*60));
+    auto format=[&](double minutes,char* label){
+      std::time_t event=midnight+std::time_t(std::llround(minutes*60));std::tm local{};
+      localtime_r(&event,&local);std::strftime(label,40,"%Y-%m-%d %H:%M:%S %Z",&local);
+    };
+    char sunset[40],deadline[40],sunrise[40];format(decision.sunset,sunset);format(decision.deadline,deadline);format(decision.sunrise,sunrise);
+    CONSOLE.print("SUNSET DOCK: sunset=");CONSOLE.print(sunset);
+    CONSOLE.print(" dockFrom=");CONSOLE.print(deadline);
+    CONSOLE.print(" sunrise=");CONSOLE.print(sunrise);
+    CONSOLE.print(" nightHold=");CONSOLE.println(night);
+  }
+  return night;
+#else
+  return false; // Optional scheduler currently uses synchronized Linux UTC time.
+#endif
+}
+
 void run(){  
   
   #ifdef ENABLE_NTRIP
@@ -1181,6 +1247,14 @@ void run(){
     //CONSOLE.println(activeOp->name());
     if (DOCK_STOP_ON_OBSTACLE && bumper.obstacle() && activeOp != &errorOp) {
       activeOp->stopOnDockingObstacle(SENS_BUMPER);
+    }
+    if(sunsetDockingRequired() && activeOp->getGoalOperationType()==OP_MOW){
+      motor.stopImmediately(true);
+      CONSOLE.println("SUNSET DOCK TRIGGERED - stopping mowing and returning to station");
+      dockOp.setInitiatedByOperator(false);
+      if(battery.chargerConnected())activeOp->changeOp(chargeOp);
+      else if(maps.dockPoints.numPoints>=2)activeOp->changeOp(dockOp);
+      else {CONSOLE.println("SUNSET DOCK: no dock path, remaining stopped in Idle");activeOp->changeOp(idleOp);}
     }
     activeOp->checkStop();
     activeOp->run();     

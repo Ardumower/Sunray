@@ -332,6 +332,10 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define CURRENT_FACTOR 1.98   // PCB1.4 (non-bridged INA169, max. 2.5A)
 //#define CURRENT_FACTOR 2.941  // PCB1.4 (bridged INA169, max. 5A)
 
+// Linux: GPS location + synchronized UTC clock, no cloud dependency.
+// Dock before sunset and inhibit automatic restart until sunrise.
+#define SUNSET_DOCK_ENABLE true
+#define SUNSET_DOCK_LEAD_MINUTES 30 // valid range 0..180
 #define GO_HOME_VOLTAGE   23.0  // start going to dock below this voltage
 #define GO_HOME_VOLTAGE_FILTER_TAU_MS 180000UL // 3 min time constant for dock trigger only
 // The battery will charge if both battery voltage is below that value and charging current is above that value.

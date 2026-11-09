@@ -5,12 +5,12 @@
 #include <ctime>
 #include <string>
 
-// One stable wall/monotonic mapping per capture session. Reusing an analysis
-// result must retain its source frame's time, rather than its latest send time.
+// Map source-frame age to current wall time so NTP steps/slews are reflected.
+// Delayed analysis retains its capture age, never the current send time.
 class CameraFrameClock {
 public:
   CameraFrameClock()
-      : CameraFrameClock(monotonicMs(), std::chrono::system_clock::now()) {}
+      : CameraFrameClock(monotonicMs(), std::chrono::system_clock::now()) { live_=true; }
   CameraFrameClock(uint64_t monotonic, std::chrono::system_clock::time_point wall)
       : monotonic_(monotonic), wallMs_(std::chrono::duration_cast<
             std::chrono::milliseconds>(wall.time_since_epoch()).count()) {}
@@ -21,7 +21,12 @@ public:
   }
 
   std::string label(uint64_t frameMs) const {
-    const int64_t epochMs = wallMs_ + int64_t(frameMs) - int64_t(monotonic_);
+    if(live_)return labelAt(frameMs,monotonicMs(),std::chrono::system_clock::now());
+    return labelAt(frameMs,monotonic_,std::chrono::system_clock::time_point(std::chrono::milliseconds(wallMs_)));
+  }
+
+  static std::string labelAt(uint64_t frameMs,uint64_t nowMs,std::chrono::system_clock::time_point wall){
+    const int64_t epochMs = std::chrono::duration_cast<std::chrono::milliseconds>(wall.time_since_epoch()).count() + int64_t(frameMs) - int64_t(nowMs);
     std::time_t seconds = epochMs / 1000;
     int fraction = int(epochMs % 1000);
     if (fraction < 0) { --seconds; fraction += 1000; }
@@ -34,6 +39,7 @@ public:
   }
 
 private:
+  bool live_=false;
   uint64_t monotonic_;
   int64_t wallMs_;
 };

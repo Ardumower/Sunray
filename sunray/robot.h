@@ -142,6 +142,7 @@ extern TimeTable timetable;
 int freeMemory();
 void start();
 void run();
+bool sunsetDockingRequired();
 void setOperation(OperationType op, bool allowRepeat = false);
 void triggerObstacle();
 void sensorTest();

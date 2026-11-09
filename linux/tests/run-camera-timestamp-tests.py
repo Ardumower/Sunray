@@ -47,6 +47,10 @@ int main(int argc,char** argv){
  assert(clock.label(600)=="00:00:09.600"); // delayed inference retains capture time
  assert(clock.label(1235)!=clock.label(1234)); // sub-second frames are distinct
  for(int i=0;i<100;++i)assert(clock.label(600)=="00:00:09.600"); // no send-time refresh
+ // A clock correction must affect new labels without making stale frames fresh.
+ assert(CameraFrameClock::labelAt(1234,2000,system_clock::time_point(milliseconds(1811000)))=="00:30:10.234");
+ assert(CameraFrameClock::labelAt(600,2000,system_clock::time_point(milliseconds(1811000)))=="00:30:09.600");
+ assert(CameraFrameClock::labelAt(1234,2000,system_clock::time_point(milliseconds(1000)))=="00:00:00.234");
  CameraFrameClock midnight(1000,system_clock::time_point(milliseconds(86399500)));
  assert(midnight.label(1499)=="23:59:59.999");
  assert(midnight.label(1500)=="00:00:00.000");
