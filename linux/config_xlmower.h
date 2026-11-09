@@ -333,7 +333,8 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 //#define CURRENT_FACTOR 2.941  // PCB1.4 (bridged INA169, max. 5A)
 
 // Linux: GPS location + synchronized UTC clock, no cloud dependency.
-// Dock before sunset and inhibit automatic restart until sunrise.
+// Dock automatic mowing before sunset; inhibit automatic restart until sunrise.
+// Manual Start / joystick takeover overrides this pause for the current session.
 #define SUNSET_DOCK_ENABLE true
 #define SUNSET_DOCK_LEAD_MINUTES 30 // valid range 0..180
 #define GO_HOME_VOLTAGE   23.0  // start going to dock below this voltage

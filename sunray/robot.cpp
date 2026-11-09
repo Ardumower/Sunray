@@ -1248,7 +1248,7 @@ void run(){
     if (DOCK_STOP_ON_OBSTACLE && bumper.obstacle() && activeOp != &errorOp) {
       activeOp->stopOnDockingObstacle(SENS_BUMPER);
     }
-    if(sunsetDockingRequired() && activeOp->getGoalOperationType()==OP_MOW){
+    if(SunsetDock::shouldDock(sunsetDockingRequired(),activeOp->getGoalOperationType()==OP_MOW,mowOp.initiatedByOperator)){
       motor.stopImmediately(true);
       CONSOLE.println("SUNSET DOCK TRIGGERED - stopping mowing and returning to station");
       dockOp.setInitiatedByOperator(false);
@@ -1401,7 +1401,11 @@ void run(){
 
 // set new robot operation
 void setOperation(OperationType op, bool allowRepeat){  
-  if ((stateEstimator.stateOp == op) && (!allowRepeat)) return;  
+  if ((stateEstimator.stateOp == op) && (!allowRepeat)) {
+    // A repeated explicit Start can take over an automatically started session.
+    if(op==OP_MOW)mowOp.setInitiatedByOperator(true);
+    return;
+  }
   CONSOLE.print("setOperation op=");
   CONSOLE.println(op);
   stateEstimator.stateOp = op;  

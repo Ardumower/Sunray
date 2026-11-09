@@ -114,6 +114,7 @@ void ChargeOp::run(){
             }
             if (!sunsetDockingRequired() && timetable.shouldAutostartNow()){
                 CONSOLE.println("DOCK_AUTO_START: will automatically continue mowing now");
+                mowOp.setInitiatedByOperator(false); // new automatic session, discard prior manual override
                 changeOp(mowOp); // continue mowing                                                    
             }
         }
