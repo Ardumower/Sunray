@@ -4,10 +4,9 @@
 #include <limits>
 int main(){
  using namespace SunsetDock;
- assert(shouldDock(true,true,false)); // automatic mowing at night
- assert(!shouldDock(true,true,true)); // manual Start / joystick takeover
- assert(!shouldDock(true,false,false)); // Idle joystick / dock / charge
- assert(!shouldDock(false,true,false)); // automatic mowing in daytime
+ assert(shouldDock(true,true)); // autonomous mowing at night, including button starts
+ assert(!shouldDock(true,false)); // Idle joystick / dock / charge
+ assert(!shouldDock(false,true)); // automatic mowing in daytime
 
  Date day{2026,11,9};const double lat=52.37695,lon=8.70523;
  auto t=calculate(day,lat,lon);assert(t.valid && t.sunrise<t.sunset);

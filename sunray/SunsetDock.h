@@ -5,8 +5,8 @@
 // https://gml.noaa.gov/grad/solcalc/solareqns.PDF
 // Planning approximation: flat horizon, solar zenith 90.833 degrees.
 namespace SunsetDock {
-// Night scheduling never overrides an operator-controlled mowing session.
-inline bool shouldDock(bool night,bool mowing,bool manual){return night && mowing && !manual;}
+// Every autonomous mowing session observes night scheduling; Idle joystick driving is unaffected.
+inline bool shouldDock(bool night,bool mowing){return night && mowing;}
 struct Date {int year,month,day;};
 struct Times {bool valid=false;double sunrise=0,sunset=0;};
 struct Decision {bool valid=false,night=false;double sunrise=0,sunset=0,deadline=0,now=0;Date date{};};

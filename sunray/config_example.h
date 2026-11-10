@@ -337,7 +337,7 @@ Also, you may choose the serial port below for serial monitor output (CONSOLE).
 
 // Linux: GPS location + synchronized UTC clock, no cloud dependency.
 // Dock automatic mowing before sunset; inhibit automatic restart until sunrise.
-// Manual Start / joystick takeover overrides this pause for the current session.
+// Start commands also observe this pause. Direct joystick driving in Idle remains available.
 #define SUNSET_DOCK_ENABLE false
 #define SUNSET_DOCK_LEAD_MINUTES 30 // valid range 0..180
 #define GO_HOME_VOLTAGE   21.5  // start going to dock below this voltage

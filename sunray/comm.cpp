@@ -279,8 +279,6 @@ void Comm::cmdMotor(unsigned long timeoutMs){
   CONSOLE.print(linear);
   CONSOLE.print(" angular=");
   CONSOLE.println(angular);*/
-  if((linear!=0 || angular!=0) && activeOp->getGoalOperationType()==OP_MOW)
-    mowOp.setInitiatedByOperator(true); // explicit joystick takeover; zero keepalives do not override scheduling
   linear = applyManualSlowDown(linear);
   motor.setLinearAngularSpeed(linear, angular, false, timeoutMs);
   String s = F("M");
